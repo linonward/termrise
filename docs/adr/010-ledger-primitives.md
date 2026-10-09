@@ -9,7 +9,7 @@ CreditService 有一组按订单类型命名的方法：`grantPurchase`、`rever
 
 这样有三个问题：
 
-- 订单规则写在两个包中。每增加一种付款事件，`packages/billing` 和 `packages/credits` 都要修改。S04a–S06a 中，`billing-service.ts` 改了 8 次，`credit-service.ts` 改了 4 次。
+- 订单规则写在两个包中。每增加一种付款事件，`packages/billing` 和 `packages/credits` 都要修改。saas-starter S04a–S06a 中，`billing-service.ts` 改了 8 次，`credit-service.ts` 改了 4 次。
 - 锁顺序（订单 → 用户余额）由两个包的注释共同约定。只改一边就可能死锁。
 - 增加新的 Credits 来源（例如推荐奖励）时，必须先在 CreditService 中加一个专用方法。
 
@@ -33,4 +33,4 @@ CreditService 有一组按订单类型命名的方法：`grantPurchase`、`rever
 - `listActivity()` 仍然 join `purchases`、`subscriptions` 来显示 `pack_id` / `plan_id`。这是只读展示，不改变订单状态。
 - `debitTask()` / `refundTask()` 仍然读取 `tasks` 的状态，留给后续 Slice。
 
-2026-10-08 修订（S13）：`debitTask()` / `refundTask()` 改为原语 `debit()` / `refund()`，Task 的状态规则移到 TaskService。TaskService 是示例业务代码，留在 `apps/web`，不移到 `packages/*`：新产品要替换它；只有一个同步示例，无法证明抽象适合异步任务。
+2026-10-08 修订（saas-starter S13）：`debitTask()` / `refundTask()` 改为原语 `debit()` / `refund()`，Task 的状态规则移到 TaskService。TaskService 是示例业务代码，留在 `apps/web`，不移到 `packages/*`：新产品要替换它；只有一个同步示例，无法证明抽象适合异步任务。

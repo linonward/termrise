@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Acme（`example.com`）：按 Credit Pack 和月度订阅收费的 AI SaaS（订阅规则见 [ADR-009](docs/adr/009-subscription.md)）。本仓库从 saas-starter 模板创建，品牌、示例任务和价格按产品替换。
+Termrise：面向独立开发者的英文热词发现、产品机会验证、MVP 启动及首单复盘系统，见 [product.md](docs/product/product.md)。本仓库从 saas-starter 模板创建；模板的 Credit Pack 与订阅代码保留，暂时不用于对外收费（订阅规则见 [ADR-009](docs/adr/009-subscription.md)）。
 
 本文件是所有文档的唯一入口：只放每次都必须遵守的规则和导航，细节在 `docs/` 下。
 
@@ -29,6 +29,7 @@ Acme（`example.com`）：按 Credit Pack 和月度订阅收费的 AI SaaS（订
 | 任意 Slice                                                                  | [docs/roadmap.md](docs/roadmap.md)（Slice Plan、已确认决策、Open Questions） |
 | 开分支 / 提交 / PR                                                          | [docs/workflow.md](docs/workflow.md)                                         |
 | 产品定位、Scope、定价                                                       | [docs/product/product.md](docs/product/product.md)                           |
+| Termrise 业务模块（热词、关键词、SERP、机会、AI 任务、队列、预算）          | [docs/architecture/termrise.md](docs/architecture/termrise.md)               |
 | 页面、交互、文案、i18n、SEO、关键词矩阵                                     | [docs/product/ux.md](docs/product/ux.md)                                     |
 | 视觉、token、组件、设计稿（Pen）                                            | [docs/design/design-system.md](docs/design/design-system.md)                 |
 | 技术栈、架构、目录结构、Monorepo 与包的规则                                 | [docs/architecture/overview.md](docs/architecture/overview.md)               |
