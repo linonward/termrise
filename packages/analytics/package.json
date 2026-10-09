@@ -1,0 +1,20 @@
+{
+  "name": "@repo/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PostHog client after consent, server events, consent cookie, Web Analytics URL redaction",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "posthog-js": "^1.435.8",
+    "posthog-node": "^5.55.0",
+    "zod": "^4.6.5"
+  }
+}

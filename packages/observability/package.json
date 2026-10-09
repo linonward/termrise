@@ -1,0 +1,15 @@
+{
+  "name": "@repo/observability",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Structured logger, AppError and error codes, log scrubbing",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "drizzle-orm": "^0.45.3"
+  }
+}

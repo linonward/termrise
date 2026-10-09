@@ -1,0 +1,54 @@
+{
+  "skill_name": "seo-keyword-matrix",
+  "evals": [
+    {
+      "id": 1,
+      "name": "matrix-from-exports",
+      "prompt": "我们刚从模板做了一个新产品 Clipo，产品说明在 docs/product/product.md。eval-input/ahrefs-export.csv 是 Ahrefs 的关键词导出，eval-input/serp-export.csv 是这些词的 SERP overview 导出。帮我把关键词矩阵做出来，然后告诉我第一批应该做哪些页面。",
+      "expected_output": "seo/keywords.csv has all 18 keywords; seo/matrix.json clusters them by shared results and intent, rejects the out-of-scope ones and keeps the competitor ones as candidates; nothing is planned yet. The reply ranks the clusters, recommends a first batch and asks the maintainer to choose.",
+      "files": [
+        "evals/files/clipo/product.md",
+        "evals/files/clipo/ahrefs-export.csv",
+        "evals/files/clipo/serp-export.csv"
+      ],
+      "expectations": [
+        "The run used scripts/import.mjs and scripts/cluster.mjs instead of writing its own CSV parsing or clustering code",
+        "The reply lists the clusters by opportunity score and recommends a first batch from clusters with business, intent and productFit all 4 or more",
+        "The reply asks the maintainer to choose the first batch instead of choosing it",
+        "Every cluster with business, intent and productFit all 4 or more is either recommended or given a reason for leaving it out",
+        "The reply says the competitor keywords (creatify alternative) need a new page type such as /compare and asks before adding it"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "briefs-for-first-batch",
+      "prompt": "第一批就做 how-to-make-product-videos 和 etsy-listing-video 这两个 Cluster，帮我写 brief。",
+      "expected_output": "seo/briefs/how-to-make-product-videos.md and seo/briefs/etsy-listing-video.md follow the template; both clusters are planned; product facts cite docs/product/product.md; Etsy rules are cited from Etsy's own help with a date or marked as to be confirmed.",
+      "files": [
+        "evals/files/clipo/product.md",
+        "evals/files/clipo/matrix.json"
+      ],
+      "expectations": [
+        "Every product fact under Facts to use names its source (docs/product/product.md or another file)",
+        "Etsy's video rules (length, size, format) are either cited from Etsy's official help with a check date or marked as to be confirmed; none is stated without a source",
+        "Not in this page sends the other clusters' topics to their URLs (for example / or /blog/shopify-product-video) instead of covering them",
+        "No product capability that product.md does not list (editing, avatars, voice-over) appears in the outline",
+        "No fact marked as unverified under Facts to use is stated as fact in the Outline"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "search-console-review",
+      "prompt": "网站上线两个月了。eval-input/search-analytics.csv 是 Search Console API 导出的查询 × 页面数据（dimensions: query, page）。帮我看看有什么问题，下一步先改什么。",
+      "expected_output": "The reply finds the cannibalization of 'how do ai credits work' between /blog/how-credits-work and /pricing, lists the striking-distance queries, proposes adding the new queries and asks before any page merge or canonical change. Importing is optional; imported queries have source gsc.",
+      "files": ["evals/files/gsc/search-analytics.csv"],
+      "expectations": [
+        "The run used scripts/gsc-report.mjs",
+        "The reply names 'how do ai credits work' as cannibalization between /blog/how-credits-work and /pricing and keeps /blog/how-credits-work (cluster how-credits-work) as its page",
+        "The reply lists 'ai credits explained', 'do ai credits expire' and 'pay per use ai tool' as striking distance (average position 8–20)",
+        "For the cannibalization, the reply proposes a concrete change to /pricing (trim or rewrite the part that answers 'how do ai credits work' and link to /blog/how-credits-work) and asks before editing page copy; it does not propose merging pages or a canonical change",
+        "The reply proposes adding the new queries ('do ai credits expire', 'ai credits refund') to seo/keywords.csv or to a cluster"
+      ]
+    }
+  ]
+}

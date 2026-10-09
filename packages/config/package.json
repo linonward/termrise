@@ -1,0 +1,15 @@
+{
+  "name": "@repo/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Server env schema and the product manifest type",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

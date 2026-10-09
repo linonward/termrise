@@ -1,0 +1,19 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Better Auth setup, guards, safe redirects, rate limits",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "better-auth": "^1.7.7",
+    "drizzle-orm": "^0.45.3",
+    "zod": "^4.6.5"
+  }
+}

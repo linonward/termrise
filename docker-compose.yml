@@ -1,0 +1,39 @@
+# Local services. One shared set of containers for all worktrees.
+name: saas-starter
+
+services:
+  # PostgreSQL for automated tests only (docs/architecture/testing.md);
+  # each worktree uses its own database.
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "54330:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # S3-compatible stand-in for R2 in local development (docs/architecture/storage.md).
+  # Creates the app-dev bucket on start; local-only credentials.
+  storage:
+    image: chrislusf/seaweedfs:4.48
+    command: ["mini", "-s3.allowedOrigins=http://localhost:3000"]
+    environment:
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local-secret
+      S3_BUCKET: app-dev
+    ports:
+      - "8333:8333"
+    volumes:
+      - storage-data:/data
+
+volumes:
+  postgres-data:
+  storage-data:

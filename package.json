@@ -1,0 +1,53 @@
+{
+  "name": "saas-starter",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --filter=web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "prepare": "husky",
+    "db:generate": "pnpm --filter @repo/db db:generate",
+    "db:migrate": "pnpm --filter @repo/db db:migrate",
+    "db:studio": "pnpm --filter @repo/db db:studio",
+    "waffo:products": "pnpm --filter web waffo:products",
+    "admin:adjust": "pnpm --filter web admin:adjust",
+    "admin:export-user": "pnpm --filter web admin:export-user",
+    "admin:delete-user": "pnpm --filter web admin:delete-user",
+    "indexnow": "pnpm --filter web indexnow",
+    "seo:validate": "pnpm --filter web seo:validate",
+    "dev:api": "pnpm --filter api dev"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@playwright/test": "^1.63.0",
+    "@repo/config": "workspace:*",
+    "@types/node": "^20",
+    "@vitest/coverage-v8": "^5.0.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tsx": "4.23.15",
+    "turbo": "^2.11.7",
+    "typescript": "^5",
+    "vitest": "^5.0.3"
+  },
+  "packageManager": "pnpm@12.9.1",
+  "engines": {
+    "node": ">=24"
+  }
+}

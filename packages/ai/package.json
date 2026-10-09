@@ -1,0 +1,17 @@
+{
+  "name": "@repo/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AI provider port and adapters (example, DeepSeek, fake)",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^3.0.61",
+    "ai": "^7.0.130",
+    "zod": "^4.6.5"
+  }
+}

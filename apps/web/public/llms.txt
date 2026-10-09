@@ -1,0 +1,16 @@
+# Acme
+
+> Pay-as-you-go AI tool. Replace this file with your product summary.
+
+Acme runs tasks for you in exchange for credits. New accounts get 10 free credits. Credits come in one-time packs, never expire, and failed tasks are refunded automatically.
+
+## Pages
+
+- [Home](https://example.com/)
+- [Pricing](https://example.com/pricing)
+- [Blog](https://example.com/blog)
+- [Getting started with Acme](https://example.com/blog/getting-started)
+- [How credits work](https://example.com/blog/how-credits-work)
+- [Terms of Service](https://example.com/terms)
+- [Privacy Policy](https://example.com/privacy)
+- [Refund Policy](https://example.com/refund-policy)

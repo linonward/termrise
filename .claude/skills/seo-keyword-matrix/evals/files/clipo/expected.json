@@ -1,0 +1,38 @@
+{
+  "keywords": [
+    "ai product video generator",
+    "product video maker ai",
+    "ai product video maker",
+    "ai product video generator free",
+    "how to make product videos",
+    "how to make a product video",
+    "how to create product videos for ecommerce",
+    "how to make etsy listing video",
+    "etsy listing video requirements",
+    "etsy video size",
+    "how to add video to shopify product page",
+    "shopify product video",
+    "best ai product video generator",
+    "best product video maker",
+    "creatify alternative",
+    "creatify alternatives",
+    "ai video editor timeline",
+    "ai avatar video generator"
+  ],
+  "together": [
+    ["ai product video generator", "product video maker ai"],
+    ["ai product video generator", "ai product video generator free"],
+    ["how to make product videos", "how to make a product video"],
+    ["how to make etsy listing video", "etsy video size"],
+    ["shopify product video", "how to add video to shopify product page"],
+    ["best ai product video generator", "best product video maker"]
+  ],
+  "apart": [
+    ["ai product video generator", "best ai product video generator"],
+    ["ai product video generator", "how to make product videos"],
+    ["how to make product videos", "how to make etsy listing video"],
+    ["how to make product videos", "shopify product video"]
+  ],
+  "rejected": ["ai video editor timeline", "ai avatar video generator"],
+  "competitor": ["creatify alternative", "creatify alternatives"]
+}

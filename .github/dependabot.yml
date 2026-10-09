@@ -1,0 +1,15 @@
+# Only GitHub Actions: Dependabot supports pnpm up to v10 and this repo uses pnpm 12,
+# so npm dependencies are updated by hand (docs/runbook.md#update-dependencies).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # PR titles must pass commitlint (docs/workflow.md#pull-request).
+    commit-message:
+      prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - "*"

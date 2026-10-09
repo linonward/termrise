@@ -1,0 +1,21 @@
+{
+  "name": "@repo/billing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Credit packs, checkout and payment webhooks; Waffo and fake adapters",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/analytics": "workspace:*",
+    "@repo/credits": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "@waffo/pancake-ts": "^0.25.0",
+    "drizzle-orm": "^0.45.3",
+    "zod": "^4.6.5"
+  }
+}

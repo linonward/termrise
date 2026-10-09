@@ -1,0 +1,31 @@
+name: PR Title
+
+# Squash Merge uses the PR title as the commit message on main, and the local commit-msg hook
+# does not run on GitHub, so the title is checked here (docs/workflow.md#pull-request).
+# No paths-ignore: docs-only PRs are squashed into main too.
+# synchronize: each new head commit needs its own result, or the check disappears from the PR.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-title-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    name: PR Title (commitlint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The title goes through env, not ${{ }} in the script, so it cannot inject shell code.
+      - name: Lint the PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint

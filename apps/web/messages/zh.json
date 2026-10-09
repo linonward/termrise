@@ -1,0 +1,684 @@
+{
+  "meta": {
+    "title": "Acme",
+    "homeTitle": "Acme：按次付费的 AI 工具",
+    "description": "Acme 是按积分付费的 AI 工具。注册即送 10 积分，之后可以购买积分包或按月订阅。积分永不过期。"
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "按次付费",
+      "title": "写下你的需求，<line>几秒内拿到结果。</line>",
+      "body": "把这段文字替换为你的产品能做什么、适合谁。每次运行消耗积分；运行失败时自动退回积分。",
+      "cta": "免费开始",
+      "note": "注册即送 10 积分 · 无需绑卡"
+    },
+    "demo": {
+      "input": "hello world",
+      "output": "dlrow olleh"
+    },
+    "steps": {
+      "eyebrow": "使用步骤",
+      "title": "三个步骤。",
+      "signup": {
+        "title": "创建账号",
+        "body": "使用 Google 或邮箱链接登录，即送 10 积分。"
+      },
+      "run": {
+        "title": "运行任务",
+        "body": "每次运行消耗 1 积分。运行失败时积分自动退回。"
+      },
+      "buy": {
+        "title": "需要时再购买",
+        "body": "购买积分包或按月订阅，积分永不过期。"
+      }
+    },
+    "features": {
+      "eyebrow": "为什么选 Acme",
+      "title": "简单、公平的价格。",
+      "credits": {
+        "title": "按次付费",
+        "body": "一次性购买积分，或按月订阅，随时取消。"
+      },
+      "refunds": {
+        "title": "自动退回",
+        "body": "运行失败的积分自动退回余额。"
+      },
+      "privacy": {
+        "title": "默认保护隐私",
+        "body": "只有在你同意后才设置分析 Cookie。"
+      },
+      "languages": {
+        "title": "中文和英文",
+        "body": "整个应用都支持两种语言。"
+      }
+    },
+    "faq": {
+      "eyebrow": "常见问题",
+      "title": "常见问题解答。",
+      "start": {
+        "q": "开始需要准备什么？",
+        "a": "一个邮箱或 Google 账号。注册即送 10 积分。"
+      },
+      "credits": {
+        "q": "积分怎么用？",
+        "a": "每次运行消耗 1 积分。需要更多时，在价格页面购买积分包，或订阅后每月获得积分。"
+      },
+      "failed": {
+        "q": "运行失败会怎样？",
+        "a": "积分会自动退回。"
+      },
+      "expire": {
+        "q": "积分会过期吗？",
+        "a": "不会。积分永不过期。"
+      },
+      "refund": {
+        "q": "退款政策是什么？",
+        "a": "运行失败的积分一律自动退回。积分包购买的退款规则见<link>退款政策</link>。"
+      }
+    },
+    "finalCta": {
+      "title": "现在就试试？",
+      "body": "注册即送 10 积分，无需绑卡。"
+    },
+    "footer": {
+      "copyright": "© {year} Acme",
+      "terms": "服务条款",
+      "privacy": "隐私政策",
+      "refund": "退款政策",
+      "legal": "法律信息",
+      "support": "客服：{email}",
+      "blog": "博客"
+    }
+  },
+  "auth": {
+    "loginTitle": "欢迎回来",
+    "signupTitle": "创建账号",
+    "description": "登录后继续。",
+    "email": "邮箱地址",
+    "sendLink": "发送登录链接",
+    "sending": "正在发送…",
+    "google": "使用 Google 登录",
+    "lastUsed": "上次使用",
+    "divider": "或使用邮箱",
+    "checkEmail": "请查看邮箱",
+    "sent": "登录链接已发送，有效期为 5 分钟。",
+    "tryAgain": "使用其他邮箱",
+    "error": "无法登录，请重试。",
+    "emailUnavailable": "今天的邮件登录已达上限，请使用 Google 登录。",
+    "rateLimited": "操作过于频繁，请稍等一分钟后重试。",
+    "invalidLink": "登录链接无效或已过期，请获取新链接。",
+    "loginSwitch": "已有账号？登录",
+    "signupSwitch": "首次使用 Acme？创建账号",
+    "emailSubject": "你的 Acme 登录链接",
+    "emailBody": "点击以下链接登录 Acme。链接有效期为 5 分钟。如果你没有请求登录，请忽略这封邮件。"
+  },
+  "nav": {
+    "primary": "主导航",
+    "dashboard": "控制台",
+    "billing": "账单",
+    "credits": "{count} 积分",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "menu": "菜单",
+    "userMenu": "账号菜单",
+    "language": "语言",
+    "theme": "主题",
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色",
+    "logout": "退出登录",
+    "loggingOut": "正在退出…",
+    "logoutError": "无法退出登录，请重试。",
+    "localeShort": {
+      "en": "EN",
+      "zh": "中文"
+    },
+    "localeName": {
+      "en": "English",
+      "zh": "简体中文"
+    }
+  },
+  "dashboard": {
+    "welcome": "欢迎回来，{name}",
+    "welcomeBack": "欢迎回来",
+    "subtitle": "在下面运行任务。每次运行消耗 1 积分。",
+    "credits": "积分",
+    "available": "可用",
+    "estimate": "约可运行 {uses} 次",
+    "refundNote": "运行失败会自动退还积分。",
+    "buyCredits": "购买积分"
+  },
+  "status": {
+    "PENDING": "运行中",
+    "SUCCEEDED": "已完成",
+    "FAILED": "失败"
+  },
+  "marketing": {
+    "nav": "网站导航",
+    "pricing": "价格",
+    "blog": "博客",
+    "login": "登录",
+    "cta": "开始使用",
+    "dashboard": "控制台"
+  },
+  "pricing": {
+    "eyebrow": "价格",
+    "title": "按次付费，也可以订阅。",
+    "subtitle": "注册即送 10 Credits。需要更多时购买套餐，或订阅后每月获得 Credits。Credits 永不过期。",
+    "metaDescription": "按次付费：Single 套餐 {singlePrice}，套餐低至每次 {lowestPrice}；也可以订阅，每月 {planPrice}。积分永不过期。",
+    "pack": {
+      "single": "Single",
+      "starter": "Starter",
+      "creator": "Creator",
+      "pro": "Pro"
+    },
+    "plan": {
+      "monthly": "月度"
+    },
+    "subscription": "订阅",
+    "perMonth": "每月",
+    "creditsPerMonth": "每月 {count} Credits",
+    "mostPopular": "最受欢迎",
+    "oneTime": "一次性",
+    "credits": "{count} Credits",
+    "neverExpire": "Credits 永不过期",
+    "buy": "购买 {pack}",
+    "subscribe": "开始{plan}订阅",
+    "redirecting": "正在跳转…",
+    "failed": "运行失败",
+    "refunded": "自动退回 Credits",
+    "newAccount": "新账号",
+    "freeCredits": "赠送 10 Credits",
+    "finePrint": "价格以美元计，由 Waffo 安全处理付款。套餐为一次性付款，订阅每月自动续费。付款确认后 Credits 到账。",
+    "save": "省 {percent}%",
+    "uses": "{count} 次运行",
+    "perUse": "每次 {price}",
+    "task": "每次运行"
+  },
+  "billing": {
+    "title": "账单",
+    "credits": "Credits",
+    "available": "可用",
+    "buyCredits": "购买 Credits",
+    "history": "购买记录",
+    "empty": "还没有购买记录。",
+    "date": "日期",
+    "pack": "套餐",
+    "amount": "金额",
+    "creditsColumn": "Credits",
+    "status": "状态",
+    "purchaseStatus": {
+      "PENDING": "待付款",
+      "PAID": "已付款",
+      "FAILED": "失败",
+      "REFUNDED": "已退款"
+    },
+    "checkoutPending": {
+      "title": "已收到付款",
+      "body": "Credits 即将到账，本页会自动更新。"
+    },
+    "checkoutDone": {
+      "title": "Credits 已到账",
+      "body": "付款已确认，Credits 可以使用了。"
+    },
+    "checkoutTimeout": {
+      "title": "Credits 还没有到账",
+      "body": "请几分钟后刷新本页；如果仍未到账，请联系客服。"
+    },
+    "activity": {
+      "title": "Credit 明细",
+      "activityColumn": "内容",
+      "balance": "余额",
+      "signupBonus": "新用户赠送",
+      "purchase": "{pack} 套餐",
+      "purchaseReversal": "{pack} 套餐已退款",
+      "subscription": "{plan}订阅",
+      "subscriptionReversal": "{plan}订阅已退款",
+      "adjustment": "客服调整",
+      "loadMore": "加载更多",
+      "loading": "正在加载…",
+      "loadError": "无法加载更多记录，请重试。",
+      "task": "任务",
+      "taskRefund": "退回 · 任务失败"
+    },
+    "subscription": {
+      "title": "订阅",
+      "status": {
+        "ACTIVE": "生效中",
+        "PAST_DUE": "付款失败",
+        "CANCELING": "即将结束"
+      },
+      "renewsOn": "{date} 自动续费",
+      "endsOn": "{date} 结束，不再续费。",
+      "pastDue": "上次扣款失败。请在重试前更换付款卡，否则订阅会结束。请用付款时的邮箱登录。",
+      "updatePayment": "更新付款方式",
+      "cancel": "取消订阅",
+      "confirm": "订阅将不再续费。已有的 Credits 永不过期。",
+      "confirmCancel": "确认取消",
+      "keep": "保留订阅"
+    }
+  },
+  "legal": {
+    "updated": "最后更新：2026 年 10 月 8 日",
+    "terms": {
+      "title": "服务条款",
+      "description": "使用 Acme 的条款：账户、Credits 与付款、你的内容、可接受的使用方式，以及联系方式。",
+      "sections": {
+        "agreement": {
+          "title": "协议",
+          "body": [
+            "本条款适用于你对 Acme（example.com，以下称“本服务”）的使用。本服务由 Acme Inc.（以下称“我们”）运营。创建账号或使用本服务，即表示你同意本条款。",
+            "使用本服务时，你必须年满 18 周岁，或达到你所在地区的法定成年年龄。"
+          ]
+        },
+        "service": {
+          "title": "本服务",
+          "body": [
+            "Acme 消耗积分为你运行任务。请把这一段替换为你的服务内容，以及使用了哪些 AI 服务商。",
+            "AI 生成的内容可能不准确。使用前请检查每一个结果。"
+          ]
+        },
+        "account": {
+          "title": "你的账号",
+          "body": [
+            "你可以通过邮件链接或 Google 登录。请保护好你的邮箱和 Google 账号。你需要对账号下的所有操作负责。"
+          ]
+        },
+        "credits": {
+          "title": "积分与付款",
+          "body": [
+            "每个任务消耗 1 积分。新账号赠送 10 积分。",
+            "积分可以通过一次性积分包或按月订阅获得，价格以美元显示在定价页面（example.com/pricing）上。",
+            "付款由我们的 Merchant of Record（记录商户）Waffo Pancake 处理。Waffo 是该笔交易的卖方，负责收款、税务和发票。积分包是一次性交易。完成购买，即表示你授权 Waffo 按结账页面显示的金额从你的支付方式扣款。",
+            "订阅每月自动续费。订阅即表示你授权 Waffo 在每次续费时按方案价格从你的支付方式扣款，直到你取消。每次扣款成功后，该方案的积分会加入你的余额。",
+            "你可以随时在账单页面取消订阅。订阅在已付费周期结束前保持有效，之后不再续费。续费扣款失败时，Waffo 会重试一次；再次失败时，订阅结束。",
+            "除非价格另有说明，价格不含税。法律要求时，税费在结账时加收。",
+            "积分不会过期，没有现金价值，也不能转让。任务失败时，对应积分自动退回你的余额。购买退款按我们的退款政策处理。"
+          ]
+        },
+        "disputes": {
+          "title": "账单争议",
+          "body": [
+            "如果你认为某笔扣款有误，请在向银行发起争议或拒付之前，先联系 support@example.com，并附上账号邮箱和订单号。如果扣款确实有误，我们会全额退款。"
+          ]
+        },
+        "content": {
+          "title": "你的内容",
+          "body": [
+            "你上传的图片和文字的权利仍归你所有。你授权我们存储和处理这些内容，并发送给我们的 AI 服务商，仅用于为你提供本服务。",
+            "你确认你拥有上传内容的权利或已获得使用许可，包括其中出现的商标、Logo 和人物。",
+            "我们不主张对你生成的结果的所有权。你需要确保你的使用合法，且不侵犯他人的权利。"
+          ]
+        },
+        "acceptableUse": {
+          "title": "使用规范",
+          "body": [
+            "禁止使用本服务生成或传播违法内容、将未成年人性化的内容、骚扰他人的内容、侵犯他人权利的内容或误导性内容。",
+            "禁止尝试破坏、过载或逆向工程本服务。",
+            "对违反规则的情况，我们可能删除内容、拒绝任务，或暂停、关闭账号。举报内容或申诉，请发送邮件至 support@example.com。"
+          ]
+        },
+        "termination": {
+          "title": "终止",
+          "body": [
+            "你可以随时停止使用本服务。如需删除账号，请用账号邮箱发送邮件至 support@example.com。我们会在 30 天内删除你的账号和数据，详见隐私政策。",
+            "账号删除后，未使用的积分失效且不予退款，退款政策或法律要求退款的情况除外。",
+            "如果我们因你违反本条款而关闭你的账号，未使用的积分不予退款。"
+          ]
+        },
+        "disclaimer": {
+          "title": "免责声明与责任限制",
+          "body": [
+            "本服务按“现状”提供。我们不保证本服务始终可用，也不保证每个结果都符合你的预期。",
+            "在法律允许的范围内，我们对你的全部责任以你在索赔前 12 个月内向我们支付的金额为限。"
+          ]
+        },
+        "changes": {
+          "title": "条款变更、适用法律与争议解决",
+          "body": [
+            "我们可能更新本条款。如有重大变更，我们会在生效前至少 15 天通过邮件或在本服务中通知你。",
+            "本条款适用美国特拉华州法律。",
+            "如与我们发生争议，请先联系 support@example.com。我们会在 30 天内尝试与你协商解决。本条款不限制你根据所在国家的消费者保护法律享有的任何权利。"
+          ]
+        },
+        "contact": {
+          "title": "联系我们",
+          "body": ["关于本条款的问题：support@example.com。"]
+        }
+      }
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "description": "Acme 收集哪些数据、如何使用、与谁共享、保存多久，以及你的权利。",
+      "sections": {
+        "intro": {
+          "title": "我们是谁",
+          "body": [
+            "Acme（example.com）由 Acme Inc. 运营。我们是本政策所述个人数据的数据控制者。联系方式：support@example.com。",
+            "本政策说明我们收集哪些个人数据、为什么收集，以及与谁共享。"
+          ]
+        },
+        "collect": {
+          "title": "我们收集的数据",
+          "body": [
+            "账号数据：你的邮箱地址；如果你使用 Google 登录，还包括你的姓名和头像。",
+            "内容：你提交的文字和文件，以及我们为你生成的结果。",
+            "账单数据：你的购买记录和积分明细。支付卡数据只由通过 PCI-DSS 认证的支付处理方 Waffo Pancake 处理，不保存在我们的服务器上。",
+            "使用数据：你访问的页面和执行的操作（例如开始任务），以及浏览器类型、错误报告等技术数据。这些数据不包含你的邮箱和输入内容。"
+          ]
+        },
+        "use": {
+          "title": "我们如何使用数据",
+          "body": [
+            "用于登录、运行和保存你的任务、维护积分余额、处理购买和退款、防止滥用、修复错误，以及改进本服务。",
+            "法律依据：我们处理账号、内容和账单数据，是为了履行与你的合同、提供本服务；处理使用数据和错误数据，是基于保障本服务安全和正常运行的正当利益；分析 Cookie 只在你同意后使用；保留账单记录，是为了履行法定义务。我们不使用 Cookie 统计页面访问量，这是基于了解哪些页面和渠道带来访客的正当利益。",
+            "我们不出售你的个人信息，包括 CCPA 等适用法律所定义的出售。我们不用你上传的内容训练 AI 模型。"
+          ]
+        },
+        "share": {
+          "title": "我们与谁共享",
+          "body": [
+            "我们使用以下服务商运行 Acme，每个服务商只获得其需要的数据：",
+            "Vercel（托管、无 Cookie 的页面统计和页面速度测量）· Neon（数据库）· Cloudflare R2（文件存储）· Waffo Pancake（支付，Merchant of Record）· Resend（登录邮件）· Google（可选登录）· PostHog（产品分析）· Sentry（错误监控）。请加入每一个接收用户数据的 AI 服务商。",
+            "法律要求时，我们也可能披露数据。"
+          ]
+        },
+        "cookies": {
+          "title": "Cookie 与本地存储",
+          "body": [
+            "我们使用会话 Cookie 保持你的登录状态，使用一个 Cookie 记住你上次的登录方式（Google 或邮箱，保存 30 天），并使用 NEXT_LOCALE Cookie 记住你的语言。你选择的主题保存在浏览器的本地存储中。",
+            "分析：只有在你同意 Cookie 横幅后，PostHog 才会设置分析 Cookie，并接收来自你浏览器的使用事件。如果你拒绝，我们不会设置分析 Cookie，也不会从你的浏览器发送事件。你可以随时通过页脚的“Cookie 设置”更改选择。",
+            "页面统计：Vercel Web Analytics 统计页面访问量，并显示访客来自哪些网站和推广活动。它不设置 Cookie，也不识别你的身份。它记录去掉个人 ID 的页面地址、链接中的推广标签（utm_ 参数）、来源网站、国家、设备类型、浏览器和操作系统。Vercel 用根据请求临时生成的值区分访问，24 小时后丢弃。",
+            "页面速度：Vercel Speed Insights 测量页面在你的浏览器中加载和响应的速度。它不设置 Cookie，也不识别你的身份。它记录去掉个人 ID 的页面地址、页面类型、加载速度测量值及其对应的页面元素、网络类型、国家、设备类型、浏览器和操作系统。",
+            "如果你已登录，我们还会把你的选择保存在账号中。只有在你同意后，我们的服务器才会向 PostHog 发送账号事件：注册、完成的购买和任务结果。这些事件使用你的内部账号 ID，不使用邮箱，也不包含你的输入内容。"
+          ]
+        },
+        "security": {
+          "title": "数据安全",
+          "body": [
+            "本服务的所有流量都使用 HTTPS。你的文件存放在私有存储中，只能通过短期有效的签名链接访问。生产系统的访问权限受到限制。",
+            "如果发生影响你权利的安全事件，我们会按法律要求，在发现后 72 小时内通知你和相关监管机构。"
+          ]
+        },
+        "retention": {
+          "title": "数据保留期限",
+          "body": [
+            "账号存续期间，我们保留你的账号数据和内容。账单记录按税务和会计法规要求的期限保留。",
+            "你申请删除账号后，我们会在 30 天内删除你的数据，法律要求保留的记录除外。"
+          ]
+        },
+        "rights": {
+          "title": "你的权利",
+          "body": [
+            "根据你所在地区的法律，你可以要求访问、更正、导出或删除你的个人数据，限制或反对我们使用这些数据，或随时撤回你的同意。你也可以向当地的数据保护机构投诉。",
+            "请将请求发送至 support@example.com。我们会在 30 个自然日内回复。"
+          ]
+        },
+        "marketing": {
+          "title": "邮件与营销",
+          "body": [
+            "我们只发送本服务需要的邮件，例如登录链接。我们不发送营销邮件。如果以后发送，我们会先征得你的同意，并在每封邮件中提供退订链接。"
+          ]
+        },
+        "transfers": {
+          "title": "数据存储地点",
+          "body": [
+            "我们的服务器和大多数服务商位于美国。如果你在其他地区，你的数据会被传输到美国并在美国处理。",
+            "法律要求时，这些传输受服务商提供的标准合同条款（SCCs）等保障措施保护。"
+          ]
+        },
+        "children": {
+          "title": "未成年人",
+          "body": [
+            "本服务面向 18 周岁及以上的用户。我们不会故意收集 18 周岁以下人士的信息。如果你认为有未成年人向我们提供了个人数据，请联系我们，我们会删除这些数据。"
+          ]
+        },
+        "links": {
+          "title": "第三方服务",
+          "body": [
+            "本服务链接到其他公司运营的服务，例如 Waffo 结账页面和 Google 登录。使用这些服务时，适用它们各自的隐私政策。"
+          ]
+        },
+        "changes": {
+          "title": "政策变更",
+          "body": [
+            "我们可能更新本政策。如有重大变更，我们会在生效前至少 15 天通过邮件或在本服务中通知你。页面顶部的日期为最新版本的日期。"
+          ]
+        },
+        "contact": {
+          "title": "联系我们",
+          "body": ["隐私相关问题和请求：support@example.com。"]
+        }
+      }
+    },
+    "refund": {
+      "title": "退款政策",
+      "description": "任务失败时自动退还积分。未使用的积分包和订阅付款在 14 天内可以全额退款。积分永不过期。",
+      "sections": {
+        "failed": {
+          "title": "任务失败",
+          "body": [
+            "如果任务失败，对应积分会自动退回你的余额，你不需要联系我们。"
+          ]
+        },
+        "purchases": {
+          "title": "积分包购买",
+          "body": [
+            "购买后 14 天内，且该积分包的积分未被使用，可申请全额退款。",
+            "如果你被重复扣款或扣款金额有误，我们会全额退还多扣的金额。",
+            "积分包的积分被使用后，或购买超过 14 天后，该笔购买不予退款，你所在地法律要求退款的情况除外。",
+            "申请退款请用账号邮箱发送邮件至 support@example.com，并附上订单号。我们会审查每一个申请，并通过邮件回复。"
+          ]
+        },
+        "subscriptions": {
+          "title": "订阅",
+          "body": [
+            "你可以随时在账单页面取消订阅。订阅在已付费周期结束前保持有效。取消不退还当前周期的费用。",
+            "订阅付款后 14 天内，且该次付款获得的积分未被使用，可申请全额退款。退款不会取消订阅；如需停止后续扣款，请同时在账单页面取消订阅。",
+            "订阅获得的积分在订阅结束后仍保留在你的账号中。"
+          ]
+        },
+        "process": {
+          "title": "退款流程",
+          "body": [
+            "付款由我们的 Merchant of Record（记录商户）Waffo 处理。退款批准后原路退回。银行入账可能需要几个工作日。",
+            "付款退款后，该积分包或该次订阅付款的积分会从你的余额中扣除。如果你已经使用了部分积分，我们只扣除剩余的部分。你的余额永远不会低于零。"
+          ]
+        },
+        "expiry": {
+          "title": "积分不会过期",
+          "body": ["未使用的积分会一直保留在你的账号中，订阅结束后也是如此。"]
+        },
+        "contact": {
+          "title": "联系我们",
+          "body": ["账单相关问题：support@example.com。"]
+        }
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie 偏好",
+    "body": "我们使用分析 Cookie 了解 Acme 的使用情况。只有在你同意后才会设置这些 Cookie。详见<link>隐私政策</link>。",
+    "accept": "同意",
+    "decline": "拒绝",
+    "settings": "Cookie 设置"
+  },
+  "errors": {
+    "UNAUTHORIZED": "登录已过期，请重新登录。",
+    "FORBIDDEN": "你没有权限执行这个操作。",
+    "INVALID_INPUT": "提交的信息有误，请检查后重试。",
+    "RATE_LIMITED": "请求过于频繁，请等待一分钟后重试。",
+    "INSUFFICIENT_CREDITS": "Credits 不足。",
+    "UPLOAD_NOT_FOUND": "上传的文件已失效，请重新上传。",
+    "PURCHASE_NOT_FOUND": "这条购买记录不存在。",
+    "SUBSCRIPTION_EXISTS": "你已经有订阅了，请在账单页面管理。",
+    "SUBSCRIPTION_NOT_FOUND": "没有可以取消的订阅。",
+    "PROVIDER_ERROR": "服务暂不可用，请稍后重试。",
+    "PAYMENT_ERROR": "支付暂时不可用，请几分钟后重试。",
+    "STORAGE_ERROR": "文件存储暂时不可用，请重试。",
+    "INTERNAL_ERROR": "服务器出错了，请重试。",
+    "NETWORK_ERROR": "无法连接服务器，请检查网络后重试。",
+    "TASK_NOT_FOUND": "这个任务不存在。"
+  },
+  "errorPage": {
+    "title": "出错了",
+    "body": "这个页面无法加载。请重试，或返回控制台。",
+    "retry": "重试",
+    "home": "返回控制台"
+  },
+  "notFound": {
+    "code": "错误 404",
+    "title": "页面不存在",
+    "body": "你访问的页面不存在或已移动。",
+    "home": "返回首页",
+    "dashboard": "返回控制台"
+  },
+  "admin": {
+    "label": "管理",
+    "searchTitle": "查找用户",
+    "searchDescription": "按邮箱或用户 ID 查找。",
+    "query": "邮箱或用户 ID",
+    "search": "查找",
+    "searching": "正在查找…",
+    "noUser": "没有与该邮箱或 ID 对应的用户。",
+    "back": "返回查找",
+    "userId": "用户 ID",
+    "joined": "注册时间",
+    "credits": "Credits",
+    "ledgerOk": "余额与 Credit 流水一致。",
+    "ledgerMismatch": "余额 {balance} 与流水合计 {sum} 不一致。找到原因之前，不要调整 Credits。",
+    "adjustTitle": "调整 Credits",
+    "amount": "数量",
+    "amountHint": "扣减时填负数。每次最多 {limit}。",
+    "reason": "原因",
+    "reasonHint": "工单号或原因。不要填写邮箱。",
+    "adjust": "确认调整",
+    "adjusting": "正在调整…",
+    "adjusted": "已调整。当前余额：{balance}。",
+    "adjustError": {
+      "INVALID_INPUT": "表单无效。请刷新页面后重试。",
+      "INVALID_AMOUNT": "请填写不为 0 的整数，正负都不超过 1000。",
+      "INVALID_REASON": "请填写原因。",
+      "USER_NOT_FOUND": "该用户不存在。",
+      "INSUFFICIENT_CREDITS": "余额不足，无法扣减。余额没有变化。",
+      "IDEMPOTENCY_CONFLICT": "这个表单已经用于另一次调整。请刷新页面并检查流水。",
+      "INTERNAL": "出现错误。请刷新页面，先检查流水再重试。"
+    },
+    "transactions": "Credit 流水",
+    "purchases": "购买记录",
+    "empty": "暂无记录。",
+    "column": {
+      "date": "时间",
+      "type": "类型",
+      "amount": "数量",
+      "balanceAfter": "变动后余额",
+      "note": "备注",
+      "status": "状态",
+      "cost": "消耗",
+      "error": "错误",
+      "pack": "套餐",
+      "price": "金额",
+      "credits": "Credits",
+      "orderId": "Waffo 订单号"
+    },
+    "transactionType": {
+      "SIGNUP_BONUS": "注册赠送",
+      "PURCHASE": "购买",
+      "PURCHASE_REVERSAL": "购买退款",
+      "ADMIN_ADJUSTMENT": "人工调整",
+      "SUBSCRIPTION_GRANT": "订阅",
+      "SUBSCRIPTION_REVERSAL": "订阅退款",
+      "TASK_DEBIT": "任务扣费",
+      "TASK_REFUND": "任务退款"
+    },
+    "tasks": "任务"
+  },
+  "blog": {
+    "meta": {
+      "title": "Acme 博客",
+      "description": "Acme 的使用指南和更新。"
+    },
+    "index": {
+      "eyebrow": "博客",
+      "title": "使用指南和更新。",
+      "intro": "简短、实用的指南。请用你自己的文章替换这些示例。",
+      "read": "阅读指南"
+    },
+    "home": "博客",
+    "related": "继续阅读",
+    "breadcrumb": "面包屑导航",
+    "updated": "更新于 {date}",
+    "posts": {
+      "gettingStarted": {
+        "meta": {
+          "title": "Acme 入门",
+          "description": "创建账号、运行第一个任务、查看积分。"
+        },
+        "title": "Acme 入门",
+        "summary": "示例文章：创建账号、运行第一个任务、查看积分。",
+        "cta": "免费开始",
+        "finalCta": "运行你的第一个任务。",
+        "sections": {
+          "signup": {
+            "title": "创建账号",
+            "body": [
+              "使用 Google 或邮箱链接登录。新账号赠送 10 积分。<link>从这里开始</link>。"
+            ]
+          },
+          "run": {
+            "title": "运行第一个任务",
+            "steps": [
+              "打开控制台。",
+              "输入一段文字。",
+              "点击“运行”。任务消耗 1 积分。"
+            ]
+          },
+          "next": {
+            "title": "接下来读什么",
+            "list": ["积分怎么用", "退款政策"]
+          }
+        }
+      },
+      "howCreditsWork": {
+        "meta": {
+          "title": "Acme 的积分规则",
+          "description": "积分是什么、什么时候消耗、什么时候退回。"
+        },
+        "title": "积分规则",
+        "summary": "示例文章：积分是什么、什么时候消耗、什么时候退回。",
+        "cta": "查看价格",
+        "finalCta": "选择一个积分包。",
+        "sections": {
+          "what": {
+            "title": "积分是什么",
+            "body": [
+              "每次运行消耗 1 积分，积分永不过期。积分包见<link>价格页面</link>。"
+            ]
+          },
+          "refunds": {
+            "title": "积分什么时候退回",
+            "list": [
+              "运行失败时，积分自动退回。",
+              "购买退款时，扣除该积分包剩余的积分。"
+            ]
+          },
+          "check": {
+            "title": "查看余额",
+            "steps": ["打开“账单”。", "查看积分明细。"]
+          }
+        }
+      }
+    }
+  },
+  "tasks": {
+    "title": "示例任务",
+    "body": "这个示例会把你的文字倒序。请替换为你的产品功能。",
+    "input": "文字",
+    "run": "运行 · 1 积分",
+    "running": "正在运行…",
+    "failed": "这次运行失败了，积分已退回。",
+    "empty": "还没有运行记录。",
+    "emptyHint": "输入一段文字，运行第一个任务。",
+    "buyCredits": "购买积分"
+  }
+}

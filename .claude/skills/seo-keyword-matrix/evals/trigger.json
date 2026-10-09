@@ -1,0 +1,66 @@
+[
+  {
+    "query": "帮我做一下关键词矩阵，产品说明在 docs/product/product.md，我这周想开始写 blog",
+    "should_trigger": true
+  },
+  {
+    "query": "这是 ahrefs 导出的 keywords（~/Downloads/clipo-keywords.csv），帮我挑出第一批要写的页面",
+    "should_trigger": true
+  },
+  {
+    "query": "下一批 blog 写什么？seo/matrix.json 里 candidate 的那些你排一下",
+    "should_trigger": true
+  },
+  {
+    "query": "'how to make product videos' 和 'how to make a product video' 应该放一个页面还是两个？",
+    "should_trigger": true
+  },
+  {
+    "query": "给 etsy-listing-video 这个 cluster 写个 brief，下周让人写文章",
+    "should_trigger": true
+  },
+  {
+    "query": "GSC 里同一个词有两个页面在抢排名，search console 的 query × page 数据我导出来了，帮我看看怎么处理",
+    "should_trigger": true
+  },
+  {
+    "query": "哪些页面排名在第二页、稍微改改就能上首页？我有 search console api 导出的 csv",
+    "should_trigger": true
+  },
+  {
+    "query": "keyword research for our new product: we sell AI product videos to shopify sellers, which keywords should we go after first",
+    "should_trigger": true
+  },
+  {
+    "query": "sitemap.xml 里少了 /pricing，帮我查一下为什么",
+    "should_trigger": false
+  },
+  {
+    "query": "首页的 og:image 在 twitter 上显示不出来",
+    "should_trigger": false
+  },
+  {
+    "query": "把 /blog/how-credits-work 这篇文章的英文正文改得更自然一点",
+    "should_trigger": false
+  },
+  {
+    "query": "给 how-to-make-product-videos 这篇按 brief 写正文，en 和 zh 都要",
+    "should_trigger": false
+  },
+  {
+    "query": "Lighthouse 跑出来 LCP 4.2s，帮我看看 landing page 哪里慢",
+    "should_trigger": false
+  },
+  {
+    "query": "为什么 google 搜不到我们的网站？search console 显示「已发现，尚未编入索引」",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我写一条 tweet 宣传新上线的 etsy 视频功能",
+    "should_trigger": false
+  },
+  {
+    "query": "posthog 里 signup 转化率按 landing page 拆一下",
+    "should_trigger": false
+  }
+]

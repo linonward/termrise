@@ -1,0 +1,15 @@
+{
+  "name": "@repo/seo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sitemap, JSON-LD, IndexNow and keyword matrix validation",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

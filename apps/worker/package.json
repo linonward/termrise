@@ -1,0 +1,20 @@
+{
+  "name": "worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Background job worker (skeleton): runs @repo/jobs handlers",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/jobs": "workspace:*",
+    "@repo/observability": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

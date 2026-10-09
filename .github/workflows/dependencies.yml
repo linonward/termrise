@@ -1,0 +1,67 @@
+name: Dependencies
+
+# Weekly: advisories in all dependencies and outdated packages (docs/workflow.md#dependency-checks).
+# Only on the default branch. On failure GitHub emails the last person who changed the cron line;
+# with the FEISHU_WEBHOOK_URL secret set, a Feishu bot also posts to the team chat.
+on:
+  schedule:
+    - cron: "17 1 * * 1" # Monday 01:17 UTC; off the hour, as GitHub and Feishu both advise
+  workflow_dispatch:
+    inputs:
+      test_notification:
+        description: Only send a test message to Feishu (checks the secrets); skip the checks
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  test-notification:
+    name: Test Feishu notification
+    if: inputs.test_notification
+    runs-on: ubuntu-latest
+    env:
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # Fails when the secret is missing or Feishu rejects the message (bad signature, keyword).
+      - run: >-
+          node .github/scripts/notify-feishu.mjs
+          "[${{ github.repository }}] 测试消息：Dependencies workflow 可以发送飞书通知。
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  check:
+    name: Audit · Outdated
+    if: ${{ !inputs.test_notification }}
+    runs-on: ubuntu-latest
+    env:
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Information only: pnpm outdated exits 1 whenever anything is outdated.
+      - name: Outdated packages
+        run: |
+          echo '## Outdated packages' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          pnpm outdated --recursive --format list >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Audit all dependencies
+        run: pnpm audit --audit-level=high
+      - name: Notify Feishu
+        if: failure() && env.FEISHU_WEBHOOK_URL != ''
+        run: >-
+          node .github/scripts/notify-feishu.mjs
+          "[${{ github.repository }}] 每周依赖检查失败：有高危漏洞或检查出错。处理步骤见 docs/runbook.md 的 Update Dependencies。
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

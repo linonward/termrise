@@ -1,0 +1,149 @@
+{
+  "clusters": [
+    {
+      "id": "ai-product-video-generator",
+      "primary": "ai product video generator",
+      "keywords": [
+        "ai product video generator",
+        "product video maker ai",
+        "ai product video maker",
+        "ai product video generator free"
+      ],
+      "intent": "transactional",
+      "scores": {
+        "business": 5,
+        "intent": 5,
+        "productFit": 5,
+        "competition": 2,
+        "demand": 5
+      },
+      "page": { "type": "landing", "path": "/" },
+      "status": "candidate"
+    },
+    {
+      "id": "how-to-make-product-videos",
+      "primary": "how to make product videos",
+      "keywords": [
+        "how to make product videos",
+        "how to make a product video",
+        "how to create product videos for ecommerce"
+      ],
+      "intent": "informational",
+      "scores": {
+        "business": 4,
+        "intent": 5,
+        "productFit": 4,
+        "competition": 3,
+        "demand": 4
+      },
+      "page": { "type": "blog", "path": "/blog/how-to-make-product-videos" },
+      "status": "candidate"
+    },
+    {
+      "id": "etsy-listing-video",
+      "primary": "how to make etsy listing video",
+      "keywords": [
+        "how to make etsy listing video",
+        "etsy listing video requirements",
+        "etsy video size"
+      ],
+      "intent": "informational",
+      "scores": {
+        "business": 4,
+        "intent": 5,
+        "productFit": 5,
+        "competition": 4,
+        "demand": 3
+      },
+      "page": { "type": "blog", "path": "/blog/etsy-listing-video" },
+      "status": "candidate"
+    },
+    {
+      "id": "shopify-product-video",
+      "primary": "shopify product video",
+      "keywords": [
+        "shopify product video",
+        "how to add video to shopify product page"
+      ],
+      "intent": "informational",
+      "scores": {
+        "business": 4,
+        "intent": 4,
+        "productFit": 4,
+        "competition": 3,
+        "demand": 3
+      },
+      "page": { "type": "blog", "path": "/blog/shopify-product-video" },
+      "status": "candidate"
+    },
+    {
+      "id": "best-ai-product-video-generator",
+      "primary": "best ai product video generator",
+      "keywords": [
+        "best ai product video generator",
+        "best product video maker"
+      ],
+      "intent": "commercial",
+      "scores": {
+        "business": 5,
+        "intent": 4,
+        "productFit": 3,
+        "competition": 2,
+        "demand": 2
+      },
+      "page": {
+        "type": "blog",
+        "path": "/blog/best-ai-product-video-generator"
+      },
+      "status": "candidate"
+    },
+    {
+      "id": "creatify-alternative",
+      "primary": "creatify alternative",
+      "keywords": ["creatify alternative", "creatify alternatives"],
+      "intent": "commercial",
+      "scores": {
+        "business": 5,
+        "intent": 4,
+        "productFit": 3,
+        "competition": 3,
+        "demand": 2
+      },
+      "page": { "type": "blog", "path": "/blog/creatify-alternative" },
+      "status": "candidate",
+      "note": "Needs a /compare/{competitor} page type; ask the maintainer."
+    },
+    {
+      "id": "ai-video-editor",
+      "primary": "ai video editor timeline",
+      "keywords": ["ai video editor timeline"],
+      "intent": "transactional",
+      "scores": {
+        "business": 1,
+        "intent": 4,
+        "productFit": 1,
+        "competition": 1,
+        "demand": 5
+      },
+      "page": { "type": "landing", "path": "/" },
+      "status": "rejected",
+      "note": "Out of scope: no timeline editor."
+    },
+    {
+      "id": "ai-avatar-video",
+      "primary": "ai avatar video generator",
+      "keywords": ["ai avatar video generator"],
+      "intent": "transactional",
+      "scores": {
+        "business": 1,
+        "intent": 4,
+        "productFit": 1,
+        "competition": 1,
+        "demand": 5
+      },
+      "page": { "type": "landing", "path": "/" },
+      "status": "rejected",
+      "note": "Out of scope: no AI avatars."
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+/* Design tokens (docs/design/design-system.md). Imported by each app's globals.css. */
+@custom-variant dark (&:is(.dark *));
+
+/* Design tokens — source of truth: docs/design/design-system.md (Pen variables).
+   Light in :root, dark in .dark (toggled by next-themes). brand, brand-foreground and
+   overlay are identical in both themes. */
+:root {
+  --background: #ffffff;
+  --surface: #f7f6f3;
+  --surface-strong: #efede8;
+  --border: #e6e3dd;
+  --border-strong: #d4d0c8;
+  --foreground: #111318;
+  --muted-foreground: #5e626b;
+  --subtle-foreground: #8a8e96;
+  --primary: #111318;
+  --primary-hover: #2a2d35;
+  --primary-foreground: #ffffff;
+  --brand: #ff5b2e;
+  --brand-soft: #ffeee7;
+  --brand-text: #c2410c;
+  --brand-foreground: #111318;
+  --success: #15803d;
+  --success-soft: #e8f6ec;
+  --info: #2457d6;
+  --info-soft: #eaf0fd;
+  --warning: #a35a00;
+  --warning-soft: #fff4df;
+  --destructive: #c42b1c;
+  --destructive-soft: #fdecea;
+  --overlay: #111318cc;
+
+  /* shadcn/ui variables mapped onto the design tokens */
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface);
+  --accent: var(--surface-strong);
+  --accent-foreground: var(--foreground);
+  --input: var(--border-strong);
+  --ring: var(--brand);
+  color-scheme: light;
+}
+
+.dark {
+  --background: #111318;
+  --surface: #191b20;
+  --surface-strong: #23262d;
+  --border: #2a2d35;
+  --border-strong: #3a3e47;
+  --foreground: #f4f3ef;
+  --muted-foreground: #a3a7af;
+  --subtle-foreground: #80848d;
+  --primary: #f4f3ef;
+  --primary-hover: #dcdad4;
+  --primary-foreground: #111318;
+  --brand-soft: #3a1e14;
+  --brand-text: #ff8a65;
+  --success: #4ade80;
+  --success-soft: #12291b;
+  --info: #7fa6ff;
+  --info-soft: #17223d;
+  --warning: #f5b544;
+  --warning-soft: #2e2210;
+  --destructive: #ff7a6b;
+  --destructive-soft: #36171a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-text: var(--brand-text);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-overlay: var(--overlay);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans:
+    var(--font-inter), "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
+  --font-heading:
+    var(--font-bricolage), var(--font-inter), "Noto Sans SC", "PingFang SC",
+    sans-serif;
+  /* Pen renders Bricolage at its display cut; match it at every size. */
+  --font-heading--font-variation-settings: "opsz" 96;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE "credit_transactions" DROP CONSTRAINT "credit_transactions_type_valid";--> statement-breakpoint
+ALTER TABLE "credit_transactions" ADD CONSTRAINT "credit_transactions_type_valid" CHECK ("credit_transactions"."type" in ('SIGNUP_BONUS', 'PURCHASE', 'PURCHASE_REVERSAL', 'TASK_DEBIT', 'TASK_REFUND', 'ADMIN_ADJUSTMENT', 'SUBSCRIPTION_GRANT', 'SUBSCRIPTION_REVERSAL'));

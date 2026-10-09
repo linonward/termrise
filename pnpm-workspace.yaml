@@ -1,0 +1,17 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  "@parcel/watcher": false
+  "@swc/core": false
+  core-js: false
+  esbuild: true
+  sharp: true
+  unrs-resolver: false
+
+# Advisories accepted after review (docs/runbook.md#update-dependencies). Remove each when a fix ships.
+auditConfig:
+  ignoreGhsas:
+    # braces <=3.0.3, no patched version (2026-10-08). Dev only: eslint-config-next and the shadcn CLI.
+    - GHSA-vfj7-8cjw-p6xm

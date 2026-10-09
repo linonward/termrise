@@ -1,0 +1,107 @@
+name: CI
+
+# Private repo on GitHub Free: Actions minutes are limited. PRs run CI before the merge,
+# so main does not run it again; docs-only PRs skip it (docs/workflow.md#pull-request).
+on:
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint · Format · Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_test_ci
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # High or critical advisories in production dependencies block the merge (docs/runbook.md#update-dependencies).
+      # A registry outage does not; the weekly Dependencies workflow checks again.
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high --ignore-registry-errors
+      # A schema change without its migration fails here (docs/architecture/deployment.md#migrations).
+      # Offline; a rename prompt cannot be answered, so the timeout fails the step.
+      - name: Migrations match the schema
+        timeout-minutes: 2
+        run: |
+          pnpm db:generate
+          test -z "$(git status --porcelain -- packages/db/migrations)"
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_test_e2e
+      # Inlined at build time; /ingest requests are intercepted in tests/e2e/analytics.spec.ts.
+      NEXT_PUBLIC_POSTHOG_KEY: phc_e2e_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Browsers are cached per Playwright version. No --with-deps: the runner image
+      # already ships Chromium's system libraries, and the apt step once took 20 min.
+      - id: playwright
+        run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+      - run: pnpm build
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

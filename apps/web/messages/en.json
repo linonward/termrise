@@ -1,0 +1,686 @@
+{
+  "meta": {
+    "title": "Acme",
+    "homeTitle": "Acme: Pay-as-you-go AI tool",
+    "description": "Acme is an AI tool you pay for with credits. Start with 10 free credits, then buy a pack or subscribe monthly. Credits never expire."
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Pay as you go",
+      "title": "Describe what you need. <line>Get the result in seconds.</line>",
+      "body": "Replace this text with what your product does and who it is for. Each run uses credits; failed runs are refunded automatically.",
+      "cta": "Get started free",
+      "note": "10 free credits when you sign up · No card required"
+    },
+    "demo": {
+      "input": "hello world",
+      "output": "dlrow olleh"
+    },
+    "steps": {
+      "eyebrow": "How it works",
+      "title": "Three steps.",
+      "signup": {
+        "title": "Create an account",
+        "body": "Sign in with Google or an email link. You get 10 free credits."
+      },
+      "run": {
+        "title": "Run a task",
+        "body": "Each run uses 1 credit. If a run fails, the credit comes back."
+      },
+      "buy": {
+        "title": "Buy more when you need it",
+        "body": "Buy a credit pack or subscribe monthly. Credits never expire."
+      }
+    },
+    "features": {
+      "eyebrow": "Why Acme",
+      "title": "Simple, fair pricing.",
+      "credits": {
+        "title": "Pay per use",
+        "body": "Buy credits once, or subscribe and cancel anytime."
+      },
+      "refunds": {
+        "title": "Automatic refunds",
+        "body": "Failed runs return their credits to your balance."
+      },
+      "privacy": {
+        "title": "Private by default",
+        "body": "Analytics cookies are set only after you accept."
+      },
+      "languages": {
+        "title": "English and Chinese",
+        "body": "The whole app is available in both languages."
+      }
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions, answered.",
+      "start": {
+        "q": "What do I need to get started?",
+        "a": "An email address or a Google account. You get 10 free credits when you sign up."
+      },
+      "credits": {
+        "q": "How do credits work?",
+        "a": "Each run uses 1 credit. Buy more in a pack, or subscribe for credits every month, on the pricing page."
+      },
+      "failed": {
+        "q": "What happens if a run fails?",
+        "a": "Your credits are refunded automatically."
+      },
+      "expire": {
+        "q": "Do credits expire?",
+        "a": "No. Credits never expire."
+      },
+      "refund": {
+        "q": "What is your refund policy?",
+        "a": "Failed runs are always refunded in credits. For refunds on credit pack purchases, see our <link>Refund Policy</link>."
+      }
+    },
+    "finalCta": {
+      "title": "Ready to try it?",
+      "body": "Start with 10 free credits. No card required."
+    },
+    "footer": {
+      "copyright": "© {year} Acme",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "refund": "Refund Policy",
+      "legal": "Legal",
+      "support": "Support: {email}",
+      "blog": "Blog"
+    }
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "signupTitle": "Create your account",
+    "description": "Sign in to continue.",
+    "email": "Email address",
+    "sendLink": "Email me a sign-in link",
+    "sending": "Sending…",
+    "google": "Continue with Google",
+    "lastUsed": "Last used",
+    "divider": "or use your email",
+    "checkEmail": "Check your email",
+    "sent": "Your sign-in link is on its way. It expires in 5 minutes.",
+    "tryAgain": "Use another email",
+    "error": "We couldn't sign you in. Please try again.",
+    "emailUnavailable": "Email sign-in is unavailable for the rest of today. Continue with Google instead.",
+    "rateLimited": "Too many attempts. Please wait a minute and try again.",
+    "invalidLink": "This sign-in link is invalid or has expired. Request a new one.",
+    "loginSwitch": "Already have an account? Sign in",
+    "signupSwitch": "New to Acme? Create an account",
+    "emailSubject": "Your Acme sign-in link",
+    "emailBody": "Use this link to sign in to Acme. It expires in 5 minutes. If you did not request it, ignore this email."
+  },
+  "nav": {
+    "primary": "Main navigation",
+    "dashboard": "Dashboard",
+    "billing": "Billing",
+    "credits": "{count, plural, one {# credit} other {# credits}}",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu",
+    "userMenu": "Account menu",
+    "language": "Language",
+    "theme": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "logout": "Log out",
+    "loggingOut": "Logging out…",
+    "logoutError": "We couldn't log you out. Please try again.",
+    "localeShort": {
+      "en": "EN",
+      "zh": "中文"
+    },
+    "localeName": {
+      "en": "English",
+      "zh": "简体中文"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {name}",
+    "welcomeBack": "Welcome back",
+    "subtitle": "Run a task below. Each run uses 1 credit.",
+    "credits": "Credits",
+    "available": "available",
+    "estimate": "≈ {uses, plural, one {# run} other {# runs}}",
+    "refundNote": "Failed runs are refunded automatically.",
+    "buyCredits": "Buy credits"
+  },
+  "status": {
+    "PENDING": "Running",
+    "SUCCEEDED": "Succeeded",
+    "FAILED": "Failed"
+  },
+  "marketing": {
+    "nav": "Site navigation",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "login": "Log in",
+    "cta": "Get started",
+    "dashboard": "Dashboard"
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Pay per use, or subscribe.",
+    "subtitle": "Start with 10 free credits. Buy a pack when you need more, or subscribe for credits every month. Credits never expire.",
+    "metaDescription": "Pay per use from {singlePrice} for the Single pack, as low as {lowestPrice} per run in a pack, or subscribe for {planPrice} a month. Credits never expire.",
+    "pack": {
+      "single": "Single",
+      "starter": "Starter",
+      "creator": "Creator",
+      "pro": "Pro"
+    },
+    "plan": {
+      "monthly": "Monthly"
+    },
+    "subscription": "Subscription",
+    "perMonth": "per month",
+    "creditsPerMonth": "{count, plural, one {# credit} other {# credits}} every month",
+    "mostPopular": "Most popular",
+    "oneTime": "one-time",
+    "credits": "{count, plural, one {# credit} other {# credits}}",
+    "neverExpire": "Credits never expire",
+    "buy": "Buy {pack}",
+    "subscribe": "Subscribe {plan}",
+    "redirecting": "Redirecting…",
+    "failed": "Failed run",
+    "refunded": "Credits refunded",
+    "newAccount": "New account",
+    "freeCredits": "10 free credits",
+    "finePrint": "Prices in USD. Payments are processed securely by Waffo. Packs are one-time payments; subscriptions renew every month. Credits are added after payment is confirmed.",
+    "save": "Save {percent}%",
+    "uses": "{count, plural, one {# run} other {# runs}}",
+    "perUse": "{price} per run",
+    "task": "One run"
+  },
+  "billing": {
+    "title": "Billing",
+    "credits": "Credits",
+    "available": "available",
+    "buyCredits": "Buy credits",
+    "history": "Purchase history",
+    "empty": "No purchases yet.",
+    "date": "Date",
+    "pack": "Pack",
+    "amount": "Amount",
+    "creditsColumn": "Credits",
+    "status": "Status",
+    "purchaseStatus": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded"
+    },
+    "checkoutPending": {
+      "title": "Payment received",
+      "body": "Your credits will appear shortly. This page updates automatically."
+    },
+    "checkoutDone": {
+      "title": "Credits added",
+      "body": "Payment confirmed. Your credits are ready to use."
+    },
+    "checkoutTimeout": {
+      "title": "Credits not added yet",
+      "body": "Refresh this page in a few minutes. If they still don't appear, contact support."
+    },
+    "activity": {
+      "title": "Credit activity",
+      "activityColumn": "Activity",
+      "balance": "Balance",
+      "signupBonus": "Welcome bonus",
+      "purchase": "{pack} pack",
+      "purchaseReversal": "{pack} pack refunded",
+      "subscription": "{plan} subscription",
+      "subscriptionReversal": "{plan} subscription refunded",
+      "adjustment": "Adjusted by support",
+      "loadMore": "Load more",
+      "loading": "Loading…",
+      "loadError": "Couldn't load more activity. Please try again.",
+      "task": "Task",
+      "taskRefund": "Refund · failed task"
+    },
+    "subscription": {
+      "title": "Subscription",
+      "status": {
+        "ACTIVE": "Active",
+        "PAST_DUE": "Past due",
+        "CANCELING": "Canceling"
+      },
+      "renewsOn": "Renews on {date}",
+      "endsOn": "Ends on {date}. It won't renew.",
+      "pastDue": "Your last payment failed. Update your card before the retry, or the subscription ends. Sign in with the email you paid with.",
+      "updatePayment": "Update payment method",
+      "cancel": "Cancel subscription",
+      "confirm": "Your subscription won't renew. Credits you already have never expire.",
+      "confirmCancel": "Yes, cancel",
+      "keep": "Keep subscription"
+    }
+  },
+  "legal": {
+    "updated": "Last updated: October 8, 2026",
+    "terms": {
+      "title": "Terms of Service",
+      "description": "The terms for using Acme: your account, credits and payments, your content, acceptable use and how to contact us.",
+      "sections": {
+        "agreement": {
+          "title": "Agreement",
+          "body": [
+            "These Terms govern your use of Acme at example.com (the “Service”). Acme is operated by Acme Inc. (“we”, “us”). By creating an account or using the Service, you agree to these Terms.",
+            "You must be at least 18 years old, or the age of majority where you live, to use the Service."
+          ]
+        },
+        "service": {
+          "title": "The Service",
+          "body": [
+            "Acme runs tasks for you in exchange for credits. Replace this paragraph with what your service does and which AI providers it uses.",
+            "AI output can be inaccurate. Review every result before you use it."
+          ]
+        },
+        "account": {
+          "title": "Your account",
+          "body": [
+            "You sign in with an email link or with Google. Keep access to your email and Google account secure. You are responsible for activity on your account."
+          ]
+        },
+        "credits": {
+          "title": "Credits and payments",
+          "body": [
+            "Each task uses 1 credit. New accounts receive 10 free credits.",
+            "You can buy credits in one-time packs or with a monthly subscription. Prices are shown in US dollars on the pricing page (example.com/pricing).",
+            "Payments are processed by Waffo Pancake, our Merchant of Record. Waffo is the seller for the purchase and handles payment, tax and invoicing. A pack is a one-time transaction. When you complete a purchase, you authorize Waffo to charge your payment method the amount shown at checkout.",
+            "A subscription renews automatically every month. When you subscribe, you authorize Waffo to charge your payment method the plan price at each renewal until you cancel. Each successful payment adds the plan's credits to your balance.",
+            "You can cancel at any time on the Billing page. Your subscription stays active until the end of the period you paid for and does not renew. If a renewal payment fails, Waffo retries once. If that also fails, the subscription ends.",
+            "Prices do not include taxes unless the price says so. Where the law requires, taxes are added at checkout.",
+            "Credits do not expire, have no cash value and cannot be transferred. If a task fails, its credits are returned to your balance automatically. Refunds for purchases follow our Refund Policy."
+          ]
+        },
+        "disputes": {
+          "title": "Billing disputes",
+          "body": [
+            "If you think a charge is wrong, contact support@example.com before you open a dispute or chargeback with your bank. Include the email address on your account and your order number. If the charge is wrong, we refund it in full."
+          ]
+        },
+        "content": {
+          "title": "Your content",
+          "body": [
+            "You keep your rights to the photos and text you upload. You give us permission to store and process them, and to send them to our AI providers, only to operate the Service for you.",
+            "You confirm that you own your uploads or have permission to use them, including any trademarks, logos or people shown.",
+            "We do not claim ownership of the results you generate. You are responsible for making sure that your use of them is legal and does not infringe the rights of others."
+          ]
+        },
+        "acceptableUse": {
+          "title": "Acceptable use",
+          "body": [
+            "Do not use the Service to create or share content that is illegal, sexualizes minors, harasses people, infringes the rights of others, or misleads people.",
+            "Do not try to break, overload or reverse engineer the Service.",
+            "We may remove content, refuse a task, or suspend or close accounts that break these rules. To report content or appeal a decision, email support@example.com."
+          ]
+        },
+        "termination": {
+          "title": "Termination",
+          "body": [
+            "You can stop using the Service at any time. To delete your account, email support@example.com from the email address on your account. We delete your account and data within 30 days, as described in our Privacy Policy.",
+            "When your account is deleted, unused credits expire without refund, unless our Refund Policy or the law requires a refund.",
+            "If we close your account for a breach of these Terms, unused credits are not refunded."
+          ]
+        },
+        "disclaimer": {
+          "title": "Disclaimers and liability",
+          "body": [
+            "The Service is provided “as is”. We do not promise that it will always be available or that every result will meet your expectations.",
+            "To the extent the law allows, our total liability to you is limited to the amount you paid us in the 12 months before the claim."
+          ]
+        },
+        "changes": {
+          "title": "Changes, governing law and disputes",
+          "body": [
+            "We may update these Terms. If a change is material, we tell you by email or in the Service at least 15 days before it takes effect.",
+            "These Terms are governed by the laws of the State of Delaware, United States.",
+            "If you have a dispute with us, contact support@example.com first. We will try to solve it with you informally within 30 days. These Terms do not limit any rights you have under the consumer protection laws of the country where you live."
+          ]
+        },
+        "contact": {
+          "title": "Contact",
+          "body": ["Questions about these Terms: support@example.com."]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "What data Acme collects, how we use it, who we share it with, how long we keep it and your rights.",
+      "sections": {
+        "intro": {
+          "title": "Who we are",
+          "body": [
+            "Acme (example.com) is operated by Acme Inc. We are the data controller for the personal data described in this policy. Contact: support@example.com.",
+            "This policy explains what personal data we collect, why, and who we share it with."
+          ]
+        },
+        "collect": {
+          "title": "Data we collect",
+          "body": [
+            "Account data: your email address, and your name and profile picture if you sign in with Google.",
+            "Content: the text and files you submit, and the results we generate for you.",
+            "Billing data: your purchases and credit history. Payment card data is processed only by our PCI-DSS certified payment processor, Waffo Pancake, and is not stored on our servers.",
+            "Usage data: pages you visit and actions you take (for example, starting a task), plus technical data such as browser type and error reports. We do not include your email or your input in this data."
+          ]
+        },
+        "use": {
+          "title": "How we use it",
+          "body": [
+            "To sign you in, run and store your tasks, keep your credit balance, process purchases and refunds, prevent abuse, fix errors and improve the Service.",
+            "Legal bases: we process account, content and billing data to provide the Service under our contract with you. We process usage and error data for our legitimate interest in keeping the Service secure and working. We use analytics cookies only with your consent. We keep billing records to meet our legal obligations. We count page views without cookies for our legitimate interest in knowing which pages and channels bring visitors.",
+            "We do not sell your personal information, including as defined under applicable laws such as the CCPA. We do not use your uploads to train AI models."
+          ]
+        },
+        "share": {
+          "title": "Who we share it with",
+          "body": [
+            "We use these service providers to run Acme. Each one receives only the data it needs:",
+            "Vercel (hosting, cookieless page statistics and page speed measurement) · Neon (database) · Cloudflare R2 (file storage) · Waffo Pancake (payments, Merchant of Record) · Resend (sign-in emails) · Google (optional sign-in) · PostHog (product analytics) · Sentry (error monitoring). Add every AI provider that receives user data.",
+            "We may also disclose data when the law requires it."
+          ]
+        },
+        "cookies": {
+          "title": "Cookies and local storage",
+          "body": [
+            "We use a session cookie to keep you signed in, a cookie that remembers your last sign-in method (Google or email) for 30 days and a NEXT_LOCALE cookie to remember your language. Your theme choice is saved in your browser’s local storage.",
+            "Analytics: PostHog sets analytics cookies and receives usage events from your browser only after you accept the cookie banner. If you decline, no analytics cookies are set and no events are sent from your browser. You can change your choice at any time with “Cookie settings” in the footer.",
+            "Page statistics: Vercel Web Analytics counts page views and shows which websites and campaigns visitors come from. It sets no cookies and does not identify you. It records the page address without personal IDs, campaign tags in the link (utm_ parameters), the referring website, country, device type, browser and operating system. Vercel tells visits apart with a temporary value derived from the request and discards it after 24 hours.",
+            "Page speed: Vercel Speed Insights measures how fast pages load and respond in your browser. It sets no cookies and does not identify you. It records the page address without personal IDs, the page type, the loading-speed measurements and the page element they relate to, network type, country, device type, browser and operating system.",
+            "If you are signed in, we also save your choice in your account. Only if you accepted, our servers send account events to PostHog: sign-up, completed purchases and task results. These events use your internal account ID, not your email, and never include your input."
+          ]
+        },
+        "security": {
+          "title": "Data security",
+          "body": [
+            "All traffic to the Service uses HTTPS. Your files are kept in private storage and are opened only through short-lived signed links. Access to our production systems is limited.",
+            "If a security incident affects your rights, we notify you and the relevant authorities within 72 hours of discovery, as the law requires."
+          ]
+        },
+        "retention": {
+          "title": "How long we keep it",
+          "body": [
+            "We keep your account data and content while your account is open. Billing records are kept as long as tax and accounting law requires.",
+            "After you ask us to delete your account, we delete your data within 30 days, except records we must keep by law."
+          ]
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": [
+            "Depending on where you live, you can ask to access, correct, export or delete your personal data, restrict or object to how we use it, or withdraw your consent at any time. You can also complain to your local data protection authority.",
+            "Send requests to support@example.com. We reply within 30 calendar days."
+          ]
+        },
+        "marketing": {
+          "title": "Emails and marketing",
+          "body": [
+            "We send only the emails that the Service needs, such as sign-in links. We do not send marketing emails. If we start to, we will ask for your consent first, and each email will have an unsubscribe link."
+          ]
+        },
+        "transfers": {
+          "title": "Where data is stored",
+          "body": [
+            "Our servers and most of our providers are in the United States. If you live elsewhere, your data is transferred to and processed in the United States.",
+            "Where the law requires, these transfers are protected by safeguards such as the Standard Contractual Clauses offered by our providers."
+          ]
+        },
+        "children": {
+          "title": "Children",
+          "body": [
+            "The Service is intended for users aged 18 and above. We do not knowingly collect information from anyone under 18. If you think a child has given us personal data, contact us and we will delete it."
+          ]
+        },
+        "links": {
+          "title": "Third-party services",
+          "body": [
+            "The Service links to services that other companies run, such as the Waffo checkout and Google sign-in. Their own privacy policies apply when you use them."
+          ]
+        },
+        "changes": {
+          "title": "Changes to this policy",
+          "body": [
+            "We may update this policy. If a change is material, we tell you by email or in the Service at least 15 days before it takes effect. The date at the top of this page shows the latest version."
+          ]
+        },
+        "contact": {
+          "title": "Contact",
+          "body": ["Privacy questions and requests: support@example.com."]
+        }
+      }
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "description": "Failed tasks return their credits automatically. Unused credit packs and subscription payments can be refunded in full within 14 days. Credits never expire.",
+      "sections": {
+        "failed": {
+          "title": "Failed tasks",
+          "body": [
+            "If a task fails, its credits are returned to your balance automatically. You do not need to contact us."
+          ]
+        },
+        "purchases": {
+          "title": "Credit pack purchases",
+          "body": [
+            "You can get a full refund within 14 days of purchase if you have not used any credits from that pack.",
+            "If you were charged twice or charged the wrong amount, we refund the extra charge in full.",
+            "After you use credits from a pack, or after 14 days, the purchase is not refundable, unless the law where you live requires a refund.",
+            "To request a refund, email support@example.com from the email address on your account, with your order number. We review every request and reply by email."
+          ]
+        },
+        "subscriptions": {
+          "title": "Subscriptions",
+          "body": [
+            "You can cancel your subscription at any time on the Billing page. It stays active until the end of the period you paid for. Canceling does not refund the current period.",
+            "You can get a full refund of a subscription payment within 14 days if you have not used any credits from that payment. A refund does not cancel the subscription. To stop future payments, also cancel it on the Billing page.",
+            "Credits you received from a subscription stay in your account after the subscription ends."
+          ]
+        },
+        "process": {
+          "title": "How refunds work",
+          "body": [
+            "Payments are processed by Waffo, our Merchant of Record. Approved refunds go back to your original payment method. Your bank may take several business days to show it.",
+            "When a payment is refunded, the credits from that pack or subscription payment are removed from your balance. If you have already used some of them, we remove only the credits that remain. Your balance never goes below zero."
+          ]
+        },
+        "expiry": {
+          "title": "Credits do not expire",
+          "body": [
+            "Unused credits stay in your account, also after a subscription ends."
+          ]
+        },
+        "contact": {
+          "title": "Contact",
+          "body": ["Billing questions: support@example.com."]
+        }
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie preferences",
+    "body": "We use analytics cookies to understand how Acme is used. They are set only if you accept. See our <link>Privacy Policy</link>.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "settings": "Cookie settings"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "INVALID_INPUT": "Some of the information is invalid. Check it and try again.",
+    "RATE_LIMITED": "Too many requests. Wait a minute and try again.",
+    "INSUFFICIENT_CREDITS": "You don't have enough credits.",
+    "UPLOAD_NOT_FOUND": "That upload is no longer available. Upload the file again.",
+    "PURCHASE_NOT_FOUND": "This purchase doesn't exist.",
+    "SUBSCRIPTION_EXISTS": "You already have a subscription. Manage it on the Billing page.",
+    "SUBSCRIPTION_NOT_FOUND": "There's no active subscription to cancel.",
+    "PROVIDER_ERROR": "The service is unavailable. Please try again.",
+    "PAYMENT_ERROR": "Checkout is unavailable right now. Try again in a few minutes.",
+    "STORAGE_ERROR": "File storage is unavailable. Try again.",
+    "INTERNAL_ERROR": "Something went wrong on our side. Try again.",
+    "NETWORK_ERROR": "Can't reach the server. Check your connection and try again.",
+    "TASK_NOT_FOUND": "This task doesn't exist."
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "This page couldn't load. Try again, or go back to the dashboard.",
+    "retry": "Try again",
+    "home": "Go to dashboard"
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or has moved.",
+    "home": "Go to homepage",
+    "dashboard": "Go to dashboard"
+  },
+  "admin": {
+    "label": "Admin",
+    "searchTitle": "Find a user",
+    "searchDescription": "Search by email or user ID.",
+    "query": "Email or user ID",
+    "search": "Search",
+    "searching": "Searching…",
+    "noUser": "No user matches this email or ID.",
+    "back": "Back to search",
+    "userId": "User ID",
+    "joined": "Joined",
+    "credits": "Credits",
+    "ledgerOk": "Balance matches the credit ledger.",
+    "ledgerMismatch": "Balance {balance} does not match the ledger sum {sum}. Do not adjust credits until you find the cause.",
+    "adjustTitle": "Adjust credits",
+    "amount": "Amount",
+    "amountHint": "Use a negative number to deduct. Maximum {limit} per adjustment.",
+    "reason": "Reason",
+    "reasonHint": "Ticket number or cause. Do not include an email address.",
+    "adjust": "Apply adjustment",
+    "adjusting": "Applying…",
+    "adjusted": "Credits adjusted. New balance: {balance}.",
+    "adjustError": {
+      "INVALID_INPUT": "The form is invalid. Reload the page and try again.",
+      "INVALID_AMOUNT": "Enter a whole number that is not 0, up to 1000 in either direction.",
+      "INVALID_REASON": "Enter a reason.",
+      "USER_NOT_FOUND": "This user does not exist.",
+      "INSUFFICIENT_CREDITS": "The balance is too low for this deduction. Nothing changed.",
+      "IDEMPOTENCY_CONFLICT": "This form was already used for a different adjustment. Reload the page and check the transactions.",
+      "INTERNAL": "Something went wrong. Reload the page and check the transactions before you try again."
+    },
+    "transactions": "Credit transactions",
+    "purchases": "Purchases",
+    "empty": "None yet.",
+    "column": {
+      "date": "Date",
+      "type": "Type",
+      "amount": "Amount",
+      "balanceAfter": "Balance after",
+      "note": "Note",
+      "status": "Status",
+      "cost": "Cost",
+      "error": "Error",
+      "pack": "Pack",
+      "price": "Price",
+      "credits": "Credits",
+      "orderId": "Waffo order ID"
+    },
+    "transactionType": {
+      "SIGNUP_BONUS": "Signup bonus",
+      "PURCHASE": "Purchase",
+      "PURCHASE_REVERSAL": "Purchase refund",
+      "ADMIN_ADJUSTMENT": "Admin adjustment",
+      "SUBSCRIPTION_GRANT": "Subscription",
+      "SUBSCRIPTION_REVERSAL": "Subscription refund",
+      "TASK_DEBIT": "Task",
+      "TASK_REFUND": "Task refund"
+    },
+    "tasks": "Tasks"
+  },
+  "blog": {
+    "meta": {
+      "title": "Acme Blog",
+      "description": "Guides and updates from Acme."
+    },
+    "index": {
+      "eyebrow": "Blog",
+      "title": "Guides and updates.",
+      "intro": "Short, practical guides. Replace these sample posts with your own.",
+      "read": "Read the guide"
+    },
+    "home": "Blog",
+    "related": "Keep reading",
+    "breadcrumb": "Breadcrumb",
+    "updated": "Updated {date}",
+    "posts": {
+      "gettingStarted": {
+        "meta": {
+          "title": "Getting Started with Acme",
+          "description": "Create an account, run your first task and check your credits."
+        },
+        "title": "Getting started with Acme",
+        "summary": "A sample post: create an account, run your first task and check your credits.",
+        "cta": "Get started free",
+        "finalCta": "Try your first task.",
+        "sections": {
+          "signup": {
+            "title": "Create an account",
+            "body": [
+              "Sign in with Google or an email link. New accounts get 10 free credits. <link>Start here</link>."
+            ]
+          },
+          "run": {
+            "title": "Run your first task",
+            "steps": [
+              "Open the dashboard.",
+              "Enter some text.",
+              "Select Run. The task uses 1 credit."
+            ]
+          },
+          "next": {
+            "title": "What to read next",
+            "list": ["How credits work", "The refund policy"]
+          }
+        }
+      },
+      "howCreditsWork": {
+        "meta": {
+          "title": "How Credits Work in Acme",
+          "description": "What a credit is, when it is used, and when it comes back."
+        },
+        "title": "How credits work",
+        "summary": "A sample post: what a credit is, when it is used, and when it comes back.",
+        "cta": "See pricing",
+        "finalCta": "Pick a credit pack.",
+        "sections": {
+          "what": {
+            "title": "What a credit is",
+            "body": [
+              "Each run uses 1 credit. Credits never expire. See the <link>pricing page</link> for packs."
+            ]
+          },
+          "refunds": {
+            "title": "When credits come back",
+            "list": [
+              "A failed run returns its credit automatically.",
+              "A refunded purchase removes the credits that remain from that pack."
+            ]
+          },
+          "check": {
+            "title": "Check your balance",
+            "steps": ["Open Billing.", "Read Credit activity."]
+          }
+        }
+      }
+    }
+  },
+  "tasks": {
+    "title": "Example task",
+    "body": "This example reverses your text. Replace it with your product's feature.",
+    "input": "Text",
+    "run": "Run · 1 credit",
+    "running": "Running…",
+    "failed": "This run failed. Its credit was refunded.",
+    "empty": "No runs yet.",
+    "emptyHint": "Enter some text and run your first task.",
+    "buyCredits": "Buy credits"
+  }
+}
