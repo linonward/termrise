@@ -524,7 +524,10 @@
     "RESEARCH_PROJECT_NOT_FOUND": "这个研究项目不存在。",
     "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。",
     "RESEARCH_PROVIDER_UNAVAILABLE": "暂时无法运行研究：还没有配置关键词数据来源。",
-    "OPPORTUNITY_NOT_FOUND": "这个机会不存在。"
+    "OPPORTUNITY_NOT_FOUND": "这个机会不存在。",
+    "OPPORTUNITY_DECISION_INVALID": "当前状态不能做这个决策。请刷新页面后再试。",
+    "EXPERIMENT_NOT_FOUND": "这个实验不存在。",
+    "EXPERIMENT_FINISHED": "这个实验已经结束，不能再修改。"
   },
   "errorPage": {
     "title": "出错了",
@@ -847,5 +850,67 @@
     "signalsTitle": "信号",
     "signalsEmpty": "这个词没有信号。趋势和分发评分为 0。",
     "sourceCsv": "CSV 导入"
+  },
+  "decisions": {
+    "title": "决策",
+    "body": "Go、验证还是 No-go 由你决定。高分不等于成功的概率。",
+    "choose": "决策",
+    "action": {
+      "needs_validation": "先验证",
+      "go": "Go：开发",
+      "no_go": "No-go：放弃"
+    },
+    "reason": "理由",
+    "reasonHint": "决策依据哪些证据。理由会保留在历史中。",
+    "save": "保存决策",
+    "saving": "正在保存…",
+    "update": "更新",
+    "history": "历史",
+    "decided": {
+      "needs_validation": "验证",
+      "go": "Go",
+      "no_go": "No-go"
+    },
+    "evidenceVersion": "评分 {version}，分数 {score}",
+    "experimentsTitle": "验证实验",
+    "experimentsBody": "不需要访谈的小实验。点击和候补名单不等于成交。",
+    "experimentsEmpty": "还没有实验。决定 Go 之前先计划一个实验。",
+    "newExperiment": "计划实验",
+    "addExperiment": "添加实验",
+    "kind": {
+      "review_analysis": "公开评论分析",
+      "free_tool": "免费小工具",
+      "landing_smoke_test": "落地页冒烟测试",
+      "sample_paid_upgrade": "样例 + 付费升级",
+      "paid_pilot": "透明付费试点"
+    },
+    "field": {
+      "kind": "类型",
+      "hypothesis": "假设",
+      "channel": "渠道",
+      "metric": "计数的事件",
+      "budgetUsd": "预算（美元）",
+      "durationDays": "期限（天）",
+      "successThreshold": "成功阈值",
+      "stopCondition": "停止条件"
+    },
+    "placeholder": {
+      "hypothesis": "销售人员愿意为通话摘要付费",
+      "channel": "r/sales、Product Hunt",
+      "metric": "付费预订",
+      "successThreshold": "14 天内 3 个付费预订",
+      "stopCondition": "300 个访客后仍没有订单"
+    },
+    "days": "{count} 天",
+    "experimentStatus": {
+      "planned": "已计划",
+      "running": "进行中",
+      "passed": "通过",
+      "failed": "未通过",
+      "stopped": "已停止"
+    },
+    "nextStatus": "新状态",
+    "resultNote": "结果",
+    "resultNoteHint": "你观察到的结果。通过或未通过时必填。"
   }
 }

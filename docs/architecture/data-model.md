@@ -635,6 +635,18 @@ processed_at = now()
 
 ---
 
+## Decisions and Experiments
+
+决策与实验只由用户写入（`packages/research/src/opportunity-decisions.ts`，规则在 `opportunity-rules.ts`）。
+
+- `opportunity_decisions`：决策历史，只追加。`decision` 为 `needs_validation` / `go` / `no_go`，`reason` 必填（最多 1000 字符），`decider_id` 是做决策的用户，`evaluation_id` 是决策时的当前评估（证据版本：评分版本与分数）。写入决策时在同一个事务中锁住机会行并修改 `opportunities.status`，两个请求同时提交时只有一个成功。
+- 状态转换：`unreviewed` → `needs_validation` 或 `no_go`；`needs_validation` → `go` 或 `no_go`；`go`、`no_go` → `needs_validation`（重新打开）。Go 之前必须先验证。不允许的转换返回 `OPPORTUNITY_DECISION_INVALID`。DTO 的 `nextDecisions` 列出当前可做的决策，页面只显示这些。
+- `validation_experiments`：无访谈验证实验（product.md 的 F06）。`kind` 为 `review_analysis` / `free_tool` / `landing_smoke_test` / `sample_paid_upgrade` / `paid_pilot`；假设、渠道、计数的事件、预算（微美元）、期限（1–365 天）、成功阈值、停止条件都必填。一个机会最多 20 个实验。
+- 实验状态：`planned` → `running` 或 `stopped`；`running` → `passed`、`failed` 或 `stopped`；结束后不能再改（`EXPERIMENT_FINISHED`）。`passed`、`failed` 必须写 `result_note`（观察到的结果）。实验结果由用户填写，系统不判断是否达到阈值。
+- 删除项目时，决策与实验随机会一起删除。账号导出在每个机会下包含决策（决策、理由、时间）和实验。
+
+---
+
 ## rate_limits
 
 ```sql

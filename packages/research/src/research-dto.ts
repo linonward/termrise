@@ -2,13 +2,16 @@ import type {
   keywordMetricSnapshots,
   keywords,
   opportunities,
+  opportunityDecisions,
   opportunityEvaluations,
   researchRuns,
+  validationExperiments,
   serpResults,
   serpSnapshots,
 } from "@repo/db/schema";
 
 import type { Analysis } from "./opportunity-analyst";
+import { NEXT_DECISIONS, NEXT_EXPERIMENT_STATUSES } from "./opportunity-rules";
 import type { ResearchProject, SourceSignal } from "./research-service";
 
 const usd = (micros: number) => micros / 1_000_000;
@@ -126,6 +129,8 @@ export function toOpportunityDto(row: {
     projectName: row.projectName,
     cluster: row.opportunity.cluster,
     status: row.opportunity.status,
+    /** What the owner can decide next (opportunity-rules.ts). */
+    nextDecisions: NEXT_DECISIONS[row.opportunity.status],
     score: e.score,
     dimensions: e.dimensions,
     confidence: e.confidence,
@@ -140,3 +145,45 @@ export function toOpportunityDto(row: {
 }
 
 export type OpportunityDto = ReturnType<typeof toOpportunityDto>;
+
+export function toDecisionDto(row: {
+  decision: typeof opportunityDecisions.$inferSelect;
+  deciderName: string;
+  scoringVersion: string;
+  score: number;
+}) {
+  return {
+    id: row.decision.id,
+    decision: row.decision.decision,
+    reason: row.decision.reason,
+    deciderName: row.deciderName,
+    /** The evidence version the decision was made on. */
+    evaluationId: row.decision.evaluationId,
+    scoringVersion: row.scoringVersion,
+    score: row.score,
+    createdAt: row.decision.createdAt.toISOString(),
+  };
+}
+
+export type DecisionDto = ReturnType<typeof toDecisionDto>;
+
+export function toExperimentDto(e: typeof validationExperiments.$inferSelect) {
+  return {
+    id: e.id,
+    kind: e.kind,
+    hypothesis: e.hypothesis,
+    channel: e.channel,
+    metric: e.metric,
+    budgetUsd: e.budgetMicros / 1_000_000,
+    durationDays: e.durationDays,
+    successThreshold: e.successThreshold,
+    stopCondition: e.stopCondition,
+    status: e.status,
+    nextStatuses: NEXT_EXPERIMENT_STATUSES[e.status],
+    resultNote: e.resultNote,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  };
+}
+
+export type ExperimentDto = ReturnType<typeof toExperimentDto>;

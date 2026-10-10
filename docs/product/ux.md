@@ -330,6 +330,8 @@ Logout
 下方：证据关键词表（同 Research 的 Keywords 表）、Search results、Signals（词、来源、日期）
 ```
 
+- 详情页证据上方：左侧是 Validation experiments（每个实验：类型、状态徽章、假设、渠道、计数的事件、成功阈值、停止条件、预算、期限、结果；没有结束的实验下方可以改状态并填写结果），下面是可展开的 Plan an experiment 表单；右侧是描边的 Decision 面板（只列出当前可做的决策的单选、Reason、[Save decision]），下方是决策历史（决策、理由、决策人、时间、评分版本与分数）。
+- 说明文字强调：高分不等于成功的概率；点击和候补名单不等于成交。
 - 状态徽章：unreviewed 为 `surface-strong`，needs_validation 为 `info-soft`，go 为 `success-soft`，no_go 为 `destructive-soft`。
 - 不属于当前用户或不存在的机会返回 404 页面。
 

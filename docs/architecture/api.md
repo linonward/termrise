@@ -37,7 +37,13 @@ GET /api/research/projects/:id/serps（每个已审核关键词最新的前 10 �
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
 
-GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）
+GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals，以及 decisions（新的在前）和 experiments；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）
+
+POST /api/opportunities/:id/decisions（{ decision, reason }，成功返回 201；当前状态不允许时 409 OPPORTUNITY_DECISION_INVALID；见 data-model.md 的 Decisions and Experiments）
+
+POST /api/opportunities/:id/experiments（{ kind, hypothesis, channel, metric, budgetUsd, durationDays, successThreshold, stopCondition }，成功返回 201 + 实验）
+
+PATCH /api/opportunities/:id/experiments/:experimentId（{ status, resultNote? }；passed / failed 需要 resultNote；不存在时 404 EXPERIMENT_NOT_FOUND，已结束时 409 EXPERIMENT_FINISHED）
 
 GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
 

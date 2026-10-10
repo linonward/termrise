@@ -6,11 +6,14 @@ import {
   keywordMetricSnapshots,
   keywords,
   opportunities,
+  opportunityDecisions,
   opportunityEvaluations,
   researchProjects,
   serpResults,
   serpSnapshots,
   sourceSignals,
+  user,
+  validationExperiments,
 } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 
@@ -155,10 +158,35 @@ export function createOpportunityResults(deps: { database: Database }) {
             .select()
             .from(sourceSignals)
             .where(inArray(sourceSignals.id, signalIds));
+    const decisions = await database
+      .select({
+        decision: opportunityDecisions,
+        deciderName: user.name,
+        scoringVersion: opportunityEvaluations.scoringVersion,
+        score: opportunityEvaluations.score,
+      })
+      .from(opportunityDecisions)
+      .innerJoin(user, eq(opportunityDecisions.deciderId, user.id))
+      .innerJoin(
+        opportunityEvaluations,
+        eq(opportunityDecisions.evaluationId, opportunityEvaluations.id),
+      )
+      .where(eq(opportunityDecisions.opportunityId, id))
+      .orderBy(
+        desc(opportunityDecisions.createdAt),
+        desc(opportunityDecisions.id),
+      );
+    const experiments = await database
+      .select()
+      .from(validationExperiments)
+      .where(eq(validationExperiments.opportunityId, id))
+      .orderBy(validationExperiments.createdAt, validationExperiments.id);
     return {
       opportunity: row.opportunity,
       projectName: row.projectName,
       evaluation,
+      decisions,
+      experiments,
       keywords: keywordRows
         .map((keyword) => ({
           keyword,
