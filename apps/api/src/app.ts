@@ -7,6 +7,7 @@ import { analytics } from "./routes/analytics";
 import { authRoutes } from "./routes/auth";
 import { billing } from "./routes/billing";
 import { checkout } from "./routes/checkout";
+import { credits } from "./routes/credits";
 import { health } from "./routes/health";
 import { tasks } from "./routes/tasks";
 import { uploads } from "./routes/uploads";
@@ -24,6 +25,7 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/analytics", analytics)
     .route("/checkout", checkout)
     .route("/billing", billing)
+    .route("/credits", credits)
     .route("/webhooks", webhooks)
     .onError(errorHandler);
 }

@@ -84,3 +84,19 @@ it("allows ten checkouts a minute, then answers 429", async () => {
   // Cancel shares the numbers under its own key, not the count.
   expect((await post("/api/billing/subscription/cancel")).status).toBe(404);
 });
+
+it("reads the current subscription and the customer portal", async () => {
+  const body = await (await get("/api/billing/subscription")).json();
+  expect(body).toEqual({
+    subscription: null,
+    customerPortalUrl: "https://example.com/fake-customer-portal",
+  });
+  const status = await (
+    await get("/api/billing/subscription/checkout-status")
+  ).json();
+  expect(status).toEqual({ checkout: null });
+  await post("/api/checkout", { planId: "monthly" });
+  expect(
+    await (await get("/api/billing/subscription/checkout-status")).json(),
+  ).toEqual({ checkout: { granted: false } });
+});

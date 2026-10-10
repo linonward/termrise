@@ -2,7 +2,7 @@
 
 ## Storage Adapter
 
-`packages/storage` 提供 `ObjectStorage` 接口（`types.ts`）与 R2、Fake 适配器；`apps/api/src/storage.ts`（`POST /api/uploads`）和 `apps/web/src/server/storage/storage.ts`（删除账号等 web 中的读取，直到迁到 API）各自按 env 选择适配器。业务代码只依赖这个接口，不直接使用 S3 SDK。
+`packages/storage` 提供 `ObjectStorage` 接口（`types.ts`）与 R2、Fake 适配器；`apps/api/src/storage.ts`（`POST /api/uploads`）和 admin 脚本（`apps/web/scripts/script-storage.ts`）各自按 env 选择适配器。业务代码只依赖这个接口，不直接使用 S3 SDK。
 
 ```text
 createUploadUrl()     签名 PUT URL（浏览器直传）
@@ -21,7 +21,7 @@ list()                列出某个前缀下的全部 key（分页读完），用
 | `createR2Storage`   | `packages/storage/src/adapters/r2.ts`   | Production、Preview、本地开发（`STORAGE_PROVIDER=r2`，默认）                                   |
 | `createFakeStorage` | `packages/storage/src/adapters/fake.ts` | 单元测试（内存）和 E2E（`STORAGE_PROVIDER=fake`；web 存为文件目录，`apps/api` 只签名，用内存） |
 
-- `apps/api` 用 `apiStorage(env)`，web 用 `getStorage()`，都按 `STORAGE_PROVIDER` 选择实现。
+- `apps/api` 用 `apiStorage(env)`，按 `STORAGE_PROVIDER` 选择实现。
 - web 在 Production 禁止 `fake`（`packages/config/src/env.ts` 校验），`fake` 时必须设置 `FAKE_STORAGE_DIR`。`apps/api` 的 `fake` 一律需要 `ALLOW_FAKE_PROVIDERS=1`（见 environment.md 的 API Bindings）。
 - AWS SDK v3 在 Workers（`nodejs_compat`）上签名可用：S07 在 `wrangler dev` 上对本地 SeaweedFS 验证过，签名 URL 上传成功，`Content-Type` 不一致时返回 403。
 - R2 使用 S3 兼容 API：endpoint 为 `https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com`（设置 `R2_ENDPOINT` 时用它，见 [Local Storage](#local-storage)），path-style，region `auto`。

@@ -383,7 +383,7 @@ Better Auth 挂载在 `apps/api` 的 `/api/auth/*`。web 的浏览器代码经 `
 `apps/web/src` 中按代码类型放置：
 
 - `features/<name>/`：产品要整体替换的业务功能（示例 Task）。Service、组装和页面组件放在一起，替换时只改这一个目录、`server/product.ts` 和 `server/product-data.ts`。
-- `server/product.ts`：平台代码（`server/`、`components/`）读取 Feature 的入口：每次使用的 Credits（`CREDIT_COST_PER_USE`）、读余额前的清理（`beforeBalanceRead`）、管理台的记录列表（`listPaidRecords`）。
+- `server/product.ts`：平台代码（`server/`、`components/`）读取 Feature 的入口：每次使用的 Credits（`CREDIT_COST_PER_USE`）、管理台的记录列表（`listPaidRecords`）。读余额前的清理（`beforeBalanceRead`）在 `apps/api/src/product.ts`。
 - `server/product-data.ts`：删除与导出账号时读写 Feature 的用户内容（`productData.export` / `erase`）。它不带 `server-only`，因为 `scripts/` 中的管理脚本导入它。平台代码和 `scripts/` 只经这两个文件导入 `@/features/*`（ESLint 检查）。
 - `server/<domain>/` 和 `components/<domain>/`：可复用的平台能力（billing、credits、auth、analytics、storage）在本应用中的组装和 UI。业务规则在 `packages/*`。
 - 平台能力不放进 `features/`，否则会被当作要替换的示例。具体表格见 `apps/web/README.md`。
@@ -406,7 +406,7 @@ packages/* 不依赖 apps/*，不读取 product.config.ts
 
 - 包名 `@repo/<name>`。包直接发布 TypeScript 源码，不构建；`apps/web/next.config.ts` 的 `transpilePackages` 必须列出 web 用到的每个包。
 - 只用子路径导入，例如 `@repo/billing/billing-service`。没有 `index.ts` 汇总导出：汇总导出会把服务端代码（数据库、SDK）带进客户端 bundle。例外：`@repo/db/schema`（`packages/db/src/schema/index.ts`）汇总全部表定义，只在服务端使用。
-- 包只提供 `createXService(deps)` 和适配器，不读取 `process.env`，不依赖 Next.js。读取 env、组装单例（`getXService()`）放在应用里，例如 `apps/web/src/server/billing/billing.ts`。例外：
+- 包只提供 `createXService(deps)` 和适配器，不读取 `process.env`，不依赖 Next.js。读取 env、组装 Service 放在应用里，例如 `apps/api/src/billing.ts` 的 `requestBilling(c)`。例外：
   - `@repo/config/env` 定义 env schema，由应用调用。
   - `@repo/db/client` 的 `db()` 读取 `DATABASE_URL`，返回进程内单例连接。
   - `@repo/db/testing/*` 读取 `TEST_DATABASE_URL`（未设置时加载 `apps/web/.env.local`），只在测试中使用。
@@ -419,7 +419,7 @@ ESLint（`eslint.config.mjs`，规则测试在 `eslint-boundaries.test.ts`）检
 
 - `packages/*` 不导入 `@/*`、`@product`、`apps/` 下的文件，不导入 `next` / `next/*`，不导入 `@repo/config/env`，不读取 `process.env`（上面列出的例外除外）。
 - 包只导入自己 `package.json`（`dependencies` 或 `devDependencies`）中声明的 `@repo/*` 包。要依赖新的包，先在 `package.json` 中声明。`package-graph.test.ts` 检查声明的依赖没有环。
-- 页面、布局、组件、Server Action 和 Route Handler（`apps/web/src/app/**`、`components/**`、`features/**/*.tsx`）不导入 `@repo/db/*` 和 `drizzle-orm`，数据通过 Service 读写（例如 `@/server/credits/credits` 的 `getCreditService()`）。`app/**` 中的测试文件除外：它们用测试数据库准备数据和检查结果。
+- 页面、布局、组件、Server Action 和 Route Handler（`apps/web/src/app/**`、`components/**`、`features/**/*.tsx`）不导入 `@repo/db/*` 和 `drizzle-orm`，数据经 `apps/api` 读写（服务端用 `@/server/api/api` 的 `apiGet()`，浏览器用 `@/lib/api-fetch` 的 `apiFetch()`）。`app/**` 中的测试文件除外：它们用测试数据库准备数据和检查结果。
 - `server/**`、`components/**`、`lib/**`、`i18n/**` 不导入 `@/features/*`，经 `@/server/product` 读取（测试文件除外）。`app/**` 是 Feature 的路由和页面，可以导入。
 - `apps/*/src` 和 `packages/*/src` 不使用 `console`（`no-console`），日志经 logger 输出（`logger.ts` 和 `*.test.ts` 除外）。
 

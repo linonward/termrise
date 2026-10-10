@@ -114,3 +114,18 @@ it("allows ten runs a minute, then answers 429", async () => {
   expect((await limited.json()).error.code).toBe("RATE_LIMITED");
   expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
 });
+
+it("lists at most the requested number of tasks", async () => {
+  for (const input of ["one", "two", "three"]) await run(input);
+  const { items } = await (
+    await call("/api/tasks?limit=2", { headers: { cookie } })
+  ).json();
+  expect(items.map((t: { input: string }) => t.input)).toEqual([
+    "three",
+    "two",
+  ]);
+  for (const limit of ["0", "21", "x"])
+    expect(
+      (await call(`/api/tasks?limit=${limit}`, { headers: { cookie } })).status,
+    ).toBe(400);
+});

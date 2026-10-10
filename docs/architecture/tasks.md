@@ -112,7 +112,7 @@ task:{taskId}:refund
 进程可能在扣费之后、写入终态之前中断（例如函数超时），Task 会停在 `PENDING`。`TaskService.failStaleTasks(userId)` 处理这种记录：
 
 - 创建超过 `STALE_TASK_MS`（15 分钟，`packages/tasks/src/task-service.ts`）仍为 PENDING 的 Task，改为 FAILED，`error_code = TIMEOUT`，同一事务内退款。每条记一次 warn 日志 `task.stale`。
-- 不使用 Cron，在读取时执行：已登录页面（`/dashboard`、`/billing`）读取余额用 `balanceForUser()`（`apps/web/src/server/credits/credits.ts`），它先经 `server/product.ts` 的 `beforeBalanceRead` 调用 `failStaleTasks`，再读余额，并按请求缓存。layout 和 page 同时渲染，无论哪个先读，拿到的都是退款后的余额；页面在它之后再读 Task 列表和流水。`GET /api/tasks` 在列出 Task 之前调用。用户看到的余额和列表因此已包含退款（E2E：`dashboard.spec.ts`）。
+- 不使用 Cron，在读取时执行：`apps/api` 的 `GET /api/credits/balance` 先经 `apps/api/src/product.ts` 的 `beforeBalanceRead` 调用 `failStaleTasks`，再读余额。已登录页面（`/dashboard`、`/billing`）用 `getBalance()`（`apps/web/src/server/api/api.ts`）调用它，并按请求缓存。layout 和 page 同时渲染，无论哪个先读，拿到的都是退款后的余额；页面在它之后再经 API 读 Task 列表和流水。`GET /api/tasks` 在列出 Task 之前调用。用户看到的余额和列表因此已包含退款（E2E：`dashboard.spec.ts`）。
 - 只处理当前用户的 Task。
 - 如果 Provider 在超时之后才返回，Task 已不是 PENDING，条件更新 0 行，结果被丢弃，不发送 `task_succeeded`，不重复退款；请求返回已失败的 Task。Provider 在超时之后才抛错时同样返回已失败的 Task。
 

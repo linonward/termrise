@@ -5,7 +5,7 @@
 只创建必要的 API。`apps/api` 的路由（`apps/api/src/routes/`）：
 
 ```text
-GET /api/tasks（先把超时的 PENDING Task 改为 FAILED 并退款，再返回当前用户最近 20 条 Task，新的在前）
+GET /api/tasks?limit=（先把超时的 PENDING Task 改为 FAILED 并退款，再返回当前用户最近的 Task，新的在前；limit 为 1–20，默认 20）
 
 POST /api/tasks（{ requestId, input }，示例付费操作，成功返回 201 + Task，见 tasks.md）
 
@@ -13,11 +13,17 @@ POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，
 
 POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横幅选择，成功返回 204，见 observability.md）
 
+GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
+
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）
 
 GET /api/billing/purchases（先把超过 60 分钟的 PENDING 购买改为 FAILED，见 Pending Expiry，再返回当前用户的购买记录）
 
 GET /api/billing/credit-activity?cursor=（Credit 明细，每页 20 条）
+
+GET /api/billing/subscription（{ subscription: { planId, status, currentPeriodEnd } | null, customerPortalUrl }）
+
+GET /api/billing/subscription/checkout-status（订阅 Checkout 之后：{ checkout: { granted } | null }，最新的订阅是否已发放 Credits）
 
 POST /api/billing/subscription/cancel（取消当前订阅，返回 200 { status, currentPeriodEnd }；没有可取消的订阅返回 404 SUBSCRIPTION_NOT_FOUND，见 billing.md 的 Cancel Subscription）
 
@@ -32,7 +38,7 @@ GET /api/health（同 web 的 /api/health）
 
 Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the API）。web 的页面经 `NEXT_PUBLIC_API_URL` 调用 `GET /api/auth/get-session` 读取 session；浏览器代码用 `apiFetch()`（`apps/web/src/lib/api-fetch.ts`）调用 API，它带上 cookie。
 
-web 只保留 `GET /api/health`（`apps/web/src/app/api/health/`，公开，给 uptime 监控用；数据库可用时 200 `{ status: "ok" }`，否则 503 `{ status: "error" }`，不缓存，见 observability.md 的 Uptime Monitoring）。web 的页面仍在服务端直接读取数据，直到 ADR-012 第 5 步改为调用 API。
+web 只保留 `GET /api/health`（`apps/web/src/app/api/health/`，公开，给 uptime 监控用；数据库可用时 200 `{ status: "ok" }`，否则 503 `{ status: "error" }`，不缓存，见 observability.md 的 Uptime Monitoring）。`/dashboard`、`/billing` 和导航栏在服务端用 `apiGet()`（`apps/web/src/server/api/api.ts`）带上请求的 cookie 调用 API，API 失败时抛错。`/admin` 仍直接读取数据库，直到 S10。
 
 不得因为“以后可能用”提前创建 API。
 

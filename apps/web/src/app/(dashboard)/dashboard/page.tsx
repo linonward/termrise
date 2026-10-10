@@ -4,24 +4,25 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { TASK_CREDIT_COST } from "@repo/tasks/credit-cost";
-import { toTaskDto } from "@repo/tasks/task-dto";
+import type { TaskDto } from "@repo/tasks/task-dto";
 import { TASK_INPUT_MAX_LENGTH } from "@repo/tasks/task-service";
 import { Button } from "@repo/ui/components/button";
 
 import { TrackView } from "@/components/analytics/track";
 import { TaskPanel } from "@/features/tasks/task-panel";
-import { getTaskService } from "@/features/tasks/tasks";
+import { apiGet, getBalance } from "@/server/api/api";
 import { getRequestSession } from "@/server/auth/auth";
-import { balanceForUser } from "@/server/credits/credits";
 
 export default async function DashboardPage() {
   const session = await getRequestSession();
   if (!session) redirect("/sign-in?next=%2Fdashboard");
   const t = await getTranslations("dashboard");
-  const { id, name, email } = session.user;
-  // balanceForUser refunds stale tasks first, so the list below shows them as failed.
-  const balance = await balanceForUser(id);
-  const recent = await getTaskService().list(id, 6);
+  const { name, email } = session.user;
+  // getBalance refunds stale tasks first, so the list below shows them as failed.
+  const balance = await getBalance();
+  const { items: recent } = await apiGet<{ items: TaskDto[] }>(
+    "/api/tasks?limit=6",
+  );
   const uses = Math.floor(balance / TASK_CREDIT_COST);
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:px-5 md:py-16">
@@ -66,10 +67,7 @@ export default async function DashboardPage() {
           </Link>
         </Button>
       </section>
-      <TaskPanel
-        initialTasks={recent.map(toTaskDto)}
-        maxLength={TASK_INPUT_MAX_LENGTH}
-      />
+      <TaskPanel initialTasks={recent} maxLength={TASK_INPUT_MAX_LENGTH} />
     </main>
   );
 }
