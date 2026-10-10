@@ -1,0 +1,13 @@
+# Build context of infra/local/Dockerfile: no host dependencies, build output or local secrets.
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/.wrangler
+**/dist
+coverage
+test-results
+playwright-report
+**/.env*
+!**/.env.example
+**/.dev.vars*
