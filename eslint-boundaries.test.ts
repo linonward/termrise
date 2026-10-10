@@ -53,7 +53,7 @@ describe("packages", () => {
   it.each([
     ["packages/credits/src/x.ts", "@repo/billing/billing-service"],
     ["packages/observability/src/x.ts", "@repo/credits/credit-service"],
-    ["packages/db/src/x.ts", "@repo/observability/logger"],
+    ["packages/db/src/x.ts", "@repo/storage/types"],
     ["packages/ui/src/components/x.tsx", "@repo/db/client"],
   ])("reject an undeclared package in %s: %s", async (path, source) => {
     expect(

@@ -1,0 +1,17 @@
+// Cloudflare Workers config of apps/api (docs/architecture/deployment.md#api).
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "termrise-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-10",
+  // node-postgres needs the Node.js APIs of the Workers runtime.
+  "compatibility_flags": ["nodejs_compat"],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Created with `wrangler hyperdrive create` (deployment.md#api). Locally, wrangler dev
+      // connects to CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE instead.
+      "id": "00000000000000000000000000000000",
+    },
+  ],
+}

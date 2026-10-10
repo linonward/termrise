@@ -20,6 +20,11 @@ out/
 # turborepo
 .turbo/
 
+# wrangler (apps/api): dry-run bundle, local state, local secrets
+apps/api/dist/
+.wrangler/
+.dev.vars*
+
 # production
 /build
 

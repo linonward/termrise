@@ -1,11 +1,11 @@
 import { sql } from "drizzle-orm";
 
-import { createDb, type Database } from "../client";
+import { createDb } from "../client";
 import { resolveTestDatabaseUrl } from "./test-database";
 
-let instance: Database | undefined;
+let instance: ReturnType<typeof createDb> | undefined;
 
-export function testDb(): Database {
+export function testDb() {
   instance ??= createDb(resolveTestDatabaseUrl());
   return instance;
 }

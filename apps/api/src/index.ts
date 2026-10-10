@@ -1,10 +1,18 @@
-import { serve } from "@hono/node-server";
+import type { ExecutionContext } from "hono";
 
-import { logger } from "@repo/observability/logger";
+import { withRequestContext } from "@repo/observability/logger";
 
 import { createApp } from "./app";
+import type { Bindings } from "./env";
 
-const port = Number(process.env.PORT ?? 3001);
-serve({ fetch: createApp().fetch, port }, (info) =>
-  logger.info("api.listening", { port: info.port }),
-);
+// Cloudflare Workers entry point (wrangler.jsonc).
+const app = createApp();
+
+const worker = {
+  fetch: withRequestContext(
+    async (request: Request, env: Bindings, ctx: ExecutionContext) =>
+      app.fetch(request, env, ctx),
+  ),
+};
+
+export default worker;
