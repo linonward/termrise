@@ -6,7 +6,7 @@
 
 | Slice | 内容                                                                                                                                                                    | 验收                                                                                                                                                | 状态   |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| S01   | Starter 只读审计：按 [Termrise 工程实施方案](architecture/termrise.md) 核对 monorepo、DB、Auth、AI、Jobs、Analytics、SEO、Waffo、Credits、Storage、测试与部署的真实实现 | `docs/architecture/starter-audit.md` 列出「已实现 / 部分实现 / 缺失 / 接口与风险」和后续 Slice，并加到 Where to Look 表；不修改代码，不调用付费 API | 未开始 |
+| S01   | Starter 只读审计：按 [Termrise 工程实施方案](architecture/termrise.md) 核对 monorepo、DB、Auth、AI、Jobs、Analytics、SEO、Waffo、Credits、Storage、测试与部署的真实实现 | `docs/architecture/starter-audit.md` 列出「已实现 / 部分实现 / 缺失 / 接口与风险」和后续 Slice，并加到 Where to Look 表；不修改代码，不调用付费 API | 已完成 |
 
 ## Confirmed Decisions
 
@@ -28,7 +28,12 @@
 
 ## Open Questions
 
-暂无。
+S01 审计发现的文档与代码冲突，详情见 [Doc Conflicts](architecture/starter-audit.md#doc-conflicts)。在 S02 中回答：
+
+- 队列与 Worker：Starter 没有 BullMQ / Redis。用 BullMQ + Redis、Postgres 队列还是托管队列？Worker 部署到哪个平台？
+- 每日采集的触发方式：Worker 调度、Vercel Cron 还是外部触发？（`api.md` 现在写「不使用 Cron API」）
+- Waffo 与 Credits：注册仍发 Credits，收费页面和路由仍开放，Production 仍要求 Waffo Key。保留、隐藏还是关闭？
+- 是否新增 `DEEPSEEK_BASE_URL`（代码只有 `DEEPSEEK_MODEL`）？
 
 ### 暂缓
 

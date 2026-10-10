@@ -30,6 +30,7 @@ Termrise：面向独立开发者的英文热词发现、产品机会验证、MVP
 | 开分支 / 提交 / PR                                                          | [docs/workflow.md](docs/workflow.md)                                         |
 | 产品定位、Scope、定价                                                       | [docs/product/product.md](docs/product/product.md)                           |
 | Termrise 业务模块（热词、关键词、SERP、机会、AI 任务、队列、预算）          | [docs/architecture/termrise.md](docs/architecture/termrise.md)               |
+| Starter 现状：哪些模块已实现、缺失、与 Termrise 方案的冲突                  | [docs/architecture/starter-audit.md](docs/architecture/starter-audit.md)     |
 | 页面、交互、文案、i18n、SEO、关键词矩阵                                     | [docs/product/ux.md](docs/product/ux.md)                                     |
 | 视觉、token、组件、设计稿（Pen）                                            | [docs/design/design-system.md](docs/design/design-system.md)                 |
 | 技术栈、架构、目录结构、Monorepo 与包的规则                                 | [docs/architecture/overview.md](docs/architecture/overview.md)               |
