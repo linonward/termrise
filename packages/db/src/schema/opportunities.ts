@@ -40,6 +40,8 @@ export const opportunities = pgTable(
       .notNull()
       .default("unreviewed"),
     createdAt: createdAt(),
+    /** When the owner starred it; null when not starred. */
+    starredAt: timestamp({ withTimezone: true }),
     updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

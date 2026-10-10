@@ -158,3 +158,26 @@ it("exports the Product Brief as Markdown", async () => {
     (await get(`/api/opportunities/${items[0].id}/brief.md`, other)).status,
   ).toBe(404);
 });
+
+it("stars an opportunity and lists the starred only", async () => {
+  await runProject();
+  const { items } = await (await get("/api/opportunities")).json();
+  const starred = await post(
+    `/api/opportunities/${items[0].id}/star`,
+    {},
+    owner,
+    "PUT",
+  );
+  expect(await starred.json()).toEqual({ starred: true });
+  const list = await (await get("/api/opportunities?starred=1")).json();
+  expect(list.items.map((o: { id: string }) => o.id)).toEqual([items[0].id]);
+  expect(list.items[0].starred).toBe(true);
+  expect(
+    (await post(`/api/opportunities/${items[0].id}/star`, {}, other, "PUT"))
+      .status,
+  ).toBe(404);
+  await post(`/api/opportunities/${items[0].id}/star`, {}, owner, "DELETE");
+  expect(
+    (await (await get("/api/opportunities?starred=1")).json()).items,
+  ).toEqual([]);
+});

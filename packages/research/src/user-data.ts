@@ -51,6 +51,7 @@ export async function exportResearchData(database: Database, userId: string) {
       projectId: opportunities.projectId,
       cluster: opportunities.cluster,
       status: opportunities.status,
+      starredAt: opportunities.starredAt,
       createdAt: opportunities.createdAt,
     })
     .from(opportunities)
@@ -114,6 +115,7 @@ export async function exportResearchData(database: Database, userId: string) {
       .map((o) => ({
         cluster: o.cluster,
         status: o.status,
+        starredAt: o.starredAt,
         createdAt: o.createdAt,
         decisions: decisions.filter(of(o.id)),
         experiments: experiments.filter(of(o.id)),

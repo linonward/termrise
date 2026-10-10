@@ -5,6 +5,7 @@ import type { RadarItemDto } from "@repo/research/radar-dto";
 import { RADAR_SORTS, type RadarSort } from "@repo/research/radar-rules";
 import { Button } from "@repo/ui/components/button";
 
+import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import {
   DiscussionNotice,
@@ -23,7 +24,12 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
   const q = typeof params.q === "string" ? params.q : "";
   const sort: RadarSort = RADAR_SORTS.find((s) => s === params.sort) ?? "new";
   const t = await getTranslations("radar");
-  const query = new URLSearchParams({ sort, ...(q ? { q } : {}) });
+  const starred = params.starred === "1";
+  const query = new URLSearchParams({
+    sort,
+    ...(q ? { q } : {}),
+    ...(starred ? { starred: "1" } : {}),
+  });
   const { items } = await apiGet<{ items: RadarItemDto[] }>(
     `/api/radar/items?${query}`,
   );
@@ -64,18 +70,36 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
             ))}
           </select>
         </label>
+        <label className="flex h-11 items-center gap-2 text-[15px]">
+          <input
+            type="checkbox"
+            name="starred"
+            value="1"
+            defaultChecked={starred}
+            className="size-4 accent-brand"
+          />
+          {t("starredOnly")}
+        </label>
         <Button type="submit" variant="outline" className="h-11 px-4">
           {t("apply")}
         </Button>
       </form>
       {items.length === 0 ? (
         <div className="space-y-1 rounded-lg border border-border p-6">
-          <p className="text-[15px] font-medium">
-            {q ? t("noMatchTitle") : t("emptyTitle")}
-          </p>
-          <p className="text-[15px] text-muted-foreground">
-            {q ? t("noMatchBody") : t("emptyBody")}
-          </p>
+          {starred && !q ? (
+            <p className="text-[15px] text-muted-foreground">
+              {t("starredEmpty")}
+            </p>
+          ) : (
+            <>
+              <p className="text-[15px] font-medium">
+                {q ? t("noMatchTitle") : t("emptyTitle")}
+              </p>
+              <p className="text-[15px] text-muted-foreground">
+                {q ? t("noMatchBody") : t("emptyBody")}
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -112,12 +136,19 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
                   className="border-b border-border"
                 >
                   <td className="py-4 pr-4">
-                    <Link
-                      href={`/radar/${item.id}`}
-                      className="font-semibold break-words hover:underline hover:underline-offset-4"
-                    >
-                      {item.title}
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <StarButton
+                        path={`/api/radar/items/${item.id}/star`}
+                        starred={item.starred}
+                        name={item.title}
+                      />
+                      <Link
+                        href={`/radar/${item.id}`}
+                        className="font-semibold break-words hover:underline hover:underline-offset-4"
+                      >
+                        {item.title}
+                      </Link>
+                    </div>
                   </td>
                   <td className="py-4 pr-4">
                     <LifecycleBadge lifecycle={item.lifecycle} />

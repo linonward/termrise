@@ -14,6 +14,7 @@ import type {
 } from "@repo/research/research-dto";
 import { WEIGHTS } from "@repo/research/scoring";
 
+import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import { BriefPanel } from "@/features/opportunities/brief-panel";
 import { DecisionForm } from "@/features/opportunities/decision-form";
@@ -111,6 +112,11 @@ export default async function OpportunityPage({
           {t("back")}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
+          <StarButton
+            path={`/api/opportunities/${o.id}/star`}
+            starred={o.starred}
+            name={o.cluster}
+          />
           <h1 className="font-heading text-[28px] font-bold tracking-tight break-words md:text-4xl">
             {o.cluster}
           </h1>

@@ -724,6 +724,11 @@
     "budgetNote": "Held is the amount kept for calls that are running or failed with an unknown cost. Each research project has its own data and AI budget.",
     "budgetLink": "Research projects"
   },
+  "favorites": {
+    "star": "Star {name}",
+    "unstar": "Remove star from {name}",
+    "failed": "The star did not save. Try again."
+  },
   "radar": {
     "metaTitle": "Radar",
     "title": "Radar",
@@ -784,7 +789,9 @@
       "recurring": "The same term was seen in an earlier story, at least 7 days before.",
       "seasonal": "The same term was seen in the same month of an earlier year.",
       "insufficient_data": "Not enough observations to measure growth. It needs 3 or more observations across 3 hours or more."
-    }
+    },
+    "starredOnly": "Starred only",
+    "starredEmpty": "No starred stories yet. Use the star on a story to keep it here."
   },
   "research": {
     "metaTitle": "Research",
@@ -987,7 +994,10 @@
     "serpTitle": "Search results",
     "signalsTitle": "Signals",
     "signalsEmpty": "No signals for this term. The trend and distribution ratings are 0.",
-    "sourceCsv": "CSV import"
+    "sourceCsv": "CSV import",
+    "starredOnly": "Starred only",
+    "showAllStars": "All opportunities",
+    "starredEmpty": "No starred opportunities yet. Use the star on an opportunity to keep it here."
   },
   "decisions": {
     "title": "Decision",

@@ -46,7 +46,7 @@ it("saves stories from both lists with one observation per list", async () => {
     skipped: 2,
     failed: 0,
   });
-  const items = await radar.list();
+  const items = await radar.list("u");
   expect(items.map((i) => i.externalId).sort()).toEqual(["1", "2", "5"]);
   const five = items.find((i) => i.externalId === "5")!;
   expect(toRadarItemDto(five)).toMatchObject({
@@ -62,7 +62,7 @@ it("saves stories from both lists with one observation per list", async () => {
     comments: 5,
   });
   const two = items.find((i) => i.externalId === "2")!;
-  const { observations } = await radar.get(two.id);
+  const { observations } = await radar.get("u", two.id);
   expect(observations.map((o) => ({ list: o.list, rank: o.rank }))).toEqual([
     { list: "show", rank: 1 },
     { list: "top", rank: 2 },
@@ -85,14 +85,14 @@ it("keeps first seen and appends observations on the next collection", async () 
   clock = new Date("2026-10-10T09:00:00Z");
   await radar.collectHackerNews();
 
-  const [item] = await radar.list();
+  const [item] = await radar.list("u");
   expect(item).toMatchObject({
     title: "Show HN: Renamed",
     score: 99,
     firstSeenAt: new Date("2026-10-10T08:00:00Z"),
     lastSeenAt: new Date("2026-10-10T09:00:00Z"),
   });
-  const { observations } = await radar.get(item.id);
+  const { observations } = await radar.get("u", item.id);
   expect(observations.map((o) => o.score)).toEqual([99, 10]);
 });
 
@@ -151,7 +151,7 @@ it("filters by term and sorts by score", async () => {
   });
   await radar.collectHackerNews();
   const titles = async (query: Record<string, string>) =>
-    (await radar.list(query)).map((i) => i.title);
+    (await radar.list("u", query)).map((i) => i.title);
   expect(await titles({ q: "INVOICE", sort: "score" })).toEqual([
     "Invoice tool 100%",
     "Invoice parser",
@@ -169,11 +169,11 @@ it("filters by term and sorts by score", async () => {
 
 it("returns not found for an unknown or invalid id", async () => {
   const radar = createRadar({ database: db });
-  await expect(radar.get("not-a-uuid")).rejects.toMatchObject({
+  await expect(radar.get("u", "not-a-uuid")).rejects.toMatchObject({
     code: "RADAR_ITEM_NOT_FOUND",
   });
   await expect(
-    radar.get("00000000-0000-4000-8000-000000000000"),
+    radar.get("u", "00000000-0000-4000-8000-000000000000"),
   ).rejects.toMatchObject({ code: "RADAR_ITEM_NOT_FOUND" });
 });
 
@@ -189,7 +189,7 @@ it("shows a lifecycle from the observations and earlier items of the term", asyn
   });
   clock = new Date("2026-10-10T08:00:00Z");
   await radar.collectHackerNews();
-  expect((await radar.list())[0].lifecycle).toBe("insufficient_data");
+  expect((await radar.list("u"))[0].lifecycle).toBe("insufficient_data");
   for (const [hour, score] of [
     [10, 60],
     [12, 180],
@@ -198,15 +198,15 @@ it("shows a lifecycle from the observations and earlier items of the term", asyn
     clock = new Date(`2026-10-10T${hour}:00:00Z`);
     await radar.collectHackerNews();
   }
-  const [item] = await radar.list();
+  const [item] = await radar.list("u");
   expect(toRadarItemDto(item).lifecycle).toBe("breakout");
-  expect((await radar.get(item.id)).item.lifecycle).toBe("breakout");
+  expect((await radar.get("u", item.id)).item.lifecycle).toBe("breakout");
 
   // The same term again, 10 days later, in another story.
   data.lists = { top: [2] };
   data.items = [story(2, { title: "Invoice parser" })];
   clock = new Date("2026-10-20T08:00:00Z");
   await radar.collectHackerNews();
-  const again = (await radar.list()).find((i) => i.externalId === "2")!;
+  const again = (await radar.list("u")).find((i) => i.externalId === "2")!;
   expect(again.lifecycle).toBe("recurring");
 });

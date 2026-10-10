@@ -41,6 +41,8 @@ GET /api/research/projects/:id/costs（{ data, ai }：每项 budgetUsd、spentUs
 
 GET /api/radar/items（Radar 条目，最多 100 个；?q= 按规范化的词搜索（不区分大小写，最多 100 字符），?sort=new（首次发现，默认）| score（分数高的在前，没有分数的在后）；任何登录用户看到同样的条目；每个条目带 `lifecycle`；见 data-model.md 的 Radar）
 
+PUT / DELETE /api/radar/items/:id/star（收藏 / 取消收藏，返回 { starred }；`?starred=1` 时列表只列收藏；条目不存在时 404 RADAR_ITEM_NOT_FOUND）
+
 GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
 
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
@@ -50,6 +52,8 @@ GET /api/opportunities（当前用户的当前机会，分数高的在前；?pro
 GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals，以及 decisions（新的在前）和 experiments；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）
 
 GET /api/opportunities/:id/brief.md（Product Brief，`text/markdown; charset=utf-8`，`Content-Disposition: attachment; filename="brief-<组名>.md"`；见 data-model.md 的 Product Brief）
+
+PUT / DELETE /api/opportunities/:id/star（收藏 / 取消收藏，返回 { starred }；`GET /api/opportunities?starred=1` 只列收藏；不属于当前用户时 404 OPPORTUNITY_NOT_FOUND）
 
 POST /api/opportunities/:id/decisions（{ decision, reason }，成功返回 201；当前状态不允许时 409 OPPORTUNITY_DECISION_INVALID；见 data-model.md 的 Decisions and Experiments）
 

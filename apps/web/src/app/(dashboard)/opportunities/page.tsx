@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import type { OpportunityDto } from "@repo/research/research-dto";
 
+import { StarButton } from "@/components/favorites/star-button";
 import {
   NeedsReview,
   OpportunityStatus,
@@ -18,14 +19,23 @@ export async function generateMetadata() {
 export default async function OpportunitiesPage({
   searchParams,
 }: PageProps<"/opportunities">) {
-  const { project } = await searchParams;
-  const projectId = typeof project === "string" ? project : undefined;
+  const params = await searchParams;
+  const projectId =
+    typeof params.project === "string" ? params.project : undefined;
+  const starred = params.starred === "1";
   const t = await getTranslations("opportunities");
+  const query = new URLSearchParams({
+    ...(projectId ? { projectId } : {}),
+    ...(starred ? { starred: "1" } : {}),
+  });
   const { items } = await apiGet<{ items: OpportunityDto[] }>(
-    projectId
-      ? `/api/opportunities?projectId=${encodeURIComponent(projectId)}`
-      : "/api/opportunities",
+    `/api/opportunities${query.size > 0 ? `?${query}` : ""}`,
   );
+  // The same filters with the star filter switched.
+  const toggled = new URLSearchParams({
+    ...(projectId ? { project: projectId } : {}),
+    ...(starred ? {} : { starred: "1" }),
+  });
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
       <header className="space-y-2">
@@ -45,8 +55,21 @@ export default async function OpportunitiesPage({
           </Link>
         </p>
       )}
+      <Link
+        href={`/opportunities${toggled.size > 0 ? `?${toggled}` : ""}`}
+        aria-pressed={starred}
+        className="block w-fit text-[15px] font-semibold underline underline-offset-4"
+      >
+        {starred ? t("showAllStars") : t("starredOnly")}
+      </Link>
       {items.some((o) => o.analystProvider === "fake") && <FixtureNotice />}
-      {items.length === 0 ? (
+      {items.length === 0 && starred ? (
+        <div className="rounded-lg border border-border p-6">
+          <p className="text-[15px] text-muted-foreground">
+            {t("starredEmpty")}
+          </p>
+        </div>
+      ) : items.length === 0 ? (
         <div className="space-y-1 rounded-lg border border-border p-6">
           <p className="text-[15px] font-medium">{t("emptyTitle")}</p>
           <p className="text-[15px] text-muted-foreground">
@@ -95,6 +118,11 @@ export default async function OpportunitiesPage({
                 >
                   <td className="py-4 pr-4">
                     <div className="flex flex-wrap items-center gap-2">
+                      <StarButton
+                        path={`/api/opportunities/${o.id}/star`}
+                        starred={o.starred}
+                        name={o.cluster}
+                      />
                       <Link
                         href={`/opportunities/${o.id}`}
                         className="font-semibold hover:underline hover:underline-offset-4"

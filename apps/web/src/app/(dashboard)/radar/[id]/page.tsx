@@ -10,6 +10,7 @@ import type {
 import { PROJECT_NAME_MAX_LENGTH } from "@repo/research/research-rules";
 import { Button } from "@repo/ui/components/button";
 
+import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import {
   DiscussionNotice,
@@ -63,6 +64,11 @@ export default async function RadarItemPage({
           {t("back")}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
+          <StarButton
+            path={`/api/radar/items/${item.id}/star`}
+            starred={item.starred}
+            name={item.title}
+          />
           <h1 className="font-heading text-[28px] font-bold tracking-tight break-words md:text-4xl">
             {item.title}
           </h1>

@@ -2,7 +2,7 @@ import { and, desc, eq, ilike, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
-import { radarItems, radarObservations } from "@repo/db/schema";
+import { radarFavorites, radarItems, radarObservations } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
@@ -30,6 +30,10 @@ type Sighting = { list: HackerNewsList; rank: number };
 const listQuery = z.object({
   q: z.string().trim().max(100).optional().catch(undefined),
   sort: z.enum(RADAR_SORTS).catch("new"),
+  starred: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
 });
 
 // Runs `task` on each value, at most `limit` at a time.
@@ -160,9 +164,23 @@ export function createRadar(deps: {
   // Adds each item's lifecycle (radar-lifecycle.ts): two queries for the whole page.
   async function withLifecycle(
     items: RadarItem[],
-  ): Promise<(RadarItem & { lifecycle: Lifecycle })[]> {
+    userId: string,
+  ): Promise<(RadarItem & { lifecycle: Lifecycle; starred: boolean })[]> {
     if (items.length === 0) return [];
     const ids = items.map((i) => i.id);
+    const stars = new Set(
+      (
+        await database
+          .select({ itemId: radarFavorites.itemId })
+          .from(radarFavorites)
+          .where(
+            and(
+              eq(radarFavorites.userId, userId),
+              inArray(radarFavorites.itemId, ids),
+            ),
+          )
+      ).map((r) => r.itemId),
+    );
     const terms = [...new Set(items.map((i) => i.normalizedTerm))];
     const [observations, sameTerm] = await Promise.all([
       database
@@ -189,6 +207,7 @@ export function createRadar(deps: {
     ]);
     return items.map((item) => ({
       ...item,
+      starred: stars.has(item.id),
       lifecycle: lifecycle({
         firstSeenAt: item.firstSeenAt,
         observations: observations.filter((o) => o.itemId === item.id),
@@ -199,14 +218,33 @@ export function createRadar(deps: {
     }));
   }
 
-  /** Items for the radar list: newest first seen, or highest score. */
-  async function list(query: Record<string, string | undefined> = {}) {
-    const { q, sort } = listQuery.parse(query);
+  /**
+   * Items for the radar list: newest first seen, or highest score; the user's starred
+   * only with starred=1. Each item says whether the user starred it.
+   */
+  async function list(
+    userId: string,
+    query: Record<string, string | undefined> = {},
+  ) {
+    const { q, sort, starred } = listQuery.parse(query);
     const pattern = q && `%${q.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`;
     const items = await database
       .select()
       .from(radarItems)
-      .where(pattern ? ilike(radarItems.normalizedTerm, pattern) : undefined)
+      .where(
+        and(
+          pattern ? ilike(radarItems.normalizedTerm, pattern) : undefined,
+          starred
+            ? inArray(
+                radarItems.id,
+                database
+                  .select({ id: radarFavorites.itemId })
+                  .from(radarFavorites)
+                  .where(eq(radarFavorites.userId, userId)),
+              )
+            : undefined,
+        ),
+      )
       .orderBy(
         ...(sort === "score"
           ? [sql`${radarItems.score} desc nulls last`]
@@ -215,11 +253,11 @@ export function createRadar(deps: {
         desc(radarItems.id),
       )
       .limit(RADAR_PAGE_SIZE);
-    return withLifecycle(items);
+    return withLifecycle(items, userId);
   }
 
   /** One item with its observations, newest first. */
-  async function get(id: string) {
+  async function get(userId: string, id: string) {
     if (!z.uuid().safeParse(id).success) throw notFound();
     const [item] = await database
       .select()
@@ -232,7 +270,7 @@ export function createRadar(deps: {
       .where(eq(radarObservations.itemId, id))
       .orderBy(desc(radarObservations.observedAt), radarObservations.list)
       .limit(200);
-    const [withState] = await withLifecycle([item]);
+    const [withState] = await withLifecycle([item], userId);
     return { item: withState, observations };
   }
 

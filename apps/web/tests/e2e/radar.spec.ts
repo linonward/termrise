@@ -54,6 +54,18 @@ test("starts research from a radar story", async ({ page, context }) => {
     "href",
     `https://news.ycombinator.com/item?id=${id}`,
   );
+  // Star it, then find it with the starred filter. The button shows the star at once;
+  // wait until the save has finished.
+  const saved = page.waitForResponse(
+    (r) => r.url().endsWith("/star") && r.request().method() === "PUT",
+  );
+  await page
+    .getByRole("button", { name: `Star Show HN: Radar term ${id}` })
+    .click();
+  expect((await saved).ok()).toBe(true);
+  await page.goto("/radar?starred=1");
+  await expect(page.getByTestId("radar-row")).toHaveCount(1);
+  await page.getByRole("link", { name: `Show HN: Radar term ${id}` }).click();
   await page.getByRole("link", { name: "Start research" }).click();
 
   await expect(page).toHaveURL(/\/research\?/);

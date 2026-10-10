@@ -8,7 +8,9 @@ import { seedFromTerm } from "./radar-rules";
 
 // Public shape of a radar item: the source link, the discussion link and a seed to start
 // research with.
-export function toRadarItemDto(i: RadarItem & { lifecycle: Lifecycle }) {
+export function toRadarItemDto(
+  i: RadarItem & { lifecycle: Lifecycle; starred: boolean },
+) {
   return {
     id: i.id,
     provider: i.provider,
@@ -23,6 +25,7 @@ export function toRadarItemDto(i: RadarItem & { lifecycle: Lifecycle }) {
     score: i.score,
     comments: i.comments,
     lifecycle: i.lifecycle,
+    starred: i.starred,
   };
 }
 

@@ -5,12 +5,14 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { user } from "./auth";
 import { inList } from "./columns";
 
 export const RADAR_PROVIDERS = ["hacker_news"] as const;
@@ -72,4 +74,19 @@ export const radarObservations = pgTable(
     ),
     check("radar_observations_rank_positive", sql`${t.rank} >= 1`),
   ],
+);
+
+// A user's starred radar items. Radar items are global; the star is the user's.
+export const radarFavorites = pgTable(
+  "radar_favorites",
+  {
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    itemId: uuid()
+      .notNull()
+      .references(() => radarItems.id, { onDelete: "cascade" }),
+    createdAt: timestamp({ withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.itemId] })],
 );
