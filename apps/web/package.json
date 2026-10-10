@@ -29,6 +29,7 @@
     "@repo/observability": "workspace:*",
     "@repo/seo": "workspace:*",
     "@repo/storage": "workspace:*",
+    "@repo/tasks": "workspace:*",
     "@repo/ui": "workspace:*",
     "@sentry/nextjs": "11.4.0",
     "@vercel/analytics": "^2.0.1",

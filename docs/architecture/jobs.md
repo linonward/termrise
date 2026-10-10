@@ -55,4 +55,4 @@ Termrise 的选择（`docs/adr/011-worker.md`）与上面的步骤有两处不�
 
 Redis 用 Upstash（TCP + TLS，`rediss://`）。Worker 部署见 [Worker](deployment.md#worker)。
 
-Worker 的处理器需要修改 Task 状态（调用 Provider、转为终态、退款）时，先把 `apps/web/src/features/tasks/task-service.ts` 和 `credit-cost.ts` 移到 `packages/tasks`，再实现处理器。web 与 Worker 调用同一个 TaskService：Worker 不能 import `apps/web`，也不得复制 Task 规则（overview.md 的 Monorepo 规则：业务规则只实现一次）。只用 web 的 Service 入队时，TaskService 留在 web。
+TaskService 在 `packages/tasks`。Worker 的处理器需要修改 Task 状态（调用 Provider、转为终态、退款）时，调用同一个 TaskService：Worker 不能 import `apps/*`，也不得复制 Task 规则（overview.md 的 Monorepo 规则：业务规则只实现一次）。

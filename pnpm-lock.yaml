@@ -220,6 +220,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@repo/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
@@ -238,6 +241,9 @@ importers:
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@repo/tasks':
+        specifier: workspace:*
+        version: link:../../packages/tasks
       hono:
         specifier: ^4.13.13
         version: 4.13.13
@@ -287,6 +293,9 @@ importers:
       '@repo/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@repo/tasks':
+        specifier: workspace:*
+        version: link:../../packages/tasks
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -543,6 +552,30 @@ importers:
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
+
+  packages/tasks:
+    dependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@repo/analytics':
+        specifier: workspace:*
+        version: link:../analytics
+      '@repo/credits':
+        specifier: workspace:*
+        version: link:../credits
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@repo/observability':
+        specifier: workspace:*
+        version: link:../observability
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/ui:
     dependencies:

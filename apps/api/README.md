@@ -17,9 +17,16 @@ pnpm --filter api run deploy
 | `src/env.ts`                      | Binding 类型与 `apiEnv()` 校验                                        |
 | `src/middleware/database.ts`      | 每请求一个连接（`c.var.db`）；响应和 `c.var.defer()` 的任务结束后关闭 |
 | `src/routes/health.ts`            | `GET /api/health`：连接一次数据库，失败返回 503                       |
-| `src/routes/auth.ts`              | Better Auth（`/api/auth/*`）：CORS、cookie、登录邮件                  |
+| `src/routes/auth.ts`              | Better Auth（`/api/auth/*`）：CORS、cookie                            |
+| `src/routes/tasks.ts`             | `GET` / `POST /api/tasks`：示例付费操作                               |
+| `src/auth.ts`、`src/analytics.ts` | 每个请求的 Better Auth（含登录邮件）与服务端 Analytics                |
+| `src/middleware/web-cors.ts`      | 只允许 web（`APP_URL`）跨域调用，带 cookie                            |
+| `src/middleware/web-csrf.ts`      | form 与 `text/plain` 请求只接受 web 的 Origin                         |
+| `src/middleware/session.ts`       | 已登录路由：`c.var.user`，未登录 401                                  |
+| `src/middleware/rate-limit.ts`    | `rateLimit(name)`：`API_RATE_LIMITS` 的按用户限流                     |
 | `src/middleware/error-handler.ts` | 把 `AppError` 转成与 web 相同的错误响应                               |
 | `messages/*.json`                 | API 自己发送的文案（登录邮件）                                        |
 | `src/testing/worker.ts`           | 测试用的 binding 和 ExecutionContext                                  |
+| `src/testing/client.ts`           | `createTestClient()`：调用 app，`signIn()` 经 Magic Link 登录         |
 
-新增路由调用 `packages/*` 中的 Service，不复制业务规则。需要数据库的路由用 `database` middleware，从 `c.var.db` 取连接；Binding 经 `apiEnv(c.env)` 读取，见 [API Bindings](../../docs/architecture/environment.md#api-bindings)、[Monorepo](../../docs/architecture/overview.md#monorepo) 和 [api.md](../../docs/architecture/api.md)。
+新增路由调用 `packages/*` 中的 Service，不复制业务规则。需要数据库的路由用 `database` middleware，从 `c.var.db` 取连接；已登录路由的 middleware 顺序见 [api.md](../../docs/architecture/api.md#api-surface)；Binding 经 `apiEnv(c.env)` 读取，见 [API Bindings](../../docs/architecture/environment.md#api-bindings)、[Monorepo](../../docs/architecture/overview.md#monorepo) 和 [api.md](../../docs/architecture/api.md)。

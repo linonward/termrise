@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { resolveTestDatabaseUrl } from "@repo/db/testing/test-database";
 
 export const E2E_API_PORT = 3101;
-const E2E_API_URL = `http://localhost:${E2E_API_PORT}`;
+export const E2E_API_URL = `http://localhost:${E2E_API_PORT}`;
 const E2E_AUTH_SECRET = "e2e-local-only-secret-not-a-real-credential-123456";
 
 export const e2eEnv = {
@@ -40,4 +40,6 @@ export const e2eApiVars = {
   GOOGLE_CLIENT_SECRET: "e2e-google",
   RESEND_API_KEY: "e2e-disabled",
   EMAIL_FROM: "test@example.com",
+  TASK_PROVIDER: "fake",
+  ALLOW_FAKE_PROVIDERS: "1",
 };

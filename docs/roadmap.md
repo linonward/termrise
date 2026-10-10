@@ -11,6 +11,7 @@
 | S03   | 迁移第 1 步：`apps/api` 改为 Cloudflare Worker（wrangler、`nodejs_compat`、Hyperdrive binding）；`connectDb()` 每请求一个连接；`GET /api/health` 查数据库；健康检查移到 `packages/db`                                                                 | 事务与 `pg_advisory_xact_lock` 在每请求连接上的集成测试通过；`wrangler dev` 本地返回 200；`wrangler deploy --dry-run` 打包成功；首次部署步骤写入 deployment.md | 已完成 |
 | S04   | 迁移第 2 步（后端）：`apps/api` 提供 Better Auth（`/api/auth/*`）：CORS、跨子域名 cookie、web origin 上的绝对 callback、`cf-connecting-ip` 限流、登录邮件文案；`onUserCreated`、邮件发送、locale 移到 packages；web 不变                              | API 集成测试覆盖 preflight、Magic Link 登录、跳回 web、session；`wrangler dev` 上验证 link 校验、session 与注册奖励                                            | 已完成 |
 | S05   | 迁移第 2 步（切换）：web 的登录改用 `apps/api`：auth client 指向 `NEXT_PUBLIC_API_URL`、callback 为绝对 URL、登录邮件语言经 `Accept-Language`；服务端经 HTTP 读取 session；删除 web 的 `/api/auth`、邮件发送和不再使用的变量；E2E 同时启动 `apps/api` | 全部 E2E 在 web + `apps/api`（wrangler dev）上通过；web 不再引用 `createAuth`                                                                                  | 已完成 |
+| S06   | 迁移第 3 步（tasks）：TaskService 移到 `packages/tasks`；`apps/api` 提供 `GET` / `POST /api/tasks`（CORS、CSRF Origin 检查、session、限流 middleware）；TaskPanel 经 `NEXT_PUBLIC_API_URL` 调用；删除 web 的 `/api/tasks`。uploads、consent 留给 S07  | API 集成测试覆盖运行、列表、401、preflight、CSRF、非 JSON、429；全部 E2E 在 web + `apps/api` 上通过；`wrangler deploy --dry-run` 打包成功                      | 已完成 |
 
 ## Confirmed Decisions
 
@@ -31,6 +32,7 @@
 - 2026-10-10：产品改为 Termrise，见 [product.md](product/product.md)；暂时不对外收费，Waffo 与 Credits 不用于 Termrise 自身。Slice 编号从 S01 重新开始；ADR 中的「saas-starter S{nn}」指模板仓库的 Slice。
 - 2026-10-10：Worker 用 BullMQ + Upstash Redis（Fixed 套餐），部署在 Cloudflare Containers；BullMQ 只在 `apps/worker` 中。web 不连接 Redis、不入队，只写数据库状态；Worker 用 Job Scheduler 扫描待处理记录并入队，定时采集也由它触发。见 [ADR-011](adr/011-worker.md)。
 - 2026-10-10：模块化单体：业务模块在 `packages/*` 中只实现一次；全部 API（含 Better Auth、Waffo webhook）迁到 `apps/api`（Hono，Cloudflare Workers，经 Hyperdrive 连接 Neon）；`apps/web` 不实现 API，只经 HTTP 调用 `apps/api`，继续部署在 Vercel，与 API 用同一主域名下的子域名。见 [ADR-012](adr/012-api-modular-monolith.md)，迁移顺序见其 Consequences。
+- 2026-10-10：TaskService 移到 `packages/tasks`（取代 2026-10-08「TaskService 留在 `apps/web`」）：`apps/api` 与 web 都要调用它。迁移第 3 步拆成两个 Slice：S06 迁 tasks，S07 迁 uploads 与 analytics consent（R2 SDK 在 Workers 上的兼容性要单独确认）。
 - 2026-10-10：Waffo 与 Credits 保留代码、隐藏入口：注册不发 Credits，UI 不显示收费入口。在品牌 Slice 中实施。
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 

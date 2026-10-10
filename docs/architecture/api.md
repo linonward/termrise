@@ -2,13 +2,23 @@
 
 ## API Surface
 
-只创建必要的 API。当前路由（`apps/web/src/app/api/`）：
+只创建必要的 API。`apps/api` 的路由（`apps/api/src/routes/`）：
 
 ```text
 GET /api/tasks（先把超时的 PENDING Task 改为 FAILED 并退款，再返回当前用户最近 20 条 Task，新的在前）
 
 POST /api/tasks（{ requestId, input }，示例付费操作，成功返回 201 + Task，见 tasks.md）
 
+GET /api/health（同 web 的 /api/health）
+
+/api/auth/*（Better Auth）
+```
+
+`apps/api` 的已登录路由按顺序使用这些 middleware（`apps/api/src/middleware/`），不手写这些步骤：`webCors`（只允许 `APP_URL`，带 cookie）→ `webCsrf`（form 与 `text/plain` 请求不经过 CORS preflight，只接受 `APP_URL` 的 Origin，否则 `403 FORBIDDEN`）→ `database`（每请求一个连接）→ `session`（`c.var.user`，未登录 `401 UNAUTHORIZED`）→ 可选的 `rateLimit("task")`（key 为 `task:{userId}`）。错误由 `onError` 的 `errorHandler` 转为 Error Contract。浏览器调用时用 `NEXT_PUBLIC_API_URL` 加路径，并设置 `credentials: "include"`。
+
+web 的路由（`apps/web/src/app/api/`），按 ADR-012 的迁移顺序逐步迁到 `apps/api`：
+
+```text
 POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，见 storage.md）
 
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）
@@ -32,7 +42,7 @@ Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the A
 
 除 webhook 和 `/api/health` 外，所有路由都要求登录（`requireUser()`，经 `apps/api` 读取 session），未登录返回 `401 UNAUTHORIZED`。
 
-需要登录的路由用 `userRoute()`（`apps/web/src/server/http/user-route.ts`）包装，不手写下面的步骤：
+web 中需要登录的路由用 `userRoute()`（`apps/web/src/server/http/user-route.ts`）包装，不手写下面的步骤：
 
 ```text
 withRequestContext（日志带 requestId）
@@ -48,11 +58,11 @@ handler({ request, user })
 
 ```ts
 export const POST = userRoute(
-  { rateLimit: "task" },
-  async ({ request, user }) => {
-    const task = await getTaskService().run(user.id, await readJson(request));
-    return Response.json(toTaskDto(task), { status: 201 });
-  },
+  { rateLimit: "upload" },
+  async ({ request, user }) =>
+    Response.json(
+      await getUploadService().createUpload(user.id, await readJson(request)),
+    ),
 );
 ```
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`apps/web/src/features/tasks/` 是 starter 的示例付费操作：用户提交一段文本，花 1 Credit，得到结果。它演示每个按次收费功能都需要的规则：先扣费，再调用 Provider，失败时退款，重试不重复扣费。
+`packages/tasks`（规则）与 `apps/web/src/features/tasks/`（UI）是 starter 的示例付费操作：用户提交一段文本，花 1 Credit，得到结果。它演示每个按次收费功能都需要的规则：先扣费，再调用 Provider，失败时退款，重试不重复扣费。
 
 新产品用自己的功能（例如调用 AI 模型生成内容）替换示例，保留这些规则。
 
@@ -12,11 +12,14 @@
 | `packages/ai/src/adapters/example.ts`  | 示例 Provider：反转文本。没有第三方依赖，Production 可以运行                                                                                                                                                                                                                                       |
 | `packages/ai/src/adapters/deepseek.ts` | DeepSeek Provider：经 AI SDK（`@ai-sdk/deepseek`）调用，返回回答文本。默认总超时 60 秒（含重试）；每次回答最多 2048 个输出 token（`maxOutputTokens`）。回答达到上限被截断时（`finishReason` 为 `length`），返回截断的文本，Task 成功，不退款：Provider 已按 token 收费，退款会让用户免费消耗 token |
 | `packages/ai/src/adapters/fake.ts`     | 测试 Provider：输出大写文本；输入含 `[fail]` 时抛错，用来测退款                                                                                                                                                                                                                                    |
-| `features/tasks/task-service.ts`       | `run()`、`list()`、`failStaleTasks()`；唯一修改 Task 状态的地方                                                                                                                                                                                                                                    |
-| `features/tasks/credit-cost.ts`        | `TASK_CREDIT_COST = 1`；定价页经 `server/product.ts` 的 `CREDIT_COST_PER_USE` 用它计算次数和单价                                                                                                                                                                                                   |
-| `features/tasks/tasks.ts`              | 按 `TASK_PROVIDER` 组装 Service；`toTaskDto()` 输出公开字段                                                                                                                                                                                                                                        |
+| `packages/ai/src/create-provider.ts`   | 把 `TASK_PROVIDER` 的取值映射到 Adapter；`apps/api` 与 web 各自传入自己的 env                                                                                                                                                                                                                      |
+| `packages/tasks/src/task-service.ts`   | `run()`、`list()`、`failStaleTasks()`；唯一修改 Task 状态的地方                                                                                                                                                                                                                                    |
+| `packages/tasks/src/credit-cost.ts`    | `TASK_CREDIT_COST = 1`；定价页经 `server/product.ts` 的 `CREDIT_COST_PER_USE` 用它计算次数和单价                                                                                                                                                                                                   |
+| `packages/tasks/src/task-dto.ts`       | `toTaskDto()` 输出公开字段（不含 `requestId`）                                                                                                                                                                                                                                                     |
+| `apps/api/src/routes/tasks.ts`         | `GET` / `POST /api/tasks`：按 `TASK_PROVIDER` binding 组装 Service                                                                                                                                                                                                                                 |
+| `features/tasks/tasks.ts`              | web 的 `getTaskService()`：页面和 `server/product.ts` 读取 Task、清理超时 Task，直到这些页面改为调用 API（ADR-012 第 5 步）                                                                                                                                                                        |
 
-UI：`/dashboard` 的 `TaskPanel`（`apps/web/src/features/tasks/task-panel.tsx`）：输入框、运行按钮（显示花费 1 Credit）和结果列表。
+UI：`/dashboard` 的 `TaskPanel`（`apps/web/src/features/tasks/task-panel.tsx`）：输入框、运行按钮（显示花费 1 Credit）和结果列表。运行时浏览器直接调用 `apps/api` 的 `POST /api/tasks`。
 
 表结构见 [Tasks](data-model.md#tasks)。
 
@@ -108,7 +111,7 @@ task:{taskId}:refund
 
 进程可能在扣费之后、写入终态之前中断（例如函数超时），Task 会停在 `PENDING`。`TaskService.failStaleTasks(userId)` 处理这种记录：
 
-- 创建超过 `STALE_TASK_MS`（15 分钟，`apps/web/src/features/tasks/task-service.ts`）仍为 PENDING 的 Task，改为 FAILED，`error_code = TIMEOUT`，同一事务内退款。每条记一次 warn 日志 `task.stale`。
+- 创建超过 `STALE_TASK_MS`（15 分钟，`packages/tasks/src/task-service.ts`）仍为 PENDING 的 Task，改为 FAILED，`error_code = TIMEOUT`，同一事务内退款。每条记一次 warn 日志 `task.stale`。
 - 不使用 Cron，在读取时执行：已登录页面（`/dashboard`、`/billing`）读取余额用 `balanceForUser()`（`apps/web/src/server/credits/credits.ts`），它先经 `server/product.ts` 的 `beforeBalanceRead` 调用 `failStaleTasks`，再读余额，并按请求缓存。layout 和 page 同时渲染，无论哪个先读，拿到的都是退款后的余额；页面在它之后再读 Task 列表和流水。`GET /api/tasks` 在列出 Task 之前调用。用户看到的余额和列表因此已包含退款（E2E：`dashboard.spec.ts`）。
 - 只处理当前用户的 Task。
 - 如果 Provider 在超时之后才返回，Task 已不是 PENDING，条件更新 0 行，结果被丢弃，不发送 `task_succeeded`，不重复退款；请求返回已失败的 Task。Provider 在超时之后才抛错时同样返回已失败的 Task。

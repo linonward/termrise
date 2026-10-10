@@ -84,6 +84,7 @@ Better Auth 只在 `apps/api` 的 `/api/auth/*`（`apps/api/src/routes/auth.ts`�
 - 设置 `AUTH_COOKIE_DOMAIN`（例如 `termrise.com`）时，session cookie 带 `Domain`，web 与 API 的子域名共用。本地不设置：`localhost` 的 cookie 不区分端口。
 - Magic Link 的 IP 限流读 `cf-connecting-ip`；文案在 `apps/api/messages/*.json`，语言按 `NEXT_LOCALE` cookie → `Accept-Language` 选择（`packages/config/src/locale.ts`）。web 的登录表单把界面语言放在 `Accept-Language` 中发送，因为 web 的 `NEXT_LOCALE` cookie 不会发到 API 的子域名。
 - 浏览器调用 API 需要 CSP 的 `connect-src` 包含 `NEXT_PUBLIC_API_URL` 的 origin（`apps/web/src/server/http/csp.ts`）。
+- 子域名共用 cookie 后，同一站点的其他子域名发出的 form 或 `text/plain` 请求会带上 session cookie，且不经过 CORS preflight。`apps/api` 的业务路由因此用 `webCsrf`（Hono `csrf`）只接受 `APP_URL` 的 Origin，其他返回 `403 FORBIDDEN`。
 
 ---
 
@@ -158,7 +159,7 @@ E2E：`security-headers.spec.ts` 检查两个头，并在 `/`、`/sign-in`、`/p
 
 ## Rate Limiting
 
-产品 API 的限额（Task、Checkout、Upload）在 `apps/web/src/server/http/rate-limits.ts` 的 `API_RATE_LIMITS` 中维护，路由用 `userRoute({ rateLimit })` 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
+产品 API 的限额（Task、Checkout、Upload）在 `packages/auth/src/api-rate-limits.ts` 的 `API_RATE_LIMITS` 中维护：`apps/api` 的路由用 `rateLimit(name)` middleware，web 的路由用 `userRoute({ rateLimit })` 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
 
 Task（`task:{userId}`）：
 

@@ -1,10 +1,10 @@
 import "server-only";
+import { API_RATE_LIMITS } from "@repo/auth/api-rate-limits";
 import { createRateLimitService } from "@repo/auth/rate-limit";
 import { db } from "@repo/db/client";
 
 import { requireUser } from "@/server/auth/auth";
 
-import { API_RATE_LIMITS } from "./rate-limits";
 import { createUserRoute } from "./route";
 
 /** Wraps a signed-in API route: `export const POST = userRoute({ rateLimit: "task" }, handler)`. */

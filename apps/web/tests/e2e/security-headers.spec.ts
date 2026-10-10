@@ -9,7 +9,7 @@ test.afterAll(closeTestDb);
 const ENFORCED_CSP =
   "frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'self'";
 
-for (const path of ["/", "/sign-in", "/api/tasks"])
+for (const path of ["/", "/sign-in", "/api/health"])
   test(`${path} sends security headers`, async ({ request }) => {
     const headers = (await request.get(path)).headers();
     expect(headers["x-frame-options"]).toBe("DENY");
@@ -28,7 +28,7 @@ test("pages send a report-only script policy with a fresh nonce", async ({
   expect(first).toMatch(/script-src 'nonce-[\w+/=-]+' 'strict-dynamic'/);
   expect(await policy()).not.toBe(first);
   expect(
-    (await request.get("/api/tasks")).headers()[
+    (await request.get("/api/health")).headers()[
       "content-security-policy-report-only"
     ],
   ).toBeUndefined();
