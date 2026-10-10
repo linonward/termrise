@@ -2,9 +2,13 @@ import { expect, test } from "@playwright/test";
 
 import { closeTestDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
+// Billing UI is hidden while the product does not charge (product.config.ts billingEnabled);
+// the billing API keeps its integration tests in apps/api.
+test.skip(!product.billingEnabled, "billing is disabled in product.config.ts");
 
 // apps/api serves checkout.
 const CHECKOUT = "**/api/checkout";

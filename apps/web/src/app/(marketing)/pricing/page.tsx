@@ -1,5 +1,6 @@
 import type { Metadata, ResolvingMetadata } from "next";
 import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { CREDIT_PACKS } from "@repo/billing/credit-packs";
@@ -13,6 +14,7 @@ import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { formatUsd } from "@/lib/format-usd";
 import { getSession } from "@/server/auth/auth";
 import { CREDIT_COST_PER_USE } from "@/server/product";
+import product from "@product";
 
 export async function generateMetadata(
   _: PageProps<"/pricing">,
@@ -41,6 +43,8 @@ export async function generateMetadata(
 }
 
 export default async function PricingPage() {
+  // Hidden while the product does not charge (product.config.ts billingEnabled).
+  if (!product.billingEnabled) notFound();
   const session = await getSession(await headers());
   const t = await getTranslations("pricing");
   const signedIn = Boolean(session);

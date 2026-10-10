@@ -192,40 +192,42 @@ export default async function BlogPostPage({
             </section>
           ))}
 
-          {/* Keep reading: hand-picked posts. */}
-          <section aria-labelledby="related" className="space-y-4">
-            <h2
-              id="related"
-              className="font-heading text-xl font-semibold tracking-tight md:text-2xl"
-            >
-              {blog("related")}
-            </h2>
-            <ul className="border-t border-border">
-              {post.related.filter(isBlogSlug).map((relatedSlug) => {
-                const related = BLOG_POSTS[relatedSlug];
-                return (
-                  <li
-                    key={relatedSlug}
-                    className="flex items-center gap-4 border-b border-border py-4 md:items-start md:gap-5 md:py-5"
-                  >
-                    <div className="space-y-2">
-                      <h3 className="text-base font-semibold">
-                        <Link
-                          href={`/blog/${relatedSlug}`}
-                          className="hover:text-brand-text"
-                        >
-                          {blog(`posts.${related.key}.title`)}
-                        </Link>
-                      </h3>
-                      <p className="hidden text-[15px] text-muted-foreground md:block">
-                        {blog(`posts.${related.key}.summary`)}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+          {/* Keep reading: hand-picked posts, when there are any. */}
+          {post.related.length > 0 && (
+            <section aria-labelledby="related" className="space-y-4">
+              <h2
+                id="related"
+                className="font-heading text-xl font-semibold tracking-tight md:text-2xl"
+              >
+                {blog("related")}
+              </h2>
+              <ul className="border-t border-border">
+                {post.related.filter(isBlogSlug).map((relatedSlug) => {
+                  const related = BLOG_POSTS[relatedSlug];
+                  return (
+                    <li
+                      key={relatedSlug}
+                      className="flex items-center gap-4 border-b border-border py-4 md:items-start md:gap-5 md:py-5"
+                    >
+                      <div className="space-y-2">
+                        <h3 className="text-base font-semibold">
+                          <Link
+                            href={`/blog/${relatedSlug}`}
+                            className="hover:text-brand-text"
+                          >
+                            {blog(`posts.${related.key}.title`)}
+                          </Link>
+                        </h3>
+                        <p className="hidden text-[15px] text-muted-foreground md:block">
+                          {blog(`posts.${related.key}.summary`)}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
         </article>
 
         <FinalCta

@@ -5,6 +5,7 @@ import { createCreditService } from "@repo/credits/credit-service";
 import { creditTransactions, purchases, subscriptions } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { E2E_API_URL } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
@@ -13,6 +14,8 @@ test.skip(({ isMobile }) => isMobile);
 test.afterAll(closeTestDb);
 
 const URL = `${E2E_API_URL}/api/webhooks/waffo`;
+// Credits a new account starts with (product.config.ts; 0 while Termrise does not charge).
+const BONUS = product.signupBonusCredits;
 const signed = { "x-fake-signature": "fake-payment-signature" };
 
 test("verified webhooks grant once and refunds reverse", async ({
@@ -50,7 +53,7 @@ test("verified webhooks grant once and refunds reverse", async ({
     expect(ok.status()).toBe(200);
   }
   const balance = () => createCreditService(testDb()).getBalance(userId);
-  expect(await balance()).toBe(60);
+  expect(await balance()).toBe(BONUS + 50);
   const grants = await testDb()
     .select()
     .from(creditTransactions)
@@ -62,14 +65,14 @@ test("verified webhooks grant once and refunds reverse", async ({
     data: event("refund.failed", "e2"),
   });
   expect(ignored.status()).toBe(200);
-  expect(await balance()).toBe(60);
+  expect(await balance()).toBe(BONUS + 50);
 
   const refund = await request.post(URL, {
     headers: signed,
     data: event("payment.refunded", "e3"),
   });
   expect(refund.status()).toBe(200);
-  expect(await balance()).toBe(10);
+  expect(await balance()).toBe(BONUS);
 });
 
 test("a subscription grants each payment once and blocks a second subscription", async ({
@@ -101,7 +104,7 @@ test("a subscription grants each payment once and blocks a second subscription",
     expect(ok.status()).toBe(200);
   }
   const balance = () => createCreditService(testDb()).getBalance(userId);
-  expect(await balance()).toBe(70);
+  expect(await balance()).toBe(BONUS + 60);
 
   const second = await checkout();
   expect(second.status()).toBe(409);
@@ -145,7 +148,7 @@ test("a subscription grants each payment once and blocks a second subscription",
     },
   });
   expect(refund.status()).toBe(200);
-  expect(await balance()).toBe(10);
+  expect(await balance()).toBe(BONUS);
   expect(await statusOf()).toBe("CANCELING");
 });
 

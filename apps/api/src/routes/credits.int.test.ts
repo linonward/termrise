@@ -14,7 +14,7 @@ beforeEach(resetDb);
 afterAll(closeTestDb);
 
 it("refunds a timed-out task before it reads the balance", async () => {
-  const cookie = await signIn("balance@example.com");
+  const cookie = await signIn("balance@example.com", { credits: 10 });
   const [{ id: userId }] = await testDb().select({ id: user.id }).from(user);
   const credits = createCreditService(testDb());
   const [task] = await testDb()

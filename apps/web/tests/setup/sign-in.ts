@@ -17,7 +17,7 @@ export async function magicLink(email: string) {
   const auth = createAuth(
     testDb(),
     {
-      appName: "Acme",
+      appName: product.name,
       baseURL: e2eApiVars.BETTER_AUTH_URL,
       appOrigin: e2eEnv.APP_URL,
       secret: e2eApiVars.BETTER_AUTH_SECRET,

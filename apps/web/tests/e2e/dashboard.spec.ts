@@ -6,13 +6,44 @@ import { createCreditService } from "@repo/credits/credit-service";
 import { tasks } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
+
+// While the product does not charge (product.config.ts billingEnabled), the dashboard has no
+// credits and no example paid action; the tests of those run only with billing on.
+const PAID = "billing is disabled in product.config.ts";
+
+test("an early access user sees the welcome without credits, and needs a session", async ({
+  page,
+  context,
+}) => {
+  test.skip(product.billingEnabled, "the paid dashboard is tested below");
+  await signIn(context);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/dashboard");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Welcome back" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Research projects are on the way" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("nav-credits")).toHaveCount(0);
+  await expect(page.getByLabel("Text")).toHaveCount(0);
+  for (const path of ["/billing", "/pricing"])
+    expect((await page.goto(path))?.status(), path).toBe(404);
+  expect(errors).toEqual([]);
+  await context.clearCookies();
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/sign-in\?next=/);
+});
 test("new user sees ten credits, live balance updates and needs a session", async ({
   page,
   context,
 }) => {
+  test.skip(!product.billingEnabled, PAID);
   const { userId } = await signIn(context);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -20,7 +51,9 @@ test("new user sees ten credits, live balance updates and needs a session", asyn
     if (m.type() === "error") errors.push(m.text());
   });
   await page.goto("/dashboard");
-  await expect(page).toHaveTitle("Acme: Pay-as-you-go AI tool");
+  await expect(page).toHaveTitle(
+    "Termrise: Find rising search terms worth building for",
+  );
   await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
   await expect(page.getByTestId("credit-balance")).toHaveText("10");
   await expect(page.getByText("No runs yet.")).toBeVisible();
@@ -54,6 +87,7 @@ test("a task uses one credit, and a failed task refunds it", async ({
   page,
   context,
 }) => {
+  test.skip(!product.billingEnabled, PAID);
   await signIn(context);
   await page.goto("/dashboard");
   const input = page.getByLabel("Text");
@@ -82,6 +116,7 @@ test("a task without credits asks the user to buy more", async ({
   page,
   context,
 }) => {
+  test.skip(!product.billingEnabled, PAID);
   const { userId } = await signIn(context);
   await createCreditService(testDb()).adminAdjust(
     userId,
@@ -105,6 +140,7 @@ for (const path of ["/dashboard", "/billing"])
     page,
     context,
   }) => {
+    test.skip(!product.billingEnabled, PAID);
     const { userId } = await signIn(context);
     const [task] = await testDb()
       .insert(tasks)

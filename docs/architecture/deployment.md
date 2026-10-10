@@ -63,23 +63,23 @@ Termrise 的 `apps/worker` 运行在 Cloudflare Containers（需要 Workers Paid
 
 ## Production Domain
 
-新产品把 `example.com` 换成自己的域名。
+Termrise 的主域名是 `termrise.com`（`product.config.ts` 的 `domain`）。
 
-| 域名                   | 作用                                                                                                                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `example.com`          | 主域名。Production 的 `APP_URL` 是 `https://example.com`                                                                                                                |
-| `api.example.com`      | `apps/api`（Cloudflare Workers 自定义域名）。`NEXT_PUBLIC_API_URL`、API 的 `BETTER_AUTH_URL` 是 `https://api.example.com`；API 的 `AUTH_COOKIE_DOMAIN` 是 `example.com` |
-| `www.example.com`      | 308 跳转到主域名（在 Vercel 的 Domains 中设置）                                                                                                                         |
-| `{project}.vercel.app` | Vercel 默认域名，不对外使用。API 只信任 `APP_URL` 的 origin，在这个域名上无法登录                                                                                       |
+| 域名                   | 作用                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `termrise.com`         | 主域名。Production 的 `APP_URL` 是 `https://termrise.com`                                                                                                                 |
+| `api.termrise.com`     | `apps/api`（Cloudflare Workers 自定义域名）。`NEXT_PUBLIC_API_URL`、API 的 `BETTER_AUTH_URL` 是 `https://api.termrise.com`；API 的 `AUTH_COOKIE_DOMAIN` 是 `termrise.com` |
+| `www.termrise.com`     | 308 跳转到主域名（在 Vercel 的 Domains 中设置）                                                                                                                           |
+| `{project}.vercel.app` | Vercel 默认域名，不对外使用。API 只信任 `APP_URL` 的 origin，在这个域名上无法登录                                                                                         |
 
 外部服务中配置的地址都基于主域名，更换域名时逐项修改：
 
-| 服务         | 配置                                                                                                                                         |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google OAuth | Authorized redirect URI：`https://api.example.com/api/auth/callback/google`；Authorized JavaScript origins（One Tap）：`https://example.com` |
-| Waffo        | Webhook URL：`https://api.example.com/api/webhooks/waffo`                                                                                    |
-| R2           | `infra/r2/cors-prod.json` 的 origins                                                                                                         |
-| Resend       | 发信域名的 SPF / DKIM 记录，与 `EMAIL_FROM` 一致                                                                                             |
+| 服务         | 配置                                                                                                                                           |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google OAuth | Authorized redirect URI：`https://api.termrise.com/api/auth/callback/google`；Authorized JavaScript origins（One Tap）：`https://termrise.com` |
+| Waffo        | Webhook URL：`https://api.termrise.com/api/webhooks/waffo`                                                                                     |
+| R2           | `infra/r2/cors-prod.json` 的 origins                                                                                                           |
+| Resend       | 发信域名的 SPF / DKIM 记录，与 `EMAIL_FROM` 一致                                                                                               |
 
 ---
 

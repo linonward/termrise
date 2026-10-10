@@ -2,7 +2,7 @@
   "rules": [
     {
       "allowed": {
-        "origins": ["https://example.com"],
+        "origins": ["https://termrise.com"],
         "methods": ["PUT", "GET", "HEAD"],
         "headers": ["Content-Type"]
       },

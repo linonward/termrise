@@ -1,22 +1,29 @@
 import { expect, test } from "@playwright/test";
 
+import product from "../../../../product.config";
+
 test("landing shows every section and links to signup", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle("Acme: Pay-as-you-go AI tool");
+  await expect(page).toHaveTitle(
+    "Termrise: Find rising search terms worth building for",
+  );
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Describe what you need. Get the result in seconds.",
+      name: "Find rising demand. Build what people search for.",
     }),
   ).toBeVisible();
   for (const name of [
-    "Three steps.",
-    "Simple, fair pricing.",
-    "Pay per use, or subscribe.",
+    "From a rising term to a first order.",
+    "Evidence before effort.",
     "Questions, answered.",
-    "Ready to try it?",
+    "Find your next product idea.",
   ])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  // Pricing only while the product charges (product.config.ts billingEnabled).
+  await expect(page.locator("#pricing")).toHaveCount(
+    product.billingEnabled ? 1 : 0,
+  );
 
   const ctas = page.getByRole("main").getByRole("link", {
     name: "Get started free",
@@ -30,7 +37,7 @@ test("landing shows every section and links to signup", async ({ page }) => {
 test("public pages no longer say there is no subscription", async ({
   page,
 }) => {
-  for (const path of ["/", "/pricing", "/terms", "/refund-policy"]) {
+  for (const path of ["/", "/terms"]) {
     await page.goto(path);
     await expect(page.locator("body")).not.toContainText(/no subscription/i);
   }
@@ -38,8 +45,8 @@ test("public pages no longer say there is no subscription", async ({
 
 test("FAQ answers expand on click", async ({ page }) => {
   await page.goto("/");
-  const question = page.getByText("What happens if a run fails?");
-  const answer = page.getByText("Your credits are refunded automatically.");
+  const question = page.getByText("Where does the data come from?");
+  const answer = page.getByText(/Termrise does not scrape sites/);
   await expect(answer).toBeHidden();
   await question.click();
   await expect(answer).toBeVisible();
@@ -53,7 +60,7 @@ test("footer switches the landing page to Chinese", async ({ page }) => {
     .click();
   await page.getByRole("menuitemradio", { name: "简体中文" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: /写下你的需求/ }),
+    page.getByRole("heading", { level: 1, name: /发现正在增长的需求/ }),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh");
   await expect(

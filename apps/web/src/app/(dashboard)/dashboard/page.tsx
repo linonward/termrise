@@ -14,12 +14,40 @@ import { TrackView } from "@/components/analytics/track";
 import { TaskPanel } from "@/features/tasks/task-panel";
 import { apiGet, getBalance } from "@/server/api/api";
 import { getRequestSession } from "@/server/auth/auth";
+import product from "@product";
 
 export default async function DashboardPage() {
   const session = await getRequestSession();
   if (!session) redirect("/sign-in?next=%2Fdashboard");
   const t = await getTranslations("dashboard");
   const { name, email } = session.user;
+  const title =
+    name && name !== email ? t("welcome", { name }) : t("welcomeBack");
+  // Early access: no credits, so the example paid action is hidden until the research
+  // project replaces it (docs/product/ux.md#dashboard).
+  if (!product.billingEnabled)
+    return (
+      <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:px-5 md:py-16">
+        <TrackView event="dashboard_viewed" />
+        <header className="space-y-2">
+          <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+            {title}
+          </h1>
+          <p className="text-[15px] text-muted-foreground">
+            {t("earlyAccessSubtitle")}
+          </p>
+        </header>
+        <section
+          aria-labelledby="coming-title"
+          className="space-y-1 rounded-lg border border-border p-6"
+        >
+          <h2 id="coming-title" className="text-[15px] font-medium">
+            {t("comingTitle")}
+          </h2>
+          <p className="text-[15px] text-muted-foreground">{t("comingBody")}</p>
+        </section>
+      </main>
+    );
   // getBalance refunds stale tasks first, so the list below shows them as failed.
   const balance = await getBalance();
   const { items: recent } = await apiGet<{ items: TaskDto[] }>(
@@ -31,7 +59,7 @@ export default async function DashboardPage() {
       <TrackView event="dashboard_viewed" />
       <header className="space-y-2">
         <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
-          {name && name !== email ? t("welcome", { name }) : t("welcomeBack")}
+          {title}
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>

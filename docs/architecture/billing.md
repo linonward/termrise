@@ -4,6 +4,8 @@
 
 本文描述 Credit Pack 与订阅。订阅的规则集中在 [Subscriptions](#subscriptions)。
 
+Termrise 暂不收费：`product.config.ts` 的 `billingEnabled: false` 隐藏全部收费入口（Pricing、Billing、Credits、退款政策，见 ux.md 的 Pages），`signupBonusCredits: 0`。本文的代码、API 和 webhook 仍然存在并有测试，打开开关即恢复。
+
 Provider：
 
 ```text

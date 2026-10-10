@@ -13,7 +13,7 @@ const { call, signIn } = createTestClient({
 let cookie: string;
 beforeEach(async () => {
   await resetDb();
-  cookie = await signIn("billing@example.com");
+  cookie = await signIn("billing@example.com", { credits: 10 });
 });
 afterAll(closeTestDb);
 

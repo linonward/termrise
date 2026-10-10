@@ -1,51 +1,51 @@
 {
   "meta": {
-    "title": "Acme",
-    "homeTitle": "Acme: Pay-as-you-go AI tool",
-    "description": "Acme is an AI tool you pay for with credits. Start with 10 free credits, then buy a pack or subscribe monthly. Credits never expire."
+    "title": "Termrise",
+    "homeTitle": "Termrise: Find rising search terms worth building for",
+    "description": "Termrise helps indie developers find rising English search terms, check demand with real data, decide what to build and track each launch to its first paying customer."
   },
   "landing": {
     "hero": {
-      "eyebrow": "Pay as you go",
-      "title": "Describe what you need. <line>Get the result in seconds.</line>",
-      "body": "Replace this text with what your product does and who it is for. Each run uses credits; failed runs are refunded automatically.",
+      "eyebrow": "For indie developers",
+      "title": "Find rising demand. <line>Build what people search for.</line>",
+      "body": "Termrise collects rising terms from Google Trends and Hacker News, checks them against search data and the top 10 results, and turns the evidence into product opportunities you can test in 7–14 days.",
       "cta": "Get started free",
-      "note": "10 free credits when you sign up · No card required"
+      "note": "Early access · No card required"
     },
     "demo": {
-      "input": "hello world",
-      "output": "dlrow olleh"
+      "input": "Rising term: ai meeting notes",
+      "output": "Opportunity: meeting notes for sales teams, with evidence from Trends, Hacker News and the top 10 results"
     },
     "steps": {
       "eyebrow": "How it works",
-      "title": "Three steps.",
-      "signup": {
-        "title": "Create an account",
-        "body": "Sign in with Google or an email link. You get 10 free credits."
+      "title": "From a rising term to a first order.",
+      "discover": {
+        "title": "Discover rising terms",
+        "body": "Collect rising terms from Google Trends and Hacker News, or import your own CSV file."
       },
-      "run": {
-        "title": "Run a task",
-        "body": "Each run uses 1 credit. If a run fails, the credit comes back."
+      "verify": {
+        "title": "Check the evidence",
+        "body": "See search volume, CPC, difficulty and the top 10 results. AI inferences are shown apart from facts."
       },
-      "buy": {
-        "title": "Buy more when you need it",
-        "body": "Buy a credit pack or subscribe monthly. Credits never expire."
+      "launch": {
+        "title": "Decide, build and launch",
+        "body": "Choose Go, Validate or No-Go, export a product brief, then record your launch and first orders."
       }
     },
     "features": {
-      "eyebrow": "Why Acme",
-      "title": "Simple, fair pricing.",
-      "credits": {
-        "title": "Pay per use",
-        "body": "Buy credits once, or subscribe and cancel anytime."
+      "eyebrow": "Why Termrise",
+      "title": "Evidence before effort.",
+      "evidence": {
+        "title": "Real data first",
+        "body": "A Trends index is not a search volume, and a busy Hacker News thread is not search demand. Termrise shows each number as what it is."
       },
-      "refunds": {
-        "title": "Automatic refunds",
-        "body": "Failed runs return their credits to your balance."
+      "budget": {
+        "title": "A budget for every paid request",
+        "body": "Each paid data request is reserved, settled and logged against your budget."
       },
-      "privacy": {
-        "title": "Private by default",
-        "body": "Analytics cookies are set only after you accept."
+      "brief": {
+        "title": "Briefs for your AI coding tool",
+        "body": "Export a Markdown product brief: users, problem, competitors, MVP scope, pages, API and tests."
       },
       "languages": {
         "title": "English and Chinese",
@@ -57,31 +57,27 @@
       "title": "Questions, answered.",
       "start": {
         "q": "What do I need to get started?",
-        "a": "An email address or a Google account. You get 10 free credits when you sign up."
+        "a": "An email address or a Google account."
       },
-      "credits": {
-        "q": "How do credits work?",
-        "a": "Each run uses 1 credit. Buy more in a pack, or subscribe for credits every month, on the pricing page."
+      "sources": {
+        "q": "Where does the data come from?",
+        "a": "Google Trends, the Hacker News API and DataForSEO, and CSV files that you import. Termrise does not scrape sites without permission."
       },
-      "failed": {
-        "q": "What happens if a run fails?",
-        "a": "Your credits are refunded automatically."
+      "guarantee": {
+        "q": "Does Termrise guarantee rankings or revenue?",
+        "a": "No. It helps you find and test demand with evidence. Rankings and sales depend on what you build and how you reach your users."
       },
-      "expire": {
-        "q": "Do credits expire?",
-        "a": "No. Credits never expire."
-      },
-      "refund": {
-        "q": "What is your refund policy?",
-        "a": "Failed runs are always refunded in credits. For refunds on credit pack purchases, see our <link>Refund Policy</link>."
+      "price": {
+        "q": "How much does it cost?",
+        "a": "Termrise is free during early access."
       }
     },
     "finalCta": {
-      "title": "Ready to try it?",
-      "body": "Start with 10 free credits. No card required."
+      "title": "Find your next product idea.",
+      "body": "Create an account in a minute. No card required."
     },
     "footer": {
-      "copyright": "© {year} Acme",
+      "copyright": "© {year} Termrise",
       "terms": "Terms",
       "privacy": "Privacy",
       "refund": "Refund Policy",
@@ -108,7 +104,7 @@
     "rateLimited": "Too many attempts. Please wait a minute and try again.",
     "invalidLink": "This sign-in link is invalid or has expired. Request a new one.",
     "loginSwitch": "Already have an account? Sign in",
-    "signupSwitch": "New to Acme? Create an account"
+    "signupSwitch": "New to Termrise? Create an account"
   },
   "nav": {
     "primary": "Main navigation",
@@ -144,7 +140,10 @@
     "available": "available",
     "estimate": "≈ {uses, plural, one {# run} other {# runs}}",
     "refundNote": "Failed runs are refunded automatically.",
-    "buyCredits": "Buy credits"
+    "buyCredits": "Buy credits",
+    "earlyAccessSubtitle": "Your research projects will appear here.",
+    "comingTitle": "Research projects are on the way",
+    "comingBody": "Soon you can create a research project here, collect rising terms and review the opportunities they lead to."
   },
   "status": {
     "PENDING": "Running",
@@ -260,19 +259,19 @@
     "updated": "Last updated: October 8, 2026",
     "terms": {
       "title": "Terms of Service",
-      "description": "The terms for using Acme: your account, credits and payments, your content, acceptable use and how to contact us.",
+      "description": "The terms for using Termrise: your account, credits and payments, your content, acceptable use and how to contact us.",
       "sections": {
         "agreement": {
           "title": "Agreement",
           "body": [
-            "These Terms govern your use of Acme at example.com (the “Service”). Acme is operated by Acme Inc. (“we”, “us”). By creating an account or using the Service, you agree to these Terms.",
+            "These Terms govern your use of Termrise at termrise.com (the “Service”). Termrise is operated by Termrise (“we”, “us”). By creating an account or using the Service, you agree to these Terms.",
             "You must be at least 18 years old, or the age of majority where you live, to use the Service."
           ]
         },
         "service": {
           "title": "The Service",
           "body": [
-            "Acme runs tasks for you in exchange for credits. Replace this paragraph with what your service does and which AI providers it uses.",
+            "Termrise runs tasks for you in exchange for credits. Replace this paragraph with what your service does and which AI providers it uses.",
             "AI output can be inaccurate. Review every result before you use it."
           ]
         },
@@ -286,7 +285,7 @@
           "title": "Credits and payments",
           "body": [
             "Each task uses 1 credit. New accounts receive 10 free credits.",
-            "You can buy credits in one-time packs or with a monthly subscription. Prices are shown in US dollars on the pricing page (example.com/pricing).",
+            "You can buy credits in one-time packs or with a monthly subscription. Prices are shown in US dollars on the pricing page (termrise.com/pricing).",
             "Payments are processed by Waffo Pancake, our Merchant of Record. Waffo is the seller for the purchase and handles payment, tax and invoicing. A pack is a one-time transaction. When you complete a purchase, you authorize Waffo to charge your payment method the amount shown at checkout.",
             "A subscription renews automatically every month. When you subscribe, you authorize Waffo to charge your payment method the plan price at each renewal until you cancel. Each successful payment adds the plan's credits to your balance.",
             "You can cancel at any time on the Billing page. Your subscription stays active until the end of the period you paid for and does not renew. If a renewal payment fails, Waffo retries once. If that also fails, the subscription ends.",
@@ -297,7 +296,7 @@
         "disputes": {
           "title": "Billing disputes",
           "body": [
-            "If you think a charge is wrong, contact support@example.com before you open a dispute or chargeback with your bank. Include the email address on your account and your order number. If the charge is wrong, we refund it in full."
+            "If you think a charge is wrong, contact support@termrise.com before you open a dispute or chargeback with your bank. Include the email address on your account and your order number. If the charge is wrong, we refund it in full."
           ]
         },
         "content": {
@@ -313,13 +312,13 @@
           "body": [
             "Do not use the Service to create or share content that is illegal, sexualizes minors, harasses people, infringes the rights of others, or misleads people.",
             "Do not try to break, overload or reverse engineer the Service.",
-            "We may remove content, refuse a task, or suspend or close accounts that break these rules. To report content or appeal a decision, email support@example.com."
+            "We may remove content, refuse a task, or suspend or close accounts that break these rules. To report content or appeal a decision, email support@termrise.com."
           ]
         },
         "termination": {
           "title": "Termination",
           "body": [
-            "You can stop using the Service at any time. To delete your account, email support@example.com from the email address on your account. We delete your account and data within 30 days, as described in our Privacy Policy.",
+            "You can stop using the Service at any time. To delete your account, email support@termrise.com from the email address on your account. We delete your account and data within 30 days, as described in our Privacy Policy.",
             "When your account is deleted, unused credits expire without refund, unless our Refund Policy or the law requires a refund.",
             "If we close your account for a breach of these Terms, unused credits are not refunded."
           ]
@@ -336,23 +335,23 @@
           "body": [
             "We may update these Terms. If a change is material, we tell you by email or in the Service at least 15 days before it takes effect.",
             "These Terms are governed by the laws of the State of Delaware, United States.",
-            "If you have a dispute with us, contact support@example.com first. We will try to solve it with you informally within 30 days. These Terms do not limit any rights you have under the consumer protection laws of the country where you live."
+            "If you have a dispute with us, contact support@termrise.com first. We will try to solve it with you informally within 30 days. These Terms do not limit any rights you have under the consumer protection laws of the country where you live."
           ]
         },
         "contact": {
           "title": "Contact",
-          "body": ["Questions about these Terms: support@example.com."]
+          "body": ["Questions about these Terms: support@termrise.com."]
         }
       }
     },
     "privacy": {
       "title": "Privacy Policy",
-      "description": "What data Acme collects, how we use it, who we share it with, how long we keep it and your rights.",
+      "description": "What data Termrise collects, how we use it, who we share it with, how long we keep it and your rights.",
       "sections": {
         "intro": {
           "title": "Who we are",
           "body": [
-            "Acme (example.com) is operated by Acme Inc. We are the data controller for the personal data described in this policy. Contact: support@example.com.",
+            "Termrise (termrise.com) is operated by Termrise We are the data controller for the personal data described in this policy. Contact: support@termrise.com.",
             "This policy explains what personal data we collect, why, and who we share it with."
           ]
         },
@@ -376,7 +375,7 @@
         "share": {
           "title": "Who we share it with",
           "body": [
-            "We use these service providers to run Acme. Each one receives only the data it needs:",
+            "We use these service providers to run Termrise. Each one receives only the data it needs:",
             "Vercel (hosting, cookieless page statistics and page speed measurement) · Neon (database) · Cloudflare R2 (file storage) · Waffo Pancake (payments, Merchant of Record) · Resend (sign-in emails) · Google (optional sign-in) · PostHog (product analytics) · Sentry (error monitoring). Add every AI provider that receives user data.",
             "We may also disclose data when the law requires it."
           ]
@@ -409,7 +408,7 @@
           "title": "Your rights",
           "body": [
             "Depending on where you live, you can ask to access, correct, export or delete your personal data, restrict or object to how we use it, or withdraw your consent at any time. You can also complain to your local data protection authority.",
-            "Send requests to support@example.com. We reply within 30 calendar days."
+            "Send requests to support@termrise.com. We reply within 30 calendar days."
           ]
         },
         "marketing": {
@@ -445,7 +444,7 @@
         },
         "contact": {
           "title": "Contact",
-          "body": ["Privacy questions and requests: support@example.com."]
+          "body": ["Privacy questions and requests: support@termrise.com."]
         }
       }
     },
@@ -465,7 +464,7 @@
             "You can get a full refund within 14 days of purchase if you have not used any credits from that pack.",
             "If you were charged twice or charged the wrong amount, we refund the extra charge in full.",
             "After you use credits from a pack, or after 14 days, the purchase is not refundable, unless the law where you live requires a refund.",
-            "To request a refund, email support@example.com from the email address on your account, with your order number. We review every request and reply by email."
+            "To request a refund, email support@termrise.com from the email address on your account, with your order number. We review every request and reply by email."
           ]
         },
         "subscriptions": {
@@ -491,14 +490,14 @@
         },
         "contact": {
           "title": "Contact",
-          "body": ["Billing questions: support@example.com."]
+          "body": ["Billing questions: support@termrise.com."]
         }
       }
     }
   },
   "cookies": {
     "title": "Cookie preferences",
-    "body": "We use analytics cookies to understand how Acme is used. They are set only if you accept. See our <link>Privacy Policy</link>.",
+    "body": "We use analytics cookies to understand how Termrise is used. They are set only if you accept. See our <link>Privacy Policy</link>.",
     "accept": "Accept",
     "decline": "Decline",
     "settings": "Cookie settings"
@@ -596,13 +595,13 @@
   },
   "blog": {
     "meta": {
-      "title": "Acme Blog",
-      "description": "Guides and updates from Acme."
+      "title": "Termrise Blog",
+      "description": "Guides to finding rising search terms and testing product ideas."
     },
     "index": {
       "eyebrow": "Blog",
       "title": "Guides and updates.",
-      "intro": "Short, practical guides. Replace these sample posts with your own.",
+      "intro": "Short, practical guides to finding and testing product ideas.",
       "read": "Read the guide"
     },
     "home": "Blog",
@@ -612,60 +611,34 @@
     "posts": {
       "gettingStarted": {
         "meta": {
-          "title": "Getting Started with Acme",
-          "description": "Create an account, run your first task and check your credits."
+          "title": "Getting Started with Termrise",
+          "description": "Create an account and see how Termrise turns rising search terms into product opportunities."
         },
-        "title": "Getting started with Acme",
-        "summary": "A sample post: create an account, run your first task and check your credits.",
+        "title": "Getting started with Termrise",
+        "summary": "Create an account and learn the steps from a rising term to a tested product idea.",
         "cta": "Get started free",
-        "finalCta": "Try your first task.",
+        "finalCta": "Find your next product idea.",
         "sections": {
           "signup": {
             "title": "Create an account",
             "body": [
-              "Sign in with Google or an email link. New accounts get 10 free credits. <link>Start here</link>."
+              "Sign in with Google or an email link. <link>Start here</link>."
             ]
           },
           "run": {
-            "title": "Run your first task",
+            "title": "The steps of a research project",
             "steps": [
-              "Open the dashboard.",
-              "Enter some text.",
-              "Select Run. The task uses 1 credit."
+              "Collect rising terms from Google Trends and Hacker News, or import a CSV file.",
+              "Check each term against search volume, CPC, difficulty and the top 10 results.",
+              "Review the opportunities and choose Go, Validate or No-Go."
             ]
           },
           "next": {
-            "title": "What to read next",
-            "list": ["How credits work", "The refund policy"]
-          }
-        }
-      },
-      "howCreditsWork": {
-        "meta": {
-          "title": "How Credits Work in Acme",
-          "description": "What a credit is, when it is used, and when it comes back."
-        },
-        "title": "How credits work",
-        "summary": "A sample post: what a credit is, when it is used, and when it comes back.",
-        "cta": "See pricing",
-        "finalCta": "Pick a credit pack.",
-        "sections": {
-          "what": {
-            "title": "What a credit is",
-            "body": [
-              "Each run uses 1 credit. Credits never expire. See the <link>pricing page</link> for packs."
-            ]
-          },
-          "refunds": {
-            "title": "When credits come back",
+            "title": "Good to know",
             "list": [
-              "A failed run returns its credit automatically.",
-              "A refunded purchase removes the credits that remain from that pack."
+              "A Google Trends index shows relative interest. It is not a monthly search volume.",
+              "Termrise does not guarantee rankings or revenue."
             ]
-          },
-          "check": {
-            "title": "Check your balance",
-            "steps": ["Open Billing.", "Read Credit activity."]
           }
         }
       }

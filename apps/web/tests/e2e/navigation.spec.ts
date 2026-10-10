@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { closeTestDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
@@ -19,11 +20,16 @@ test("navigation shows links, credits and the user menu", async ({
 }) => {
   const { email } = await signIn(context);
   await page.goto("/dashboard");
-  await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
+  // Credits and Billing only while the product charges (product.config.ts billingEnabled).
+  if (product.billingEnabled)
+    await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
+  else await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   if (isMobile) await openMenu(page, isMobile);
   const nav = page.getByRole("navigation", { name: "Main navigation" });
-  for (const name of ["Dashboard", "Billing"])
-    await expect(nav.getByRole("link", { name })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Dashboard" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Billing" })).toHaveCount(
+    product.billingEnabled ? 1 : 0,
+  );
   await expect(nav.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
     "aria-current",
     "page",
@@ -49,7 +55,8 @@ test("switches language and remembers it in a cookie", async ({
     page.getByRole("heading", { level: 1, name: /^欢迎回来/ }),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh");
-  await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
+  if (product.billingEnabled)
+    await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   const cookies = await context.cookies();
   expect(cookies.find((c) => c.name === "NEXT_LOCALE")?.value).toBe("zh");
   await page.reload();
@@ -84,6 +91,10 @@ test("navigates between dashboard pages", async ({
   context,
   isMobile,
 }) => {
+  test.skip(
+    !product.billingEnabled,
+    "billing is disabled in product.config.ts",
+  );
   await signIn(context);
   await page.goto("/dashboard");
   if (isMobile) await openMenu(page, isMobile);
@@ -101,15 +112,20 @@ test("navigates between dashboard pages", async ({
   ).toHaveAttribute("aria-current", "page");
 });
 
-test("marketing nav links pricing and the blog", async ({ page, isMobile }) => {
+test("marketing nav links the blog, and pricing while the product charges", async ({
+  page,
+  isMobile,
+}) => {
   test.skip(isMobile, "The marketing nav links are desktop only.");
   await page.goto("/blog");
   const nav = page.getByRole("navigation", { name: "Site navigation" });
   const links = nav.getByRole("link");
-  for (const [index, [name, href]] of [
-    ["Pricing", "/pricing"],
+  const expected = [
+    ...(product.billingEnabled ? [["Pricing", "/pricing"]] : []),
     ["Blog", "/blog"],
-  ].entries()) {
+  ];
+  await expect(links).toHaveCount(expected.length);
+  for (const [index, [name, href]] of expected.entries()) {
     await expect(links.nth(index)).toHaveText(name);
     await expect(links.nth(index)).toHaveAttribute("href", href);
   }
@@ -117,6 +133,7 @@ test("marketing nav links pricing and the blog", async ({ page, isMobile }) => {
     "aria-current",
     "page",
   );
+  if (!product.billingEnabled) return;
   await nav.getByRole("link", { name: "Pricing" }).click();
   await expect(page).toHaveURL(/\/pricing$/);
 });

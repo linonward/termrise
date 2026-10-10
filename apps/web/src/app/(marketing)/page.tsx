@@ -1,4 +1,4 @@
-import { ArrowDown, Coins, Globe, RotateCcw, ShieldCheck } from "lucide-react";
+import { ArrowDown, FileText, Globe, ShieldCheck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -23,15 +23,16 @@ import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteStructuredData } from "@/components/landing/structured-data";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { getSession } from "@/server/auth/auth";
+import product from "@product";
 
 const features = [
-  { key: "credits", icon: Coins },
-  { key: "refunds", icon: RotateCcw },
-  { key: "privacy", icon: ShieldCheck },
+  { key: "evidence", icon: ShieldCheck },
+  { key: "budget", icon: Wallet },
+  { key: "brief", icon: FileText },
   { key: "languages", icon: Globe },
 ] as const;
 
-const faqs = ["start", "credits", "failed", "expire", "refund"] as const;
+const faqs = ["start", "sources", "guarantee", "price"] as const;
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -96,22 +97,26 @@ export default async function Home() {
           }))}
         />
 
-        <section
-          id="pricing"
-          aria-labelledby="pricing-title"
-          className="scroll-mt-16 bg-surface"
-        >
-          <div className="mx-auto flex w-full max-w-310 flex-col items-center gap-8 px-5 py-16">
-            <div className="space-y-3 text-center">
-              <Eyebrow>{pricing("eyebrow")}</Eyebrow>
-              <SectionTitle id="pricing-title">{pricing("title")}</SectionTitle>
-              <p className="text-[15px] text-muted-foreground">
-                {pricing("subtitle")}
-              </p>
+        {product.billingEnabled && (
+          <section
+            id="pricing"
+            aria-labelledby="pricing-title"
+            className="scroll-mt-16 bg-surface"
+          >
+            <div className="mx-auto flex w-full max-w-310 flex-col items-center gap-8 px-5 py-16">
+              <div className="space-y-3 text-center">
+                <Eyebrow>{pricing("eyebrow")}</Eyebrow>
+                <SectionTitle id="pricing-title">
+                  {pricing("title")}
+                </SectionTitle>
+                <p className="text-[15px] text-muted-foreground">
+                  {pricing("subtitle")}
+                </p>
+              </div>
+              <PricingPlans signedIn={signedIn} heading="h3" />
             </div>
-            <PricingPlans signedIn={signedIn} heading="h3" />
-          </div>
-        </section>
+          </section>
+        )}
 
         <FaqSection eyebrow={t("faq.eyebrow")} title={t("faq.title")}>
           {faqs.map((key) => (

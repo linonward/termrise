@@ -74,7 +74,7 @@ it("signs in with a magic link and returns to the web app", async () => {
   expect(sent.status).toBe(200);
   expect(sent.headers.get("Access-Control-Allow-Origin")).toBe(TEST_APP_URL);
   expect(emails).toHaveLength(1);
-  expect(emails[0].subject).toBe("你的 Acme 登录链接");
+  expect(emails[0].subject).toBe("你的 Termrise 登录链接");
   const link = emails[0].text.split("\n").at(-1)!;
   expect(link.startsWith(`${TEST_API_URL}/api/auth/magic-link/verify`)).toBe(
     true,

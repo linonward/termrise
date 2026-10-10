@@ -13,6 +13,11 @@ export type ProductManifest = {
   operator: string;
   /** Credits a new account receives; 0 for none. messages/*.json repeat the number in copy. */
   signupBonusCredits: number;
+  /**
+   * Whether the UI shows pricing, billing and credits. False hides every entrance and
+   * answers 404 on /pricing and /billing; the billing code and API stay.
+   */
+  billingEnabled: boolean;
 };
 
 export function defineProduct(manifest: ProductManifest): ProductManifest {

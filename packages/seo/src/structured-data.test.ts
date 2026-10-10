@@ -21,6 +21,16 @@ it("describes the organization, site and app with the price range", () => {
   expect(JSON.stringify(graph)).not.toContain("aggregateRating");
 });
 
+it("leaves out offers when there are no prices", () => {
+  const graph = siteGraph({
+    url: "https://example.com/",
+    name: "Acme",
+    description: "A tool.",
+    pricesCents: [],
+  })["@graph"];
+  expect(graph[2]).not.toHaveProperty("offers");
+});
+
 it("escapes < so the JSON cannot close the script tag", () => {
   expect(jsonLdHtml({ name: "</script><b>" })).toBe(
     '{"name":"\\u003c/script>\\u003cb>"}',

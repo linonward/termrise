@@ -185,7 +185,14 @@ function MobileMenu({
   );
 }
 
-export function AppNav({ email, balance }: { email: string; balance: number }) {
+/** balance is undefined while the product does not charge: no credits pill. */
+export function AppNav({
+  email,
+  balance,
+}: {
+  email: string;
+  balance?: number;
+}) {
   const t = useTranslations("nav");
   const brand = useTranslations("meta")("title");
   const logout = useLogout();
@@ -202,7 +209,9 @@ export function AppNav({ email, balance }: { email: string; balance: number }) {
           <NavLinks layout="bar" />
         </nav>
         <div className="ml-auto flex items-center gap-1 md:gap-3">
-          <CreditsPill balance={balance} className="mr-2 md:mr-0" />
+          {balance !== undefined && (
+            <CreditsPill balance={balance} className="mr-2 md:mr-0" />
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

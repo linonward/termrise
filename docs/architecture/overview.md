@@ -105,11 +105,11 @@ Cloudflare R2（S3-compatible API）
 
 Bucket 私有，不开放公共读取。每个环境一个 bucket：
 
-| 环境           | Bucket（示例名称，按产品替换）                           | CORS 允许的来源                   |
-| -------------- | -------------------------------------------------------- | --------------------------------- |
-| Production     | `app-prod`                                               | 生产域名（`https://example.com`） |
-| Vercel Preview | `app-preview`                                            | Vercel Preview 域名               |
-| 本地开发       | `app-dev`（所有 worktree 共用；默认在本地 SeaweedFS 中） | `http://localhost:3000`           |
+| 环境           | Bucket（示例名称，按产品替换）                           | CORS 允许的来源                    |
+| -------------- | -------------------------------------------------------- | ---------------------------------- |
+| Production     | `app-prod`                                               | 生产域名（`https://termrise.com`） |
+| Vercel Preview | `app-preview`                                            | Vercel Preview 域名                |
+| 本地开发       | `app-dev`（所有 worktree 共用；默认在本地 SeaweedFS 中） | `http://localhost:3000`            |
 
 - CORS 配置文件在 `infra/r2/cors-{dev,preview,prod}.json`（Wrangler 格式），允许 PUT / GET / HEAD、`Content-Type` 请求头，暴露 `ETag`；用 `wrangler r2 bucket cors set <bucket> --file <json>` 应用。新产品先把文件中的 origins 改成自己的域名；更换生产域名或 Preview 域名时同步更新。
 - 每个 bucket 有独立的 Object Read & Write 访问密钥，只能访问自己的 bucket。
@@ -180,7 +180,7 @@ Resend
 
 ```text
 RESEND_API_KEY=<本地专用的 API Key，权限 Sending access>
-EMAIL_FROM="Acme <onboarding@resend.dev>"
+EMAIL_FROM="Termrise <onboarding@resend.dev>"
 ```
 
 - 没有验证域名时，Resend 只允许从 `onboarding@resend.dev` 发信，并且只发给注册 Resend 账号的邮箱。发给其他邮箱返回 403，登录页显示发信失败。
@@ -335,7 +335,7 @@ Server Components 读取数据也必须通过 Service，不得直接调用 `db`�
 ## Repository Structure
 
 ```text
-saas-starter/
+termrise/
 ├── apps/
 │   ├── web/                    Next.js 应用（唯一部署到 Vercel 的应用）
 │   │   ├── src/
@@ -411,7 +411,7 @@ packages/* 不依赖 apps/*，不读取 product.config.ts
   - `@repo/db/testing/*` 读取 `TEST_DATABASE_URL`（未设置时加载 `apps/web/.env.local`），只在测试中使用。
   - `packages/db/drizzle.config.ts`（drizzle-kit 配置，不是运行时代码）读取 `DATABASE_URL`（未设置时加载 `apps/web/.env.local`）。
 
-- 产品数据（品牌、域名）从 `product.config.ts` 进入应用，再以参数传给包，例如 `createAuth({ appName })`。Credit Pack 价格（`packages/billing/src/credit-packs.ts`）、订阅方案（`packages/billing/src/subscription-plans.ts`）和 Waffo 商品 ID（`packages/billing/src/adapters/waffo.ts` 的 `WAFFO_PRODUCT_IDS`、`WAFFO_SUBSCRIPTION_PRODUCT_IDS`）是例外：它们是产品数据，但与计费代码放在一起，每个产品在自己的仓库里修改。
+- 产品数据（品牌、域名、是否显示收费入口 `billingEnabled`）从 `product.config.ts` 进入应用，再以参数传给包，例如 `createAuth({ appName })`。`turbo.json` 把它列为 `globalDependencies`：改动后所有构建和测试的缓存失效（它在仓库根目录，不属于任何包的输入）。Credit Pack 价格（`packages/billing/src/credit-packs.ts`）、订阅方案（`packages/billing/src/subscription-plans.ts`）和 Waffo 商品 ID（`packages/billing/src/adapters/waffo.ts` 的 `WAFFO_PRODUCT_IDS`、`WAFFO_SUBSCRIPTION_PRODUCT_IDS`）是例外：它们是产品数据，但与计费代码放在一起，每个产品在自己的仓库里修改。
 - 业务规则只实现一次。`apps/api` 和 `apps/worker` 调用与 web 相同的包，不复制规则。
 
 ESLint（`eslint.config.mjs`，规则测试在 `eslint-boundaries.test.ts`）检查：

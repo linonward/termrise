@@ -9,10 +9,14 @@ import { createBillingService } from "@repo/billing/billing-service";
 import { purchases, subscriptions } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { E2E_API_URL, e2eEnv } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
+// Billing UI is hidden while the product does not charge (product.config.ts billingEnabled);
+// the billing API keeps its integration tests in apps/api.
+test.skip(!product.billingEnabled, "billing is disabled in product.config.ts");
 
 test("signed-out visitors see the four packs and sign up before buying", async ({
   page,
