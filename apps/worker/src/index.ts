@@ -3,14 +3,13 @@ import { createServer } from "node:http";
 import { createDb } from "@repo/db/client";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
-import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createRadar } from "@repo/research/radar";
 import { createResearchRunner } from "@repo/research/research-runner";
 
 import { createBullQueue } from "./bullmq";
 import { workerEnv } from "./env";
-import { createAnalyst } from "./providers";
+import { createAnalyst, createKeywordProvider } from "./providers";
 import { createHandlers, startWorker } from "./worker";
 
 // The worker process (docs/architecture/jobs.md): a scheduler finds queued research runs,
@@ -20,7 +19,7 @@ async function main() {
   const database = createDb(env.DATABASE_URL);
   const runner = createResearchRunner({
     database,
-    provider: createFakeKeywordProvider(),
+    provider: createKeywordProvider(env),
     analyst: createAnalyst(env),
   });
   const radar = env.HACKER_NEWS_ENABLED
@@ -67,6 +66,7 @@ async function main() {
     port: env.PORT,
     radar: Boolean(radar),
     analyst: env.ANALYST_PROVIDER,
+    keywords: env.KEYWORD_PROVIDER,
   });
 
   // The platform sends SIGTERM before it stops the container: finish running jobs first.

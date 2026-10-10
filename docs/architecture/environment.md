@@ -69,20 +69,21 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 
 `apps/worker`（[jobs.md](jobs.md#termrise)）不读取 web 和 API 的变量，`apps/worker/src/env.ts` 只校验下表。本地放在 `apps/worker/.env`（模板 `apps/worker/.env.example`，`pnpm dev:worker` 用 `--env-file-if-exists` 读取）。
 
-| 变量                   | 作用                                                                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`         | 与 API 相同的数据库                                                                                                     |
-| `WORKER_QUEUE`         | `bullmq`（默认，需要 `REDIS_URL`）或 `memory`（任务在进程内存中，只用于 E2E）                                           |
-| `REDIS_URL`            | BullMQ 的 Redis。本地 `redis://localhost:63790/0`（`docker compose up -d redis`），Production 为 Upstash 的 `rediss://` |
-| `SCAN_INTERVAL_MS`     | 扫描排队中的研究运行的间隔，默认 5000                                                                                   |
-| `HACKER_NEWS_ENABLED`  | `1` 时每 `TREND_INTERVAL_MS` 采集一次 Hacker News 到 Radar（公开 API，不需要 Key）；不设置时不采集                      |
-| `TREND_INTERVAL_MS`    | Radar 的采集间隔，默认 3600000（1 小时），最少 60000                                                                    |
-| `PORT`                 | 健康检查端口（`GET /health`），默认 8080                                                                                |
-| `KEYWORD_PROVIDER`     | 研究运行的关键词数据来源；现在只有 `fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）                                              |
-| `ANALYST_PROVIDER`     | 机会分析的来源：`fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）或 `deepseek`（付费调用，计入每个项目的 AI 预算）                |
-| `DEEPSEEK_API_KEY`     | `ANALYST_PROVIDER=deepseek` 时必填；只放在 Worker 的环境中，不进客户端、日志和 git                                      |
-| `DEEPSEEK_MODEL`       | `ANALYST_PROVIDER=deepseek` 时必填，必须是价格表（`deepseek-prices.ts`）中的模型，例如 `deepseek-flash`                 |
-| `ALLOW_FAKE_PROVIDERS` | `1` 时允许 fake Provider（编造数据），只用于测试和本地开发                                                              |
+| 变量                                      | 作用                                                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                            | 与 API 相同的数据库                                                                                                     |
+| `WORKER_QUEUE`                            | `bullmq`（默认，需要 `REDIS_URL`）或 `memory`（任务在进程内存中，只用于 E2E）                                           |
+| `REDIS_URL`                               | BullMQ 的 Redis。本地 `redis://localhost:63790/0`（`docker compose up -d redis`），Production 为 Upstash 的 `rediss://` |
+| `SCAN_INTERVAL_MS`                        | 扫描排队中的研究运行的间隔，默认 5000                                                                                   |
+| `HACKER_NEWS_ENABLED`                     | `1` 时每 `TREND_INTERVAL_MS` 采集一次 Hacker News 到 Radar（公开 API，不需要 Key）；不设置时不采集                      |
+| `TREND_INTERVAL_MS`                       | Radar 的采集间隔，默认 3600000（1 小时），最少 60000                                                                    |
+| `PORT`                                    | 健康检查端口（`GET /health`），默认 8080                                                                                |
+| `KEYWORD_PROVIDER`                        | 研究运行的关键词数据来源：`fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）或 `dataforseo`（付费调用，计入每个项目的数据预算）    |
+| `DATAFORSEO_LOGIN`、`DATAFORSEO_PASSWORD` | `KEYWORD_PROVIDER=dataforseo` 时必填（API access 页面的账号和密码）；只放在 Worker 的环境中                             |
+| `ANALYST_PROVIDER`                        | 机会分析的来源：`fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）或 `deepseek`（付费调用，计入每个项目的 AI 预算）                |
+| `DEEPSEEK_API_KEY`                        | `ANALYST_PROVIDER=deepseek` 时必填；只放在 Worker 的环境中，不进客户端、日志和 git                                      |
+| `DEEPSEEK_MODEL`                          | `ANALYST_PROVIDER=deepseek` 时必填，必须是价格表（`deepseek-prices.ts`）中的模型，例如 `deepseek-flash`                 |
+| `ALLOW_FAKE_PROVIDERS`                    | `1` 时允许 fake Provider（编造数据），只用于测试和本地开发                                                              |
 
 校验错误只包含变量名和规则，不输出值。没有可用的 Worker 时，研究运行停在「排队中」。
 

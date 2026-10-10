@@ -183,13 +183,16 @@ export function createResearchRunner(deps: {
   }
 
   // Each paid call goes through the budget ledger first (budget.ts).
-  const call = (run: ResearchRun, operation: "expand" | "serp") => ({
+  const call = (
+    run: ResearchRun,
+    operation: "expand" | "serp" | "difficulty",
+  ) => ({
     projectId: run.projectId,
     runId: run.id,
     kind: "data" as const,
     provider: provider.name,
     operation,
-    maxCostMicros: provider.maxCostMicros[operation],
+    maxCostMicros: provider.maxCostMicros[operation] ?? 0,
   });
 
   async function expand(
@@ -224,6 +227,39 @@ export function createResearchRunner(deps: {
       ].slice(0, MAX_KEYWORDS),
       budgetExhausted,
     };
+  }
+
+  // Adds SEO difficulty where the expansion had none, in one call. A failure or a short
+  // budget leaves it null: the run goes on, as partial.
+  async function addDifficulty(
+    run: ResearchRun,
+    ideas: Awaited<ReturnType<typeof expand>>["ideas"],
+    market: { locationCode: number; languageCode: string },
+  ) {
+    const difficulty = provider.difficulty?.bind(provider);
+    const missing = ideas
+      .filter((i) => i.idea.metrics.keywordDifficulty === null)
+      .map((i) => i.phrase);
+    if (!difficulty || missing.length === 0)
+      return { failed: false, budgetExhausted: false };
+    try {
+      const charged = await budget.charge(call(run, "difficulty"), () =>
+        difficulty(missing, market),
+      );
+      if (!charged) return { failed: false, budgetExhausted: true };
+      for (const i of ideas) {
+        const kd = charged.value.get(i.phrase);
+        if (kd !== undefined && i.idea.metrics.keywordDifficulty === null)
+          i.idea = {
+            ...i.idea,
+            metrics: { ...i.idea.metrics, keywordDifficulty: kd },
+          };
+      }
+      return { failed: false, budgetExhausted: false };
+    } catch (error) {
+      logger.warn("research.difficulty_failed", { runId: run.id, error });
+      return { failed: true, budgetExhausted: false };
+    }
   }
 
   async function saveKeywords(
@@ -351,6 +387,7 @@ export function createResearchRunner(deps: {
           "BUDGET_EXHAUSTED",
           "budget_exhausted",
         );
+      const enriched = await addDifficulty(run, expanded.ideas, market);
       const saved = await saveKeywords(run, expanded.ideas);
       await setStage(run, "auditing");
       const audit = await auditSerps(run, saved, market);
@@ -366,11 +403,14 @@ export function createResearchRunner(deps: {
       // A short budget ends a stage early: the run is partial, and says why.
       const budgetExhausted =
         expanded.budgetExhausted ||
+        enriched.budgetExhausted ||
         audit.budgetExhausted ||
         evaluation.budgetExhausted;
       return await finish(
         run,
-        audit.failures > 0 || budgetExhausted ? "partial" : "completed",
+        audit.failures > 0 || enriched.failed || budgetExhausted
+          ? "partial"
+          : "completed",
         budgetExhausted ? "BUDGET_EXHAUSTED" : null,
       );
     } catch (error) {

@@ -18,7 +18,10 @@ const schema = z
     TREND_INTERVAL_MS: z.coerce.number().int().min(60_000).default(3_600_000),
     /** Health check port (GET /health). */
     PORT: z.coerce.number().int().min(1).default(8080),
-    KEYWORD_PROVIDER: z.enum(["fake"]),
+    /** dataforseo makes paid calls, charged to each project's data budget. */
+    KEYWORD_PROVIDER: z.enum(["fake", "dataforseo"]),
+    DATAFORSEO_LOGIN: z.string().min(1).optional(),
+    DATAFORSEO_PASSWORD: z.string().min(1).optional(),
     /** deepseek makes paid calls, charged to each project's AI budget. */
     ANALYST_PROVIDER: z.enum(["fake", "deepseek"]),
     DEEPSEEK_API_KEY: z.string().min(1).optional(),
@@ -34,6 +37,14 @@ const schema = z
         path: ["REDIS_URL"],
         message: "required when WORKER_QUEUE=bullmq",
       });
+    if (env.KEYWORD_PROVIDER === "dataforseo")
+      for (const key of ["DATAFORSEO_LOGIN", "DATAFORSEO_PASSWORD"] as const)
+        if (!env[key])
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "required when KEYWORD_PROVIDER=dataforseo",
+          });
     if (env.ANALYST_PROVIDER === "deepseek") {
       if (!env.DEEPSEEK_API_KEY)
         ctx.addIssue({

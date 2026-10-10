@@ -28,11 +28,19 @@ export type SerpItem = {
 export type Charged<T> = { value: T; costMicros: number };
 
 export interface KeywordProvider {
-  name: "fake";
+  name: "fake" | "dataforseo";
   /** The most one call can cost, reserved from the data budget before it (budget.ts). */
-  maxCostMicros: { expand: number; serp: number };
+  maxCostMicros: { expand: number; serp: number; difficulty?: number };
   /** Ideas for one seed, the seed itself included, with their metrics. */
   expand(seed: string, market: Market): Promise<Charged<KeywordIdea[]>>;
+  /**
+   * SEO difficulty of phrases whose ideas came without it, in one call. Phrases with no
+   * data are left out of the map. Only providers whose expand() lacks difficulty have it.
+   */
+  difficulty?(
+    phrases: string[],
+    market: Market,
+  ): Promise<Charged<Map<string, number>>>;
   /** The top 10 organic results on desktop. */
   serp(phrase: string, market: Market): Promise<Charged<SerpItem[]>>;
 }
