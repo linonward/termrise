@@ -249,6 +249,8 @@ Worker 如果调用 `serverEnv()`，就要提供 Google、Resend、R2、Waffo �
 
 下面的冲突需要维护者确认后再实施。本审计不修改这些文档的语义。
 
+2026-10-10 的决定：1、2 见 `docs/adr/011-worker.md`（BullMQ + Upstash Redis，Worker 部署在 Cloudflare Containers，web 只写数据库状态，定时采集由 Worker 调度）；3 为保留代码、隐藏入口；4 为不新增 `DEEPSEEK_BASE_URL`。
+
 1. **Jobs/Redis**：termrise.md「优先复用 Starter 的 BullMQ/Redis」、PRD「复用 Starter 的 Jobs/Redis」。实际：Starter 没有 BullMQ 和 Redis，只有接口和内存适配器（[jobs.md](jobs.md) 的描述与代码一致）。需要决定：队列方案（BullMQ + Redis、Postgres 队列或托管队列）和 Worker 部署平台。
 2. **定时采集**：PRD F01 要求「每日采集」。[api.md](api.md) 写「不使用 Cron API」。需要决定：定时触发由 Worker 调度、Vercel Cron 还是外部触发。
 3. **Waffo 与 Credits**：PRD 写暂不使用。实际：注册仍发 Credits，收费页面和路由仍开放，Production 仍要求 Waffo Key。需要决定：保留、隐藏，还是关闭。

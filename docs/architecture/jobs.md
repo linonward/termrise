@@ -46,4 +46,13 @@ Starter 的后台任务只有骨架：`packages/jobs` 定义队列接口，`apps
 5. 选择 Worker 的部署平台（Vercel 不运行常驻进程）。部署方式记录在 [deployment.md](deployment.md)。
 6. 在 web 的 Service 里用 `JobQueue.enqueue()` 替代同步调用，并把 Task 状态机改为异步，见 [Sync vs Async](tasks.md#sync-vs-async)。
 
+### Termrise
+
+Termrise 的选择（`docs/adr/011-worker.md`）与上面的步骤有两处不同：
+
+- BullMQ 适配器在 `apps/worker` 中实现，不放 `packages/jobs`。`packages/jobs` 的接口和内存适配器保留，用于测试处理器。
+- web 不调用 `JobQueue.enqueue()`，不连接 Redis。web 只写数据库状态（例如 `research_runs.status = pending`）；Worker 用 BullMQ Job Scheduler 定时扫描并入队，定时采集也由 Job Scheduler 触发。
+
+Redis 用 Upstash（TCP + TLS，`rediss://`）。Worker 部署见 [Worker](deployment.md#worker)。
+
 Worker 的处理器需要修改 Task 状态（调用 Provider、转为终态、退款）时，先把 `apps/web/src/features/tasks/task-service.ts` 和 `credit-cost.ts` 移到 `packages/tasks`，再实现处理器。web 与 Worker 调用同一个 TaskService：Worker 不能 import `apps/web`，也不得复制 Task 规则（overview.md 的 Monorepo 规则：业务规则只实现一次）。只用 web 的 Service 入队时，TaskService 留在 web。
