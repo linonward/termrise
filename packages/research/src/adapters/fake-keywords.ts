@@ -9,6 +9,8 @@ import type {
 
 /** A seed containing this marker makes the fake provider fail, so tests can check it. */
 export const FAKE_KEYWORDS_FAILURE = "[fail]";
+/** A seed containing this marker makes the fake expansion take seconds, so E2E can cancel. */
+export const FAKE_KEYWORDS_SLOW = "[slow]";
 /** A phrase containing this marker makes the fake SERP fail. */
 export const FAKE_SERP_FAILURE = "[serp-fail]";
 
@@ -59,6 +61,8 @@ export function createFakeKeywordProvider(): KeywordProvider {
     async expand(seed) {
       if (seed.includes(FAKE_KEYWORDS_FAILURE))
         throw new Error("fake keyword provider failure");
+      if (seed.includes(FAKE_KEYWORDS_SLOW))
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       const phrases = [
         seed,
         ...SUFFIXES.map((suffix) => `${seed} ${suffix}`),

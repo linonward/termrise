@@ -16,7 +16,7 @@ export function RunResearch({
 }: {
   projectId: string;
   /** Why the project runs again: after a failure, or after its budget ran out. */
-  retry: "failed" | "budget" | null;
+  retry: "failed" | "budget" | "cancelled" | null;
 }) {
   const t = useTranslations("research");
   const tErrors = useTranslations("errors");
@@ -50,11 +50,13 @@ export function RunResearch({
         {t("runTitle")}
       </h2>
       <p className="text-[15px] text-muted-foreground">
-        {retry === "budget"
-          ? t("runBudgetBody")
-          : retry === "failed"
-            ? t("runRetryBody")
-            : t("runBody")}
+        {retry === "cancelled"
+          ? t("runCancelledBody")
+          : retry === "budget"
+            ? t("runBudgetBody")
+            : retry === "failed"
+              ? t("runRetryBody")
+              : t("runBody")}
       </p>
       <Button className="h-10 px-4" disabled={pending} onClick={run}>
         {pending ? t("running") : t("runButton")}

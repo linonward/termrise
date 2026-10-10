@@ -13,6 +13,7 @@ import type {
 } from "@repo/research/research-dto";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { CancelRun } from "@/features/research/cancel-run";
 import { DeleteProject } from "@/features/research/delete-project";
 import { ImportCsv } from "@/features/research/import-csv";
 import { ProjectForm } from "@/features/research/project-form";
@@ -75,7 +76,8 @@ export default async function ResearchProjectPage({
   const canRun =
     project.status === "draft" ||
     project.status === "failed" ||
-    project.status === "budget_exhausted";
+    project.status === "budget_exhausted" ||
+    project.status === "cancelled";
   const fixture =
     keywords.some((k) => k.provider === "fake") ||
     serps.some((s) => s.provider === "fake");
@@ -135,11 +137,16 @@ export default async function ResearchProjectPage({
                   ? "failed"
                   : project.status === "budget_exhausted"
                     ? "budget"
-                    : null
+                    : project.status === "cancelled"
+                      ? "cancelled"
+                      : null
               }
             />
           )}
           {lastRun && <LastRun run={lastRun} />}
+          {(lastRun?.status === "pending" || lastRun?.status === "running") && (
+            <CancelRun projectId={project.id} runId={lastRun.id} />
+          )}
           {/* The project is read before the runs: poll until both have ended. */}
           {(lastRun?.status === "pending" ||
             lastRun?.status === "running" ||

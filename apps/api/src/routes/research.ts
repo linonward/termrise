@@ -82,6 +82,18 @@ export const researchRoutes = userRoutes()
       201,
     ),
   )
+  // Cancels a queued or running run; the worker stops before its next paid call.
+  .post("/projects/:id/runs/:runId/cancel", rateLimit("research"), async (c) =>
+    c.json(
+      toResearchRunDto(
+        await runs(c).cancel(
+          c.var.user.id,
+          c.req.param("id"),
+          c.req.param("runId"),
+        ),
+      ),
+    ),
+  )
   .get("/projects/:id/runs", async (c) => {
     const items = await reader(c).listRuns(c.var.user.id, c.req.param("id"));
     return c.json({ items: items.map(toResearchRunDto) });

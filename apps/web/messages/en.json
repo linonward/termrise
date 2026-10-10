@@ -535,7 +535,9 @@
     "EXECUTION_PROJECT_NOT_FOUND": "This product doesn't exist.",
     "EXECUTION_NEEDS_GO": "Decide Go on the opportunity before you start a product.",
     "EXECUTION_RECORD_NOT_FOUND": "This record doesn't exist or can't be deleted.",
-    "RADAR_ITEM_NOT_FOUND": "This radar item doesn't exist."
+    "RADAR_ITEM_NOT_FOUND": "This radar item doesn't exist.",
+    "RESEARCH_RUN_NOT_FOUND": "This run doesn't exist.",
+    "RESEARCH_RUN_FINISHED": "The run has already finished."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -864,7 +866,8 @@
       "running": "Running",
       "completed": "Completed",
       "partial": "Partly completed",
-      "failed": "Failed"
+      "failed": "Failed",
+      "cancelled": "Cancelled"
     },
     "runError": {
       "PROVIDER_ERROR": "The keyword data source did not answer.",
@@ -893,7 +896,10 @@
     "runBudgetBody": "The data budget did not cover one keyword expansion. Raise the data budget, then run again.",
     "budgetUsed": "Spent {spent} · held {held}",
     "budgetNote": "The budget ran out before any data came in. Raise the data budget and run again.",
-    "runQueuedNote": "The run waits for the worker and starts in a few seconds."
+    "runQueuedNote": "The run waits for the worker and starts in a few seconds.",
+    "cancelRun": "Cancel run",
+    "cancelling": "Cancelling…",
+    "runCancelledBody": "The last run was cancelled. You can run it again."
   },
   "opportunities": {
     "metaTitle": "Opportunities",
