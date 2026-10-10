@@ -11,6 +11,7 @@ import type {
 } from "@repo/db/schema";
 
 import type { Budget } from "./budget";
+import type { BuildAdvice } from "./build-advice";
 import type { Analysis } from "./opportunity-analyst";
 import { NEXT_DECISIONS, NEXT_EXPERIMENT_STATUSES } from "./opportunity-rules";
 import type { ResearchProject, SourceSignal } from "./research-service";
@@ -143,6 +144,8 @@ export function toOpportunityDto(row: {
     analysisError: e.analysisError,
     analystProvider: e.analystProvider,
     analystModel: e.analystModel,
+    serpCompetition: e.serpCompetition,
+    buildAdvice: e.buildAdvice as BuildAdvice | null,
     evaluatedAt: e.createdAt.toISOString(),
   };
 }

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { MAX_COMPARED } from "@repo/research/opportunity-rules";
 import type { OpportunityDetailDto } from "@repo/research/research-dto";
 
+import { BuildAdviceBadge } from "@/features/opportunities/build-advice";
 import {
   NeedsReview,
   OpportunityStatus,
@@ -100,6 +101,21 @@ export default async function ComparePage({
           ),
         ] as [string, (o: OpportunityDetailDto) => ReactNode],
     ),
+    [
+      "build",
+      (o) =>
+        o.buildAdvice ? (
+          <BuildAdviceBadge
+            advice={
+              o.buildAdvice.advice as NonNullable<
+                OpportunityDetailDto["buildAdvice"]
+              >["advice"]
+            }
+          />
+        ) : (
+          noData
+        ),
+    ],
     ["topKeyword", (o) => top(o)?.phrase ?? noData],
     ["searchVolume", (o) => num(top(o)?.searchVolume ?? null)],
     ["keywordDifficulty", (o) => num(top(o)?.keywordDifficulty ?? null)],

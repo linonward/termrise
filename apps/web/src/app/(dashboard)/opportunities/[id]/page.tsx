@@ -17,6 +17,7 @@ import { WEIGHTS } from "@repo/research/scoring";
 import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import { BriefPanel } from "@/features/opportunities/brief-panel";
+import { BuildAdvicePanel } from "@/features/opportunities/build-advice";
 import { DecisionForm } from "@/features/opportunities/decision-form";
 import { ExperimentForm } from "@/features/opportunities/experiment-form";
 import { ExperimentProgress } from "@/features/opportunities/experiment-progress";
@@ -204,6 +205,12 @@ export default async function OpportunityPage({
           <p className="text-[13px] text-muted-foreground">
             {t("scoreNote", { version: o.scoringVersion })}
           </p>
+          <div className="space-y-3 border-t border-border pt-5">
+            <h2 className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+              {t("build.title")}
+            </h2>
+            <BuildAdvicePanel o={o} />
+          </div>
         </section>
         <section
           aria-labelledby="analysis-title"

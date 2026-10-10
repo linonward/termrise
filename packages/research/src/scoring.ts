@@ -1,9 +1,12 @@
 import { classifyIntent, hasToolIntent } from "./intent";
+import type { SerpCompetition } from "./serp-competition";
 
 // Opportunity Score v1 (docs/product/product.md#评分与状态): six dimensions of 0–5,
 // weighted to 100. A ranking heuristic, not a probability of success. Deterministic:
 // the same evidence gives the same score, and the version is stored with it.
-export const SCORING_VERSION = "v1";
+// v2: more tool-intent words for MVP fit; competition also counts the pages made for the
+// keyword in its top results (serp-competition.ts).
+export const SCORING_VERSION = "v2";
 
 export const WEIGHTS = {
   trend: 20,
@@ -27,6 +30,8 @@ export type ClusterEvidence = {
   }[];
   /** Whether the strongest keyword's top results were audited. */
   serpAudited: boolean;
+  /** The top results of the strongest audited keyword; absent when none was audited. */
+  serp?: SerpCompetition | null;
   /** Observations of the cluster's terms (CSV, later Hacker News and Trends). */
   signals: { observedAt: Date | null; source: string | null }[];
 };
@@ -53,12 +58,37 @@ function demand(keywords: ClusterEvidence["keywords"]) {
   return step(Math.max(...volumes), [1, 100, 500, 2000, 10000]);
 }
 
-/** Lower difficulty of the strongest keyword with a KD is a bigger opening. */
-function competition(keywords: ClusterEvidence["keywords"]) {
+/**
+ * Lower difficulty of the strongest keyword with a KD is a bigger opening. Few pages made
+ * for the keyword in its top results open it more (+1); many close it (−1). Without a
+ * KD, those pages alone decide.
+ */
+function competition(
+  keywords: ClusterEvidence["keywords"],
+  serp: SerpCompetition | null | undefined,
+) {
+  const kd = kdScore(keywords);
+  const dedicated = serp?.dedicatedPages;
+  if (kd === null)
+    return dedicated === undefined
+      ? 0
+      : dedicated <= 2
+        ? 4
+        : dedicated <= 5
+          ? 3
+          : dedicated <= 8
+            ? 2
+            : 1;
+  if (dedicated === undefined) return kd;
+  const adjust = dedicated <= 2 ? 1 : dedicated >= 7 ? -1 : 0;
+  return Math.max(0, Math.min(5, kd + adjust));
+}
+
+function kdScore(keywords: ClusterEvidence["keywords"]) {
   const rated = keywords
     .filter((k) => k.keywordDifficulty !== null)
     .sort((a, b) => (b.searchVolume ?? -1) - (a.searchVolume ?? -1));
-  if (rated.length === 0) return 0;
+  if (rated.length === 0) return null;
   const kd = rated[0].keywordDifficulty!;
   return kd <= 10
     ? 5
@@ -106,7 +136,7 @@ export function scoreDimensions(evidence: ClusterEvidence): Dimensions {
   return {
     trend: trend(evidence.signals),
     demand: demand(evidence.keywords),
-    competition: competition(evidence.keywords),
+    competition: competition(evidence.keywords, evidence.serp),
     commercial: commercial(evidence.keywords),
     mvp: mvp(evidence.keywords),
     distribution: distribution(evidence.signals),

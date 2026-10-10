@@ -79,7 +79,7 @@ it("records decisions as an append-only history with the evidence version", asyn
       reason: "Pre-orders came in",
       deciderName: "Ada",
       evaluationId: detail.evaluation.id,
-      scoringVersion: "v1",
+      scoringVersion: "v2",
     },
     { decision: "needs_validation", reason: "Promising, test it" },
   ]);
