@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type {
+  KeywordDto,
   ResearchProjectDto,
+  ResearchRunDto,
+  SerpDto,
   SourceSignalDto,
 } from "@repo/research/research-dto";
 
@@ -12,7 +15,14 @@ import { LocalDateTime } from "@/components/local-date-time";
 import { DeleteProject } from "@/features/research/delete-project";
 import { ImportCsv } from "@/features/research/import-csv";
 import { ProjectForm } from "@/features/research/project-form";
+import {
+  FixtureNotice,
+  KeywordTable,
+  LastRun,
+  SerpList,
+} from "@/features/research/research-results";
 import { ResearchStatus } from "@/features/research/research-status";
+import { RunResearch } from "@/features/research/run-research";
 import { apiGet, apiRequest } from "@/server/api/api";
 
 async function loadProject(id: string) {
@@ -36,9 +46,23 @@ export default async function ResearchProjectPage({
   params,
 }: PageProps<"/research/[id]">) {
   const project = await loadProject((await params).id);
-  const { items: signals } = await apiGet<{ items: SourceSignalDto[] }>(
-    `/api/research/projects/${project.id}/signals`,
-  );
+  const base = `/api/research/projects/${project.id}`;
+  const [
+    { items: signals },
+    { items: runs },
+    { items: keywords },
+    { items: serps },
+  ] = await Promise.all([
+    apiGet<{ items: SourceSignalDto[] }>(`${base}/signals`),
+    apiGet<{ items: ResearchRunDto[] }>(`${base}/runs`),
+    apiGet<{ items: KeywordDto[] }>(`${base}/keywords`),
+    apiGet<{ items: SerpDto[] }>(`${base}/serps`),
+  ]);
+  const lastRun = runs[0];
+  const canRun = project.status === "draft" || project.status === "failed";
+  const fixture =
+    keywords.some((k) => k.provider === "fake") ||
+    serps.some((s) => s.provider === "fake");
   const t = await getTranslations("research");
   const format = await getFormatter();
   const usd = (value: number) =>
@@ -83,6 +107,13 @@ export default async function ResearchProjectPage({
           <ProjectForm key={signals.length} project={project} />
         </section>
         <div className="space-y-6 md:w-90">
+          {canRun && (
+            <RunResearch
+              projectId={project.id}
+              retry={project.status === "failed"}
+            />
+          )}
+          {lastRun && <LastRun run={lastRun} />}
           <dl className="space-y-4 rounded-lg bg-surface p-6">
             {(
               [
@@ -180,6 +211,33 @@ export default async function ResearchProjectPage({
           </div>
         )}
       </div>
+      <section aria-labelledby="keywords-title" className="space-y-4">
+        <h2 id="keywords-title" className="font-heading text-2xl font-semibold">
+          {t("keywordsTitle")}{" "}
+          <span className="text-muted-foreground tabular-nums">
+            {keywords.length}
+          </span>
+        </h2>
+        {fixture && <FixtureNotice />}
+        {keywords.length === 0 ? (
+          <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
+            {t("keywordsEmpty")}
+          </div>
+        ) : (
+          <KeywordTable items={keywords} />
+        )}
+      </section>
+      {serps.length > 0 && (
+        <section aria-labelledby="serp-title" className="space-y-4">
+          <div className="space-y-2">
+            <h2 id="serp-title" className="font-heading text-2xl font-semibold">
+              {t("serpTitle")}
+            </h2>
+            <p className="text-[15px] text-muted-foreground">{t("serpBody")}</p>
+          </div>
+          <SerpList items={serps} />
+        </section>
+      )}
     </main>
   );
 }

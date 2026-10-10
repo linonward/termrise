@@ -24,6 +24,8 @@ analytics_consents
 research_projects（Termrise 的研究项目）
 
 source_signals（热词的观测来源）
+
+research_runs、keywords、keyword_metric_snapshots、serp_snapshots、serp_results（研究运行的结果）
 ```
 
 Better Auth 需要的内部表（user / session / account / verification）由 Better Auth CLI（`auth generate`）生成到 `packages/db/src/schema/auth.ts`，之后手工修改（`credit_balance` 的 NOT NULL 和 CHECK）。重新生成后要再次应用这些修改。
@@ -601,6 +603,20 @@ processed_at = now()
 
 - 导入（`ResearchService.importCsv()`）在一个事务中锁住项目行，只允许 draft；新词按出现顺序追加到种子词，最多 50 个，其余只保留为信号。并发导入同一个项目时种子词不会丢失（集成测试覆盖）。
 - 账号导出包含每个项目的信号；删除账号时随项目一起删除。
+
+---
+
+## Research Runs and Keywords
+
+研究的运行（`packages/research/src/research-runner.ts`）现在在 API 请求中同步执行，各阶段是 packages 中的函数，接真实 Provider 时移到 `apps/worker`（roadmap 的 Confirmed Decisions）。
+
+- `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 只在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`）。
+- 开始运行时在一个事务中锁住项目行：只有 `draft` 或 `failed` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding` → `auditing` → `completed` / `partial`；扩词失败为 `failed`。
+- `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。
+- `keyword_metric_snapshots`：Provider 报告的指标，只追加。`search_volume`（月均搜索量）、`cpc_micros`（微美元）、`ads_competition`（Google Ads 竞争度 0–100）、`keyword_difficulty`（SEO 难度 0–100）各自独立，Provider 没有报告时为 null，不写 0（product.md 的 F03）。页面显示最新的一条。
+- `serp_snapshots` / `serp_results`：搜索量最高的 5 个关键词（搜索量为 null 或 0 的不审核）在桌面端的前 10 个自然结果，记录 Provider、设备、地区、语言和时间。某个关键词的 SERP 失败时跳过它，运行结束为 `partial`。
+- 每条指标和 SERP 都记录 `provider`。现在只有 `fake`（`packages/research/src/adapters/fake-keywords.ts`）：按词生成确定性的测试数据，SERP 链接到 `.invalid` 域名；只在 `ALLOW_FAKE_PROVIDERS=1` 时可用，页面在数据来自 `fake` 时显示「测试数据，不是真实的搜索数据」。真实 Provider（DataForSEO）实现同一个端口（`keyword-provider.ts`），按官方文档映射响应。
+- 删除项目时，运行、关键词、指标和 SERP 随之删除（`ON DELETE CASCADE`）。
 
 ---
 

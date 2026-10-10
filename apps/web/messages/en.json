@@ -523,7 +523,8 @@
     "TASK_NOT_FOUND": "This task doesn't exist.",
     "NOT_FOUND": "This page or record doesn't exist.",
     "RESEARCH_PROJECT_NOT_FOUND": "This research project doesn't exist.",
-    "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed."
+    "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed.",
+    "RESEARCH_PROVIDER_UNAVAILABLE": "Research can't run yet: no keyword data source is set up."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -745,6 +746,38 @@
       "missing_term_column": "The header has no term column.",
       "unreadable": "The file could not be read."
     },
-    "sourceCsv": "CSV import"
+    "sourceCsv": "CSV import",
+    "runTitle": "Run research",
+    "runBody": "Expands the seed terms, collects search volume, CPC, ads competition and keyword difficulty, and audits the top 10 results of the strongest keywords. Seeds and budgets lock while it runs.",
+    "runRetryBody": "The last run failed. Run it again; the seeds stay as they are.",
+    "runButton": "Run research",
+    "running": "Running…",
+    "lastRun": "Last run",
+    "runStatus": {
+      "running": "Running",
+      "completed": "Completed",
+      "partial": "Partly completed",
+      "failed": "Failed"
+    },
+    "runError": {
+      "PROVIDER_ERROR": "The keyword data source did not answer.",
+      "INTERNAL_ERROR": "Something went wrong during the run."
+    },
+    "runPartialNote": "Some search results could not be fetched; the keywords are complete.",
+    "keywordsTitle": "Keywords",
+    "keywordsEmpty": "No keywords yet. Run the research to collect them.",
+    "keywordColumn": {
+      "keyword": "Keyword",
+      "volume": "Volume",
+      "cpc": "CPC",
+      "ads": "Ads competition",
+      "kd": "KD"
+    },
+    "seedBadge": "Seed",
+    "noData": "No data",
+    "fixtureTitle": "Fixture data",
+    "fixtureBody": "These numbers and results come from the test data source. They are not real search data.",
+    "serpTitle": "Top search results",
+    "serpBody": "The top 10 organic results of the keywords with the most searches, on desktop."
   }
 }

@@ -521,7 +521,8 @@
     "TASK_NOT_FOUND": "这个任务不存在。",
     "NOT_FOUND": "这个页面或记录不存在。",
     "RESEARCH_PROJECT_NOT_FOUND": "这个研究项目不存在。",
-    "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。"
+    "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。",
+    "RESEARCH_PROVIDER_UNAVAILABLE": "暂时无法运行研究：还没有配置关键词数据来源。"
   },
   "errorPage": {
     "title": "出错了",
@@ -741,6 +742,38 @@
       "missing_term_column": "表头里没有 term 列。",
       "unreadable": "无法读取这个文件。"
     },
-    "sourceCsv": "CSV 导入"
+    "sourceCsv": "CSV 导入",
+    "runTitle": "运行研究",
+    "runBody": "扩展种子词，收集搜索量、CPC、广告竞争度和关键词难度，并审核最强关键词的前 10 个搜索结果。运行期间种子词和预算会锁定。",
+    "runRetryBody": "上次运行失败了。可以再运行一次，种子词保持不变。",
+    "runButton": "运行研究",
+    "running": "正在运行…",
+    "lastRun": "最近一次运行",
+    "runStatus": {
+      "running": "运行中",
+      "completed": "已完成",
+      "partial": "部分完成",
+      "failed": "失败"
+    },
+    "runError": {
+      "PROVIDER_ERROR": "关键词数据来源没有响应。",
+      "INTERNAL_ERROR": "运行时出错了。"
+    },
+    "runPartialNote": "部分搜索结果没有取到；关键词是完整的。",
+    "keywordsTitle": "关键词",
+    "keywordsEmpty": "还没有关键词。运行研究来收集。",
+    "keywordColumn": {
+      "keyword": "关键词",
+      "volume": "搜索量",
+      "cpc": "CPC",
+      "ads": "广告竞争",
+      "kd": "KD"
+    },
+    "seedBadge": "种子词",
+    "noData": "暂无数据",
+    "fixtureTitle": "测试数据",
+    "fixtureBody": "这些数字和结果来自测试数据来源，不是真实的搜索数据。",
+    "serpTitle": "搜索结果前 10 名",
+    "serpBody": "搜索量最高的几个关键词在桌面端的前 10 个自然搜索结果。"
   }
 }

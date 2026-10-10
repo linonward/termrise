@@ -38,6 +38,7 @@ it("accepts the fake provider only with ALLOW_FAKE_PROVIDERS", () => {
   expect(parse({ TASK_PROVIDER: "fake" })).toThrow("ALLOW_FAKE_PROVIDERS");
   expect(parse({ STORAGE_PROVIDER: "fake" })).toThrow("STORAGE_PROVIDER");
   expect(parse({ PAYMENT_PROVIDER: "fake" })).toThrow("PAYMENT_PROVIDER");
+  expect(parse({ KEYWORD_PROVIDER: "fake" })).toThrow("KEYWORD_PROVIDER");
   expect(
     parse({ TASK_PROVIDER: "fake", ALLOW_FAKE_PROVIDERS: "1" }),
   ).not.toThrow();
