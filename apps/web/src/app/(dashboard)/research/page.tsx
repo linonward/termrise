@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { ResearchProjectDto } from "@repo/research/research-dto";
+import { normalizeSeeds } from "@repo/research/research-rules";
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { ProjectForm } from "@/features/research/project-form";
@@ -13,8 +14,19 @@ export async function generateMetadata() {
 }
 
 // Research projects (docs/product/ux.md#research). The (dashboard) layout checks the session.
-export default async function ResearchPage() {
+export default async function ResearchPage({
+  searchParams,
+}: PageProps<"/research">) {
   const t = await getTranslations("research");
+  // A radar item opens this page with ?name=&seed= to prefill a new project.
+  const { name, seed } = await searchParams;
+  const initial =
+    typeof seed === "string" && seed
+      ? {
+          name: typeof name === "string" ? name : "",
+          seeds: normalizeSeeds([seed]),
+        }
+      : undefined;
   const { items } = await apiGet<{ items: ResearchProjectDto[] }>(
     "/api/research/projects",
   );
@@ -99,7 +111,7 @@ export default async function ResearchPage() {
           >
             {t("newTitle")}
           </h2>
-          <ProjectForm showMarket />
+          <ProjectForm showMarket initial={initial} />
         </section>
       </div>
     </main>

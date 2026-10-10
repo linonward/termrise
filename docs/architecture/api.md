@@ -37,6 +37,10 @@ GET /api/research/projects/:id/serps（每个已审核关键词最新的前 10 �
 
 GET /api/research/projects/:id/costs（{ data, ai }：每项 budgetUsd、spentUsd、heldUsd、remainingUsd；calls：最近 100 次付费调用；见 data-model.md 的 Budget Ledger）
 
+GET /api/radar/items（Radar 条目，最多 100 个；?q= 按规范化的词搜索（不区分大小写，最多 100 字符），?sort=new（首次发现，默认）| score（分数高的在前，没有分数的在后）；任何登录用户看到同样的条目；见 data-model.md 的 Radar）
+
+GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
+
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
 
 GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals，以及 decisions（新的在前）和 experiments；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）

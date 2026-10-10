@@ -25,6 +25,8 @@ research_projects（Termrise 的研究项目）
 
 source_signals（热词的观测来源）
 
+radar_items、radar_observations（Radar：公开来源的故事与每次观测）
+
 research_runs、keywords、keyword_metric_snapshots、serp_snapshots、serp_results（研究运行的结果）
 ```
 
@@ -589,7 +591,7 @@ processed_at = now()
 
 ## Source Signals
 
-`source_signals`（`packages/db/src/schema/signals.ts`）：某个词在某个来源被观测到一次（product.md 的 F01）。现在只有 CSV 导入（`provider = 'csv'`），属于一个研究项目；Hacker News、Google Trends 的全局信号在 Radar 的 Slice 中加入。
+`source_signals`（`packages/db/src/schema/signals.ts`）：某个词在某个来源被观测到一次（product.md 的 F01）。现在只有 CSV 导入（`provider = 'csv'`），属于一个研究项目。Hacker News 的全局数据在 [Radar](#radar) 中。
 
 | 列                        | 说明                                                                                                                                          |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -603,6 +605,18 @@ processed_at = now()
 
 - 导入（`ResearchService.importCsv()`）在一个事务中锁住项目行，只允许 draft；新词按出现顺序追加到种子词，最多 50 个，其余只保留为信号。并发导入同一个项目时种子词不会丢失（集成测试覆盖）。
 - 账号导出包含每个项目的信号；删除账号时随项目一起删除。
+
+---
+
+## Radar
+
+`radar_items` / `radar_observations`（`packages/db/src/schema/radar.ts`，`packages/research/src/radar.ts`）：Worker 从公开来源采集的故事（product.md 的 F01）。全局数据，不属于某个用户：所有登录用户看到同样的条目，删除或导出账号时不包含。
+
+- 来源现在只有 Hacker News 官方 API（`https://hacker-news.firebaseio.com/v0`，不需要 Key，`packages/research/src/adapters/hacker-news.ts`）。它没有搜索，只有故事列表和逐条读取。每次采集读 `topstories` 和 `showstories` 各前 60 个，并发 5 个请求；只保存 `type = story`、不是 dead / deleted、有标题的条目。
+- `radar_items`：一个故事一行，`(provider, external_id)` 唯一（HN 的 item id）。记录标题（最多 500 字符）、规范化的词（去掉 `Show HN:` 等前缀，规则同种子词）、链接（只保留 http / https，否则为 null）、发布时间、`first_seen_at` / `last_seen_at`（本系统第一次和最近一次看到它，不是它在互联网上出现的时间）、最新的分数和评论数（来源没有报告时为 null）。再次采集时更新标题、链接、分数和评论数，`first_seen_at` 不变。
+- `radar_observations`：只追加。每次采集，故事在每个列表中出现一次就记一行：时间、列表（`top` / `show`）、排名（从 1 开始）、分数、评论数。
+- 某个故事读取失败时跳过它；全部失败时任务失败，由队列重试。读取列表失败时任务失败。
+- 分数和评论数是讨论热度，不是搜索量，页面会说明。研究项目可以从一个条目开始：种子词为规范化的词，按词边界截到 80 字符。
 
 ---
 

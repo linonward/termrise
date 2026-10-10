@@ -25,6 +25,10 @@
 
 /dashboard
 
+/radar
+
+/radar/:id
+
 /research
 
 /research/:id
@@ -44,7 +48,7 @@
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard`、`/research`、`/opportunities`、`/projects` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/dashboard`、`/radar`、`/research`、`/opportunities`、`/projects` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -272,6 +276,36 @@ Logout
 
 ---
 
+## Radar
+
+`/radar`（无设计稿）：
+
+```text
+标题 + 说明
+info-soft 提示：分数和评论数是讨论热度，不是搜索量
+搜索框（搜索词）+ 排序（首次发现 / 分数）+ [Apply]（GET 表单，参数写在 URL 中）
+表：故事（→ 详情）、来源徽章、分数、评论、首次发现
+```
+
+- 没有条目时说明 Worker 每小时采集一次 Hacker News；搜索没有结果时说明换一个词。
+- 缺失的分数或评论显示「—」，不显示 0。
+
+`/radar/:id`：
+
+```text
+← Radar
+标题 + 来源徽章
+Open link（有链接时）、Discussion（HN 讨论页），新窗口打开，rel="noopener noreferrer nofollow"
+同一条提示
+左侧：观测记录表（时间、列表、排名、分数、评论）
+右侧：事实（发布时间、首次发现、最近发现、分数、评论；缺失为「暂无数据」）+「研究这个词」面板 [Start research]
+```
+
+- Start research 打开 `/research?name=<标题>&seed=<建议的种子词>`，新建项目表单预先填好，用户可以修改后再创建。
+- 不存在的条目返回 404 页面。
+
+---
+
 ## Research
 
 `/research`（设计稿：`docs/design/exports/research-desktop.png`、`research-mobile-empty.png`）：
@@ -283,6 +317,7 @@ Logout
 没有项目时：Projects 下显示空状态（No research projects yet）
 ```
 
+- 地址带 `?seed=`（来自 Radar）时，表单预先填入 `name` 和 `seed`。
 - 表单：Name、Seed terms（textarea，每行一个，最多 50 个；提交前在浏览器按 API 的规则规范化）、Market（只读，United States · English）、Data budget / AI budget（美元，默认 20 / 5）、[Create project]。成功后进入详情页。
 - 错误按 API 错误码显示在表单下方（`errors.*`）。
 

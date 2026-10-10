@@ -131,6 +131,7 @@
       "en": "English",
       "zh": "简体中文"
     },
+    "radar": "Radar",
     "research": "研究",
     "opportunities": "机会",
     "products": "产品"
@@ -530,7 +531,8 @@
     "EXPERIMENT_FINISHED": "这个实验已经结束，不能再修改。",
     "EXECUTION_PROJECT_NOT_FOUND": "这个产品不存在。",
     "EXECUTION_NEEDS_GO": "先对机会做 Go 决策，再开始产品。",
-    "EXECUTION_RECORD_NOT_FOUND": "这条记录不存在，或不能删除。"
+    "EXECUTION_RECORD_NOT_FOUND": "这条记录不存在，或不能删除。",
+    "RADAR_ITEM_NOT_FOUND": "这个 Radar 条目不存在。"
   },
   "errorPage": {
     "title": "出错了",
@@ -664,6 +666,51 @@
     "empty": "还没有运行记录。",
     "emptyHint": "输入一段文字，运行第一个任务。",
     "buyCredits": "购买积分"
+  },
+  "radar": {
+    "metaTitle": "Radar",
+    "title": "Radar",
+    "subtitle": "来自公开来源的新故事。找到值得研究的词。",
+    "noticeTitle": "这是讨论热度，不是搜索需求",
+    "noticeBody": "分数和评论数表示讨论的多少，不是搜索量。要得到搜索数据，请运行研究。",
+    "search": "搜索词",
+    "sortLabel": "排序",
+    "sort": {
+      "new": "首次发现",
+      "score": "分数"
+    },
+    "apply": "应用",
+    "emptyTitle": "还没有故事",
+    "emptyBody": "Worker 每小时采集一次 Hacker News。第一次采集后，故事显示在这里。",
+    "noMatchTitle": "没有匹配的故事",
+    "noMatchBody": "请换一个搜索词。",
+    "column": {
+      "story": "故事",
+      "source": "来源",
+      "points": "分数",
+      "comments": "评论",
+      "firstSeen": "首次发现",
+      "lastSeen": "最近发现",
+      "posted": "发布时间",
+      "observedAt": "观测时间",
+      "list": "列表",
+      "rank": "排名"
+    },
+    "provider": {
+      "hacker_news": "Hacker News"
+    },
+    "list": {
+      "top": "热门",
+      "show": "Show HN"
+    },
+    "back": "Radar",
+    "openLink": "打开链接",
+    "openDiscussion": "讨论",
+    "observations": "观测记录",
+    "noData": "暂无数据",
+    "researchTitle": "研究这个词",
+    "researchBody": "用种子词「{seed}」创建研究项目。创建前可以修改。",
+    "startResearch": "开始研究"
   },
   "research": {
     "metaTitle": "研究",

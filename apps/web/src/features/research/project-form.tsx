@@ -24,9 +24,12 @@ const FIELD =
 // Creates a research project, or edits a draft (docs/product/ux.md#research).
 export function ProjectForm({
   project,
+  initial,
   showMarket,
 }: {
   project?: ResearchProjectDto;
+  /** Prefilled values for a new project, e.g. from a radar item. */
+  initial?: { name: string; seeds: string[] };
   showMarket?: boolean;
 }) {
   const t = useTranslations("research");
@@ -89,7 +92,7 @@ export function ProjectForm({
           name="name"
           required
           maxLength={PROJECT_NAME_MAX_LENGTH}
-          defaultValue={project?.name}
+          defaultValue={project?.name ?? initial?.name}
           disabled={disabled}
           className={cn(FIELD, "h-11")}
         />
@@ -100,7 +103,7 @@ export function ProjectForm({
           name="seeds"
           required
           rows={5}
-          defaultValue={project?.seeds.join("\n")}
+          defaultValue={(project?.seeds ?? initial?.seeds)?.join("\n")}
           disabled={disabled}
           className={cn(FIELD, "py-3")}
         />

@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/dashboard",
         "/billing",
+        "/radar",
         "/research",
         "/opportunities",
         "/projects",

@@ -1,7 +1,7 @@
 import { Queue, Worker } from "bullmq";
 import { Redis } from "ioredis";
 
-import type { JobName } from "@repo/jobs/job-types";
+import type { JobName, JobPayloads } from "@repo/jobs/job-types";
 import type { Job, JobConsumer, JobHandlers, JobQueue } from "@repo/jobs/queue";
 
 const QUEUE = "termrise";
@@ -16,7 +16,13 @@ export function createBullQueue(redisUrl: string) {
   const bull: JobQueue &
     JobConsumer & {
       /** Enqueues the job every `everyMs`; calling it again updates, never duplicates. */
-      schedule(name: JobName, everyMs: number): Promise<void>;
+      schedule<N extends JobName>(
+        name: N,
+        everyMs: number,
+        payload?: JobPayloads[N],
+      ): Promise<void>;
+      /** Stops a schedule; nothing happens when there is none. */
+      unschedule(name: JobName): Promise<void>;
     } = {
     async enqueue(name, payload, options = {}) {
       const job = await queue.add(name, payload, {
@@ -28,12 +34,19 @@ export function createBullQueue(redisUrl: string) {
       });
       return { id: job.id ?? "" };
     },
-    async schedule(name, everyMs) {
+    async schedule(name, everyMs, payload) {
       await queue.upsertJobScheduler(
         `schedule-${name}`,
         { every: everyMs },
-        { name, data: {}, opts: { removeOnComplete: 100, removeOnFail: 100 } },
+        {
+          name,
+          data: payload ?? {},
+          opts: { removeOnComplete: 100, removeOnFail: 100 },
+        },
       );
+    },
+    async unschedule(name) {
+      await queue.removeJobScheduler(`schedule-${name}`);
     },
     async start(handlers: JobHandlers) {
       worker = new Worker(

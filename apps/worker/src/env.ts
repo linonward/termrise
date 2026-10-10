@@ -10,6 +10,10 @@ const schema = z
     REDIS_URL: z.string().min(1).optional(),
     /** How often the scheduler looks for queued research runs. */
     SCAN_INTERVAL_MS: z.coerce.number().int().min(100).default(5000),
+    /** 1: collect Hacker News into the radar (public API, no key). */
+    HACKER_NEWS_ENABLED: z.literal("1").optional(),
+    /** How often the radar collects its sources. */
+    TREND_INTERVAL_MS: z.coerce.number().int().min(60_000).default(3_600_000),
     /** Health check port (GET /health). */
     PORT: z.coerce.number().int().min(1).default(8080),
     KEYWORD_PROVIDER: z.enum(["fake"]),
