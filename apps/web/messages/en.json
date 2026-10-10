@@ -132,7 +132,8 @@
       "zh": "简体中文"
     },
     "research": "Research",
-    "opportunities": "Opportunities"
+    "opportunities": "Opportunities",
+    "products": "Products"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",
@@ -529,7 +530,10 @@
     "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist.",
     "OPPORTUNITY_DECISION_INVALID": "This decision is not possible from the current status. Reload the page and try again.",
     "EXPERIMENT_NOT_FOUND": "This experiment doesn't exist.",
-    "EXPERIMENT_FINISHED": "This experiment is finished and can no longer change."
+    "EXPERIMENT_FINISHED": "This experiment is finished and can no longer change.",
+    "EXECUTION_PROJECT_NOT_FOUND": "This product doesn't exist.",
+    "EXECUTION_NEEDS_GO": "Decide Go on the opportunity before you start a product.",
+    "EXECUTION_RECORD_NOT_FOUND": "This record doesn't exist or can't be deleted."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -925,5 +929,87 @@
     "copied": "Copied",
     "copyFailed": "The browser did not allow copying. Download the file instead.",
     "preview": "Preview"
+  },
+  "products": {
+    "metaTitle": "Products",
+    "title": "Products",
+    "subtitle": "Products you build from Go opportunities: status, launch, visitors and revenue as you record them.",
+    "emptyTitle": "No products yet",
+    "emptyBody": "Decide Go on an opportunity, then start its product.",
+    "emptyLink": "Go to Opportunities",
+    "column": {
+      "name": "Name",
+      "status": "Status",
+      "domain": "Domain",
+      "launched": "Launched",
+      "created": "Created"
+    },
+    "none": "—",
+    "unknown": "Unknown",
+    "status": {
+      "not_started": "Not started",
+      "validating": "Validating",
+      "building": "Building",
+      "launched": "Launched",
+      "measuring": "Measuring",
+      "archived": "Archived"
+    },
+    "source": {
+      "manual": "Manual",
+      "imported": "Imported",
+      "payment_verified": "Payment verified"
+    },
+    "start": "Start product",
+    "starting": "Starting…",
+    "open": "Open product",
+    "startBody": "This opportunity is a Go. Start a product to record its launch and results.",
+    "back": "Products",
+    "opportunityLink": "Opportunity",
+    "resultsTitle": "Results",
+    "productTitle": "Product",
+    "metric": {
+      "visitors": "Visitors",
+      "activations": "Activations"
+    },
+    "total": {
+      "currency": "Currency",
+      "orders": "Orders",
+      "verified": "Verified",
+      "gross": "Gross",
+      "refund": "Refunds",
+      "fees": "Fees",
+      "net": "Net"
+    },
+    "totalsNote": "Totals per currency. Net is unknown while any fee is unknown. Only payment-verified orders count as verified; numbers you type are manual.",
+    "revenueEmpty": "No revenue recorded.",
+    "revenueTitle": "Revenue",
+    "eventsTitle": "Visitors and activations",
+    "ordersCount": "{count, plural, one {# order} other {# orders}}",
+    "field": {
+      "name": "Name",
+      "status": "Status",
+      "launchedOn": "Launch date",
+      "domain": "Domain",
+      "repoUrl": "Repository URL",
+      "metric": "Metric",
+      "count": "Count",
+      "periodStart": "From",
+      "periodEnd": "To",
+      "note": "Note",
+      "occurredOn": "Date",
+      "currency": "Currency",
+      "orders": "Orders",
+      "gross": "Gross",
+      "refund": "Refunds",
+      "fees": "Fees",
+      "evidence": "Evidence"
+    },
+    "feesHint": "Leave fees empty when you do not know them. Net revenue then stays unknown.",
+    "evidenceHint": "Order or payment ID, or a link",
+    "save": "Save",
+    "saving": "Saving…",
+    "addEvent": "Record visitors or activations",
+    "addRevenue": "Record revenue",
+    "delete": "Delete"
   }
 }

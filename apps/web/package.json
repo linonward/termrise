@@ -22,6 +22,7 @@
     "@repo/billing": "workspace:*",
     "@repo/config": "workspace:*",
     "@repo/credits": "workspace:*",
+    "@repo/execution": "workspace:*",
     "@repo/observability": "workspace:*",
     "@repo/research": "workspace:*",
     "@repo/seo": "workspace:*",

@@ -658,6 +658,19 @@ processed_at = now()
 
 ---
 
+## Execution and Revenue
+
+由 Go 机会开始的产品（`packages/execution`）。所有数字由用户填写，系统不编造（product.md 的 F08）。
+
+- `execution_projects`：一个产品，属于用户（`user_id`），来自一个机会（`opportunity_id` 唯一；删除研究项目后为 null，产品记录保留）。只有 `go` 的机会可以开始产品（否则 `EXECUTION_NEEDS_GO`），重复开始返回同一个产品。字段：名称、仓库地址（http/https）、域名、上线日期 `launched_on`、`status`（`not_started` / `validating` / `building` / `launched` / `measuring` / `archived`）。`launched`、`measuring` 必须有上线日期。
+- `execution_events`：一段时间内的访客（`visitors`）或激活（`activations`）数量，开始日期不晚于结束日期。
+- `revenue_events`：一天的订单和金额，单位是货币的最小单位（按两位小数的货币），三位大写货币代码。`refund_minor` 不超过 `gross_minor`。`fees_minor` 为 null 表示费用未知，不写 0。`evidence` 记录订单号、支付号或链接。不保存卡信息。
+- 每条记录有 `source`：`manual` / `imported` / `payment_verified`。API 写入的记录一律是 `manual`，请求中的 `source` 被忽略；`payment_verified` 只由支付平台集成写入（还没有）。只有 `manual` 的记录可以删除。
+- 合计（`execution-rules.ts`）：访客、激活相加；收入按货币分别合计，不同货币不相加。`verifiedOrders` 只计 `payment_verified` 的订单。有任何一笔费用未知时，费用合计和净收入（毛收入 − 退款 − 费用）为 null，页面显示 Unknown。
+- 账号导出包含产品及其记录（`products`）；删除账号时先删除产品，记录随之删除。
+
+---
+
 ## rate_limits
 
 ```sql

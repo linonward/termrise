@@ -11,6 +11,7 @@ const links = [
   { href: "/dashboard", key: "dashboard" },
   { href: "/research", key: "research" },
   { href: "/opportunities", key: "opportunities" },
+  { href: "/projects", key: "products" },
   ...(product.billingEnabled
     ? [{ href: "/billing", key: "billing" } as const]
     : []),

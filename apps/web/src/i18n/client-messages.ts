@@ -17,6 +17,7 @@ export const CLIENT_NAMESPACES = [
   "meta",
   "nav",
   "pricing",
+  "products",
   "research",
   "status",
   "tasks",

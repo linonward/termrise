@@ -244,6 +244,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/execution':
+        specifier: workspace:*
+        version: link:../../packages/execution
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -299,6 +302,9 @@ importers:
       '@repo/credits':
         specifier: workspace:*
         version: link:../../packages/credits
+      '@repo/execution':
+        specifier: workspace:*
+        version: link:../../packages/execution
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -561,6 +567,21 @@ importers:
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
+
+  packages/execution:
+    dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@repo/observability':
+        specifier: workspace:*
+        version: link:../observability
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/jobs:
     devDependencies:
