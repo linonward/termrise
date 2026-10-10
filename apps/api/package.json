@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "admin:adjust": "tsx scripts/admin-adjust.ts",
     "admin:export-user": "tsx scripts/admin-export-user.ts",
-    "admin:delete-user": "tsx scripts/admin-delete-user.ts"
+    "admin:delete-user": "tsx scripts/admin-delete-user.ts",
+    "dev:login": "tsx --env-file=.dev.vars scripts/dev-login.ts"
   },
   "dependencies": {
     "@repo/admin": "workspace:*",

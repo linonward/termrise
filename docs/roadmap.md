@@ -25,6 +25,7 @@
 | S17   | Product Brief Markdown 导出：`brief.ts`（英文模板，只用已保存的数据，测试数据有提示）；`GET /api/opportunities/:id/brief.md`；详情页的下载、复制与预览                                                                                                                                                                                                                                                                                                                                | 单元测试覆盖章节、null、测试数据提示、文件名；API 测试覆盖内容类型、文件名与 404；E2E 覆盖预览内容与下载                                                       | 已完成 |
 | S18   | 执行与收入：`packages/execution`；`execution_projects`、`execution_events`、`revenue_events` 与 migration；只有 Go 机会可以开始产品；记录一律 manual，未知费用不写 0，按货币合计；`/api/execution/projects`；`/projects` 列表与详情页、机会页的开始入口；账号导出与删除                                                                                                                                                                                                               | 单元测试覆盖合计；集成测试覆盖 Go 限制、上线日期、来源、未知费用、删除、导出；API 测试覆盖完整流程与 409；E2E 覆盖 Go → 开始产品 → 上线 → 访客与收入           | 已完成 |
 | S19   | 预算账本（termrise.md M1-02）：`api_usage` 与 migration；BudgetService（项目行锁原子预留、按实际费用结算、失败保留预留额）；端口报告 `maxCostMicros` 与每次调用的费用；运行中预算不足（failed / partial、`budget_exhausted` 可修改后重跑、AI 预算不足不分析）；`/costs` API；项目页显示已花费与预留                                                                                                                                                                                   | 集成测试覆盖结算、超额拒绝、失败保留、并发预留、运行的三种预算不足；API 测试覆盖 `/costs`；E2E 覆盖预算为 0 → 提高 → 运行                                      | 已完成 |
+| S20   | Worker 与本地服务（ADR-011）：`apps/worker` 的 BullMQ 适配器、Job Scheduler 扫描、`research.scan` / `research.run`、健康检查与 SIGTERM；研究运行改为 API 排队、Worker 执行（`pending`）；页面显示排队并轮询；docker compose 的 Redis；`pnpm dev:worker`、`pnpm dev:login`；本地跑通 web + API + Worker                                                                                                                                                                                | 集成测试覆盖排队、并发领取、扫描去重、BullMQ 的只加一次 / 重试 / 定时；E2E 启动 Worker（memory）                                                               | 已完成 |
 
 ## Confirmed Decisions
 
@@ -52,6 +53,7 @@
 - 2026-10-10：上线前，「含 migration 的 PR 合并前已对 Production 执行 migration」改为对本地库 `termrise_local` 执行；上线部署时再对 Production 执行全部 migration（deployment.md 的 Migrations）。
 - 2026-10-10：业务功能优先：先用 fixture / fake Provider 打通「创建 → 导入 → 运行 → 机会 → 决策 → 导出 → 结果」（S13 CSV 导入、S14 运行研究、S15 机会、S16 决策与 Brief、S17 执行与收入），研究的运行先在 API 中同步执行（各阶段写成 packages 中的函数，接真实 API 时移到 Worker）；之后再做预算账本、真实 DataForSEO / DeepSeek / HN / Trends、Worker 与定时采集、Radar。
 - 2026-10-10：S16 拆小：S16 决策与验证实验，S17 Brief Markdown 导出，S18 执行与收入记录。Brief 用英文模板生成（面向 Codex），内容来自评估、分析、证据、实验和决策，不调用 AI。
+- 2026-10-10：先在本地跑通 Worker：Redis 用 docker compose，部署到 Cloudflare Containers 与 Upstash 留到上线前。研究运行改为 API 排队、Worker 执行。本地登录用 `pnpm dev:login`（只接受本地数据库）。Radar 的数据源先只用 HN 和 CSV，不接 Google Trends。
 - 2026-10-10：Waffo 与 Credits 保留代码、隐藏入口：注册不发 Credits，UI 不显示收费入口。在品牌 Slice 中实施。
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 

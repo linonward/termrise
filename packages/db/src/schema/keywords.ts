@@ -15,7 +15,9 @@ import {
 import { createdAt, inList } from "./columns";
 import { researchProjects } from "./research";
 
+// pending: queued for the worker (docs/architecture/jobs.md).
 export const RUN_STATUSES = [
+  "pending",
   "running",
   "completed",
   "partial",

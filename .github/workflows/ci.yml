@@ -30,8 +30,19 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 15
+      # The worker's BullMQ tests (apps/worker/src/bullmq.int.test.ts).
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
     env:
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_test_ci
+      TEST_REDIS_URL: redis://localhost:6379/1
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

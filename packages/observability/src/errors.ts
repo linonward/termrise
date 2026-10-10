@@ -13,7 +13,6 @@ export const ERROR_STATUS = {
   SUBSCRIPTION_NOT_FOUND: 404,
   RESEARCH_PROJECT_NOT_FOUND: 404,
   RESEARCH_PROJECT_LOCKED: 409,
-  RESEARCH_PROVIDER_UNAVAILABLE: 503,
   OPPORTUNITY_NOT_FOUND: 404,
   OPPORTUNITY_DECISION_INVALID: 409,
   EXPERIMENT_NOT_FOUND: 404,
@@ -55,7 +54,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SUBSCRIPTION_NOT_FOUND: "No subscription to cancel.",
   RESEARCH_PROJECT_NOT_FOUND: "Research project not found.",
   RESEARCH_PROJECT_LOCKED: "Only a draft research project can be changed.",
-  RESEARCH_PROVIDER_UNAVAILABLE: "No keyword data provider is configured.",
   OPPORTUNITY_NOT_FOUND: "Opportunity not found.",
   OPPORTUNITY_DECISION_INVALID:
     "This decision is not possible from the opportunity's current status.",

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
@@ -35,15 +35,10 @@ const STARTABLE = ["draft", "failed", "budget_exhausted"] as const;
 // and rank the opportunities (evaluate.ts). Synchronous for
 // now; the stages move to apps/worker with the real providers (docs/roadmap.md).
 // Only this runner and ResearchService change a project's status.
-export function createResearchRunner(deps: {
-  database: Database;
-  provider: KeywordProvider;
-  analyst: OpportunityAnalyst;
-  now?: () => Date;
-}) {
-  const { database, provider, analyst } = deps;
+/** Queues runs and finds the waiting ones; the API uses it without any provider. */
+export function createRunQueue(deps: { database: Database; now?: () => Date }) {
+  const { database } = deps;
   const now = deps.now ?? (() => new Date());
-  const budget = createBudget({ database, now });
 
   async function ownedProject(userId: string, projectId: string) {
     if (!z.uuid().safeParse(projectId).success) throw notFound();
@@ -99,7 +94,7 @@ export function createResearchRunner(deps: {
         );
       const [run] = await tx
         .insert(researchRuns)
-        .values({ projectId, requestId, status: "running", stage: "expanding" })
+        .values({ projectId, requestId, status: "pending", stage: "queued" })
         .returning();
       await tx
         .update(researchProjects)
@@ -109,18 +104,59 @@ export function createResearchRunner(deps: {
     });
   }
 
+  /**
+   * Queues a run for the worker (docs/architecture/jobs.md) and locks the project; a
+   * retried request returns the same run.
+   */
+  async function queue(userId: string, projectId: string, body: unknown) {
+    const parsed = runSchema.safeParse(body);
+    if (!parsed.success)
+      throw new AppError("INVALID_INPUT", "requestId required");
+    await ownedProject(userId, projectId);
+    const done = await findRun(projectId, parsed.data.requestId);
+    if (done) return done;
+    return (await start(projectId, parsed.data.requestId)).run;
+  }
+
+  /** Runs waiting for the worker, oldest first. */
+  async function pendingRunIds(limit = 20) {
+    const rows = await database
+      .select({ id: researchRuns.id })
+      .from(researchRuns)
+      .where(eq(researchRuns.status, "pending"))
+      .orderBy(asc(researchRuns.startedAt))
+      .limit(limit);
+    return rows.map((row) => row.id);
+  }
+
+  return { queue, findRun, pendingRunIds };
+}
+
+export function createResearchRunner(deps: {
+  database: Database;
+  provider: KeywordProvider;
+  analyst: OpportunityAnalyst;
+  now?: () => Date;
+}) {
+  const { database, provider, analyst } = deps;
+  const now = deps.now ?? (() => new Date());
+  const budget = createBudget({ database, now });
+  const runs = createRunQueue({ database, now });
+
   async function setStage(
     run: ResearchRun,
     stage: "expanding" | "auditing" | "evaluating",
   ) {
-    await database
-      .update(researchRuns)
-      .set({ stage })
-      .where(eq(researchRuns.id, run.id));
-    await database
-      .update(researchProjects)
-      .set({ status: stage, updatedAt: now() })
-      .where(eq(researchProjects.id, run.projectId));
+    await database.transaction(async (tx) => {
+      await tx
+        .update(researchRuns)
+        .set({ stage })
+        .where(eq(researchRuns.id, run.id));
+      await tx
+        .update(researchProjects)
+        .set({ status: stage, updatedAt: now() })
+        .where(eq(researchProjects.id, run.projectId));
+    });
   }
 
   async function finish(
@@ -129,18 +165,21 @@ export function createResearchRunner(deps: {
     errorCode: string | null = null,
     projectStatus: "budget_exhausted" | null = null,
   ) {
-    const [finished] = await database
-      .update(researchRuns)
-      .set({ status, errorCode, finishedAt: now() })
-      .where(
-        and(eq(researchRuns.id, run.id), eq(researchRuns.status, "running")),
-      )
-      .returning();
-    await database
-      .update(researchProjects)
-      .set({ status: projectStatus ?? status, updatedAt: now() })
-      .where(eq(researchProjects.id, run.projectId));
-    return finished ?? run;
+    // One transaction: a reader never sees the run ended while the project still runs.
+    return database.transaction(async (tx) => {
+      const [finished] = await tx
+        .update(researchRuns)
+        .set({ status, errorCode, finishedAt: now() })
+        .where(
+          and(eq(researchRuns.id, run.id), eq(researchRuns.status, "running")),
+        )
+        .returning();
+      await tx
+        .update(researchProjects)
+        .set({ status: projectStatus ?? status, updatedAt: now() })
+        .where(eq(researchProjects.id, run.projectId));
+      return finished ?? run;
+    });
   }
 
   // Each paid call goes through the budget ledger first (budget.ts).
@@ -274,16 +313,24 @@ export function createResearchRunner(deps: {
     return { failures, budgetExhausted };
   }
 
-  /** Starts a run and carries it to the end; a retried request returns the same run. */
-  async function run(userId: string, projectId: string, body: unknown) {
-    const parsed = runSchema.safeParse(body);
-    if (!parsed.success)
-      throw new AppError("INVALID_INPUT", "requestId required");
-    const project = await ownedProject(userId, projectId);
-    const done = await findRun(projectId, parsed.data.requestId);
-    if (done) return done;
-    const { run, started } = await start(projectId, parsed.data.requestId);
-    if (!started) return run;
+  /**
+   * Claims a pending run and carries it to the end. A run already claimed, by a retry
+   * or a second worker, is left alone: the claim is one conditional update.
+   */
+  async function execute(runId: string) {
+    const [run] = await database
+      .update(researchRuns)
+      .set({ status: "running", stage: "expanding" })
+      .where(
+        and(eq(researchRuns.id, runId), eq(researchRuns.status, "pending")),
+      )
+      .returning();
+    if (!run) return null;
+    const projectId = run.projectId;
+    const [project] = await database
+      .select()
+      .from(researchProjects)
+      .where(eq(researchProjects.id, projectId));
     const market = {
       locationCode: project.locationCode,
       languageCode: project.languageCode,
@@ -333,7 +380,16 @@ export function createResearchRunner(deps: {
     }
   }
 
-  return { run };
+  /** Queues and executes at once: tests and scripts, without a worker. */
+  async function run(userId: string, projectId: string, body: unknown) {
+    const queued = await runs.queue(userId, projectId, body);
+    return (
+      (await execute(queued.id)) ??
+      (await runs.findRun(projectId, queued.requestId))
+    );
+  }
+
+  return { ...runs, execute, run };
 }
 
 const notFound = () =>

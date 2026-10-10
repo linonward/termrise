@@ -23,8 +23,18 @@ import {
   SerpList,
 } from "@/features/research/research-results";
 import { ResearchStatus } from "@/features/research/research-status";
+import { RunPoller } from "@/features/research/run-poller";
 import { RunResearch } from "@/features/research/run-research";
 import { apiGet, apiRequest } from "@/server/api/api";
+
+const RUNNING_STATUSES: readonly string[] = [
+  "collecting",
+  "expanding",
+  "enriching",
+  "clustering",
+  "auditing",
+  "evaluating",
+];
 
 async function loadProject(id: string) {
   const response = await apiRequest(
@@ -130,6 +140,10 @@ export default async function ResearchProjectPage({
             />
           )}
           {lastRun && <LastRun run={lastRun} />}
+          {/* The project is read before the runs: poll until both have ended. */}
+          {(lastRun?.status === "pending" ||
+            lastRun?.status === "running" ||
+            RUNNING_STATUSES.includes(project.status)) && <RunPoller />}
           {(lastRun?.status === "completed" ||
             lastRun?.status === "partial") && (
             <Link
