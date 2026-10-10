@@ -2,7 +2,7 @@
 // query, copy in messages under blog.posts.<key>. Add a post here and its copy in
 // every locale; the sitemap and the index pick it up.
 export type BlogPost = {
-  key: "gettingStarted" | "howCreditsWork";
+  key: "gettingStarted";
   published: string;
   updated: string;
   // The one conversion page the post links to from its body.
@@ -14,17 +14,10 @@ export type BlogPost = {
 export const BLOG_POSTS = {
   "getting-started": {
     key: "gettingStarted",
-    published: "2026-01-01",
-    updated: "2026-01-01",
+    published: "2026-10-10",
+    updated: "2026-10-10",
     target: "/",
-    related: ["how-credits-work"],
-  },
-  "how-credits-work": {
-    key: "howCreditsWork",
-    published: "2026-01-01",
-    updated: "2026-01-01",
-    target: "/pricing",
-    related: ["getting-started"],
+    related: [] as readonly string[],
   },
 } as const satisfies Record<string, BlogPost>;
 

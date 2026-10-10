@@ -4,6 +4,7 @@ import { serverEnv } from "@repo/config/env";
 import { buildSitemap, type SitemapPage } from "@repo/seo/sitemap";
 
 import { BLOG_POSTS, BLOG_SLUGS } from "@/components/blog/posts";
+import product from "@product";
 
 // APP_URL is read per request: it differs per deployment and is not set at build time.
 export const dynamic = "force-dynamic";
@@ -12,7 +13,8 @@ export const dynamic = "force-dynamic";
 // the newest post. A wrong lastmod is worse than none, so other pages have none.
 const PUBLIC_PAGES: SitemapPage[] = [
   { path: "/" },
-  { path: "/pricing" },
+  // Pricing and the refund rules are hidden while the product does not charge.
+  ...(product.billingEnabled ? [{ path: "/pricing" }] : []),
   { path: "/blog", lastModified: BLOG_POSTS[BLOG_SLUGS[0]!].updated },
   ...BLOG_SLUGS.map((slug) => ({
     path: `/blog/${slug}`,
@@ -20,7 +22,7 @@ const PUBLIC_PAGES: SitemapPage[] = [
   })),
   { path: "/terms" },
   { path: "/privacy" },
-  { path: "/refund-policy" },
+  ...(product.billingEnabled ? [{ path: "/refund-policy" }] : []),
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

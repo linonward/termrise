@@ -11,7 +11,7 @@ test.afterAll(closeTestDb);
 
 test("blog index lists the posts with their own metadata", async ({ page }) => {
   await page.goto("/blog?ref=test");
-  await expect(page).toHaveTitle("Acme Blog · Acme");
+  await expect(page).toHaveTitle("Termrise Blog · Termrise");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
     `${origin}/blog`,
@@ -19,7 +19,9 @@ test("blog index lists the posts with their own metadata", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: "Guides and updates." }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Getting started with Acme" }).click();
+  await page
+    .getByRole("link", { name: "Getting started with Termrise" })
+    .click();
   await expect(page).toHaveURL(new RegExp(`${post}$`));
 });
 
@@ -27,10 +29,10 @@ test("blog post has its own metadata, sections, structured data and CTA", async 
   page,
 }) => {
   await page.goto(post);
-  await expect(page).toHaveTitle("Getting Started with Acme · Acme");
+  await expect(page).toHaveTitle("Getting Started with Termrise · Termrise");
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    "Create an account, run your first task and check your credits.",
+    "Create an account and see how Termrise turns rising search terms into product opportunities.",
   );
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
@@ -45,12 +47,15 @@ test("blog post has its own metadata, sections, structured data and CTA", async 
     new RegExp(`^${origin}/opengraph-image`),
   );
   await expect(
-    page.getByRole("heading", { level: 1, name: "Getting started with Acme" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Getting started with Termrise",
+    }),
   ).toBeVisible();
   for (const name of [
     "Create an account",
-    "Run your first task",
-    "What to read next",
+    "The steps of a research project",
+    "Good to know",
   ])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
 
@@ -59,11 +64,11 @@ test("blog post has its own metadata, sections, structured data and CTA", async 
     .textContent();
   const graph: Record<string, unknown>[] = JSON.parse(json!)["@graph"];
   expect(graph.find((node) => node["@type"] === "BlogPosting")).toMatchObject({
-    headline: "Getting started with Acme",
-    datePublished: "2026-01-01",
-    dateModified: "2026-01-01",
+    headline: "Getting started with Termrise",
+    datePublished: "2026-10-10",
+    dateModified: "2026-10-10",
     mainEntityOfPage: `${origin}${post}`,
-    publisher: { "@type": "Organization", name: "Acme" },
+    publisher: { "@type": "Organization", name: "Termrise" },
   });
   expect(
     graph.find((node) => node["@type"] === "BreadcrumbList"),
@@ -72,7 +77,7 @@ test("blog post has its own metadata, sections, structured data and CTA", async 
       { position: 1, name: "Blog", item: `${origin}/blog` },
       {
         position: 2,
-        name: "Getting started with Acme",
+        name: "Getting started with Termrise",
         item: `${origin}${post}`,
       },
     ],
@@ -109,10 +114,7 @@ test("signed-in readers go straight to the dashboard", async ({
 test("each blog post links to its conversion page from the body", async ({
   page,
 }) => {
-  for (const [path, name, href] of [
-    [post, "Start here", "/"],
-    ["/blog/how-credits-work", "pricing page", "/pricing"],
-  ]) {
+  for (const [path, name, href] of [[post, "Start here", "/"]]) {
     await page.goto(path);
     const link = page
       .getByRole("article")
@@ -122,16 +124,14 @@ test("each blog post links to its conversion page from the body", async ({
   }
 });
 
-test("a blog post ends with related posts", async ({ page }) => {
+// The only post has no related posts yet: no empty "Keep reading" section.
+test("a blog post without related posts has no Keep reading section", async ({
+  page,
+}) => {
   await page.goto(post);
-  const related = page.getByRole("region", { name: "Keep reading" });
-  const link = related.getByRole("link", {
-    name: "How credits work",
-    exact: true,
-  });
-  await expect(link).toHaveAttribute("href", "/blog/how-credits-work");
-  await link.click();
-  await expect(page).toHaveURL(/\/blog\/how-credits-work$/);
+  await expect(page.getByRole("region", { name: "Keep reading" })).toHaveCount(
+    0,
+  );
 });
 
 test("unknown blog slugs are not found", async ({ request }) => {

@@ -9,6 +9,7 @@ const valid = {
   supportEmail: "support@example.com",
   operator: "Acme Inc.",
   signupBonusCredits: 10,
+  billingEnabled: true,
 };
 
 it("returns a valid manifest unchanged", () => {

@@ -5,7 +5,7 @@ export type SiteGraphInput = {
   url: string;
   name: string;
   description: string;
-  /** Pack prices in US cents. */
+  /** Pack prices in US cents; empty: no offers. */
   pricesCents: number[];
   applicationCategory?: string;
 };
@@ -43,13 +43,15 @@ export function siteGraph({
         description,
         applicationCategory,
         operatingSystem: "Web",
-        offers: {
-          "@type": "AggregateOffer",
-          priceCurrency: "USD",
-          lowPrice: dollars(Math.min(...pricesCents)),
-          highPrice: dollars(Math.max(...pricesCents)),
-          offerCount: pricesCents.length,
-        },
+        ...(pricesCents.length > 0 && {
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "USD",
+            lowPrice: dollars(Math.min(...pricesCents)),
+            highPrice: dollars(Math.max(...pricesCents)),
+            offerCount: pricesCents.length,
+          },
+        }),
         publisher: { "@id": `${url}#organization` },
       },
     ],

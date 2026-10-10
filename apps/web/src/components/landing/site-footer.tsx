@@ -9,7 +9,9 @@ import { FooterPreferences } from "./footer-preferences";
 const legalLinks = [
   { href: "/terms", key: "terms" },
   { href: "/privacy", key: "privacy" },
-  { href: "/refund-policy", key: "refund" },
+  ...(product.billingEnabled
+    ? [{ href: "/refund-policy", key: "refund" } as const]
+    : []),
 ] as const;
 
 export async function SiteFooter() {

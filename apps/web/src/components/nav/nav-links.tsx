@@ -4,9 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
+import product from "@product";
+
+// No Billing link while the product does not charge (product.config.ts billingEnabled).
 const links = [
   { href: "/dashboard", key: "dashboard" },
-  { href: "/billing", key: "billing" },
+  ...(product.billingEnabled
+    ? [{ href: "/billing", key: "billing" } as const]
+    : []),
 ] as const;
 
 function isActive(pathname: string, href: string) {

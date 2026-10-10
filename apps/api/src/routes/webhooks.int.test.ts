@@ -51,7 +51,7 @@ async function deliver(event: Event, signature?: string) {
 }
 
 async function pendingPurchase() {
-  const cookie = await signIn("webhook@example.com");
+  const cookie = await signIn("webhook@example.com", { credits: 10 });
   await call("/api/checkout", {
     method: "POST",
     headers: {

@@ -30,6 +30,8 @@
 
 没有 Account 页面。内部管理台为 `/admin`、`/admin/users/:id`，见 [Admin](#admin)。
 
+`product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
+
 `/dashboard` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
@@ -126,7 +128,7 @@ System（默认，跟随系统）/ Light / Dark
 公开页面（Landing、Pricing、Blog、Legal）共用顶部导航 `MarketingNav`：
 
 ```text
-Logo + 品牌名 · Pricing（/pricing）· Blog（/blog）· 右侧操作
+Logo + 品牌名 · Pricing（/pricing，只在 billingEnabled 时）· Blog（/blog）· 右侧操作
 ```
 
 - 链接只在桌面端显示；移动端只有 Logo 和右侧操作。
@@ -137,7 +139,7 @@ Logo + 品牌名 · Pricing（/pricing）· Blog（/blog）· 右侧操作
 
 ```text
 Logo + 品牌名 · 版权 · 支持邮箱（mailto）
-Blog · Terms · Privacy · Refund Policy · Cookie settings（只在启用 Analytics 时）· 语言 · 主题
+Blog · Terms · Privacy · Refund Policy（只在 billingEnabled 时）· Cookie settings（只在启用 Analytics 时）· 语言 · 主题
 ```
 
 支持邮箱来自 `product.config.ts` 的 `supportEmail`。
@@ -150,14 +152,14 @@ Blog · Terms · Privacy · Refund Policy · Cookie settings（只在启用 Anal
 
 ```text
 Hero（Eyebrow、标题、说明、CTA、注释 + 右侧示例）
-How It Works（3 步：注册、运行、购买）
-Features（4 项：按次付费、自动退款、默认隐私、中英双语）
-Pricing（与 /pricing 共用 PricingPlans）
-FAQ（开始、Credits、失败、过期、退款）
+How It Works（3 步：发现上升热词、检查证据、决定与上线）
+Features（4 项：真实数据优先、付费请求预算、给 AI 编程工具的简报、中英双语）
+Pricing（与 /pricing 共用 PricingPlans，只在 billingEnabled 时）
+FAQ（开始、数据来源、不保证排名或收入、价格）
 Final CTA
 ```
 
-- 文案在 messages 的 `landing`。Hero 右侧是占位示例（`landing.demo` 的输入 → 输出），换成产品自己的截图或演示。
+- 文案在 messages 的 `landing`，按 [product.md](product.md) 的定位写：抢先体验阶段，不写尚未提供的数字和承诺。Hero 右侧是示例（`landing.demo`：上升热词 → 产品机会），研究功能上线后换成截图。
 - CTA 进入 `/sign-up`。
 - 未登录时加载 Google One Tap，等用户第一次交互后才显示。
 - FAQ 的退款回答链接到 `/refund-policy`。
@@ -191,8 +193,8 @@ Pack 下方每个订阅方案一张横向卡片：名称 + Subscription 标签�
 `/sign-in`、`/sign-up`，共用 `AuthPage`：
 
 ```text
-桌面端：左侧表单，右侧 surface 展示面板（Hero 标题 + 注册赠送说明）
-移动端：只有表单，注册赠送说明放在表单下方
+桌面端：左侧表单，右侧 surface 展示面板（Hero 标题 + Hero 注释）
+移动端：只有表单，Hero 注释放在表单下方
 ```
 
 - 表单：Continue with Google，或输入 Email 收 Magic Link（5 分钟有效）。上次用 Google 登录时显示 Last used。
@@ -206,6 +208,10 @@ Pack 下方每个订阅方案一张横向卡片：名称 + Subscription 标签�
 ## Dashboard
 
 `/dashboard`
+
+`billingEnabled` 为 `false` 时（抢先体验）：标题 + 「研究项目会显示在这里」说明 + 「研究项目即将上线」空状态；不显示 Credits 卡片和 TaskPanel。Research Project Slice 用研究项目列表替换空状态。
+
+`billingEnabled` 为 `true` 时：
 
 ```text
 标题（Welcome back, {name}；没有名字时为 Welcome back）+ 说明
@@ -235,7 +241,7 @@ Text（textarea，最多 500 字符）
 Dashboard 顶栏 `AppNav`：
 
 ```text
-Logo · Dashboard · Billing · Credits pill（→ /billing）· 用户菜单
+Logo · Dashboard · Billing · Credits pill（→ /billing）· 用户菜单（Billing 与 Credits pill 只在 billingEnabled 时）
 ```
 
 用户菜单：
@@ -297,7 +303,7 @@ Analytics 启用时，用户还没有选择就在页面底部显示 Cookie Banne
 
 ## Legal Pages
 
-`/terms`、`/privacy`、`/refund-policy`，共用 `LegalPage`。文案在 messages 的 `legal.terms`、`legal.privacy`、`legal.refund`：`title`、`description`、`sections`（按 JSON 中的顺序渲染）。
+`/terms`、`/privacy`、`/refund-policy`（只在 billingEnabled 时），共用 `LegalPage`。文案在 messages 的 `legal.terms`、`legal.privacy`、`legal.refund`：`title`、`description`、`sections`（按 JSON 中的顺序渲染）。
 
 运营主体、支持邮箱和退款规则必须与产品实际一致；上线前由维护者确认全文。
 
@@ -328,7 +334,7 @@ Analytics 启用时，用户还没有选择就在页面底部显示 Cookie Banne
 
 - 文案在 messages 的 `blog.posts.{key}`，en + zh。正文章节在 `sections` 下，按 JSON 中的顺序渲染（与法律页面相同）。
 - 文章列表、发布和更新日期、`target`、`related` 在 `apps/web/src/components/blog/posts.ts`。新增文章：在 `posts.ts` 加一项、在每个 locale 的 messages 加文案。列表和 sitemap 自动包含。
-- Starter 带 2 篇示例文章（`getting-started`、`how-credits-work`），换成产品自己的文章。
+- 现在只有 `getting-started`（Termrise 入门）。新文章按 [Keyword Matrix](#keyword-matrix) 的 Brief 写。没有 `related` 时不显示 Keep reading。
 - 正文最多一个链接，指向这篇文章的转化页面（`posts.ts` 的 `target`）。链接写在 messages 的正文中，用 `<link>…</link>` 标出锚文字；锚文字用主题词或品牌名，不用 "click here"。标题和摘要不放链接。
 - Keep reading：每篇在 `related` 中手动指定其他文章，显示标题和摘要（移动端不显示摘要）。
 - CTA：未登录进入 `/sign-up`，已登录进入 `/dashboard`。
@@ -360,7 +366,7 @@ robots.txt：允许 /，禁止 /dashboard、/billing、/api
 
 IndexNow：public/<key>.txt 只包含 Key，供搜索引擎验证 IndexNow 提交（pnpm indexnow）
 
-llms.txt：apps/web/public/llms.txt 静态英文产品摘要（llmstxt.org 格式），链接写产品的正式域名；产品文案或价格变化时手动同步
+llms.txt：apps/web/public/llms.txt 静态英文产品摘要（llmstxt.org 格式），链接写产品的正式域名；产品文案或价格变化时手动同步；`billingEnabled` 改为 `true` 时加上 Pricing 和 Refund Policy 的链接
 ```
 
 除静态 `llms.txt` 外，绝对 URL 以 `APP_URL` 为根，请求时读取，不在 build 时固定。

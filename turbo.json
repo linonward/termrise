@@ -2,6 +2,7 @@
   "$schema": "./node_modules/turbo/schema.json",
   "agentGuidance": false,
   "envMode": "loose",
+  "globalDependencies": ["product.config.ts"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

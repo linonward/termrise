@@ -1,10 +1,10 @@
 // Building blocks for marketing pages (Landing, Pricing).
 import {
   ArrowRight,
-  Coins,
-  Play,
   Plus,
-  UserPlus,
+  Rocket,
+  SearchCheck,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -55,9 +55,9 @@ export function CreateButton({
 }
 
 const steps = [
-  { key: "signup", icon: UserPlus },
-  { key: "run", icon: Play },
-  { key: "buy", icon: Coins },
+  { key: "discover", icon: TrendingUp },
+  { key: "verify", icon: SearchCheck },
+  { key: "launch", icon: Rocket },
 ] as const;
 
 export async function HowItWorks() {

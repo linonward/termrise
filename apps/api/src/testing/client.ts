@@ -1,3 +1,8 @@
+import { eq } from "drizzle-orm";
+
+import { createCreditService } from "@repo/credits/credit-service";
+import { user } from "@repo/db/schema";
+import { testDb } from "@repo/db/testing/db";
 import { resolveTestDatabaseUrl } from "@repo/db/testing/test-database";
 
 import { createApp } from "../app";
@@ -11,7 +16,8 @@ import {
 
 /**
  * Calls the app as the Workers runtime does, against the test database. signIn() goes
- * through the magic link flow and returns the session cookie.
+ * through the magic link flow and returns the session cookie. Termrise grants no credits
+ * at sign-up (product.config.ts): signIn(email, { credits }) grants them as a signup bonus.
  */
 export function createTestClient(overrides: Partial<Bindings> = {}) {
   const emails: { subject: string; text: string }[] = [];
@@ -34,7 +40,7 @@ export function createTestClient(overrides: Partial<Bindings> = {}) {
     return response;
   }
 
-  async function signIn(email: string) {
+  async function signIn(email: string, { credits = 0 } = {}) {
     await call("/api/auth/sign-in/magic-link", {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: TEST_APP_URL },
@@ -42,6 +48,13 @@ export function createTestClient(overrides: Partial<Bindings> = {}) {
     });
     const link = emails.at(-1)!.text.split("\n").at(-1)!;
     const verified = await call(link.slice(TEST_API_URL.length));
+    if (credits > 0) {
+      const [row] = await testDb()
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, email));
+      await createCreditService(testDb()).grantSignupBonus(row.id, credits);
+    }
     return verified.headers
       .getSetCookie()
       .map((value) => value.split(";")[0])

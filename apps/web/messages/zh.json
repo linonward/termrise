@@ -1,51 +1,51 @@
 {
   "meta": {
-    "title": "Acme",
-    "homeTitle": "Acme：按次付费的 AI 工具",
-    "description": "Acme 是按积分付费的 AI 工具。注册即送 10 积分，之后可以购买积分包或按月订阅。积分永不过期。"
+    "title": "Termrise",
+    "homeTitle": "Termrise：发现值得做产品的英文上升热词",
+    "description": "Termrise 帮独立开发者发现正在上升的英文搜索词，用真实数据检查需求，决定做什么，并跟踪每次上线直到第一个付费用户。"
   },
   "landing": {
     "hero": {
-      "eyebrow": "按次付费",
-      "title": "写下你的需求，<line>几秒内拿到结果。</line>",
-      "body": "把这段文字替换为你的产品能做什么、适合谁。每次运行消耗积分；运行失败时自动退回积分。",
+      "eyebrow": "为独立开发者",
+      "title": "发现正在增长的需求，<line>做人们正在搜索的产品。</line>",
+      "body": "Termrise 从 Google Trends 和 Hacker News 收集上升热词，用搜索数据和前 10 个搜索结果检查它们，再把证据整理成可以在 7–14 天内验证的产品机会。",
       "cta": "免费开始",
-      "note": "注册即送 10 积分 · 无需绑卡"
+      "note": "抢先体验 · 无需绑卡"
     },
     "demo": {
-      "input": "hello world",
-      "output": "dlrow olleh"
+      "input": "上升热词：ai meeting notes",
+      "output": "机会：面向销售团队的会议记录工具，证据来自 Trends、Hacker News 和前 10 个搜索结果"
     },
     "steps": {
       "eyebrow": "使用步骤",
-      "title": "三个步骤。",
-      "signup": {
-        "title": "创建账号",
-        "body": "使用 Google 或邮箱链接登录，即送 10 积分。"
+      "title": "从上升热词到第一笔订单。",
+      "discover": {
+        "title": "发现上升热词",
+        "body": "从 Google Trends 和 Hacker News 收集上升热词，或导入你自己的 CSV 文件。"
       },
-      "run": {
-        "title": "运行任务",
-        "body": "每次运行消耗 1 积分。运行失败时积分自动退回。"
+      "verify": {
+        "title": "检查证据",
+        "body": "查看搜索量、CPC、难度和前 10 个搜索结果。AI 推断与事实分开显示。"
       },
-      "buy": {
-        "title": "需要时再购买",
-        "body": "购买积分包或按月订阅，积分永不过期。"
+      "launch": {
+        "title": "决定、开发、上线",
+        "body": "选择 Go、Validate 或 No-Go，导出产品简报，再记录上线和首批订单。"
       }
     },
     "features": {
-      "eyebrow": "为什么选 Acme",
-      "title": "简单、公平的价格。",
-      "credits": {
-        "title": "按次付费",
-        "body": "一次性购买积分，或按月订阅，随时取消。"
+      "eyebrow": "为什么选 Termrise",
+      "title": "先有证据，再投入时间。",
+      "evidence": {
+        "title": "真实数据优先",
+        "body": "Trends 指数不是搜索量，Hacker News 讨论热度也不是搜索需求。Termrise 按数据的本来含义显示每个数字。"
       },
-      "refunds": {
-        "title": "自动退回",
-        "body": "运行失败的积分自动退回余额。"
+      "budget": {
+        "title": "每个付费请求都有预算",
+        "body": "每个付费数据请求都会预留、结算，并记入你的预算。"
       },
-      "privacy": {
-        "title": "默认保护隐私",
-        "body": "只有在你同意后才设置分析 Cookie。"
+      "brief": {
+        "title": "给 AI 编程工具用的简报",
+        "body": "导出 Markdown 产品简报：用户、问题、竞品、MVP 范围、页面、API 和测试。"
       },
       "languages": {
         "title": "中文和英文",
@@ -57,31 +57,27 @@
       "title": "常见问题解答。",
       "start": {
         "q": "开始需要准备什么？",
-        "a": "一个邮箱或 Google 账号。注册即送 10 积分。"
+        "a": "一个邮箱或 Google 账号。"
       },
-      "credits": {
-        "q": "积分怎么用？",
-        "a": "每次运行消耗 1 积分。需要更多时，在价格页面购买积分包，或订阅后每月获得积分。"
+      "sources": {
+        "q": "数据来自哪里？",
+        "a": "Google Trends、Hacker News API、DataForSEO，以及你导入的 CSV 文件。Termrise 不会未经授权抓取网站。"
       },
-      "failed": {
-        "q": "运行失败会怎样？",
-        "a": "积分会自动退回。"
+      "guarantee": {
+        "q": "Termrise 保证排名或收入吗？",
+        "a": "不保证。它帮你用证据发现和验证需求。排名和销量取决于你做的产品和你触达用户的方式。"
       },
-      "expire": {
-        "q": "积分会过期吗？",
-        "a": "不会。积分永不过期。"
-      },
-      "refund": {
-        "q": "退款政策是什么？",
-        "a": "运行失败的积分一律自动退回。积分包购买的退款规则见<link>退款政策</link>。"
+      "price": {
+        "q": "收费吗？",
+        "a": "抢先体验期间免费。"
       }
     },
     "finalCta": {
-      "title": "现在就试试？",
-      "body": "注册即送 10 积分，无需绑卡。"
+      "title": "找到你的下一个产品点子。",
+      "body": "一分钟创建账号，无需绑卡。"
     },
     "footer": {
-      "copyright": "© {year} Acme",
+      "copyright": "© {year} Termrise",
       "terms": "服务条款",
       "privacy": "隐私政策",
       "refund": "退款政策",
@@ -108,7 +104,7 @@
     "rateLimited": "操作过于频繁，请稍等一分钟后重试。",
     "invalidLink": "登录链接无效或已过期，请获取新链接。",
     "loginSwitch": "已有账号？登录",
-    "signupSwitch": "首次使用 Acme？创建账号"
+    "signupSwitch": "首次使用 Termrise？创建账号"
   },
   "nav": {
     "primary": "主导航",
@@ -144,7 +140,10 @@
     "available": "可用",
     "estimate": "约可运行 {uses} 次",
     "refundNote": "运行失败会自动退还积分。",
-    "buyCredits": "购买积分"
+    "buyCredits": "购买积分",
+    "earlyAccessSubtitle": "你的研究项目会显示在这里。",
+    "comingTitle": "研究项目即将上线",
+    "comingBody": "上线后，你可以在这里创建研究项目、收集上升热词，并查看它们带来的产品机会。"
   },
   "status": {
     "PENDING": "运行中",
@@ -260,19 +259,19 @@
     "updated": "最后更新：2026 年 10 月 8 日",
     "terms": {
       "title": "服务条款",
-      "description": "使用 Acme 的条款：账户、Credits 与付款、你的内容、可接受的使用方式，以及联系方式。",
+      "description": "使用 Termrise 的条款：账户、Credits 与付款、你的内容、可接受的使用方式，以及联系方式。",
       "sections": {
         "agreement": {
           "title": "协议",
           "body": [
-            "本条款适用于你对 Acme（example.com，以下称“本服务”）的使用。本服务由 Acme Inc.（以下称“我们”）运营。创建账号或使用本服务，即表示你同意本条款。",
+            "本条款适用于你对 Termrise（termrise.com，以下称“本服务”）的使用。本服务由 Termrise（以下称“我们”）运营。创建账号或使用本服务，即表示你同意本条款。",
             "使用本服务时，你必须年满 18 周岁，或达到你所在地区的法定成年年龄。"
           ]
         },
         "service": {
           "title": "本服务",
           "body": [
-            "Acme 消耗积分为你运行任务。请把这一段替换为你的服务内容，以及使用了哪些 AI 服务商。",
+            "Termrise 消耗积分为你运行任务。请把这一段替换为你的服务内容，以及使用了哪些 AI 服务商。",
             "AI 生成的内容可能不准确。使用前请检查每一个结果。"
           ]
         },
@@ -286,7 +285,7 @@
           "title": "积分与付款",
           "body": [
             "每个任务消耗 1 积分。新账号赠送 10 积分。",
-            "积分可以通过一次性积分包或按月订阅获得，价格以美元显示在定价页面（example.com/pricing）上。",
+            "积分可以通过一次性积分包或按月订阅获得，价格以美元显示在定价页面（termrise.com/pricing）上。",
             "付款由我们的 Merchant of Record（记录商户）Waffo Pancake 处理。Waffo 是该笔交易的卖方，负责收款、税务和发票。积分包是一次性交易。完成购买，即表示你授权 Waffo 按结账页面显示的金额从你的支付方式扣款。",
             "订阅每月自动续费。订阅即表示你授权 Waffo 在每次续费时按方案价格从你的支付方式扣款，直到你取消。每次扣款成功后，该方案的积分会加入你的余额。",
             "你可以随时在账单页面取消订阅。订阅在已付费周期结束前保持有效，之后不再续费。续费扣款失败时，Waffo 会重试一次；再次失败时，订阅结束。",
@@ -297,7 +296,7 @@
         "disputes": {
           "title": "账单争议",
           "body": [
-            "如果你认为某笔扣款有误，请在向银行发起争议或拒付之前，先联系 support@example.com，并附上账号邮箱和订单号。如果扣款确实有误，我们会全额退款。"
+            "如果你认为某笔扣款有误，请在向银行发起争议或拒付之前，先联系 support@termrise.com，并附上账号邮箱和订单号。如果扣款确实有误，我们会全额退款。"
           ]
         },
         "content": {
@@ -313,13 +312,13 @@
           "body": [
             "禁止使用本服务生成或传播违法内容、将未成年人性化的内容、骚扰他人的内容、侵犯他人权利的内容或误导性内容。",
             "禁止尝试破坏、过载或逆向工程本服务。",
-            "对违反规则的情况，我们可能删除内容、拒绝任务，或暂停、关闭账号。举报内容或申诉，请发送邮件至 support@example.com。"
+            "对违反规则的情况，我们可能删除内容、拒绝任务，或暂停、关闭账号。举报内容或申诉，请发送邮件至 support@termrise.com。"
           ]
         },
         "termination": {
           "title": "终止",
           "body": [
-            "你可以随时停止使用本服务。如需删除账号，请用账号邮箱发送邮件至 support@example.com。我们会在 30 天内删除你的账号和数据，详见隐私政策。",
+            "你可以随时停止使用本服务。如需删除账号，请用账号邮箱发送邮件至 support@termrise.com。我们会在 30 天内删除你的账号和数据，详见隐私政策。",
             "账号删除后，未使用的积分失效且不予退款，退款政策或法律要求退款的情况除外。",
             "如果我们因你违反本条款而关闭你的账号，未使用的积分不予退款。"
           ]
@@ -336,23 +335,23 @@
           "body": [
             "我们可能更新本条款。如有重大变更，我们会在生效前至少 15 天通过邮件或在本服务中通知你。",
             "本条款适用美国特拉华州法律。",
-            "如与我们发生争议，请先联系 support@example.com。我们会在 30 天内尝试与你协商解决。本条款不限制你根据所在国家的消费者保护法律享有的任何权利。"
+            "如与我们发生争议，请先联系 support@termrise.com。我们会在 30 天内尝试与你协商解决。本条款不限制你根据所在国家的消费者保护法律享有的任何权利。"
           ]
         },
         "contact": {
           "title": "联系我们",
-          "body": ["关于本条款的问题：support@example.com。"]
+          "body": ["关于本条款的问题：support@termrise.com。"]
         }
       }
     },
     "privacy": {
       "title": "隐私政策",
-      "description": "Acme 收集哪些数据、如何使用、与谁共享、保存多久，以及你的权利。",
+      "description": "Termrise 收集哪些数据、如何使用、与谁共享、保存多久，以及你的权利。",
       "sections": {
         "intro": {
           "title": "我们是谁",
           "body": [
-            "Acme（example.com）由 Acme Inc. 运营。我们是本政策所述个人数据的数据控制者。联系方式：support@example.com。",
+            "Termrise（termrise.com）由 Termrise 运营。我们是本政策所述个人数据的数据控制者。联系方式：support@termrise.com。",
             "本政策说明我们收集哪些个人数据、为什么收集，以及与谁共享。"
           ]
         },
@@ -376,7 +375,7 @@
         "share": {
           "title": "我们与谁共享",
           "body": [
-            "我们使用以下服务商运行 Acme，每个服务商只获得其需要的数据：",
+            "我们使用以下服务商运行 Termrise，每个服务商只获得其需要的数据：",
             "Vercel（托管、无 Cookie 的页面统计和页面速度测量）· Neon（数据库）· Cloudflare R2（文件存储）· Waffo Pancake（支付，Merchant of Record）· Resend（登录邮件）· Google（可选登录）· PostHog（产品分析）· Sentry（错误监控）。请加入每一个接收用户数据的 AI 服务商。",
             "法律要求时，我们也可能披露数据。"
           ]
@@ -409,7 +408,7 @@
           "title": "你的权利",
           "body": [
             "根据你所在地区的法律，你可以要求访问、更正、导出或删除你的个人数据，限制或反对我们使用这些数据，或随时撤回你的同意。你也可以向当地的数据保护机构投诉。",
-            "请将请求发送至 support@example.com。我们会在 30 个自然日内回复。"
+            "请将请求发送至 support@termrise.com。我们会在 30 个自然日内回复。"
           ]
         },
         "marketing": {
@@ -445,7 +444,7 @@
         },
         "contact": {
           "title": "联系我们",
-          "body": ["隐私相关问题和请求：support@example.com。"]
+          "body": ["隐私相关问题和请求：support@termrise.com。"]
         }
       }
     },
@@ -465,7 +464,7 @@
             "购买后 14 天内，且该积分包的积分未被使用，可申请全额退款。",
             "如果你被重复扣款或扣款金额有误，我们会全额退还多扣的金额。",
             "积分包的积分被使用后，或购买超过 14 天后，该笔购买不予退款，你所在地法律要求退款的情况除外。",
-            "申请退款请用账号邮箱发送邮件至 support@example.com，并附上订单号。我们会审查每一个申请，并通过邮件回复。"
+            "申请退款请用账号邮箱发送邮件至 support@termrise.com，并附上订单号。我们会审查每一个申请，并通过邮件回复。"
           ]
         },
         "subscriptions": {
@@ -489,14 +488,14 @@
         },
         "contact": {
           "title": "联系我们",
-          "body": ["账单相关问题：support@example.com。"]
+          "body": ["账单相关问题：support@termrise.com。"]
         }
       }
     }
   },
   "cookies": {
     "title": "Cookie 偏好",
-    "body": "我们使用分析 Cookie 了解 Acme 的使用情况。只有在你同意后才会设置这些 Cookie。详见<link>隐私政策</link>。",
+    "body": "我们使用分析 Cookie 了解 Termrise 的使用情况。只有在你同意后才会设置这些 Cookie。详见<link>隐私政策</link>。",
     "accept": "同意",
     "decline": "拒绝",
     "settings": "Cookie 设置"
@@ -594,13 +593,13 @@
   },
   "blog": {
     "meta": {
-      "title": "Acme 博客",
-      "description": "Acme 的使用指南和更新。"
+      "title": "Termrise 博客",
+      "description": "发现上升搜索词、验证产品点子的指南。"
     },
     "index": {
       "eyebrow": "博客",
       "title": "使用指南和更新。",
-      "intro": "简短、实用的指南。请用你自己的文章替换这些示例。",
+      "intro": "关于发现和验证产品点子的简短实用指南。",
       "read": "阅读指南"
     },
     "home": "博客",
@@ -610,60 +609,32 @@
     "posts": {
       "gettingStarted": {
         "meta": {
-          "title": "Acme 入门",
-          "description": "创建账号、运行第一个任务、查看积分。"
+          "title": "Termrise 入门",
+          "description": "创建账号，了解 Termrise 如何把上升搜索词变成产品机会。"
         },
-        "title": "Acme 入门",
-        "summary": "示例文章：创建账号、运行第一个任务、查看积分。",
+        "title": "Termrise 入门",
+        "summary": "创建账号，了解从上升热词到经过验证的产品点子的步骤。",
         "cta": "免费开始",
-        "finalCta": "运行你的第一个任务。",
+        "finalCta": "找到你的下一个产品点子。",
         "sections": {
           "signup": {
             "title": "创建账号",
-            "body": [
-              "使用 Google 或邮箱链接登录。新账号赠送 10 积分。<link>从这里开始</link>。"
-            ]
+            "body": ["使用 Google 或邮箱链接登录。<link>从这里开始</link>。"]
           },
           "run": {
-            "title": "运行第一个任务",
+            "title": "研究项目的步骤",
             "steps": [
-              "打开控制台。",
-              "输入一段文字。",
-              "点击“运行”。任务消耗 1 积分。"
+              "从 Google Trends 和 Hacker News 收集上升热词，或导入 CSV 文件。",
+              "用搜索量、CPC、难度和前 10 个搜索结果检查每个热词。",
+              "查看产品机会，选择 Go、Validate 或 No-Go。"
             ]
           },
           "next": {
-            "title": "接下来读什么",
-            "list": ["积分怎么用", "退款政策"]
-          }
-        }
-      },
-      "howCreditsWork": {
-        "meta": {
-          "title": "Acme 的积分规则",
-          "description": "积分是什么、什么时候消耗、什么时候退回。"
-        },
-        "title": "积分规则",
-        "summary": "示例文章：积分是什么、什么时候消耗、什么时候退回。",
-        "cta": "查看价格",
-        "finalCta": "选择一个积分包。",
-        "sections": {
-          "what": {
-            "title": "积分是什么",
-            "body": [
-              "每次运行消耗 1 积分，积分永不过期。积分包见<link>价格页面</link>。"
-            ]
-          },
-          "refunds": {
-            "title": "积分什么时候退回",
+            "title": "需要知道的事",
             "list": [
-              "运行失败时，积分自动退回。",
-              "购买退款时，扣除该积分包剩余的积分。"
+              "Google Trends 指数表示相对热度，不是月搜索量。",
+              "Termrise 不保证排名或收入。"
             ]
-          },
-          "check": {
-            "title": "查看余额",
-            "steps": ["打开“账单”。", "查看积分明细。"]
           }
         }
       }

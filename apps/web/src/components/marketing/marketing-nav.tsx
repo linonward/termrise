@@ -4,18 +4,23 @@ import { getTranslations } from "next-intl/server";
 import { Button } from "@repo/ui/components/button";
 
 import { LogoMark } from "@/components/logo-mark";
+import product from "@product";
 
-const LINKS = [
+const ALL_LINKS = [
   ["pricing", "/pricing"],
   ["blog", "/blog"],
 ] as const;
+// No pricing link while the product does not charge (product.config.ts billingEnabled).
+const LINKS = ALL_LINKS.filter(
+  ([key]) => product.billingEnabled || key !== "pricing",
+);
 
 // Public pages header. Signed-in visitors get a Dashboard link.
 export async function MarketingNav({
   current,
   signedIn,
 }: {
-  current?: (typeof LINKS)[number][0];
+  current?: (typeof ALL_LINKS)[number][0];
   signedIn: boolean;
 }) {
   const t = await getTranslations("marketing");

@@ -1,6 +1,6 @@
 import { Coins } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { CreditPackId } from "@repo/billing/credit-packs";
@@ -19,6 +19,7 @@ import { LocalDateTime } from "@/components/local-date-time";
 import { formatUsd } from "@/lib/format-usd";
 import { apiGet, getBalance } from "@/server/api/api";
 import { getRequestSession } from "@/server/auth/auth";
+import product from "@product";
 
 type PurchaseDto = ReturnType<typeof toPurchaseDto>;
 
@@ -27,6 +28,8 @@ export default async function BillingPage({
 }: {
   searchParams: Promise<{ checkout?: string }>;
 }) {
+  // Hidden while the product does not charge (product.config.ts billingEnabled).
+  if (!product.billingEnabled) notFound();
   const session = await getRequestSession();
   if (!session) redirect("/sign-in?next=%2Fbilling");
   const t = await getTranslations("billing");

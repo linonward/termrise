@@ -3,15 +3,13 @@ import { expect, test } from "@playwright/test";
 test("protects nested dashboard paths and preserves the return path", async ({
   page,
 }) => {
-  await page.goto("/billing?checkout=success");
-  await expect(page).toHaveURL(
-    /\/sign-in\?next=%2Fbilling%3Fcheckout%3Dsuccess/,
-  );
+  await page.goto("/dashboard?ref=email");
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fdashboard%3Fref%3Demail/);
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: "New to Acme? Create an account" })
+    .getByRole("link", { name: "New to Termrise? Create an account" })
     .click();
   await expect(
     page.getByRole("heading", { name: "Create your account" }),
@@ -94,9 +92,9 @@ test("shows an expired link as an alert under the title", async ({ page }) => {
   expect(box!.y).toBeLessThan(google!.y);
 });
 
-test("shows the free credits note next to the form", async ({ page }) => {
+test("shows the early access note next to the form", async ({ page }) => {
   const note = page
-    .getByText("10 free credits when you sign up · No card required")
+    .getByText("Early access · No card required")
     .filter({ visible: true });
   await page.goto("/sign-up");
   await expect(note).toBeVisible();

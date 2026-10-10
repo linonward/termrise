@@ -1,16 +1,13 @@
-# Acme
+# Termrise
 
-> Pay-as-you-go AI tool. Replace this file with your product summary.
+> Find rising English search terms, check demand with real data and test product ideas. For indie developers.
 
-Acme runs tasks for you in exchange for credits. New accounts get 10 free credits. Credits come in one-time packs, never expire, and failed tasks are refunded automatically.
+Termrise collects rising terms from Google Trends and Hacker News, or from CSV files you import, and checks them against search volume, CPC, keyword difficulty and the top 10 search results. It groups the evidence into product opportunities, keeps AI inferences apart from facts, and exports a Markdown product brief. Termrise is in early access and free while in early access. It does not guarantee rankings or revenue.
 
 ## Pages
 
-- [Home](https://example.com/)
-- [Pricing](https://example.com/pricing)
-- [Blog](https://example.com/blog)
-- [Getting started with Acme](https://example.com/blog/getting-started)
-- [How credits work](https://example.com/blog/how-credits-work)
-- [Terms of Service](https://example.com/terms)
-- [Privacy Policy](https://example.com/privacy)
-- [Refund Policy](https://example.com/refund-policy)
+- [Home](https://termrise.com/)
+- [Blog](https://termrise.com/blog)
+- [Getting started with Termrise](https://termrise.com/blog/getting-started)
+- [Terms of Service](https://termrise.com/terms)
+- [Privacy Policy](https://termrise.com/privacy)

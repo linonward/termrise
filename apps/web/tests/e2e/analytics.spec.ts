@@ -8,6 +8,7 @@ import { createCreditService } from "@repo/credits/credit-service";
 import { analyticsConsents } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import product from "../../../../product.config";
 import { E2E_API_URL } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
@@ -80,11 +81,11 @@ test("after consent, page events carry the locale and product id and settings re
   const analytics = await interceptAnalytics(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Accept" }).click();
-  await page.goto("/pricing");
-  await expect.poll(analytics.names).toContain("pricing_viewed");
+  await page.reload();
+  await expect.poll(analytics.names).toContain("landing_viewed");
   expect(
-    analytics.events.find((e) => e.event === "pricing_viewed")?.properties,
-  ).toMatchObject({ locale: "en", product_id: "acme" });
+    analytics.events.find((e) => e.event === "landing_viewed")?.properties,
+  ).toMatchObject({ locale: "en", product_id: product.id });
   const cookies = await context.cookies();
   expect(cookies.some((c) => c.name.startsWith("ph_"))).toBe(true);
 
@@ -126,6 +127,12 @@ test("identifies events right after a signed-in user accepts on the same page", 
   page,
   context,
 }) => {
+  // Needs the example paid action, hidden while the product does not charge; the client
+  // identify logic keeps its unit test (packages/analytics/src/client.test.ts).
+  test.skip(
+    !product.billingEnabled,
+    "billing is disabled in product.config.ts",
+  );
   const { userId } = await signIn(context);
   const analytics = await interceptAnalytics(page);
   await page.goto("/dashboard");
@@ -167,6 +174,12 @@ test("reports task_started and credits_exhausted when the balance is too low", a
   page,
   context,
 }) => {
+  // Needs the example paid action, hidden while the product does not charge; the client
+  // identify logic keeps its unit test (packages/analytics/src/client.test.ts).
+  test.skip(
+    !product.billingEnabled,
+    "billing is disabled in product.config.ts",
+  );
   const { userId } = await signIn(context);
   await createCreditService(testDb()).adminAdjust(
     userId,
