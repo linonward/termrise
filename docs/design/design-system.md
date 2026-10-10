@@ -59,10 +59,10 @@ token 或组件有变化时，同步更新本文件和 `packages/ui/src/styles/t
 | `primary`                          | `#111318`             | `#F4F3EF`             | 主按钮底色                         |
 | `primary-hover`                    | `#2A2D35`             | `#DCDAD4`             | 主按钮悬停                         |
 | `primary-foreground`               | `#FFFFFF`             | `#111318`             | 主按钮文字                         |
-| `brand`                            | `#FF5B2E`             | `#FF5B2E`             | Logo、Credits 图标、焦点环         |
-| `brand-soft`                       | `#FFEEE7`             | `#3A1E14`             | 品牌色浅底（标签）                 |
-| `brand-text`                       | `#C2410C`             | `#FF8A65`             | `background` 上的品牌色文字        |
-| `brand-foreground`                 | `#111318`             | `#111318`             | `brand` 底色上的文字               |
+| `brand`                            | `#6D4AFF`             | `#6D4AFF`             | Logo、Credits 图标、焦点环         |
+| `brand-soft`                       | `#EFEBFF`             | `#221A45`             | 品牌色浅底（标签）                 |
+| `brand-text`                       | `#5332E0`             | `#A996FF`             | `background` 上的品牌色文字        |
+| `brand-foreground`                 | `#FFFFFF`             | `#FFFFFF`             | `brand` 底色上的文字               |
 | `success` / `success-soft`         | `#15803D` / `#E8F6EC` | `#4ADE80` / `#12291B` | 成功、已付款、Save 标签            |
 | `info` / `info-soft`               | `#2457D6` / `#EAF0FD` | `#7FA6FF` / `#17223D` | 处理中、等待到账                   |
 | `warning` / `warning-soft`         | `#A35A00` / `#FFF4DF` | `#F5B544` / `#2E2210` | 提醒（如到账超时）                 |
@@ -197,12 +197,12 @@ Checkout 跳转回 Billing 页后的提示使用 `Alert`：等待到账为 `info
 
 ## Logo
 
-`LogoMark`（`apps/web/src/components/logo-mark.tsx`，内联 SVG，viewBox 240）是占位 Logo：`brand` 色的 C + `foreground` 色的播放三角。每个产品换成自己的标记，只改两条 path，保持一个部分用 `fill-brand`、一个部分用 `fill-foreground`，深色主题自动适配。
+`LogoMark`（`apps/web/src/components/logo-mark.tsx`，内联 SVG，viewBox 240）是 Termrise 的标记：`brand` 色的上升折线和箭头（`LOGO_RISE_PATH`），起点是 `foreground` 色的圆点（`LOGO_DOT_PATH`），表示「从一个词开始的上升趋势」。标记用 Pen 的 SVG 生成后整理为两条 path，一条用 `fill-brand`、一条用 `fill-foreground`，深色主题自动适配。
 
 - `Logo/Full`：标记 + 品牌名（`meta.title`，Bricolage Grotesque 700），用于桌面端导航、Landing、页脚。
 - `Logo/Icon`：只有标记，用于移动端应用顶栏（品牌名保留为 `sr-only`）。
 
-App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.png`、`apps/web/src/app/favicon.ico`）和 Open Graph 图（`apps/web/src/app/opengraph-image.tsx`）也要一起替换。
+App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.png`、`apps/web/src/app/favicon.ico`）固定为 `#111318` 底、`#6D4AFF` 折线、白色圆点，不随主题变化；PNG 和 ICO 由 `icon.svg` 渲染（180 / 48 / 32 / 16 px）。Open Graph 图（`apps/web/src/app/opengraph-image.tsx`）使用同样的两条 path。换标记时这几处一起改。
 
 ---
 

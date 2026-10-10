@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
-import { LOGO_C_PATH, LOGO_PLAY_PATH } from "@/components/logo-mark";
+import { LOGO_DOT_PATH, LOGO_RISE_PATH } from "@/components/logo-mark";
 import { messages } from "@/i18n/messages";
 
 // Static share image; crawlers get the default locale (en).
@@ -34,8 +34,8 @@ export default async function OpengraphImage() {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <svg width={44} height={44} viewBox="0 0 240 240">
-          <path d={LOGO_C_PATH} fill="#FF5B2E" />
-          <path d={LOGO_PLAY_PATH} fill="#111318" />
+          <path d={LOGO_RISE_PATH} fill="#6D4AFF" />
+          <path d={LOGO_DOT_PATH} fill="#111318" />
         </svg>
         <div style={{ fontSize: 40, fontWeight: 700 }}>{meta.title}</div>
       </div>

@@ -81,11 +81,10 @@
 
 ## 上线前待办
 
-品牌（S11 已完成 `product.config.ts`、文案、`llms.txt`、E2E 断言和本文件）：
+品牌（S11 已完成 `product.config.ts`、文案、`llms.txt`、E2E 断言和本文件；S12 已完成品牌色与 Logo）：
 
 - [ ] 确认运营主体，改 `product.config.ts` 的 `operator`。
 - [ ] 审阅法律文本（Terms、Privacy）：现在仍是模板的 Credits 与付款条款，只替换了品牌名和域名。
-- [ ] 替换 Logo：`apps/web/src/components/logo-mark.tsx`、`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.png`、`apps/web/src/app/favicon.ico`、`apps/web/src/app/opengraph-image.tsx`。
 - [ ] 生成新的 IndexNow Key：在 `apps/web/public/` 中替换 `{key}.txt`，并修改 `apps/web/scripts/indexnow.ts` 的 `INDEXNOW_KEY`。
 - [ ] `docker-compose.yml` 的 `name` 仍为 `saas-starter`，本机的模板仓库共用这些容器和端口。改名时同时修改端口、`.env.example` 和文档中的 `TEST_DATABASE_URL`。
 - [ ] 按 SEO 关键词矩阵写 Blog 文章（`seo/matrix.json` 现在为空）。
