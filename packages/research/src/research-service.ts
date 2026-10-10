@@ -1,8 +1,8 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
-import { researchProjects } from "@repo/db/schema";
+import { researchProjects, sourceSignals } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 
 import {
@@ -16,8 +16,14 @@ import {
   PROJECT_NAME_MAX_LENGTH,
   SEED_MAX_LENGTH,
 } from "./research-rules";
+import { parseSignalCsv } from "./signal-import";
 
 export type ResearchProject = typeof researchProjects.$inferSelect;
+export type SourceSignal = typeof sourceSignals.$inferSelect;
+
+const importSchema = z.object({ csv: z.string() });
+/** Rejected rows listed in the response; the counts cover all of them. */
+const MAX_REJECTED_LISTED = 20;
 
 // US dollars in whole cents; stored as micro-USD.
 const usd = z
@@ -148,5 +154,77 @@ export function createResearchService(deps: {
       throw new AppError("RESEARCH_PROJECT_LOCKED", "Project is not a draft");
   }
 
-  return { create, list, get, update, remove };
+  // One transaction with the project row locked: imports into the same project run one
+  // after another, so the seed list never loses a term.
+  async function importCsv(userId: string, id: string, body: unknown) {
+    const { csv } = parse(importSchema, body);
+    await get(userId, id);
+    const parsed = parseSignalCsv(csv);
+    if (!parsed.ok)
+      throw new AppError("INVALID_INPUT", "Invalid CSV", undefined, {
+        reason: parsed.problem,
+      });
+    return database.transaction(async (tx) => {
+      const [project] = await tx
+        .select()
+        .from(researchProjects)
+        .where(
+          and(eq(researchProjects.id, id), eq(researchProjects.userId, userId)),
+        )
+        .for("update");
+      if (!project) throw notFound();
+      if (project.status !== "draft")
+        throw new AppError("RESEARCH_PROJECT_LOCKED", "Project is not a draft");
+      const inserted =
+        parsed.signals.length === 0
+          ? []
+          : await tx
+              .insert(sourceSignals)
+              .values(
+                parsed.signals.map((signal) => ({
+                  ...signal,
+                  projectId: id,
+                  provider: "csv" as const,
+                })),
+              )
+              .onConflictDoNothing()
+              .returning({ term: sourceSignals.normalizedTerm });
+      // New terms join the seeds after the existing ones, up to the limit.
+      const candidates = normalizeSeeds(inserted.map((row) => row.term)).filter(
+        (term) => !project.seeds.includes(term),
+      );
+      const room = Math.max(0, MAX_SEEDS - project.seeds.length);
+      const added = candidates.slice(0, room);
+      if (added.length > 0)
+        await tx
+          .update(researchProjects)
+          .set({ seeds: [...project.seeds, ...added], updatedAt: now() })
+          .where(eq(researchProjects.id, id));
+      return {
+        imported: inserted.length,
+        duplicates: parsed.signals.length - inserted.length,
+        rejectedCount: parsed.rejected.length,
+        rejected: parsed.rejected.slice(0, MAX_REJECTED_LISTED),
+        seedsAdded: added.length,
+        seedsSkipped: candidates.length - added.length,
+      };
+    });
+  }
+
+  /** Newest observations first; signals without a date after those with one. */
+  async function listSignals(userId: string, id: string, limit = 200) {
+    await get(userId, id);
+    return database
+      .select()
+      .from(sourceSignals)
+      .where(eq(sourceSignals.projectId, id))
+      .orderBy(
+        sql`${sourceSignals.observedAt} desc nulls last`,
+        desc(sourceSignals.ingestedAt),
+        desc(sourceSignals.id),
+      )
+      .limit(limit);
+  }
+
+  return { create, list, get, update, remove, importCsv, listSignals };
 }

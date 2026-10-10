@@ -713,6 +713,38 @@
       "cancelled": "Cancelled",
       "budget_exhausted": "Budget used up"
     },
-    "created": "Created"
+    "created": "Created",
+    "signalsTitle": "Signals",
+    "signalsEmpty": "No signals yet. Import a CSV of terms to add them.",
+    "signalColumn": {
+      "term": "Term",
+      "source": "Source",
+      "observed": "Observed",
+      "link": "Link"
+    },
+    "open": "Open",
+    "noDate": "—",
+    "importTitle": "Import terms from CSV",
+    "importHint": "A header row, then one term per row. Columns: term (required), url, observed_at (YYYY-MM-DD), source, note. Up to {rows} rows.",
+    "importFile": "CSV file",
+    "importButton": "Import",
+    "importing": "Importing…",
+    "importResult": "Imported {imported, plural, one {# term} other {# terms}}, {duplicates, plural, one {# duplicate} other {# duplicates}}, {rejected, plural, one {# row skipped} other {# rows skipped}}. {seeds, plural, =0 {No new seed terms.} one {# new seed term.} other {# new seed terms.}}",
+    "importSeedsFull": "{count, plural, one {# term was} other {# terms were}} not added to the seeds: a project has up to 50.",
+    "importRejectedLine": "Line {line}: {reason}",
+    "rejectReason": {
+      "missing_term": "no term",
+      "term_too_long": "term longer than 80 characters",
+      "invalid_url": "url is not an http(s) link",
+      "invalid_date": "observed_at is not YYYY-MM-DD"
+    },
+    "importProblem": {
+      "empty": "The file has no rows after the header.",
+      "too_large": "The file is larger than 1 MB.",
+      "too_many_rows": "The file has more than 1,000 rows.",
+      "missing_term_column": "The header has no term column.",
+      "unreadable": "The file could not be read."
+    },
+    "sourceCsv": "CSV import"
   }
 }

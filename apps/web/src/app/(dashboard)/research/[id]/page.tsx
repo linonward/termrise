@@ -3,13 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
-import type { ResearchProjectDto } from "@repo/research/research-dto";
+import type {
+  ResearchProjectDto,
+  SourceSignalDto,
+} from "@repo/research/research-dto";
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { DeleteProject } from "@/features/research/delete-project";
+import { ImportCsv } from "@/features/research/import-csv";
 import { ProjectForm } from "@/features/research/project-form";
 import { ResearchStatus } from "@/features/research/research-status";
-import { apiRequest } from "@/server/api/api";
+import { apiGet, apiRequest } from "@/server/api/api";
 
 async function loadProject(id: string) {
   const response = await apiRequest(
@@ -32,6 +36,9 @@ export default async function ResearchProjectPage({
   params,
 }: PageProps<"/research/[id]">) {
   const project = await loadProject((await params).id);
+  const { items: signals } = await apiGet<{ items: SourceSignalDto[] }>(
+    `/api/research/projects/${project.id}/signals`,
+  );
   const t = await getTranslations("research");
   const format = await getFormatter();
   const usd = (value: number) =>
@@ -71,7 +78,9 @@ export default async function ResearchProjectPage({
               {draft ? t("editNote") : t("lockedNote")}
             </p>
           </div>
-          <ProjectForm project={project} />
+          {/* An import that adds signals can add seeds behind this uncontrolled form:
+              remount it then. A save keeps it, so its "saved" message stays. */}
+          <ProjectForm key={signals.length} project={project} />
         </section>
         <div className="space-y-6 md:w-90">
           <dl className="space-y-4 rounded-lg bg-surface p-6">
@@ -94,6 +103,82 @@ export default async function ResearchProjectPage({
           </dl>
           {draft && <DeleteProject projectId={project.id} />}
         </div>
+      </div>
+      <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
+        <section
+          aria-labelledby="signals-title"
+          className="min-w-0 flex-1 space-y-4"
+        >
+          <h2
+            id="signals-title"
+            className="font-heading text-2xl font-semibold"
+          >
+            {t("signalsTitle")}{" "}
+            <span className="text-muted-foreground tabular-nums">
+              {signals.length}
+            </span>
+          </h2>
+          {signals.length === 0 ? (
+            <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
+              {t("signalsEmpty")}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[15px]">
+                <thead>
+                  <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+                    {(["term", "source", "observed", "link"] as const).map(
+                      (key) => (
+                        <th key={key} className="pr-4 pb-3 font-semibold">
+                          {t(`signalColumn.${key}`)}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {signals.map((signal) => (
+                    <tr
+                      key={signal.id}
+                      data-testid="signal-row"
+                      className="border-b border-border"
+                    >
+                      <td className="py-3.5 pr-4 font-medium">{signal.term}</td>
+                      <td className="py-3.5 pr-4 text-muted-foreground">
+                        {signal.source ?? t("sourceCsv")}
+                      </td>
+                      <td className="py-3.5 pr-4 whitespace-nowrap text-muted-foreground tabular-nums">
+                        {signal.observedAt
+                          ? format.dateTime(new Date(signal.observedAt), {
+                              dateStyle: "medium",
+                              timeZone: "UTC",
+                            })
+                          : t("noDate")}
+                      </td>
+                      <td className="py-3.5 pr-4">
+                        {signal.url && (
+                          <a
+                            href={signal.url}
+                            target="_blank"
+                            rel="noreferrer nofollow"
+                            className="font-medium underline underline-offset-4"
+                          >
+                            {t("open")}
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+        {draft && (
+          <div className="md:w-90">
+            <ImportCsv projectId={project.id} />
+          </div>
+        )}
       </div>
     </main>
   );

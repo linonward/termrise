@@ -288,7 +288,9 @@ Logout
 右侧：surface 摘要（种子词数、两项预算）+ 删除（只在 draft 时：两次点击，第二次确认）
 ```
 
-- 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除。
+- 下方是 Signals 表（词、来源、观测日期、链接），右侧是 draft 才有的「从 CSV 导入」：选择文件后在浏览器读取文本并提交，显示导入、重复、跳过的数量和新增种子词数，跳过的行按电子表格行号列出原因（最多 20 行）。
+- CSV 模板：第一行是表头，列名不区分大小写、顺序任意：`term`（必填）、`url`（http/https）、`observed_at`（`YYYY-MM-DD` 或带时区的 ISO 时间）、`source`、`note`。空白行忽略。导入后编辑表单重新加载，显示新的种子词。
+- 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除和导入。
 - 不属于当前用户或不存在的项目返回 404 页面。
 - 状态徽章样式见 design-system.md 的 Status：draft 为 `surface-strong` + `pencil-line`；运行中各状态为 `info-soft` + `loader-circle`；completed 为 `success-soft`；failed、budget_exhausted 为 `destructive-soft`；cancelled、partial 为 `surface-strong`。
 

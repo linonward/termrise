@@ -3,6 +3,7 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
+import { expectRateLimited } from "../testing/rate-limit";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient({
@@ -55,9 +56,6 @@ it("needs a session", async () => {
 });
 
 it("allows twenty uploads a minute, then answers 429", async () => {
-  for (let i = 0; i < 20; i++)
-    expect((await upload(valid)).status, `upload ${i + 1}`).toBe(200);
-  const limited = await upload(valid);
-  expect(limited.status).toBe(429);
+  const limited = await expectRateLimited(() => upload(valid), 20);
   expect((await limited.json()).error.code).toBe("RATE_LIMITED");
 });

@@ -19,13 +19,17 @@ for (const [path, limit] of [
     context,
   }) => {
     await signIn(context);
-    // Invalid bodies still count: the limit is checked before validation.
-    for (let i = 0; i < limit; i++) {
-      const ok = await context.request.post(path, { data: {} });
-      expect(ok.status(), `request ${i + 1}`).not.toBe(429);
+    // Invalid bodies still count: the limit is checked before validation. Limits count
+    // per fixed minute, so 2 × limit + 1 requests span at most two windows.
+    let limited;
+    for (let i = 0; i < 2 * limit + 1 && !limited; i++) {
+      const response = await context.request.post(path, { data: {} });
+      if (response.status() === 429) {
+        expect(i, "requests allowed before 429").toBeGreaterThanOrEqual(limit);
+        limited = response;
+      }
     }
-    const limited = await context.request.post(path, { data: {} });
-    expect(limited.status()).toBe(429);
+    if (!limited) throw new Error("no request was rate limited");
     expect((await limited.json()).error.code).toBe("RATE_LIMITED");
     expect(Number(limited.headers()["retry-after"])).toBeGreaterThan(0);
   });

@@ -86,3 +86,47 @@ test("research pages need a session", async ({ page }) => {
   await page.goto("/research");
   await expect(page).toHaveURL(/\/sign-in\?next=%2Fresearch$/);
 });
+
+test("imports terms from a CSV into a draft", async ({ page, context }) => {
+  await signIn(context);
+  await page.goto("/research");
+  await page.getByLabel("Name").fill("Imported project");
+  await page.getByLabel("Seed terms").fill("first seed");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(
+    page.getByText("No signals yet.", { exact: false }),
+  ).toBeVisible();
+
+  const file = {
+    name: "terms.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "term,url,observed_at,source\n" +
+        "AI Note Taker,https://example.com/a,2026-10-01,Trends export\n" +
+        "first seed,,,\n" +
+        "broken,ftp://example.com,,\n",
+    ),
+  };
+  await page.getByLabel("CSV file").setInputFiles(file);
+  await page.getByRole("button", { name: "Import" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Imported 2 terms, 0 duplicates, 1 row skipped. 1 new seed term.",
+  );
+  await expect(page.getByRole("status")).toContainText(
+    "Line 4: url is not an http(s) link",
+  );
+  await expect(page.getByTestId("signal-row")).toHaveCount(2);
+  await expect(page.getByRole("cell", { name: "Trends export" })).toBeVisible();
+  await expect(page.getByLabel("Seed terms")).toHaveValue(
+    "first seed\nai note taker",
+  );
+
+  // The same file again: every row is a duplicate.
+  await page.getByLabel("CSV file").setInputFiles(file);
+  await page.getByRole("button", { name: "Import" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "Imported 0 terms, 2 duplicates",
+  );
+  await expect(page.getByTestId("signal-row")).toHaveCount(2);
+});

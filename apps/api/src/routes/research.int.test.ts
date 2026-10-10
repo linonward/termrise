@@ -3,6 +3,7 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
+import { expectRateLimited } from "../testing/rate-limit";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient();
@@ -90,13 +91,45 @@ it("rejects invalid input and needs a session", async () => {
 });
 
 it("allows 30 project writes a minute, then answers 429", async () => {
-  for (let i = 0; i < 30; i++)
-    expect((await create()).status, `write ${i + 1}`).toBe(201);
-  const limited = await create();
-  expect(limited.status).toBe(429);
+  const limited = await expectRateLimited(create, 30);
+  expect((await limited.json()).error.code).toBe("RATE_LIMITED");
   // Reads are not limited.
   expect(
     (await call("/api/research/projects", { headers: { cookie: owner } }))
       .status,
   ).toBe(200);
+});
+
+it("imports a CSV into a draft and lists its signals", async () => {
+  const project = await (await create()).json();
+  const base = `/api/research/projects/${project.id}`;
+  const imported = await send("POST", `${base}/import`, owner, {
+    csv: "term,url\nZoom summary,https://example.com/z\nbad,ftp://x\n",
+  });
+  expect(await imported.json()).toEqual({
+    imported: 1,
+    duplicates: 0,
+    rejectedCount: 1,
+    rejected: [{ line: 3, reason: "invalid_url" }],
+    seedsAdded: 1,
+    seedsSkipped: 0,
+  });
+  const { items } = await (
+    await call(`${base}/signals`, { headers: { cookie: owner } })
+  ).json();
+  expect(items).toMatchObject([
+    { term: "zoom summary", url: "https://example.com/z", provider: "csv" },
+  ]);
+  expect(items[0]).not.toHaveProperty("externalId");
+
+  const bad = await send("POST", `${base}/import`, owner, { csv: "x\n1\n" });
+  expect(bad.status).toBe(400);
+  expect((await bad.json()).error).toMatchObject({
+    code: "INVALID_INPUT",
+    reason: "missing_term_column",
+  });
+  expect(
+    (await send("POST", `${base}/import`, other, { csv: "term\nfoo\n" }))
+      .status,
+  ).toBe(404);
 });
