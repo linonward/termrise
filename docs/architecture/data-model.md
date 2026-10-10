@@ -624,6 +624,7 @@ processed_at = now()
 
 研究的运行（`packages/research/src/research-runner.ts`）：API 只写一条 `pending` 的运行并锁住项目（`queue`），`apps/worker` 执行它（`execute`，见 jobs.md）。
 
+- `claimed_at`：Worker 领取运行的时间，排队时为 null。领取超过 30 分钟仍在运行的，由下一次扫描改为 `failed`（`RUN_TIMED_OUT`），见 jobs.md 的 Termrise。
 - `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `pending`（排队中，`stage` 为 `queued`）/ `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`、`BUDGET_EXHAUSTED`）；预算不足使运行提前结束的 `partial` 也记录 `BUDGET_EXHAUSTED`。
 - 开始运行时在一个事务中锁住项目行：只有 `draft`、`failed` 或 `budget_exhausted` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding`（排队时就进入，锁住项目）→ `auditing` → `evaluating` → `completed` / `partial`；扩词失败为 `failed`。运行与项目的状态在同一个事务中修改。
 - `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。

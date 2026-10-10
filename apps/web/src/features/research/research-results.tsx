@@ -26,7 +26,7 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
       {run.status === "failed" && run.errorCode && (
         <p className="text-muted-foreground">
           {t(
-            `runError.${run.errorCode === "PROVIDER_ERROR" || run.errorCode === "BUDGET_EXHAUSTED" ? run.errorCode : "INTERNAL_ERROR"}`,
+            `runError.${run.errorCode === "PROVIDER_ERROR" || run.errorCode === "BUDGET_EXHAUSTED" || run.errorCode === "RUN_TIMED_OUT" ? run.errorCode : "INTERNAL_ERROR"}`,
           )}
         </p>
       )}

@@ -61,6 +61,7 @@ Redis 用 Upstash（TCP + TLS，`rediss://`）；本地用 `docker compose up -d
 - `apps/worker/src/bullmq.ts`：BullMQ 适配器（`Queue.add`、`upsertJobScheduler` / `removeJobScheduler`、`Worker`，并发 2；ioredis 连接设置 `maxRetriesPerRequest: null`）。
 - `apps/worker/src/index.ts`：读取 env、创建数据库和 runner、启动消费与定时扫描、提供 `GET /health`；收到 SIGTERM 时停止消费、关闭连接后退出。
 - 任务：`trend.ingest`（`{ provider: "hacker_news" }`，Job Scheduler 每 `TREND_INTERVAL_MS` 一次，默认 1 小时）把 Hacker News 采集到 Radar（`packages/research` 的 `collectHackerNews()`，见 data-model.md 的 Radar）。只在 `HACKER_NEWS_ENABLED=1` 时启用；没有启用时，Worker 启动时删除这个 Job Scheduler。`memory` 队列（E2E）不采集。
-- 还没有处理中途崩溃留下的 `running` 运行（需要超时恢复），也还没有部署到 Cloudflare Containers。
+- 中途崩溃的恢复：Worker 领取运行时记录 `claimed_at`。每次 `research.scan` 先把领取超过 30 分钟（`STALE_RUN_MS`）仍为 `running` 的运行改为 `failed`（`RUN_TIMED_OUT`），项目改为 `failed`（可以再运行），该运行仍为 `reserved` 的付费调用改为 `failed`（费用未知，预留额继续计入）。之后原 Worker 即使恢复，也不再修改这个运行和项目（阶段和结束的更新都要求运行仍为 `running`）。
+- 还没有部署到 Cloudflare Containers。
 
 TaskService 在 `packages/tasks`。Worker 的处理器需要修改 Task 状态（调用 Provider、转为终态、退款）时，调用同一个 TaskService：Worker 不能 import `apps/*`，也不得复制 Task 规则（overview.md 的 Monorepo 规则：业务规则只实现一次）。

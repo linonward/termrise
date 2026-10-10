@@ -1,0 +1,1 @@
+ALTER TABLE "research_runs" ADD COLUMN "claimed_at" timestamp with time zone;

@@ -814,7 +814,8 @@
     "runError": {
       "PROVIDER_ERROR": "关键词数据来源没有响应。",
       "INTERNAL_ERROR": "运行时出错了。",
-      "BUDGET_EXHAUSTED": "数据预算不够一次扩词。"
+      "BUDGET_EXHAUSTED": "数据预算不够一次扩词。",
+      "RUN_TIMED_OUT": "运行在完成前停止了。请再运行一次。"
     },
     "runPartialNote": "部分搜索结果没有取到；关键词是完整的。",
     "keywordsTitle": "关键词",
