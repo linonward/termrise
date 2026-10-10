@@ -2,14 +2,16 @@ import { expect, test } from "@playwright/test";
 
 import { closeTestDb } from "@repo/db/testing/db";
 
+import { E2E_API_URL } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
 // API-only; one browser project is enough. Limits: docs/architecture/security.md#rate-limiting.
 test.skip(({ isMobile }) => isMobile);
 test.afterAll(closeTestDb);
 
+// apps/api serves /api/tasks; the cookie for localhost goes to every port.
 for (const [path, limit] of [
-  ["/api/tasks", 10],
+  [`${E2E_API_URL}/api/tasks`, 10],
   ["/api/checkout", 10],
   ["/api/uploads", 20],
 ] as const)

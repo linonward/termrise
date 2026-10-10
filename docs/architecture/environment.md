@@ -65,5 +65,8 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`                 | Google OAuth；client ID 也给 web 的 One Tap 使用                                                                            |
 | `RESEND_API_KEY`、`EMAIL_FROM`                             | 登录邮件（Resend），本地填法见 overview.md 的 Email                                                                         |
 | `POSTHOG_KEY`、`POSTHOG_HOST`                              | 可选，服务端事件；未设置 key 时不发送；host 默认 `https://us.i.posthog.com`                                                 |
+| `TASK_PROVIDER`                                            | `example` \| `deepseek` \| `fake`，默认 `example`；含义同 web 的同名变量                                                    |
+| `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                       | `TASK_PROVIDER=deepseek` 时必填；key 用 `wrangler secret put` 设置                                                          |
+| `ALLOW_FAKE_PROVIDERS`                                     | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以 `TASK_PROVIDER=fake` 一律需要它                                          |
 
 `apps/api/src/env.ts` 的 `apiEnv()` 用 zod 校验，错误只含变量名和规则。本地把变量写在 `apps/api/.dev.vars`（不提交）；Production 用 `wrangler secret put <NAME>` 或 Cloudflare 控制台设置。

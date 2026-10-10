@@ -59,7 +59,7 @@
 **接口与风险**
 
 - `userRoute` 的 handler 只收到 `{ request, user }`，没有 Next.js 的 `params`。现在除 `auth/[...all]` 外没有动态 API 路由。`/api/research/:id/...` 需要先扩展 `userRoute`。
-- `API_RATE_LIMITS`（`apps/web/src/server/http/rate-limits.ts`）只有 `task`、`upload`、`checkout`。新路由要加自己的限流名。
+- `API_RATE_LIMITS`（S06 起在 `packages/auth/src/api-rate-limits.ts`）只有 `task`、`upload`、`checkout`。新路由要加自己的限流名。
 - `AppError` 的 code 是封闭表（`packages/observability/src/errors.ts`，与 `apps/web/src/lib/api-error.ts` 由测试保持一致）。没有通用的 `NOT_FOUND`，也没有 `BUDGET_EXHAUSTED`。
 - `apps/web/src/proxy.ts` 只保护 `/dashboard`、`/billing`（`PROTECTED` 正则）。`/radar`、`/research`、`/opportunities`、`/projects`、`/settings/providers` 要放进 `(dashboard)` 并加入该正则。
 - 没有通用的资源归属检查。现有 Service 各自按 `userId` 过滤；其他用户的资源返回 `*_NOT_FOUND`。
@@ -138,7 +138,7 @@
 **接口与风险**
 
 - termrise.md 写「优先复用 Starter 的 BullMQ/Redis」，PRD 写「复用 Starter 的 Jobs/Redis」。Starter 没有这两项，见 [Doc Conflicts](#doc-conflicts)。
-- TaskService（`apps/web/src/features/tasks/task-service.ts`）是同步、单阶段、与 Credits 绑定的状态机，不适合研究任务。可以复用的是它的模式：条件更新（`WHERE status = 'PENDING'`）、幂等 `requestId`、失败与退款在同一事务中。
+- TaskService（S06 起在 `packages/tasks/src/task-service.ts`）是同步、单阶段、与 Credits 绑定的状态机，不适合研究任务。可以复用的是它的模式：条件更新（`WHERE status = 'PENDING'`）、幂等 `requestId`、失败与退款在同一事务中。
 
 ## Analytics
 

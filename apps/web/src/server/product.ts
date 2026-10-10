@@ -1,6 +1,7 @@
 import "server-only";
 
-import { TASK_CREDIT_COST } from "@/features/tasks/credit-cost";
+import { TASK_CREDIT_COST } from "@repo/tasks/credit-cost";
+
 import { getTaskService } from "@/features/tasks/tasks";
 
 // The only place platform code (server/, components/) reaches the product's paid

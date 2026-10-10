@@ -17,8 +17,8 @@ import {
 } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 import { createFakeStorage } from "@repo/storage/adapters/fake";
+import { createTaskService } from "@repo/tasks/task-service";
 
-import { createTaskService } from "@/features/tasks/task-service";
 import { productData } from "@/server/product-data";
 
 import { AccountError, createAccountService } from "./account-service";

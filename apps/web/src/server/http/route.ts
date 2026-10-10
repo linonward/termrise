@@ -1,6 +1,6 @@
+import type { ApiRateLimitName as RateLimitName } from "@repo/auth/api-rate-limits";
 import { withRequestContext } from "@repo/observability/logger";
 
-import type { ApiRateLimitName as RateLimitName } from "./rate-limits";
 import { errorResponse } from "./respond";
 
 type Options = {

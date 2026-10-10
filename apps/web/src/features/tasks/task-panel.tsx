@@ -6,10 +6,10 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { track } from "@repo/analytics/client";
+import type { TaskDto } from "@repo/tasks/task-dto";
 import { Button } from "@repo/ui/components/button";
 
 import { RelativeTime } from "@/components/relative-time";
-import type { TaskDto } from "@/features/tasks/tasks";
 import { errorCodeOf, type ApiErrorCode } from "@/lib/api-error";
 
 // Example paid action (docs/architecture/tasks.md): replace the form and the
@@ -34,11 +34,16 @@ export function TaskPanel({
     setPending(true);
     setError(undefined);
     track("task_started", { inputLength: input.length });
-    const response = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ requestId: crypto.randomUUID(), input }),
-    }).catch(() => null);
+    // apps/api runs tasks; NEXT_PUBLIC_API_URL is inlined at build time.
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ requestId: crypto.randomUUID(), input }),
+      },
+    ).catch(() => null);
     const body = await response?.json().catch(() => null);
     setPending(false);
     if (!response?.ok) {

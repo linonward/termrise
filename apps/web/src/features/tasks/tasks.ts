@@ -1,30 +1,25 @@
 import "server-only";
-import { createDeepSeekProvider } from "@repo/ai/adapters/deepseek";
-import { createExampleAiProvider } from "@repo/ai/adapters/example";
-import { createFakeAiProvider } from "@repo/ai/adapters/fake";
+import { createAiProvider } from "@repo/ai/create-provider";
 import { serverEnv } from "@repo/config/env";
 import { db } from "@repo/db/client";
+import { createTaskService } from "@repo/tasks/task-service";
 
 import { getAnalyticsService } from "@/server/analytics/analytics";
 
-import { createTaskService, type Task } from "./task-service";
-
 function aiProvider() {
   const env = serverEnv();
-  switch (env.TASK_PROVIDER) {
-    case "fake":
-      return createFakeAiProvider();
-    case "deepseek":
-      // env.ts requires both values when TASK_PROVIDER=deepseek.
-      return createDeepSeekProvider({
+  return env.TASK_PROVIDER === "deepseek"
+    ? // env.ts requires both values when TASK_PROVIDER=deepseek.
+      createAiProvider({
+        provider: "deepseek",
         apiKey: env.DEEPSEEK_API_KEY!,
         model: env.DEEPSEEK_MODEL!,
-      });
-    case "example":
-      return createExampleAiProvider();
-  }
+      })
+    : createAiProvider({ provider: env.TASK_PROVIDER });
 }
 
+// Pages and platform code read tasks here until they call apps/api
+// (docs/adr/012-api-modular-monolith.md, step 5); runs go through POST /api/tasks on the API.
 export function getTaskService() {
   return createTaskService({
     database: db(),
@@ -32,18 +27,3 @@ export function getTaskService() {
     analytics: getAnalyticsService(),
   });
 }
-
-// Public shape: no request id.
-export function toTaskDto(t: Task) {
-  return {
-    id: t.id,
-    status: t.status,
-    input: t.input,
-    output: t.output,
-    creditsCost: t.creditsCost,
-    errorCode: t.errorCode,
-    createdAt: t.createdAt.toISOString(),
-  };
-}
-
-export type TaskDto = ReturnType<typeof toTaskDto>;

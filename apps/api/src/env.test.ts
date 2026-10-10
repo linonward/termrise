@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { apiEnv } from "./env";
+import { apiEnv, type Bindings } from "./env";
 import { testBindings } from "./testing/worker";
 
 it("parses the bindings and the optional settings", () => {
@@ -17,4 +17,27 @@ it("names invalid bindings without their values", () => {
     apiEnv(testBindings("postgresql://x", { BETTER_AUTH_SECRET: secret }));
   expect(parse).toThrow("BETTER_AUTH_SECRET");
   expect(parse).not.toThrow(secret);
+});
+
+it("requires the DeepSeek settings for the DeepSeek provider", () => {
+  const parse = (overrides: Partial<Bindings>) => () =>
+    apiEnv(testBindings("postgresql://x", overrides));
+  expect(parse({ TASK_PROVIDER: "deepseek" })).toThrow("DEEPSEEK_API_KEY");
+  expect(
+    parse({
+      TASK_PROVIDER: "deepseek",
+      DEEPSEEK_API_KEY: "k",
+      DEEPSEEK_MODEL: "m",
+    }),
+  ).not.toThrow();
+});
+
+it("accepts the fake provider only with ALLOW_FAKE_PROVIDERS", () => {
+  const parse = (overrides: Partial<Bindings>) => () =>
+    apiEnv(testBindings("postgresql://x", overrides));
+  expect(parse({ TASK_PROVIDER: "fake" })).toThrow("ALLOW_FAKE_PROVIDERS");
+  expect(
+    parse({ TASK_PROVIDER: "fake", ALLOW_FAKE_PROVIDERS: "1" }),
+  ).not.toThrow();
+  expect(apiEnv(testBindings("postgresql://x")).TASK_PROVIDER).toBe("example");
 });

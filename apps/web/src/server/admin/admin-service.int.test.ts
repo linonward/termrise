@@ -7,8 +7,7 @@ import { createFakeAiProvider } from "@repo/ai/adapters/fake";
 import { createCreditService } from "@repo/credits/credit-service";
 import { creditTransactions, tasks, purchases, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
-
-import { createTaskService } from "@/features/tasks/task-service";
+import { createTaskService } from "@repo/tasks/task-service";
 
 import { AdminError, createAdminService } from "./admin-service";
 

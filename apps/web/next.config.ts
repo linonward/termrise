@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     "@repo/observability",
     "@repo/seo",
     "@repo/storage",
+    "@repo/tasks",
     "@repo/ui",
   ],
   // Same-origin PostHog endpoint (US region) so tracking blockers do not drop events.
