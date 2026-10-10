@@ -3,11 +3,12 @@ import {
   type HackerNewsList,
 } from "./adapters/hacker-news";
 import type { RadarItem, RadarObservation } from "./radar";
+import type { Lifecycle } from "./radar-lifecycle";
 import { seedFromTerm } from "./radar-rules";
 
 // Public shape of a radar item: the source link, the discussion link and a seed to start
 // research with.
-export function toRadarItemDto(i: RadarItem) {
+export function toRadarItemDto(i: RadarItem & { lifecycle: Lifecycle }) {
   return {
     id: i.id,
     provider: i.provider,
@@ -21,6 +22,7 @@ export function toRadarItemDto(i: RadarItem) {
     lastSeenAt: i.lastSeenAt.toISOString(),
     score: i.score,
     comments: i.comments,
+    lifecycle: i.lifecycle,
   };
 }
 

@@ -2,6 +2,7 @@ import { MessagesSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import type { RadarItemDto } from "@repo/research/radar-dto";
+import { cn } from "@repo/ui/utils";
 
 /** The public source of a radar item. */
 export function SourceBadge({
@@ -35,5 +36,31 @@ export function DiscussionNotice() {
         <p className="text-[13px] text-muted-foreground">{t("noticeBody")}</p>
       </div>
     </div>
+  );
+}
+
+/** The item's lifecycle from discussion counts (radar-lifecycle.ts). */
+export function LifecycleBadge({
+  lifecycle,
+}: {
+  lifecycle: RadarItemDto["lifecycle"];
+}) {
+  const t = useTranslations("radar.lifecycle");
+  return (
+    <span
+      data-testid="lifecycle"
+      className={cn(
+        "inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold tracking-[1px] whitespace-nowrap uppercase",
+        lifecycle === "breakout"
+          ? "bg-success-soft text-success"
+          : lifecycle === "emerging"
+            ? "bg-info-soft text-info"
+            : lifecycle === "insufficient_data"
+              ? "bg-surface-strong text-subtle-foreground"
+              : "bg-surface-strong text-muted-foreground",
+      )}
+    >
+      {t(lifecycle)}
+    </span>
   );
 }

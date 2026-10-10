@@ -747,7 +747,8 @@
       "posted": "发布时间",
       "observedAt": "观测时间",
       "list": "列表",
-      "rank": "排名"
+      "rank": "排名",
+      "trend": "趋势"
     },
     "provider": {
       "hacker_news": "Hacker News"
@@ -763,7 +764,23 @@
     "noData": "暂无数据",
     "researchTitle": "研究这个词",
     "researchBody": "用种子词「{seed}」创建研究项目。创建前可以修改。",
-    "startResearch": "开始研究"
+    "startResearch": "开始研究",
+    "lifecycle": {
+      "breakout": "爆发",
+      "emerging": "上升",
+      "sustained": "持续",
+      "recurring": "重复出现",
+      "seasonal": "季节性",
+      "insufficient_data": "数据不足"
+    },
+    "lifecycleHelp": {
+      "breakout": "在最近 6 小时的观测中增加了 100 分或更多。",
+      "emerging": "在最近 6 小时的观测中增加了 20 分或更多。",
+      "sustained": "出现了一天或更久，增长不多。",
+      "recurring": "同一个词出现在更早的故事中，至少早 7 天。",
+      "seasonal": "同一个词在往年的同一个月出现过。",
+      "insufficient_data": "观测不够，不能计算增长。需要至少 3 次观测，且跨越 3 小时以上。"
+    }
   },
   "research": {
     "metaTitle": "研究",

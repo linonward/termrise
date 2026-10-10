@@ -33,6 +33,7 @@
 | S25   | 服务设置：`worker_heartbeats` 与 migration（Worker 启动时和每分钟写入配置，`WORKER_ID`）；`provider-status.ts`（在线判断、按服务汇总当前用户的花费、最近一次调用的结果）；`GET /api/settings/providers`；`/settings/providers`（账号菜单与移动端入口）                                                                                                                                                                                                                                | 集成测试覆盖心跳、在线与离线、按用户汇总、最近状态；API 测试覆盖读取与 401；E2E 覆盖服务状态、运行后的花费、需要登录                                                                                    | 已完成 |
 | S26   | 取消研究运行：运行状态 `cancelled` 与 migration；`cancel()` 与 `POST /api/research/projects/:id/runs/:runId/cancel`；Runner 在每次付费调用前和阶段之间检查运行状态；项目 `cancelled` 可以再运行；详情页 [Cancel run]；fake 扩词的 `[slow]` 标记（E2E 用）                                                                                                                                                                                                                             | 集成测试覆盖取消排队中的运行、运行中在下一次付费调用前停止、已结束 409、不存在 404、其他用户 404；API 测试覆盖 200 / 409 / 404；E2E 覆盖取消后再运行的提示                                              | 已完成 |
 | S27   | 付费回答缓存：`provider_cache` 与 migration；`provider-cache.ts`（键、有效期、批量读取）；端口的 `cacheTtlMs`（DataForSEO 扩词与 KD 30 天、SERP 7 天）；Runner 先查缓存再付费，KD 只查没有缓存的关键词；快照保留服务回答的时间                                                                                                                                                                                                                                                        | 集成测试覆盖命中不付费、快照时间、到期后再付费、KD 只查新关键词、没有数据也缓存                                                                                                                         | 已完成 |
+| S28   | 热词生命周期（F02）：`radar-lifecycle.ts`（`lifecycle-v1`：breakout、emerging、sustained、recurring、seasonal、insufficient_data，只用讨论热度，观测不足时不计算增长）；Radar 列表与详情返回 `lifecycle`；趋势徽章与判断依据                                                                                                                                                                                                                                                          | 单元测试覆盖观测不足、增长窗口、持续、重复与季节；集成测试覆盖多次采集与重复出现；E2E 覆盖数据不足的徽章与说明                                                                                          | 已完成 |
 
 ## Confirmed Decisions
 
@@ -66,6 +67,7 @@
 - 2026-10-10：DeepSeek 的费用按返回的 token 和价格表计算，一律按高峰价（低谷价依赖中国法定节假日，无法可靠判断），账本可能高于实际账单。分析关闭思考模式、不重试。价格表中没有的模型不能使用；价格页变化时更新 `deepseek-prices.ts`。
 - 2026-10-10：DataForSEO 按响应报告的 `cost` 结算，预留额取高于官方价格的固定值。扩词只用 Google Ads `keywords_for_keywords`（一次调用即有搜索量、CPC、广告竞争度），KD 用 Labs `bulk_keyword_difficulty` 补查；暂不使用 `keyword_suggestions`、`related_keywords`、`search_volume`。
 - 2026-10-10：`/settings/providers` 不提供「测试连接」：DeepSeek 余额接口的文档没有写认证方式和是否收费，不猜。连接状态用最近一次真实调用的结果，服务配置来自 Worker 心跳（API 不读取 Worker 的环境变量）。预算仍按研究项目设置。
+- 2026-10-10：F02 生命周期先只用 HN 的讨论热度（分数随时间的变化和同一个词的更早条目），规则 `lifecycle-v1` 在读取时计算、不存储。接入有搜索趋势的数据源后再增加按搜索趋势的版本。
 
 ## Open Questions
 

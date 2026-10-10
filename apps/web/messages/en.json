@@ -751,7 +751,8 @@
       "posted": "Posted",
       "observedAt": "Seen at",
       "list": "List",
-      "rank": "Rank"
+      "rank": "Rank",
+      "trend": "Trend"
     },
     "provider": {
       "hacker_news": "Hacker News"
@@ -767,7 +768,23 @@
     "noData": "No data",
     "researchTitle": "Research this term",
     "researchBody": "Start a research project with the seed term “{seed}”. You can change it before you create the project.",
-    "startResearch": "Start research"
+    "startResearch": "Start research",
+    "lifecycle": {
+      "breakout": "Breakout",
+      "emerging": "Emerging",
+      "sustained": "Sustained",
+      "recurring": "Recurring",
+      "seasonal": "Seasonal",
+      "insufficient_data": "Not enough data"
+    },
+    "lifecycleHelp": {
+      "breakout": "Gained 100 points or more in the last 6 hours of observations.",
+      "emerging": "Gained 20 points or more in the last 6 hours of observations.",
+      "sustained": "Seen for a day or more without much growth.",
+      "recurring": "The same term was seen in an earlier story, at least 7 days before.",
+      "seasonal": "The same term was seen in the same month of an earlier year.",
+      "insufficient_data": "Not enough observations to measure growth. It needs 3 or more observations across 3 hours or more."
+    }
   },
   "research": {
     "metaTitle": "Research",
