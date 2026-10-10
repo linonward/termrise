@@ -3,8 +3,10 @@ import { defineConfig, devices } from "@playwright/test";
 import {
   E2E_API_PORT,
   E2E_DATABASE_URL,
+  E2E_WORKER_PORT,
   e2eApiVars,
   e2eEnv,
+  e2eWorkerVars,
 } from "./apps/web/tests/setup/e2e-env";
 
 const port = 3100;
@@ -62,6 +64,12 @@ export default defineConfig({
           E2E_DATABASE_URL,
         WRANGLER_SEND_METRICS: "false",
       },
+    },
+    {
+      command: "pnpm --filter worker start",
+      url: `http://localhost:${E2E_WORKER_PORT}/health`,
+      reuseExistingServer: false,
+      env: e2eWorkerVars,
     },
   ],
 });

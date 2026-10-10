@@ -29,8 +29,6 @@ export const e2eApiVars = {
   TASK_PROVIDER: "fake",
   STORAGE_PROVIDER: "fake",
   PAYMENT_PROVIDER: "fake",
-  KEYWORD_PROVIDER: "fake",
-  ANALYST_PROVIDER: "fake",
   R2_ACCOUNT_ID: "e2e-disabled",
   R2_ACCESS_KEY_ID: "e2e-disabled",
   R2_SECRET_ACCESS_KEY: "e2e-disabled",
@@ -38,4 +36,17 @@ export const e2eApiVars = {
   ALLOW_FAKE_PROVIDERS: "1",
   // tests/e2e/admin.spec.ts creates this user before signing in.
   ADMIN_USER_IDS: "e2e-admin",
+};
+
+export const E2E_WORKER_PORT = 3102;
+
+// apps/worker for E2E: jobs stay in its memory (no Redis), and it scans often.
+export const e2eWorkerVars = {
+  DATABASE_URL: E2E_DATABASE_URL,
+  WORKER_QUEUE: "memory",
+  SCAN_INTERVAL_MS: "300",
+  PORT: String(E2E_WORKER_PORT),
+  KEYWORD_PROVIDER: "fake",
+  ANALYST_PROVIDER: "fake",
+  ALLOW_FAKE_PROVIDERS: "1",
 };

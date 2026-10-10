@@ -29,9 +29,9 @@ Starter 的后台任务只有骨架：`packages/jobs` 定义队列接口，`apps
 
 `apps/worker/src/`：
 
-- `worker.ts`：`handlers` 把任务名映射到处理器；`startWorker(consumer)` 开始消费。
+- `worker.ts`：`createHandlers()` 把任务名映射到处理器；`startWorker(consumer, handlers)` 开始消费。
 - `processors/example.processor.ts`：示例处理器，只写一条日志。
-- `index.ts`：入口。现在没有持久化适配器，启动后写一条 warn 日志并以退出码 1 结束。
+- `index.ts`：入口，见下文 [Termrise](#termrise)。
 
 `worker.test.ts` 用内存队列验证入队、处理和日志。
 
@@ -53,6 +53,13 @@ Termrise 的选择（`docs/adr/011-worker.md`）与上面的步骤有两处不�
 - BullMQ 适配器在 `apps/worker` 中实现，不放 `packages/jobs`。`packages/jobs` 的接口和内存适配器保留，用于测试处理器。
 - HTTP API（`apps/api`，`docs/adr/012-api-modular-monolith.md`）不调用 `JobQueue.enqueue()`，不连接 Redis，只写数据库状态（例如 `research_runs.status = pending`）；Worker 用 BullMQ Job Scheduler 定时扫描并入队，定时采集也由 Job Scheduler 触发。
 
-Redis 用 Upstash（TCP + TLS，`rediss://`）。Worker 部署见 [Worker](deployment.md#worker)。
+Redis 用 Upstash（TCP + TLS，`rediss://`）；本地用 `docker compose up -d redis`。Worker 部署见 [Worker](deployment.md#worker)。
+
+现在的实现：
+
+- 任务：`research.scan`（Job Scheduler 每 `SCAN_INTERVAL_MS` 一次）找出 `pending` 的研究运行，为每个运行入队一个 `research.run`（`jobId` 为 `research-run-{runId}`，只加一次）；`research.run` 调用 `packages/research` 的 `execute(runId)`。`execute` 用一个条件更新把运行从 `pending` 改为 `running`，第二个 Worker 或重试拿不到同一个运行。
+- `apps/worker/src/bullmq.ts`：BullMQ 适配器（`Queue.add`、`upsertJobScheduler`、`Worker`，并发 2；ioredis 连接设置 `maxRetriesPerRequest: null`）。
+- `apps/worker/src/index.ts`：读取 env、创建数据库和 runner、启动消费与定时扫描、提供 `GET /health`；收到 SIGTERM 时停止消费、关闭连接后退出。
+- 还没有处理中途崩溃留下的 `running` 运行（需要超时恢复），也还没有部署到 Cloudflare Containers。
 
 TaskService 在 `packages/tasks`。Worker 的处理器需要修改 Task 状态（调用 Provider、转为终态、退款）时，调用同一个 TaskService：Worker 不能 import `apps/*`，也不得复制 Task 规则（overview.md 的 Monorepo 规则：业务规则只实现一次）。

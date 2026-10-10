@@ -30,6 +30,9 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
           )}
         </p>
       )}
+      {run.status === "pending" && (
+        <p className="text-muted-foreground">{t("runQueuedNote")}</p>
+      )}
       {run.status === "partial" && (
         <p className="text-muted-foreground">
           {run.errorCode === "BUDGET_EXHAUSTED"

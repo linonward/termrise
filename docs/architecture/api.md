@@ -27,7 +27,7 @@ POST /api/research/projects/:id/import（{ csv }：CSV 文本，最多 1,000,000
 
 GET /api/research/projects/:id/signals（项目的信号，观测时间新的在前，最多 200 条）
 
-POST /api/research/projects/:id/runs（{ requestId }：运行研究，现在同步执行，完成后返回 201 + 运行记录；同一个 requestId 返回同一次运行；没有配置关键词或分析 Provider 时 503 RESEARCH_PROVIDER_UNAVAILABLE；项目不是 draft / failed / budget_exhausted 时 409 RESEARCH_PROJECT_LOCKED；预算不够一次扩词时运行为 failed，errorCode 为 BUDGET_EXHAUSTED）
+POST /api/research/projects/:id/runs（{ requestId }：把运行放入队列，返回 201 + 运行记录（status 为 pending），由 Worker 执行；同一个 requestId 返回同一次运行；项目不是 draft / failed / budget_exhausted 时 409 RESEARCH_PROJECT_LOCKED；预算不够一次扩词时运行为 failed，errorCode 为 BUDGET_EXHAUSTED）
 
 GET /api/research/projects/:id/runs（运行记录，新的在前）
 

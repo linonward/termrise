@@ -524,7 +524,6 @@
     "NOT_FOUND": "这个页面或记录不存在。",
     "RESEARCH_PROJECT_NOT_FOUND": "这个研究项目不存在。",
     "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。",
-    "RESEARCH_PROVIDER_UNAVAILABLE": "暂时无法运行研究：还没有配置关键词数据来源。",
     "OPPORTUNITY_NOT_FOUND": "这个机会不存在。",
     "OPPORTUNITY_DECISION_INVALID": "当前状态不能做这个决策。请刷新页面后再试。",
     "EXPERIMENT_NOT_FOUND": "这个实验不存在。",
@@ -759,6 +758,7 @@
     "running": "正在运行…",
     "lastRun": "最近一次运行",
     "runStatus": {
+      "pending": "排队中",
       "running": "运行中",
       "completed": "已完成",
       "partial": "部分完成",
@@ -789,7 +789,8 @@
     "runPartialBudget": "预算在全部步骤完成前用完。下面的结果只包含预算内完成的部分。",
     "runBudgetBody": "数据预算不够一次扩词。提高数据预算后再运行。",
     "budgetUsed": "已花费 {spent} · 预留 {held}",
-    "budgetNote": "预算在取得任何数据之前用完。提高数据预算后再运行。"
+    "budgetNote": "预算在取得任何数据之前用完。提高数据预算后再运行。",
+    "runQueuedNote": "运行在等待 Worker，几秒后开始。"
   },
   "opportunities": {
     "metaTitle": "机会",

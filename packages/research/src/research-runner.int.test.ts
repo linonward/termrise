@@ -182,3 +182,25 @@ it("deletes runs, keywords and SERPs with the project", async () => {
   await db.delete(researchProjects).where(eq(researchProjects.id, id));
   expect(await db.select().from(keywordMetricSnapshots)).toEqual([]);
 });
+
+it("queues a run for the worker, which claims and runs it once", async () => {
+  const { id } = await project();
+  const requestId = randomUUID();
+  const queued = await runner.queue("a", id, { requestId });
+  expect(queued).toMatchObject({ status: "pending", stage: "queued" });
+  // The project locks at once: no edit while the run waits.
+  await expect(service.update("a", id, { name: "x" })).rejects.toMatchObject({
+    code: "RESEARCH_PROJECT_LOCKED",
+  });
+  expect((await runner.queue("a", id, { requestId })).id).toBe(queued.id);
+  expect(await runner.pendingRunIds()).toEqual([queued.id]);
+
+  const [first, second] = await Promise.all([
+    runner.execute(queued.id),
+    runner.execute(queued.id),
+  ]);
+  expect([first, second].filter(Boolean)).toHaveLength(1);
+  expect((first ?? second)?.status).toBe("completed");
+  expect(await runner.pendingRunIds()).toEqual([]);
+  expect(await runner.execute(queued.id)).toBeNull();
+});

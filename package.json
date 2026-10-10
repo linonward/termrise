@@ -25,7 +25,9 @@
     "admin:delete-user": "pnpm --filter api admin:delete-user",
     "indexnow": "pnpm --filter web indexnow",
     "seo:validate": "pnpm --filter web seo:validate",
-    "dev:api": "pnpm --filter api dev"
+    "dev:api": "pnpm --filter api dev",
+    "dev:worker": "pnpm --filter worker dev",
+    "dev:login": "pnpm --filter api dev:login"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

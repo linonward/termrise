@@ -526,7 +526,6 @@
     "NOT_FOUND": "This page or record doesn't exist.",
     "RESEARCH_PROJECT_NOT_FOUND": "This research project doesn't exist.",
     "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed.",
-    "RESEARCH_PROVIDER_UNAVAILABLE": "Research can't run yet: no keyword data source is set up.",
     "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist.",
     "OPPORTUNITY_DECISION_INVALID": "This decision is not possible from the current status. Reload the page and try again.",
     "EXPERIMENT_NOT_FOUND": "This experiment doesn't exist.",
@@ -763,6 +762,7 @@
     "running": "Running…",
     "lastRun": "Last run",
     "runStatus": {
+      "pending": "Queued",
       "running": "Running",
       "completed": "Completed",
       "partial": "Partly completed",
@@ -793,7 +793,8 @@
     "runPartialBudget": "The budget ran out before every step finished. The results below use what fit in the budget.",
     "runBudgetBody": "The data budget did not cover one keyword expansion. Raise the data budget, then run again.",
     "budgetUsed": "Spent {spent} · held {held}",
-    "budgetNote": "The budget ran out before any data came in. Raise the data budget and run again."
+    "budgetNote": "The budget ran out before any data came in. Raise the data budget and run again.",
+    "runQueuedNote": "The run waits for the worker and starts in a few seconds."
   },
   "opportunities": {
     "metaTitle": "Opportunities",

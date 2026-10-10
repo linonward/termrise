@@ -1,8 +1,5 @@
 import type { Context } from "hono";
 
-import { AppError } from "@repo/observability/errors";
-import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
-import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
 import { createBudget } from "@repo/research/budget";
 import {
   toCostsDto,
@@ -13,10 +10,10 @@ import {
   toSourceSignalDto,
 } from "@repo/research/research-dto";
 import { createResearchResults } from "@repo/research/research-results";
-import { createResearchRunner } from "@repo/research/research-runner";
+import { createRunQueue } from "@repo/research/research-runner";
 import { createResearchService } from "@repo/research/research-service";
 
-import { apiEnv, type AppEnv } from "../env";
+import type { AppEnv } from "../env";
 import { readJson } from "../http";
 import { userRoutes } from "./user-routes";
 import { rateLimit } from "../middleware/rate-limit";
@@ -24,20 +21,8 @@ import { rateLimit } from "../middleware/rate-limit";
 const research = (c: Context<AppEnv>) =>
   createResearchService({ database: c.var.db });
 
-// Without configured providers a run is refused, never filled with made-up data.
-function runner(c: Context<AppEnv>) {
-  const env = apiEnv(c.env);
-  if (env.KEYWORD_PROVIDER !== "fake" || env.ANALYST_PROVIDER !== "fake")
-    throw new AppError(
-      "RESEARCH_PROVIDER_UNAVAILABLE",
-      "No keyword or analyst provider configured",
-    );
-  return createResearchRunner({
-    database: c.var.db,
-    provider: createFakeKeywordProvider(),
-    analyst: createFakeAnalyst(),
-  });
-}
+// The API only queues a run; the worker executes it (docs/architecture/jobs.md).
+const runs = (c: Context<AppEnv>) => createRunQueue({ database: c.var.db });
 
 const reader = (c: Context<AppEnv>) =>
   createResearchResults({ database: c.var.db });
@@ -84,11 +69,11 @@ export const researchRoutes = userRoutes()
     );
     return c.json({ items: items.map(toSourceSignalDto) });
   })
-  // Runs synchronously for now and answers with the finished run (docs/roadmap.md).
+  // Answers with the queued run; GET /runs shows its progress.
   .post("/projects/:id/runs", rateLimit("research"), async (c) =>
     c.json(
       toResearchRunDto(
-        await runner(c).run(
+        await runs(c).queue(
           c.var.user.id,
           c.req.param("id"),
           await readJson(c),

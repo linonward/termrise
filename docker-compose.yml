@@ -34,6 +34,18 @@ services:
     volumes:
       - storage-data:/data
 
+  # Stand-in for Upstash Redis: the worker's BullMQ queue (docs/architecture/jobs.md).
+  # Tests use database 1 (TEST_REDIS_URL), local development database 0.
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "63790:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
 volumes:
   postgres-data:
   storage-data:

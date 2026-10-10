@@ -4,6 +4,7 @@ import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
 import { expectRateLimited } from "../testing/rate-limit";
+import { runQueuedResearch } from "../testing/research-worker";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient();
@@ -134,26 +135,22 @@ it("imports a CSV into a draft and lists its signals", async () => {
   ).toBe(404);
 });
 
-it("refuses to run without a keyword provider", async () => {
+it("queues a run for the worker and locks the project", async () => {
   const project = await (await create()).json();
-  const response = await send(
-    "POST",
-    `/api/research/projects/${project.id}/runs`,
-    owner,
-    { requestId: crypto.randomUUID() },
-  );
-  expect(response.status).toBe(503);
-  expect((await response.json()).error.code).toBe(
-    "RESEARCH_PROVIDER_UNAVAILABLE",
-  );
+  const base = `/api/research/projects/${project.id}`;
+  const response = await send("POST", `${base}/runs`, owner, {
+    requestId: crypto.randomUUID(),
+  });
+  expect(response.status).toBe(201);
+  expect(await response.json()).toMatchObject({
+    status: "pending",
+    stage: "queued",
+  });
+  expect((await send("PATCH", base, owner, { name: "x" })).status).toBe(409);
 });
 
 it("runs a project with the fake provider and lists what it stored", async () => {
-  const withProvider = createTestClient({
-    KEYWORD_PROVIDER: "fake",
-    ANALYST_PROVIDER: "fake",
-    ALLOW_FAKE_PROVIDERS: "1",
-  });
+  const withProvider = createTestClient();
   const cookie = await withProvider.signIn("runner@example.com");
   const project = await (
     await withProvider.call("/api/research/projects", {
@@ -177,10 +174,7 @@ it("runs a project with the fake provider and lists what it stored", async () =>
     body: JSON.stringify({ requestId: crypto.randomUUID() }),
   });
   expect(run.status).toBe(201);
-  expect(await run.json()).toMatchObject({
-    status: "completed",
-    errorCode: null,
-  });
+  await runQueuedResearch();
   const get = async (path: string) =>
     (
       await withProvider.call(`${base}/${path}`, { headers: { cookie } })
@@ -192,7 +186,7 @@ it("runs a project with the fake provider and lists what it stored", async () =>
   const { items: serps } = await get("serps");
   expect(serps[0].results).toHaveLength(10);
   const { items: runs } = await get("runs");
-  expect(runs).toHaveLength(1);
+  expect(runs).toMatchObject([{ status: "completed", errorCode: null }]);
   expect(
     (
       await withProvider.call(`${base}/keywords`, {
@@ -203,11 +197,7 @@ it("runs a project with the fake provider and lists what it stored", async () =>
 });
 
 it("reports a project's budgets and paid calls", async () => {
-  const withProvider = createTestClient({
-    KEYWORD_PROVIDER: "fake",
-    ANALYST_PROVIDER: "fake",
-    ALLOW_FAKE_PROVIDERS: "1",
-  });
+  const withProvider = createTestClient();
   const cookie = await withProvider.signIn("costs@example.com");
   const headers = {
     cookie,
@@ -233,6 +223,7 @@ it("reports a project's budgets and paid calls", async () => {
     headers,
     body: JSON.stringify({ requestId: crypto.randomUUID() }),
   });
+  await runQueuedResearch();
   const costs = await (
     await withProvider.call(path, { headers: { cookie } })
   ).json();

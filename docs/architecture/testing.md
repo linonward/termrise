@@ -35,6 +35,7 @@ CI：GitHub Actions PostgreSQL service container
 
 - Docker Compose project 名为 `saas-starter`，端口 `54330`。新产品可以改名和换端口，避免与其他项目的容器冲突。
 - 每个 worktree 使用独立的测试库 `app_test_{topic}`（来自 `TEST_DATABASE_URL`），测试启动时自动创建并执行 migration，避免多个 worktree 并行跑测试时互相清表。本地 `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:54330/app_test_{topic}`。库名只能包含 `[a-z0-9_]`。
+- Worker 的 BullMQ 测试（`apps/worker/src/bullmq.int.test.ts`）需要 Redis：本地 `docker compose up -d redis` 并设置 `TEST_REDIS_URL=redis://localhost:63790/1`（测试会清空这个库）；CI 有 Redis 服务。没有设置时这组测试跳过。E2E 启动 Worker 时用 `WORKER_QUEUE=memory`，不需要 Redis。
 - 测试会清空数据表，因此 test harness（`packages/db/src/testing/test-database.ts`）校验 `TEST_DATABASE_URL` 的 host 是 `localhost` / `127.0.0.1` / `::1` / `postgres`，否则拒绝运行，防止误连 Neon。
 
 Vitest 分为两个 project：

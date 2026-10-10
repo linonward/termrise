@@ -3,13 +3,10 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
+import { runQueuedResearch } from "../testing/research-worker";
 import { TEST_APP_URL } from "../testing/worker";
 
-const { call, signIn } = createTestClient({
-  KEYWORD_PROVIDER: "fake",
-  ANALYST_PROVIDER: "fake",
-  ALLOW_FAKE_PROVIDERS: "1",
-});
+const { call, signIn } = createTestClient();
 
 let owner: string;
 let other: string;
@@ -41,6 +38,7 @@ async function goOpportunity() {
   await send("POST", `/api/research/projects/${project.id}/runs`, {
     requestId: crypto.randomUUID(),
   });
+  await runQueuedResearch();
   const { items } = await (await send("GET", "/api/opportunities")).json();
   const base = `/api/opportunities/${items[0].id}/decisions`;
   await send("POST", base, { decision: "needs_validation", reason: "test" });
@@ -114,6 +112,7 @@ it("refuses a product before Go", async () => {
   await send("POST", `/api/research/projects/${project.id}/runs`, {
     requestId: crypto.randomUUID(),
   });
+  await runQueuedResearch();
   const { items } = await (await send("GET", "/api/opportunities")).json();
   const response = await send("POST", "/api/execution/projects", {
     opportunityId: items[0].id,
