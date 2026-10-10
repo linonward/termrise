@@ -250,6 +250,8 @@ export default async function OpportunityPage({
           )}
           <p className="text-[13px] text-muted-foreground">
             {t("analysisNote")}
+            {o.analystModel &&
+              ` ${t("analysisModel", { model: o.analystModel })}`}
           </p>
         </section>
       </div>

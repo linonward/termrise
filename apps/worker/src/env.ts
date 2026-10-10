@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isDeepSeekModel } from "@repo/research/adapters/deepseek-prices";
+
 // The worker's own variables (docs/architecture/environment.md#worker); it never reads the
 // web or API configuration. Errors name the variable, never its value.
 const schema = z
@@ -17,7 +19,11 @@ const schema = z
     /** Health check port (GET /health). */
     PORT: z.coerce.number().int().min(1).default(8080),
     KEYWORD_PROVIDER: z.enum(["fake"]),
-    ANALYST_PROVIDER: z.enum(["fake"]),
+    /** deepseek makes paid calls, charged to each project's AI budget. */
+    ANALYST_PROVIDER: z.enum(["fake", "deepseek"]),
+    DEEPSEEK_API_KEY: z.string().min(1).optional(),
+    /** A model in the price table (deepseek-prices.ts), e.g. deepseek-flash. */
+    DEEPSEEK_MODEL: z.string().min(1).optional(),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })
@@ -28,6 +34,20 @@ const schema = z
         path: ["REDIS_URL"],
         message: "required when WORKER_QUEUE=bullmq",
       });
+    if (env.ANALYST_PROVIDER === "deepseek") {
+      if (!env.DEEPSEEK_API_KEY)
+        ctx.addIssue({
+          code: "custom",
+          path: ["DEEPSEEK_API_KEY"],
+          message: "required when ANALYST_PROVIDER=deepseek",
+        });
+      if (!env.DEEPSEEK_MODEL || !isDeepSeekModel(env.DEEPSEEK_MODEL))
+        ctx.addIssue({
+          code: "custom",
+          path: ["DEEPSEEK_MODEL"],
+          message: "must be a model in the DeepSeek price table",
+        });
+    }
     for (const key of ["KEYWORD_PROVIDER", "ANALYST_PROVIDER"] as const)
       if (env[key] === "fake" && !env.ALLOW_FAKE_PROVIDERS)
         ctx.addIssue({

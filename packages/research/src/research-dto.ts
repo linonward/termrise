@@ -141,6 +141,7 @@ export function toOpportunityDto(row: {
     analysis: e.analysis as Analysis | null,
     analysisError: e.analysisError,
     analystProvider: e.analystProvider,
+    analystModel: e.analystModel,
     evaluatedAt: e.createdAt.toISOString(),
   };
 }

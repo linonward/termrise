@@ -43,6 +43,31 @@ it("validates its own environment and never echoes values", () => {
   expect(() =>
     workerEnv({ ...base, WORKER_QUEUE: "memory", ALLOW_FAKE_PROVIDERS: "" }),
   ).toThrow("ALLOW_FAKE_PROVIDERS");
+  const deepseek = {
+    ...base,
+    WORKER_QUEUE: "memory",
+    ANALYST_PROVIDER: "deepseek",
+  };
+  expect(() => workerEnv(deepseek)).toThrow("DEEPSEEK_API_KEY");
+  expect(() =>
+    workerEnv({
+      ...deepseek,
+      DEEPSEEK_API_KEY: "sk-x",
+      DEEPSEEK_MODEL: "gpt-4",
+    }),
+  ).toThrow("DEEPSEEK_MODEL");
+  expect(
+    workerEnv({
+      ...deepseek,
+      DEEPSEEK_API_KEY: "sk-x",
+      DEEPSEEK_MODEL: "deepseek-flash",
+    }).ANALYST_PROVIDER,
+  ).toBe("deepseek");
+  try {
+    workerEnv({ ...deepseek, DEEPSEEK_API_KEY: "sk-secret-key" });
+  } catch (error) {
+    expect(String(error)).not.toContain("sk-secret-key");
+  }
   try {
     workerEnv({ KEYWORD_PROVIDER: "fake" });
   } catch (error) {

@@ -44,7 +44,7 @@ export function createDeepSeekProvider(options: {
 
 // APICallError carries requestBodyValues (the full prompt) and responseBody, and
 // Sentry receives the thrown error: keep only the status, with no cause.
-function safeError(error: unknown) {
+export function safeError(error: unknown) {
   const last = RetryError.isInstance(error) ? error.lastError : error;
   if (APICallError.isInstance(last))
     return new Error(

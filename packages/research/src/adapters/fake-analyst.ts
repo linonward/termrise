@@ -10,6 +10,7 @@ export const FAKE_ANALYSIS_COST = { max: 10_000, actual: 1_500 } as const;
 export function createFakeAnalyst(): OpportunityAnalyst {
   return {
     name: "fake",
+    model: null,
     promptVersion: "fake-v1",
     maxCostMicros: FAKE_ANALYSIS_COST.max,
     async analyze(input: AnalysisInput) {

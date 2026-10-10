@@ -89,6 +89,8 @@ export const opportunityEvaluations = pgTable(
     analysis: jsonb().$type<Record<string, unknown>>(),
     analysisError: text(),
     analystProvider: text().notNull(),
+    /** The model the analyst used; null for the fake analyst. */
+    analystModel: text(),
     analystPromptVersion: text().notNull(),
     evidence: jsonb().$type<OpportunityEvidence>().notNull(),
     createdAt: createdAt(),
