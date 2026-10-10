@@ -11,7 +11,11 @@ import { PROJECT_NAME_MAX_LENGTH } from "@repo/research/research-rules";
 import { Button } from "@repo/ui/components/button";
 
 import { LocalDateTime } from "@/components/local-date-time";
-import { DiscussionNotice, SourceBadge } from "@/features/radar/radar-badges";
+import {
+  DiscussionNotice,
+  LifecycleBadge,
+  SourceBadge,
+} from "@/features/radar/radar-badges";
 import { apiRequest } from "@/server/api/api";
 
 type RadarDetail = RadarItemDto & { observations: RadarObservationDto[] };
@@ -63,7 +67,14 @@ export default async function RadarItemPage({
             {item.title}
           </h1>
           <SourceBadge provider={item.provider} />
+          <LifecycleBadge lifecycle={item.lifecycle} />
         </div>
+        <p
+          className="text-[15px] text-muted-foreground"
+          data-testid="lifecycle-help"
+        >
+          {t(`lifecycleHelp.${item.lifecycle}`)}
+        </p>
         <div className="flex flex-wrap gap-4 text-[15px] font-medium">
           {item.url && (
             <a

@@ -41,10 +41,15 @@ test("starts research from a radar story", async ({ page, context }) => {
   await page.getByRole("button", { name: "Apply" }).click();
   await expect(page).toHaveURL(/q=radar\+term/);
   await expect(page.getByTestId("radar-row")).toHaveCount(1);
+  // One collection is not enough to measure growth.
+  await expect(page.getByTestId("lifecycle")).toHaveText("Not enough data");
   await page.getByRole("link", { name: `Show HN: Radar term ${id}` }).click();
 
   await expect(page).toHaveURL(/\/radar\/[0-9a-f-]{36}$/);
   await expect(page.getByTestId("observation-row")).toHaveCount(2);
+  await expect(page.getByTestId("lifecycle-help")).toContainText(
+    "Not enough observations",
+  );
   await expect(page.getByRole("link", { name: "Discussion" })).toHaveAttribute(
     "href",
     `https://news.ycombinator.com/item?id=${id}`,

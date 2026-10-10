@@ -176,3 +176,37 @@ it("returns not found for an unknown or invalid id", async () => {
     radar.get("00000000-0000-4000-8000-000000000000"),
   ).rejects.toMatchObject({ code: "RADAR_ITEM_NOT_FOUND" });
 });
+
+it("shows a lifecycle from the observations and earlier items of the term", async () => {
+  const data = {
+    lists: { top: [1] },
+    items: [story(1, { title: "Show HN: Invoice parser", score: 10 })],
+  };
+  const radar = createRadar({
+    database: db,
+    now,
+    hackerNews: createFakeHackerNews(data),
+  });
+  clock = new Date("2026-10-10T08:00:00Z");
+  await radar.collectHackerNews();
+  expect((await radar.list())[0].lifecycle).toBe("insufficient_data");
+  for (const [hour, score] of [
+    [10, 60],
+    [12, 180],
+  ] as const) {
+    data.items = [story(1, { title: "Show HN: Invoice parser", score })];
+    clock = new Date(`2026-10-10T${hour}:00:00Z`);
+    await radar.collectHackerNews();
+  }
+  const [item] = await radar.list();
+  expect(toRadarItemDto(item).lifecycle).toBe("breakout");
+  expect((await radar.get(item.id)).item.lifecycle).toBe("breakout");
+
+  // The same term again, 10 days later, in another story.
+  data.lists = { top: [2] };
+  data.items = [story(2, { title: "Invoice parser" })];
+  clock = new Date("2026-10-20T08:00:00Z");
+  await radar.collectHackerNews();
+  const again = (await radar.list()).find((i) => i.externalId === "2")!;
+  expect(again.lifecycle).toBe("recurring");
+});

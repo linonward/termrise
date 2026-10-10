@@ -620,6 +620,7 @@ processed_at = now()
 - `radar_items`：一个故事一行，`(provider, external_id)` 唯一（HN 的 item id）。记录标题（最多 500 字符）、规范化的词（去掉 `Show HN:` 等前缀，规则同种子词）、链接（只保留 http / https，否则为 null）、发布时间、`first_seen_at` / `last_seen_at`（本系统第一次和最近一次看到它，不是它在互联网上出现的时间）、最新的分数和评论数（来源没有报告时为 null）。再次采集时更新标题、链接、分数和评论数，`first_seen_at` 不变。
 - `radar_observations`：只追加。每次采集，故事在每个列表中出现一次就记一行：时间、列表（`top` / `show`）、排名（从 1 开始）、分数、评论数。
 - 某个故事读取失败时跳过它；全部失败时任务失败，由队列重试。读取列表失败时任务失败。
+- 生命周期（`radar-lifecycle.ts`，版本 `lifecycle-v1`，product.md 的 F02）：读取时按观测计算，不存储，只用讨论热度。依次判断：同一个词在往年同月的更早条目中出现过（相隔至少 7 天）为 `seasonal`；在至少 7 天前的更早条目中出现过为 `recurring`；有分数的观测少于 3 次或跨度不到 3 小时为 `insufficient_data`；最近 6 小时（以最后一次观测为终点）增加至少 100 分为 `breakout`，至少 20 分为 `emerging`；出现至少 24 小时为 `sustained`；其余为 `insufficient_data`。没有分数的观测不参与比较。
 - 分数和评论数是讨论热度，不是搜索量，页面会说明。研究项目可以从一个条目开始：种子词为规范化的词，按词边界截到 80 字符。
 
 ---

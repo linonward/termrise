@@ -6,7 +6,11 @@ import { RADAR_SORTS, type RadarSort } from "@repo/research/radar-rules";
 import { Button } from "@repo/ui/components/button";
 
 import { LocalDateTime } from "@/components/local-date-time";
-import { DiscussionNotice, SourceBadge } from "@/features/radar/radar-badges";
+import {
+  DiscussionNotice,
+  LifecycleBadge,
+  SourceBadge,
+} from "@/features/radar/radar-badges";
 import { apiGet } from "@/server/api/api";
 
 export async function generateMetadata() {
@@ -114,6 +118,9 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
                     >
                       {item.title}
                     </Link>
+                  </td>
+                  <td className="py-4 pr-4">
+                    <LifecycleBadge lifecycle={item.lifecycle} />
                   </td>
                   <td className="py-4 pr-4">
                     <SourceBadge provider={item.provider} />

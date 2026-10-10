@@ -1,4 +1,4 @@
-import { desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
@@ -12,6 +12,7 @@ import {
   type HackerNewsList,
   type HackerNewsSource,
 } from "./adapters/hacker-news";
+import { type Lifecycle, lifecycle } from "./radar-lifecycle";
 import {
   RADAR_LIST_LIMIT,
   RADAR_PAGE_SIZE,
@@ -156,11 +157,53 @@ export function createRadar(deps: {
     return result;
   }
 
+  // Adds each item's lifecycle (radar-lifecycle.ts): two queries for the whole page.
+  async function withLifecycle(
+    items: RadarItem[],
+  ): Promise<(RadarItem & { lifecycle: Lifecycle })[]> {
+    if (items.length === 0) return [];
+    const ids = items.map((i) => i.id);
+    const terms = [...new Set(items.map((i) => i.normalizedTerm))];
+    const [observations, sameTerm] = await Promise.all([
+      database
+        .select({
+          itemId: radarObservations.itemId,
+          observedAt: radarObservations.observedAt,
+          score: radarObservations.score,
+        })
+        .from(radarObservations)
+        .where(inArray(radarObservations.itemId, ids)),
+      database
+        .select({
+          id: radarItems.id,
+          term: radarItems.normalizedTerm,
+          firstSeenAt: radarItems.firstSeenAt,
+        })
+        .from(radarItems)
+        .where(
+          and(
+            inArray(radarItems.normalizedTerm, terms),
+            ne(radarItems.normalizedTerm, ""),
+          ),
+        ),
+    ]);
+    return items.map((item) => ({
+      ...item,
+      lifecycle: lifecycle({
+        firstSeenAt: item.firstSeenAt,
+        observations: observations.filter((o) => o.itemId === item.id),
+        earlierSightings: sameTerm
+          .filter((s) => s.term === item.normalizedTerm && s.id !== item.id)
+          .map((s) => s.firstSeenAt),
+      }),
+    }));
+  }
+
   /** Items for the radar list: newest first seen, or highest score. */
   async function list(query: Record<string, string | undefined> = {}) {
     const { q, sort } = listQuery.parse(query);
     const pattern = q && `%${q.toLowerCase().replace(/[\\%_]/g, "\\$&")}%`;
-    return database
+    const items = await database
       .select()
       .from(radarItems)
       .where(pattern ? ilike(radarItems.normalizedTerm, pattern) : undefined)
@@ -172,6 +215,7 @@ export function createRadar(deps: {
         desc(radarItems.id),
       )
       .limit(RADAR_PAGE_SIZE);
+    return withLifecycle(items);
   }
 
   /** One item with its observations, newest first. */
@@ -188,7 +232,8 @@ export function createRadar(deps: {
       .where(eq(radarObservations.itemId, id))
       .orderBy(desc(radarObservations.observedAt), radarObservations.list)
       .limit(200);
-    return { item, observations };
+    const [withState] = await withLifecycle([item]);
+    return { item: withState, observations };
   }
 
   return { collectHackerNews, list, get };
