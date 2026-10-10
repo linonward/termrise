@@ -4,7 +4,7 @@ import type { createResearchRunner } from "@repo/research/research-runner";
 
 type Runner = Pick<
   ReturnType<typeof createResearchRunner>,
-  "pendingRunIds" | "execute"
+  "pendingRunIds" | "execute" | "failStaleRuns"
 >;
 
 // The API queues research runs as database rows; these processors pick them up
@@ -13,6 +13,10 @@ type Runner = Pick<
 export function researchProcessors(deps: { runner: Runner; queue: JobQueue }) {
   return {
     async "research.scan"() {
+      // Runs whose worker died: fail them so their projects can run again.
+      const stale = await deps.runner.failStaleRuns();
+      if (stale.length > 0)
+        logger.warn("research.stale_runs_failed", { count: stale.length });
       for (const runId of await deps.runner.pendingRunIds())
         await deps.queue.enqueue(
           "research.run",

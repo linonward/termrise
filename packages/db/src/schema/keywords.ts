@@ -40,6 +40,8 @@ export const researchRuns = pgTable(
     stage: text().notNull(),
     errorCode: text(),
     startedAt: createdAt(),
+    /** When a worker claimed the run; null while it waits in the queue. */
+    claimedAt: timestamp({ withTimezone: true }),
     finishedAt: timestamp({ withTimezone: true }),
   },
   (t) => [

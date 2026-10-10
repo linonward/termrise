@@ -1,8 +1,9 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray, lt } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
 import {
+  apiUsage,
   keywordMetricSnapshots,
   keywords,
   researchProjects,
@@ -25,6 +26,11 @@ export type ResearchRun = typeof researchRuns.$inferSelect;
 export const MAX_KEYWORDS = 200;
 /** Keywords whose SERP is audited: the highest search volume first. */
 export const SERP_AUDIT_COUNT = 5;
+/**
+ * A run still running this long after its claim lost its worker (a crash or a stop
+ * without SIGTERM). A full run takes minutes: 50 seeds at 5 seconds each is about 4.
+ */
+export const STALE_RUN_MS = 30 * 60 * 1000;
 
 const runSchema = z.object({ requestId: z.uuid() });
 // Statuses a run may start from: a fresh draft, or a retry after a failure.
@@ -129,7 +135,55 @@ export function createRunQueue(deps: { database: Database; now?: () => Date }) {
     return rows.map((row) => row.id);
   }
 
-  return { queue, findRun, pendingRunIds };
+  /**
+   * Fails the runs a worker claimed more than `olderThanMs` ago and never finished, so
+   * their projects can run again. Their open paid calls become failed: the cost is
+   * unknown, so the reservation stays counted (budget.ts).
+   */
+  async function failStaleRuns(olderThanMs = STALE_RUN_MS) {
+    const cutoff = new Date(now().getTime() - olderThanMs);
+    return database.transaction(async (tx) => {
+      const stale = await tx
+        .update(researchRuns)
+        .set({
+          status: "failed",
+          errorCode: "RUN_TIMED_OUT",
+          finishedAt: now(),
+        })
+        .where(
+          and(
+            eq(researchRuns.status, "running"),
+            lt(researchRuns.claimedAt, cutoff),
+          ),
+        )
+        .returning({ id: researchRuns.id, projectId: researchRuns.projectId });
+      if (stale.length === 0) return [];
+      await tx
+        .update(researchProjects)
+        .set({ status: "failed", updatedAt: now() })
+        .where(
+          inArray(
+            researchProjects.id,
+            stale.map((r) => r.projectId),
+          ),
+        );
+      await tx
+        .update(apiUsage)
+        .set({ status: "failed", settledAt: now() })
+        .where(
+          and(
+            inArray(
+              apiUsage.runId,
+              stale.map((r) => r.id),
+            ),
+            eq(apiUsage.status, "reserved"),
+          ),
+        );
+      return stale.map((r) => r.id);
+    });
+  }
+
+  return { queue, findRun, pendingRunIds, failStaleRuns };
 }
 
 export function createResearchRunner(deps: {
@@ -148,10 +202,15 @@ export function createResearchRunner(deps: {
     stage: "expanding" | "auditing" | "evaluating",
   ) {
     await database.transaction(async (tx) => {
-      await tx
+      const [current] = await tx
         .update(researchRuns)
         .set({ stage })
-        .where(eq(researchRuns.id, run.id));
+        .where(
+          and(eq(researchRuns.id, run.id), eq(researchRuns.status, "running")),
+        )
+        .returning({ id: researchRuns.id });
+      // A run failed as stale no longer owns its project.
+      if (!current) return;
       await tx
         .update(researchProjects)
         .set({ status: stage, updatedAt: now() })
@@ -174,11 +233,12 @@ export function createResearchRunner(deps: {
           and(eq(researchRuns.id, run.id), eq(researchRuns.status, "running")),
         )
         .returning();
+      if (!finished) return run;
       await tx
         .update(researchProjects)
         .set({ status: projectStatus ?? status, updatedAt: now() })
         .where(eq(researchProjects.id, run.projectId));
-      return finished ?? run;
+      return finished;
     });
   }
 
@@ -356,7 +416,7 @@ export function createResearchRunner(deps: {
   async function execute(runId: string) {
     const [run] = await database
       .update(researchRuns)
-      .set({ status: "running", stage: "expanding" })
+      .set({ status: "running", stage: "expanding", claimedAt: now() })
       .where(
         and(eq(researchRuns.id, runId), eq(researchRuns.status, "pending")),
       )

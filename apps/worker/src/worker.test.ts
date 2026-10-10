@@ -5,7 +5,11 @@ import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { workerEnv } from "./env";
 import { createHandlers, startWorker } from "./worker";
 
-const runner = { pendingRunIds: async () => [], execute: async () => null };
+const runner = {
+  pendingRunIds: async () => [],
+  execute: async () => null,
+  failStaleRuns: async () => [],
+};
 
 it("processes an enqueued example job", async () => {
   const log = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -120,5 +124,33 @@ it("collects the radar on trend.ingest and fails when it is disabled", async () 
   );
   expect(await disabled.drain()).toHaveLength(1);
   await stopDisabled();
+  log.mockRestore();
+});
+
+it("fails stale runs on each scan before it enqueues the pending ones", async () => {
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const log = vi.spyOn(console, "log").mockImplementation(() => {});
+  const calls: string[] = [];
+  const scanning = {
+    pendingRunIds: async () => {
+      calls.push("pending");
+      return [];
+    },
+    execute: async () => null,
+    failStaleRuns: async () => {
+      calls.push("stale");
+      return ["run-1"];
+    },
+  };
+  const queue = createMemoryQueue();
+  const stop = await startWorker(
+    queue,
+    createHandlers({ runner: scanning, queue }),
+  );
+  await queue.enqueue("research.scan", {});
+  expect(await queue.drain()).toEqual([]);
+  expect(calls).toEqual(["stale", "pending"]);
+  await stop();
+  warn.mockRestore();
   log.mockRestore();
 });

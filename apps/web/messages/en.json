@@ -818,7 +818,8 @@
     "runError": {
       "PROVIDER_ERROR": "The keyword data source did not answer.",
       "INTERNAL_ERROR": "Something went wrong during the run.",
-      "BUDGET_EXHAUSTED": "The data budget did not cover one keyword expansion."
+      "BUDGET_EXHAUSTED": "The data budget did not cover one keyword expansion.",
+      "RUN_TIMED_OUT": "The run stopped before it finished. Run it again."
     },
     "runPartialNote": "Some search results could not be fetched; the keywords are complete.",
     "keywordsTitle": "Keywords",
