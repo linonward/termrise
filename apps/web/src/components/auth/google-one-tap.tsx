@@ -36,13 +36,17 @@ export function GoogleOneTap({
       ]);
       if (unmounted) return;
       const client = createAuthClient({
+        // Better Auth runs on apps/api (docs/architecture/security.md#auth-on-the-api).
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
         // Show the prompt once per page; a dismissed prompt does not come back.
         plugins: [
           oneTapClient({ clientId, promptOptions: { maxAttempts: 0 } }),
         ],
       });
       // The prompt is optional: a blocked script or a dismissal keeps the page as is.
-      await client.oneTap({ callbackURL }).catch(() => {});
+      await client
+        .oneTap({ callbackURL: new URL(callbackURL, location.origin).href })
+        .catch(() => {});
     };
     // One listener reference, so stopListening removes exactly what was added.
     const onInteraction = () => void show();

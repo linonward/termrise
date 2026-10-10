@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-import { e2eEnv } from "./apps/web/tests/setup/e2e-env";
+import {
+  E2E_API_PORT,
+  e2eApiVars,
+  e2eEnv,
+} from "./apps/web/tests/setup/e2e-env";
 
 const port = 3100;
 
@@ -34,10 +38,29 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
-  webServer: {
-    command: `pnpm --filter web start --port ${port}`,
-    url: `http://localhost:${port}`,
-    reuseExistingServer: false,
-    env: e2eEnv,
-  },
+  webServer: [
+    {
+      command: `pnpm --filter web start --port ${port}`,
+      url: `http://localhost:${port}`,
+      reuseExistingServer: false,
+      env: e2eEnv,
+    },
+    // apps/api (Better Auth) on workerd, against the same test database.
+    {
+      command: [
+        `pnpm --filter api exec wrangler dev --port ${E2E_API_PORT}`,
+        ...Object.entries(e2eApiVars).map(
+          ([key, value]) => `--var ${key}:${value}`,
+        ),
+      ].join(" "),
+      // The port, not /api/health: globalSetup creates the test database after this starts.
+      port: E2E_API_PORT,
+      reuseExistingServer: false,
+      env: {
+        CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
+          e2eEnv.DATABASE_URL,
+        WRANGLER_SEND_METRICS: "false",
+      },
+    },
+  ],
 });

@@ -1,12 +1,13 @@
 "use client";
 import { ArrowLeft, CircleAlert, Globe, Mail } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { track } from "@repo/analytics/client";
-import { authClient } from "@repo/auth/client";
 import { Button } from "@repo/ui/components/button";
+
+import { authClient, siteUrl } from "@/lib/auth-client";
 
 export function AuthForm({
   mode,
@@ -20,6 +21,7 @@ export function AuthForm({
   googleLastUsed: boolean;
 }) {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(invalidLink ? t("invalidLink") : "");
@@ -32,14 +34,19 @@ export function AuthForm({
       const result = email
         ? await authClient.signIn.magicLink({
             email,
-            callbackURL: next,
-            newUserCallbackURL: next,
-            errorCallbackURL: `/sign-in?next=${encodeURIComponent(next)}&error=invalid_link`,
+            callbackURL: siteUrl(next),
+            newUserCallbackURL: siteUrl(next),
+            errorCallbackURL: siteUrl(
+              `/sign-in?next=${encodeURIComponent(next)}&error=invalid_link`,
+            ),
+            // apps/api writes the email in this language; the NEXT_LOCALE
+            // cookie of this site does not reach the API's subdomain.
+            fetchOptions: { headers: { "Accept-Language": locale } },
           })
         : await authClient.signIn.social({
             provider: "google",
-            callbackURL: next,
-            errorCallbackURL: "/sign-in?error=oauth",
+            callbackURL: siteUrl(next),
+            errorCallbackURL: siteUrl("/sign-in?error=oauth"),
           });
       if (result.error)
         setError(

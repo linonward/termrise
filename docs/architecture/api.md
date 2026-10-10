@@ -26,15 +26,11 @@ POST /api/webhooks/waffo
 GET /api/health（公开，给 uptime 监控用；数据库可用时 200 { status: "ok" }，否则 503 { status: "error" }，不缓存，见 observability.md 的 Uptime Monitoring）
 ```
 
-另外 Better Auth 挂载于：
-
-```text
-/api/auth/*
-```
+Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the API），web 不再提供这个路径。web 的页面和路由经 `NEXT_PUBLIC_API_URL` 调用 `GET /api/auth/get-session` 读取 session。
 
 不得因为“以后可能用”提前创建 API。
 
-除 webhook、`/api/health` 和 `/api/auth/*` 外，所有路由都要求登录（`requireUser()`），未登录返回 `401 UNAUTHORIZED`。
+除 webhook 和 `/api/health` 外，所有路由都要求登录（`requireUser()`，经 `apps/api` 读取 session），未登录返回 `401 UNAUTHORIZED`。
 
 需要登录的路由用 `userRoute()`（`apps/web/src/server/http/user-route.ts`）包装，不手写下面的步骤：
 

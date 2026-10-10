@@ -85,19 +85,20 @@ Production 环境禁止使用 Fake Provider，`packages/config/src/env.ts` 在 `
 
 真实 Provider 只在手动脚本中调用，不进入普通测试与 CI。Production Smoke 和 Smoke Test 尚未定义和实现。
 
-E2E 在 CI 中先 `pnpm build`，再由 Playwright 启动 `pnpm --filter web start --port 3100`，分 desktop（Desktop Chrome）和 mobile（Pixel 7）两个 project 运行。
+E2E 在 CI 中先 `pnpm build`，再由 Playwright 启动 `pnpm --filter web start --port 3100` 和 `apps/api` 的 `wrangler dev --port 3101`（Better Auth；变量用 `--var` 传入，见 `e2e-env.ts` 的 `e2eApiVars`，数据库与 web 相同），分 desktop（Desktop Chrome）和 mobile（Pixel 7）两个 project 运行。
 
 本地运行 E2E 时，构建命令与 CI 一致：
 
 ```bash
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:54330/app_test_{topic}_e2e \
-NEXT_PUBLIC_POSTHOG_KEY=phc_e2e_test pnpm build
+NEXT_PUBLIC_POSTHOG_KEY=phc_e2e_test NEXT_PUBLIC_API_URL=http://localhost:3101 pnpm build
 
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:54330/app_test_{topic}_e2e \
 pnpm test:e2e
 ```
 
 - `NEXT_PUBLIC_POSTHOG_KEY` 在构建时写入浏览器代码。没有它，页面不显示 Cookie 横幅，`analytics.spec.ts` 失败。测试中浏览器发往 `/ingest` 的请求被拦截，不发到 PostHog；服务端在 `e2e-env.ts` 中把这个变量设为空，不发送服务端事件。
+- `NEXT_PUBLIC_API_URL` 也在构建时写入浏览器代码，必须是 E2E 中 `apps/api` 的地址；`.env.local` 中开发用的值（3001）会让登录请求发到错误的端口。
 - 建议 E2E 使用单独的测试库（例如 `app_test_{topic}_e2e`）：集成测试会清空数据表，两者同时运行时会互相影响。
 
 ---
