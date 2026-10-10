@@ -115,3 +115,67 @@ test("decides with a reason after planning and running an experiment", async ({
   await page.getByRole("button", { name: "Download Markdown" }).click();
   expect((await download).suggestedFilename()).toBe("brief-meeting-notes.md");
 });
+
+test("starts a product from a Go opportunity and records its results", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/research");
+  await page.getByLabel("Name").fill("Product project");
+  await page.getByLabel("Seed terms").fill("invoice tool");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await page.getByRole("button", { name: "Run research" }).click();
+  await page.getByRole("link", { name: "View opportunities" }).click();
+  await page
+    .getByTestId("opportunity-row")
+    .first()
+    .getByRole("link")
+    .first()
+    .click();
+  for (const [label, reason] of [
+    ["Validate first", "Test it"],
+    ["Go: build it", "Pre-orders"],
+  ]) {
+    await page.getByLabel(label).check();
+    await page.getByLabel("Reason").fill(reason);
+    await page.getByRole("button", { name: "Save decision" }).click();
+    await expect(page.getByTestId("decision").first()).toContainText(reason);
+  }
+
+  await page.getByRole("button", { name: "Start product" }).click();
+  await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId("product-status")).toHaveText("Not started");
+
+  // A launched product needs its launch date.
+  await page.getByLabel("Status").selectOption("launched");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await page.getByLabel("Launch date", { exact: true }).fill("2026-10-12");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByTestId("product-status")).toHaveText("Launched");
+
+  await page.getByText("Record visitors or activations").first().click();
+  await page.getByLabel("Count", { exact: true }).fill("300");
+  await page.getByLabel("From", { exact: true }).fill("2026-10-12");
+  await page.getByLabel("To", { exact: true }).fill("2026-10-18");
+  await page
+    .getByRole("button", { name: "Record visitors or activations" })
+    .click();
+  await expect(page.getByTestId("total-visitors")).toHaveText("300");
+
+  await page.getByText("Record revenue").first().click();
+  await page.getByLabel("Date", { exact: true }).fill("2026-10-15");
+  await page.getByLabel("Orders", { exact: true }).fill("2");
+  await page.getByLabel("Gross", { exact: true }).fill("18");
+  await page.getByRole("button", { name: "Record revenue" }).click();
+  const total = page.getByTestId("revenue-total");
+  await expect(total).toContainText("USD");
+  await expect(total).toContainText("$18.00");
+  // Fees were left empty: net stays unknown, and the order is manual.
+  await expect(total).toContainText("Unknown");
+  await expect(page.getByTestId("revenue-row")).toContainText("Manual");
+
+  await page.goto("/projects");
+  await expect(page.getByTestId("product-row")).toHaveCount(1);
+});

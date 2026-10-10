@@ -132,7 +132,8 @@
       "zh": "简体中文"
     },
     "research": "研究",
-    "opportunities": "机会"
+    "opportunities": "机会",
+    "products": "产品"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -527,7 +528,10 @@
     "OPPORTUNITY_NOT_FOUND": "这个机会不存在。",
     "OPPORTUNITY_DECISION_INVALID": "当前状态不能做这个决策。请刷新页面后再试。",
     "EXPERIMENT_NOT_FOUND": "这个实验不存在。",
-    "EXPERIMENT_FINISHED": "这个实验已经结束，不能再修改。"
+    "EXPERIMENT_FINISHED": "这个实验已经结束，不能再修改。",
+    "EXECUTION_PROJECT_NOT_FOUND": "这个产品不存在。",
+    "EXECUTION_NEEDS_GO": "先对机会做 Go 决策，再开始产品。",
+    "EXECUTION_RECORD_NOT_FOUND": "这条记录不存在，或不能删除。"
   },
   "errorPage": {
     "title": "出错了",
@@ -921,5 +925,87 @@
     "copied": "已复制",
     "copyFailed": "浏览器不允许复制。请下载文件。",
     "preview": "预览"
+  },
+  "products": {
+    "metaTitle": "产品",
+    "title": "产品",
+    "subtitle": "由 Go 机会开始的产品：状态、上线、访客和收入，都按你的记录显示。",
+    "emptyTitle": "还没有产品",
+    "emptyBody": "先对一个机会做 Go 决策，再开始它的产品。",
+    "emptyLink": "前往机会",
+    "column": {
+      "name": "名称",
+      "status": "状态",
+      "domain": "域名",
+      "launched": "上线",
+      "created": "创建"
+    },
+    "none": "—",
+    "unknown": "未知",
+    "status": {
+      "not_started": "未开始",
+      "validating": "验证中",
+      "building": "开发中",
+      "launched": "已上线",
+      "measuring": "观察中",
+      "archived": "已归档"
+    },
+    "source": {
+      "manual": "手工",
+      "imported": "导入",
+      "payment_verified": "支付已核实"
+    },
+    "start": "开始产品",
+    "starting": "正在开始…",
+    "open": "打开产品",
+    "startBody": "这个机会已经 Go。开始产品，记录上线和结果。",
+    "back": "产品",
+    "opportunityLink": "机会",
+    "resultsTitle": "结果",
+    "productTitle": "产品",
+    "metric": {
+      "visitors": "访客",
+      "activations": "激活"
+    },
+    "total": {
+      "currency": "货币",
+      "orders": "订单",
+      "verified": "已核实",
+      "gross": "毛收入",
+      "refund": "退款",
+      "fees": "费用",
+      "net": "净收入"
+    },
+    "totalsNote": "按货币分别合计。有任何一笔费用未知时，净收入未知。只有支付已核实的订单计为已核实；你填写的数字是手工数据。",
+    "revenueEmpty": "还没有收入记录。",
+    "revenueTitle": "收入",
+    "eventsTitle": "访客与激活",
+    "ordersCount": "{count} 个订单",
+    "field": {
+      "name": "名称",
+      "status": "状态",
+      "launchedOn": "上线日期",
+      "domain": "域名",
+      "repoUrl": "仓库地址",
+      "metric": "指标",
+      "count": "数量",
+      "periodStart": "开始",
+      "periodEnd": "结束",
+      "note": "备注",
+      "occurredOn": "日期",
+      "currency": "货币",
+      "orders": "订单",
+      "gross": "毛收入",
+      "refund": "退款",
+      "fees": "费用",
+      "evidence": "证据"
+    },
+    "feesHint": "不知道费用时留空。净收入会保持未知。",
+    "evidenceHint": "订单号、支付号或链接",
+    "save": "保存",
+    "saving": "正在保存…",
+    "addEvent": "记录访客或激活",
+    "addRevenue": "记录收入",
+    "delete": "删除"
   }
 }

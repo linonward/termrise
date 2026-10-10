@@ -47,6 +47,20 @@ POST /api/opportunities/:id/experiments（{ kind, hypothesis, channel, metric, b
 
 PATCH /api/opportunities/:id/experiments/:experimentId（{ status, resultNote? }；passed / failed 需要 resultNote；不存在时 404 EXPERIMENT_NOT_FOUND，已结束时 409 EXPERIMENT_FINISHED）
 
+GET /api/execution/projects（当前用户的产品，新的在前；?opportunityId= 只列这个机会的产品）
+
+POST /api/execution/projects（{ opportunityId, name? }：开始 Go 机会的产品，返回 201；同一个机会再次请求返回同一个产品；机会不是 go 时 409 EXECUTION_NEEDS_GO；见 data-model.md 的 Execution and Revenue）
+
+GET /api/execution/projects/:id（产品、events、revenue 与 totals；不属于当前用户或不存在时 404 EXECUTION_PROJECT_NOT_FOUND）
+
+PATCH /api/execution/projects/:id（{ name?, status?, launchedOn?, domain?, repoUrl? }；launched / measuring 没有上线日期时 400 INVALID_INPUT）
+
+POST /api/execution/projects/:id/events（{ metric, count, periodStart, periodEnd, note? }，返回 201）
+
+POST /api/execution/projects/:id/revenue（{ occurredOn, currency, orders, gross, refund?, fees?, evidence?, note? }：金额用主单位，最多两位小数；fees 省略或 null 表示未知；返回 201，source 总是 manual）
+
+DELETE /api/execution/projects/:id/events/:recordId、DELETE /api/execution/projects/:id/revenue/:recordId（只删除 manual 记录，返回 204；否则 404 EXECUTION_RECORD_NOT_FOUND）
+
 GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
 
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
+import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
 import type {
   DecisionDto,
   ExperimentDto,
@@ -22,12 +23,13 @@ import {
   NeedsReview,
   OpportunityStatus,
 } from "@/features/opportunities/opportunity-badges";
+import { StartProduct } from "@/features/products/product-forms";
 import {
   FixtureNotice,
   KeywordTable,
   SerpList,
 } from "@/features/research/research-results";
-import { apiRequest } from "@/server/api/api";
+import { apiGet, apiRequest } from "@/server/api/api";
 
 type Detail = OpportunityDto & {
   keywords: KeywordDto[];
@@ -76,6 +78,15 @@ export default async function OpportunityPage({
 }: PageProps<"/opportunities/[id]">) {
   const { id } = await params;
   const [o, brief] = await Promise.all([loadOpportunity(id), loadBrief(id)]);
+  const tp = await getTranslations("products");
+  const [product] =
+    o.status === "go"
+      ? (
+          await apiGet<{ items: ExecutionProjectDto[] }>(
+            `/api/execution/projects?opportunityId=${o.id}`,
+          )
+        ).items
+      : [];
   const t = await getTranslations("opportunities");
   const td = await getTranslations("decisions");
   const format = await getFormatter();
@@ -345,6 +356,21 @@ export default async function OpportunityPage({
             </h2>
             <p className="text-[15px] text-muted-foreground">{td("body")}</p>
           </div>
+          {o.status === "go" && (
+            <div className="space-y-3 rounded-md bg-success-soft p-4">
+              <p className="text-[15px]">{tp("startBody")}</p>
+              {product ? (
+                <Link
+                  href={`/projects/${product.id}`}
+                  className="inline-flex text-[15px] font-semibold underline underline-offset-4"
+                >
+                  {tp("open")}
+                </Link>
+              ) : (
+                <StartProduct opportunityId={o.id} />
+              )}
+            </div>
+          )}
           <DecisionForm opportunityId={o.id} nextDecisions={o.nextDecisions} />
           {o.decisions.length > 0 && (
             <div className="space-y-3 border-t border-border pt-5">

@@ -33,6 +33,10 @@
 
 /opportunities/:id
 
+/projects
+
+/projects/:id
+
 /billing
 ```
 
@@ -40,7 +44,7 @@
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard`、`/research`、`/opportunities` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/dashboard`、`/research`、`/opportunities`、`/projects` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -335,6 +339,30 @@ Logout
 - 说明文字强调：高分不等于成功的概率；点击和候补名单不等于成交。
 - 状态徽章：unreviewed 为 `surface-strong`，needs_validation 为 `info-soft`，go 为 `success-soft`，no_go 为 `destructive-soft`。
 - 不属于当前用户或不存在的机会返回 404 页面。
+- 机会为 go 时，Decision 面板上方有 `success-soft` 的提示：没有产品时是 [Start product]（开始后进入产品页），有产品时是 Open product 链接。
+
+---
+
+## Products
+
+还没有设计稿；页面沿用 Research 的表格、面板和徽章样式。导航中的名称是 Products，路径是 `/projects`。
+
+`/projects`：标题 + 说明；表格：名称（→ 详情）、状态徽章、域名、上线日期、创建时间；没有产品时：空状态 + 前往 Opportunities 的链接。
+
+`/projects/:id`：
+
+```text
+← Products
+名称 + 状态徽章；机会链接（机会还在时）
+左侧：Results（surface 的访客、激活合计；按货币的收入表：订单、已核实订单、毛收入、退款、费用、净收入；未知显示 Unknown）+ 说明
+右侧：描边的 Product 面板（名称、状态、上线日期、域名、仓库地址，[Save]）
+下方左侧：Revenue 记录（日期、订单数、毛收入、退款、费用、证据、来源徽章，manual 可删除）+ 可展开的 Record revenue 表单（费用留空表示未知）
+下方右侧：Visitors and activations 记录 + 可展开的表单
+```
+
+- 状态徽章：not_started、archived 为 `surface-strong`；validating、building 为 `info-soft`；launched、measuring 为 `success-soft`。
+- 来源徽章：manual、imported 为 `surface-strong`；payment_verified 为 `success-soft`。手工数据不显示为已核实。
+- 不属于当前用户或不存在的产品返回 404 页面。
 
 ---
 

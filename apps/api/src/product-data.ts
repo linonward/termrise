@@ -1,6 +1,10 @@
 import type { ProductData } from "@repo/admin/account-service";
 import type { Database } from "@repo/db/client";
 import {
+  eraseExecutionData,
+  exportExecutionData,
+} from "@repo/execution/user-data";
+import {
   eraseResearchData,
   exportResearchData,
 } from "@repo/research/user-data";
@@ -13,9 +17,11 @@ export const productData = {
   export: async (database: Database, userId: string) => ({
     tasks: await exportTaskData(database, userId),
     researchProjects: await exportResearchData(database, userId),
+    products: await exportExecutionData(database, userId),
   }),
   erase: async (database, userId) => {
     await eraseTaskData(database, userId);
+    await eraseExecutionData(database, userId);
     await eraseResearchData(database, userId);
   },
 } satisfies ProductData;
