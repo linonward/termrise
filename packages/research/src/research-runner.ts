@@ -13,7 +13,9 @@ import {
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import { evaluateOpportunities } from "./evaluate";
 import type { KeywordIdea, KeywordProvider } from "./keyword-provider";
+import type { OpportunityAnalyst } from "./opportunity-analyst";
 import { normalizeSeeds } from "./research-rules";
 
 export type ResearchRun = typeof researchRuns.$inferSelect;
@@ -28,15 +30,17 @@ const runSchema = z.object({ requestId: z.uuid() });
 const STARTABLE = ["draft", "failed"] as const;
 
 // Runs a research project's stages (docs/architecture/data-model.md#research-runs-and-keywords):
-// expand the seeds with metrics, then audit the SERP of the top keywords. Synchronous for
+// expand the seeds with metrics, audit the SERP of the top keywords, then cluster, score
+// and rank the opportunities (evaluate.ts). Synchronous for
 // now; the stages move to apps/worker with the real providers (docs/roadmap.md).
 // Only this runner and ResearchService change a project's status.
 export function createResearchRunner(deps: {
   database: Database;
   provider: KeywordProvider;
+  analyst: OpportunityAnalyst;
   now?: () => Date;
 }) {
-  const { database, provider } = deps;
+  const { database, provider, analyst } = deps;
   const now = deps.now ?? (() => new Date());
 
   async function ownedProject(userId: string, projectId: string) {
@@ -103,7 +107,10 @@ export function createResearchRunner(deps: {
     });
   }
 
-  async function setStage(run: ResearchRun, stage: "expanding" | "auditing") {
+  async function setStage(
+    run: ResearchRun,
+    stage: "expanding" | "auditing" | "evaluating",
+  ) {
     await database
       .update(researchRuns)
       .set({ stage })
@@ -258,6 +265,14 @@ export function createResearchRunner(deps: {
       const saved = await saveKeywords(run, ideas);
       await setStage(run, "auditing");
       const failures = await auditSerps(saved, market);
+      await setStage(run, "evaluating");
+      await evaluateOpportunities({
+        database,
+        analyst,
+        now,
+        projectId,
+        runId: run.id,
+      });
       return await finish(run, failures > 0 ? "partial" : "completed");
     } catch (error) {
       logger.error("research.run_failed", { runId: run.id, error });

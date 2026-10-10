@@ -611,12 +611,27 @@ processed_at = now()
 研究的运行（`packages/research/src/research-runner.ts`）现在在 API 请求中同步执行，各阶段是 packages 中的函数，接真实 Provider 时移到 `apps/worker`（roadmap 的 Confirmed Decisions）。
 
 - `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 只在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`）。
-- 开始运行时在一个事务中锁住项目行：只有 `draft` 或 `failed` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding` → `auditing` → `completed` / `partial`；扩词失败为 `failed`。
+- 开始运行时在一个事务中锁住项目行：只有 `draft` 或 `failed` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding` → `auditing` → `evaluating` → `completed` / `partial`；扩词失败为 `failed`。
 - `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。
 - `keyword_metric_snapshots`：Provider 报告的指标，只追加。`search_volume`（月均搜索量）、`cpc_micros`（微美元）、`ads_competition`（Google Ads 竞争度 0–100）、`keyword_difficulty`（SEO 难度 0–100）各自独立，Provider 没有报告时为 null，不写 0（product.md 的 F03）。页面显示最新的一条。
 - `serp_snapshots` / `serp_results`：搜索量最高的 5 个关键词（搜索量为 null 或 0 的不审核）在桌面端的前 10 个自然结果，记录 Provider、设备、地区、语言和时间。某个关键词的 SERP 失败时跳过它，运行结束为 `partial`。
 - 每条指标和 SERP 都记录 `provider`。现在只有 `fake`（`packages/research/src/adapters/fake-keywords.ts`）：按词生成确定性的测试数据，SERP 链接到 `.invalid` 域名；只在 `ALLOW_FAKE_PROVIDERS=1` 时可用，页面在数据来自 `fake` 时显示「测试数据，不是真实的搜索数据」。真实 Provider（DataForSEO）实现同一个端口（`keyword-provider.ts`），按官方文档映射响应。
 - 删除项目时，运行、关键词、指标和 SERP 随之删除（`ON DELETE CASCADE`）。
+
+---
+
+## Opportunities
+
+运行的最后一个阶段（`evaluating`，`packages/research/src/evaluate.ts`）把关键词按来源种子词分组，每组是一个机会候选，打分后保留前 5 个。
+
+- `opportunities`：项目中的一个机会，`(project_id, cluster)` 唯一，`cluster` 是种子词。`status` 为 `unreviewed`（默认）/ `needs_validation` / `go` / `no_go`，只由用户的决策修改（S16）。再次运行时沿用同一行。
+- `opportunity_evaluations`：一次运行对一个机会的评估，只追加。记录 `run_id`、`scoring_version`、总分 `score`（0–100）、六个维度的评分 `dimensions`（每项 0–5）、`confidence`（0–100）、`needs_review`、名次 `rank`（1–5）、AI 分析 `analysis`、分析失败的原因 `analysis_error`、分析 Provider 与 Prompt 版本，以及评分用到的证据 `evidence`（关键词、SERP 快照、信号的 id）。
+- 当前评估：项目最近一次产生评估的运行中，每个机会最新的一条。上一次进入前 5、这一次没有进入的机会不再列出，历史评估保留。
+- 评分（`scoring.ts`，版本 `v1`）只由数据计算，AI 不写分数。维度与权重：趋势 20（信号中出现的不同天数）、需求 15（组内最大的搜索量，同义词不相加）、竞争 20（最大关键词的 KD，越低越高）、商业意图 25（购买类关键词的占比 + 最高 CPC）、MVP 适配 10（寻找工具、应用、模板的关键词占比）、分发 10（不同来源的数量）。总分 = Σ 评分 / 5 × 权重，四舍五入。没有搜索量的组不打分。
+- 可信度：指标完整的关键词占比 40、有 SERP 审核 25、指标在 30 天内 15、有信号 20。分数不低于 60 而可信度低于 50 时 `needs_review` 为 true，页面提示先核对证据。
+- 意图（`intent.ts`）：按词判断导航、交易、信息、商业类；问题词（how、what、guide 等）优先于商业词；无法判断时为信息类，不抬高商业意图。
+- AI 分析（`opportunity-analyst.ts` 端口）：输入是组名、关键词与意图、SERP 标题、信号来源，输出用 Zod 校验（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险）。输出不合格时 `analysis` 为 null，`analysis_error` 为 `AI_INVALID_OUTPUT`；调用失败为 `AI_ERROR`。两种情况分数照常保存。现在只有 `fake`（`adapters/fake-analyst.ts`，模板文字，只在 `ALLOW_FAKE_PROVIDERS=1` 时可用），真实 Provider（DeepSeek）实现同一个端口。
+- 删除项目时，机会与评估随之删除。账号导出包含每个项目的机会（组名、状态、创建时间）。
 
 ---
 

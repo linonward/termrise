@@ -10,7 +10,13 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard", "/billing", "/research", "/api"],
+      disallow: [
+        "/dashboard",
+        "/billing",
+        "/research",
+        "/opportunities",
+        "/api",
+      ],
     },
     sitemap: new URL("/sitemap.xml", serverEnv().APP_URL).href,
   };

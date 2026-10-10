@@ -29,6 +29,10 @@
 
 /research/:id
 
+/opportunities
+
+/opportunities/:id
+
 /billing
 ```
 
@@ -36,7 +40,7 @@
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard`、`/research` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/dashboard`、`/research`、`/opportunities` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -296,6 +300,38 @@ Logout
 - 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除和导入。
 - 不属于当前用户或不存在的项目返回 404 页面。
 - 状态徽章样式见 design-system.md 的 Status：draft 为 `surface-strong` + `pencil-line`；运行中各状态为 `info-soft` + `loader-circle`；completed 为 `success-soft`；failed、budget_exhausted 为 `destructive-soft`；cancelled、partial 为 `surface-strong`。
+- 最近一次运行为 completed 或 partial 时，运行面板下方有 View opportunities 链接，进入只显示该项目的 `/opportunities?project=<id>`。
+
+---
+
+## Opportunities
+
+还没有设计稿；页面沿用 Research 的表格、面板和徽章样式。
+
+`/opportunities`：
+
+```text
+标题 + 说明（分数只由数据计算，不由 AI 给出）
+?project= 时：「只显示一个项目」+ Show all
+数据来自测试 Provider 时：info-soft 的测试数据提示
+表格：机会（→ 详情，needs_review 时带 warning-soft 的 Check evidence 徽章）、项目（→ 项目详情）、分数、可信度、状态
+没有机会时：空状态 + 前往 Research 的链接
+```
+
+`/opportunities/:id`：
+
+```text
+← Opportunities
+组名 + 状态徽章（+ Check evidence）
+项目链接 · Evaluated 时间
+测试数据提示（分析或指标来自 fake 时）
+左侧：分数 /100、可信度，六个维度的评分（0–5）、说明与权重，评分版本说明
+右侧：surface 的 AI analysis（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险）；输出无效或失败时 warning-soft 提示「分数仍然有效」；下方说明 AI 不改变分数
+下方：证据关键词表（同 Research 的 Keywords 表）、Search results、Signals（词、来源、日期）
+```
+
+- 状态徽章：unreviewed 为 `surface-strong`，needs_validation 为 `info-soft`，go 为 `success-soft`，no_go 为 `destructive-soft`。
+- 不属于当前用户或不存在的机会返回 404 页面。
 
 ---
 

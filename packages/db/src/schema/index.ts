@@ -1,6 +1,7 @@
 export * from "./auth";
 export * from "./credits";
 export * from "./keywords";
+export * from "./opportunities";
 export * from "./orders";
 export * from "./rate-limits";
 export * from "./research";

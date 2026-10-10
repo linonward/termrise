@@ -10,7 +10,7 @@ import {
   sentryCspReportUri,
 } from "@/server/http/csp";
 
-const PROTECTED = /^\/(dashboard|billing|research)(\/|$)/;
+const PROTECTED = /^\/(dashboard|billing|research|opportunities)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);

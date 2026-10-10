@@ -10,6 +10,7 @@ import product from "@product";
 const links = [
   { href: "/dashboard", key: "dashboard" },
   { href: "/research", key: "research" },
+  { href: "/opportunities", key: "opportunities" },
   ...(product.billingEnabled
     ? [{ href: "/billing", key: "billing" } as const]
     : []),

@@ -131,7 +131,8 @@
       "en": "English",
       "zh": "简体中文"
     },
-    "research": "Research"
+    "research": "Research",
+    "opportunities": "Opportunities"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",
@@ -524,7 +525,8 @@
     "NOT_FOUND": "This page or record doesn't exist.",
     "RESEARCH_PROJECT_NOT_FOUND": "This research project doesn't exist.",
     "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed.",
-    "RESEARCH_PROVIDER_UNAVAILABLE": "Research can't run yet: no keyword data source is set up."
+    "RESEARCH_PROVIDER_UNAVAILABLE": "Research can't run yet: no keyword data source is set up.",
+    "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -778,6 +780,76 @@
     "fixtureTitle": "Fixture data",
     "fixtureBody": "These numbers and results come from the test data source. They are not real search data.",
     "serpTitle": "Top search results",
-    "serpBody": "The top 10 organic results of the keywords with the most searches, on desktop."
+    "serpBody": "The top 10 organic results of the keywords with the most searches, on desktop.",
+    "viewOpportunities": "View opportunities"
+  },
+  "opportunities": {
+    "metaTitle": "Opportunities",
+    "title": "Opportunities",
+    "subtitle": "Each research run ranks its strongest keyword groups. The score comes from the data, never from AI.",
+    "projectFilter": "Showing one project: {name}.",
+    "showAll": "Show all",
+    "emptyTitle": "No opportunities yet",
+    "emptyBody": "Run a research project to rank its keyword groups.",
+    "emptyLink": "Go to Research",
+    "column": {
+      "opportunity": "Opportunity",
+      "project": "Project",
+      "score": "Score",
+      "confidence": "Confidence",
+      "status": "Status",
+      "dimension": "Dimension",
+      "rating": "Rating",
+      "weight": "Weight"
+    },
+    "status": {
+      "unreviewed": "Unreviewed",
+      "needs_validation": "Validate",
+      "go": "Go",
+      "no_go": "No-go"
+    },
+    "needsReview": "Check evidence",
+    "back": "Opportunities",
+    "evaluated": "Evaluated",
+    "score": "Score",
+    "confidence": "Confidence",
+    "dimension": {
+      "trend": "Trend",
+      "demand": "Demand",
+      "competition": "Competition",
+      "commercial": "Commercial intent",
+      "mvp": "MVP fit",
+      "distribution": "Distribution"
+    },
+    "dimensionHint": {
+      "trend": "Days on which the term was seen in signals.",
+      "demand": "Monthly search volume of the biggest keyword. Synonyms are not added up.",
+      "competition": "Keyword difficulty of the biggest keyword; lower rates higher.",
+      "commercial": "Share of buying keywords and the highest CPC.",
+      "mvp": "Share of keywords that ask for a tool, app or template.",
+      "distribution": "Number of different sources that mention the term."
+    },
+    "scoreNote": "Scoring {version}: each rating from 0 to 5, multiplied by its weight. Confidence drops when data is missing, old or not audited.",
+    "analysisTitle": "AI analysis",
+    "analysis": {
+      "targetUser": "Target user",
+      "job": "Job to be done",
+      "alternatives": "Alternatives",
+      "differentiation": "Differentiation",
+      "pricing": "Pricing",
+      "channels": "Channels",
+      "mvpScope": "MVP scope",
+      "risks": "Risks"
+    },
+    "analysisError": {
+      "AI_INVALID_OUTPUT": "The AI answer did not have the expected form, so it is not shown. The score is still valid.",
+      "AI_ERROR": "The AI analysis did not complete. The score is still valid."
+    },
+    "analysisNote": "AI writes this text from the evidence below. It does not change the score.",
+    "keywordsTitle": "Keywords",
+    "serpTitle": "Search results",
+    "signalsTitle": "Signals",
+    "signalsEmpty": "No signals for this term. The trend and distribution ratings are 0.",
+    "sourceCsv": "CSV import"
   }
 }

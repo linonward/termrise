@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 
 import { AppError } from "@repo/observability/errors";
+import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
 import {
   toKeywordDto,
@@ -21,16 +22,18 @@ import { rateLimit } from "../middleware/rate-limit";
 const research = (c: Context<AppEnv>) =>
   createResearchService({ database: c.var.db });
 
-// Without a configured provider a run is refused, never filled with made-up data.
+// Without configured providers a run is refused, never filled with made-up data.
 function runner(c: Context<AppEnv>) {
-  if (apiEnv(c.env).KEYWORD_PROVIDER !== "fake")
+  const env = apiEnv(c.env);
+  if (env.KEYWORD_PROVIDER !== "fake" || env.ANALYST_PROVIDER !== "fake")
     throw new AppError(
       "RESEARCH_PROVIDER_UNAVAILABLE",
-      "No keyword provider configured",
+      "No keyword or analyst provider configured",
     );
   return createResearchRunner({
     database: c.var.db,
     provider: createFakeKeywordProvider(),
+    analyst: createFakeAnalyst(),
   });
 }
 
