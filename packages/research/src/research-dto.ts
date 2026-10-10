@@ -127,6 +127,7 @@ export function toOpportunityDto(row: {
   return {
     id: row.opportunity.id,
     projectId: row.opportunity.projectId,
+    starred: row.opportunity.starredAt !== null,
     projectName: row.projectName,
     cluster: row.opportunity.cluster,
     status: row.opportunity.status,

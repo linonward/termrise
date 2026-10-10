@@ -14,6 +14,7 @@ export const CLIENT_NAMESPACES = [
   "decisions",
   "errorPage",
   "errors",
+  "favorites",
   "meta",
   "nav",
   "pricing",

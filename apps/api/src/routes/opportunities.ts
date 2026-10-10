@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 
 import { briefFileName, buildBrief } from "@repo/research/brief";
+import { createFavorites } from "@repo/research/favorites";
 import { createOpportunityDecisions } from "@repo/research/opportunity-decisions";
 import { createOpportunityResults } from "@repo/research/opportunity-results";
 import {
@@ -16,6 +17,8 @@ import { rateLimit } from "../middleware/rate-limit";
 
 const results = (c: Context<AppEnv>) =>
   createOpportunityResults({ database: c.var.db });
+const favorites = (c: Context<AppEnv>) =>
+  createFavorites({ database: c.var.db });
 const decisions = (c: Context<AppEnv>) =>
   createOpportunityDecisions({ database: c.var.db });
 
@@ -26,6 +29,7 @@ export const opportunityRoutes = userRoutes()
     const items = await results(c).list(
       c.var.user.id,
       c.req.query("projectId"),
+      { starred: c.req.query("starred") === "1" },
     );
     return c.json({ items: items.map(toOpportunityDto) });
   })
@@ -46,6 +50,25 @@ export const opportunityRoutes = userRoutes()
       "Content-Disposition": `attachment; filename="${briefFileName(detail)}"`,
     });
   })
+  // Stars and unstars; repeating either changes nothing.
+  .put("/:id/star", rateLimit("research"), async (c) =>
+    c.json(
+      await favorites(c).starOpportunity(
+        c.var.user.id,
+        c.req.param("id"),
+        true,
+      ),
+    ),
+  )
+  .delete("/:id/star", rateLimit("research"), async (c) =>
+    c.json(
+      await favorites(c).starOpportunity(
+        c.var.user.id,
+        c.req.param("id"),
+        false,
+      ),
+    ),
+  )
   .post("/:id/decisions", rateLimit("research"), async (c) => {
     const decision = await decisions(c).decide(
       c.var.user.id,

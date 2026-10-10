@@ -720,6 +720,11 @@
     "budgetNote": "预留是为进行中的调用、以及失败且费用未知的调用保留的金额。每个研究项目有自己的数据预算和 AI 预算。",
     "budgetLink": "研究项目"
   },
+  "favorites": {
+    "star": "收藏 {name}",
+    "unstar": "取消收藏 {name}",
+    "failed": "收藏没有保存，请再试一次。"
+  },
   "radar": {
     "metaTitle": "Radar",
     "title": "Radar",
@@ -780,7 +785,9 @@
       "recurring": "同一个词出现在更早的故事中，至少早 7 天。",
       "seasonal": "同一个词在往年的同一个月出现过。",
       "insufficient_data": "观测不够，不能计算增长。需要至少 3 次观测，且跨越 3 小时以上。"
-    }
+    },
+    "starredOnly": "只看收藏",
+    "starredEmpty": "还没有收藏的故事。点击故事旁的星标即可收藏。"
   },
   "research": {
     "metaTitle": "研究",
@@ -983,7 +990,10 @@
     "serpTitle": "搜索结果",
     "signalsTitle": "信号",
     "signalsEmpty": "这个词没有信号。趋势和分发评分为 0。",
-    "sourceCsv": "CSV 导入"
+    "sourceCsv": "CSV 导入",
+    "starredOnly": "只看收藏",
+    "showAllStars": "全部机会",
+    "starredEmpty": "还没有收藏的机会。点击机会旁的星标即可收藏。"
   },
   "decisions": {
     "title": "决策",

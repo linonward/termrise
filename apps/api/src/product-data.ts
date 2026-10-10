@@ -5,6 +5,10 @@ import {
   exportExecutionData,
 } from "@repo/execution/user-data";
 import {
+  eraseRadarFavorites,
+  exportRadarFavorites,
+} from "@repo/research/favorites";
+import {
   eraseResearchData,
   exportResearchData,
 } from "@repo/research/user-data";
@@ -17,11 +21,13 @@ export const productData = {
   export: async (database: Database, userId: string) => ({
     tasks: await exportTaskData(database, userId),
     researchProjects: await exportResearchData(database, userId),
+    radarFavorites: await exportRadarFavorites(database, userId),
     products: await exportExecutionData(database, userId),
   }),
   erase: async (database, userId) => {
     await eraseTaskData(database, userId);
     await eraseExecutionData(database, userId);
     await eraseResearchData(database, userId);
+    await eraseRadarFavorites(database, userId);
   },
 } satisfies ProductData;

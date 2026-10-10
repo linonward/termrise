@@ -27,6 +27,20 @@ test("a research run ranks opportunities with their score and evidence", async (
   await expect(page).toHaveURL(/\/opportunities\?project=/);
   await expect(page.getByTestId("opportunity-row")).toHaveCount(2);
   await expect(page.getByTestId("fixture-notice")).toBeVisible();
+  // Star the first one; the starred filter shows only it.
+  const saved = page.waitForResponse(
+    (r) => r.url().endsWith("/star") && r.request().method() === "PUT",
+  );
+  await page.getByTestId("star-button").first().click();
+  expect((await saved).ok()).toBe(true);
+  await expect(page.getByTestId("star-button").first()).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("link", { name: "Starred only" }).click();
+  await expect(page.getByTestId("opportunity-row")).toHaveCount(1);
+  await page.getByRole("link", { name: "All opportunities" }).click();
+  await expect(page.getByTestId("opportunity-row")).toHaveCount(2);
 
   await page
     .getByTestId("opportunity-row")

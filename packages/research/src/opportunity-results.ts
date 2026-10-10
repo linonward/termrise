@@ -58,8 +58,12 @@ export function createOpportunityResults(deps: { database: Database }) {
     });
   }
 
-  /** The user's current opportunities, best score first; one project or all. */
-  async function list(userId: string, projectId?: string) {
+  /** The user's current opportunities, best score first; one project or all; starred only. */
+  async function list(
+    userId: string,
+    projectId?: string,
+    options: { starred?: boolean } = {},
+  ) {
     if (projectId !== undefined && !z.uuid().safeParse(projectId).success)
       return [];
     const projects = await database
@@ -76,6 +80,7 @@ export function createOpportunityResults(deps: { database: Database }) {
     if (projectId && projects.length === 0) return [];
     const nameOf = new Map(projects.map((p) => [p.id, p.name]));
     return (await current(projects.map((p) => p.id)))
+      .filter((row) => !options.starred || row.opportunity.starredAt !== null)
       .map((row) => ({
         ...row,
         projectName: nameOf.get(row.opportunity.projectId)!,

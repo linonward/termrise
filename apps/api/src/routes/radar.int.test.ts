@@ -5,6 +5,7 @@ import { createFakeHackerNews } from "@repo/research/adapters/fake-hacker-news";
 import { createRadar } from "@repo/research/radar";
 
 import { createTestClient } from "../testing/client";
+import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient();
 
@@ -78,4 +79,23 @@ it("returns 404 for an unknown item and 401 without a session", async () => {
   expect(missing.status).toBe(404);
   expect((await missing.json()).error.code).toBe("RADAR_ITEM_NOT_FOUND");
   expect((await get("/api/radar/items", false)).status).toBe(401);
+});
+
+it("stars and unstars an item, and lists the starred only", async () => {
+  const { items } = await (await get("/api/radar/items?q=invoice")).json();
+  const path = `/api/radar/items/${items[0].id}/star`;
+  const send = (method: string) =>
+    call(path, {
+      method,
+      headers: { cookie, Origin: TEST_APP_URL },
+    });
+  expect(await (await send("PUT")).json()).toEqual({ starred: true });
+  const starred = await (await get("/api/radar/items?starred=1")).json();
+  expect(starred.items.map((i: { starred: boolean }) => i.starred)).toEqual([
+    true,
+  ]);
+  expect(await (await send("DELETE")).json()).toEqual({ starred: false });
+  expect(
+    (await (await get("/api/radar/items?starred=1")).json()).items,
+  ).toEqual([]);
 });

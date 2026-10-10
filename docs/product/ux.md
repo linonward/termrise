@@ -285,7 +285,7 @@ Logout
 ```text
 标题 + 说明
 info-soft 提示：分数和评论数是讨论热度，不是搜索量
-搜索框（搜索词）+ 排序（首次发现 / 分数）+ [Apply]（GET 表单，参数写在 URL 中）
+搜索框（搜索词）+ 排序（首次发现 / 分数）+ 只看收藏（复选框）+ [Apply]（GET 表单，参数写在 URL 中）
 表：故事（→ 详情）、趋势徽章（生命周期）、来源徽章、分数、评论、首次发现
 ```
 
@@ -401,6 +401,13 @@ Open link（有链接时）、Discussion（HN 讨论页），新窗口打开，r
 - 状态徽章：not_started、archived 为 `surface-strong`；validating、building 为 `info-soft`；launched、measuring 为 `success-soft`。
 - 来源徽章：manual、imported 为 `surface-strong`；payment_verified 为 `success-soft`。手工数据不显示为已核实。
 - 不属于当前用户或不存在的产品返回 404 页面。
+
+---
+
+## Favorites
+
+- Radar 列表与详情、机会列表与详情的标题前有星标按钮（`aria-pressed`，屏幕阅读器标签为「收藏 / 取消收藏 <名称>」）。点击后立即改变；保存失败时恢复并在提示中说明。
+- Radar 用「只看收藏」复选框，机会列表用「只看收藏 / 全部机会」链接（保留项目筛选）。没有收藏时显示说明如何收藏的空状态。
 
 ---
 
