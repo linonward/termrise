@@ -28,6 +28,8 @@ Server-side Services
 
 Production 只部署 Next.js，不部署独立 API Service。`apps/api`（Hono）是可选骨架，见 [Monorepo](#monorepo)。
 
+Termrise 已决定改为模块化单体：全部 API 迁到 `apps/api`（Cloudflare Workers），`apps/web` 只经 HTTP 调用 API，见 `docs/adr/012-api-modular-monolith.md`。迁移完成前，本文描述的仍是当前代码。
+
 ---
 
 ### Database

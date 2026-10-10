@@ -51,7 +51,7 @@ Starter 的后台任务只有骨架：`packages/jobs` 定义队列接口，`apps
 Termrise 的选择（`docs/adr/011-worker.md`）与上面的步骤有两处不同：
 
 - BullMQ 适配器在 `apps/worker` 中实现，不放 `packages/jobs`。`packages/jobs` 的接口和内存适配器保留，用于测试处理器。
-- web 不调用 `JobQueue.enqueue()`，不连接 Redis。web 只写数据库状态（例如 `research_runs.status = pending`）；Worker 用 BullMQ Job Scheduler 定时扫描并入队，定时采集也由 Job Scheduler 触发。
+- HTTP API（`apps/api`，`docs/adr/012-api-modular-monolith.md`）不调用 `JobQueue.enqueue()`，不连接 Redis，只写数据库状态（例如 `research_runs.status = pending`）；Worker 用 BullMQ Job Scheduler 定时扫描并入队，定时采集也由 Job Scheduler 触发。
 
 Redis 用 Upstash（TCP + TLS，`rediss://`）。Worker 部署见 [Worker](deployment.md#worker)。
 

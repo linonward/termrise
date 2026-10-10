@@ -1,6 +1,6 @@
 # ADR-001: Next.js Monolith
 
-- Status: Accepted
+- Status: Accepted；Termrise 中「API 和 webhook 用 Route Handlers、只部署 Next.js」的部分被 ADR-012（`012-api-modular-monolith.md`）取代
 - Date: 2026-10-05
 
 ## Context

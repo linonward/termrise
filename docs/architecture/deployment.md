@@ -6,7 +6,7 @@
 Vercel（GitHub 集成）
 ```
 
-Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 不部署。`apps/worker` 部署在 Cloudflare，见 [Worker](#worker)。
+Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 现在不部署。Termrise 决定把 `apps/api` 部署到 Cloudflare Workers（`docs/adr/012-api-modular-monolith.md`，部署方式在迁移 Slice 中补充），`apps/worker` 部署在 Cloudflare，见 [Worker](#worker)。
 
 | Git      | Vercel 环境                        |
 | -------- | ---------------------------------- |
