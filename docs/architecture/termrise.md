@@ -10,13 +10,14 @@
 
 ## 技术架构
 
-Next.js 16 + TypeScript（沿用现有版本与约定）、PostgreSQL + Drizzle、Zod、Vitest + Playwright。Web/API 处理请求和展示；**常驻 Worker** 处理定时采集、批量扩词、SERP、AI 分析。优先复用 Starter 的 BullMQ/Redis；未实现时先提交差距报告，不盲目加依赖。
+Next.js 16 + TypeScript（沿用现有版本与约定）、PostgreSQL + Drizzle、Zod、Vitest + Playwright。`apps/web`（Vercel）只做展示，经 HTTP 调用 `apps/api`；`apps/api`（Hono，Cloudflare Workers）实现全部 API；**常驻 Worker** 处理定时采集、批量扩词、SERP、AI 分析。Starter 没有 BullMQ/Redis（S01 审计结果见 `docs/architecture/starter-audit.md`）。Worker 用 BullMQ + Upstash Redis，部署在 Cloudflare Containers；API 只写数据库状态，不入队，由 Worker 扫描并调度。决策见 `docs/adr/011-worker.md`。
 
 业务模块（逻辑分层，实际目录依模板调整）：
 
 ```text
-apps/web                  # UI / API
-apps/worker               # durable background jobs, if starter permits
+apps/web                  # UI only (Vercel), calls apps/api over HTTP
+apps/api                  # all HTTP APIs (Hono on Cloudflare Workers)
+apps/worker               # BullMQ worker on Cloudflare Containers
 packages/trend-discovery  # trends / HN / normalized signals
 packages/keyword-intel    # DataForSEO / metrics / SERP
 packages/opportunity      # clustering / scoring / evidence
@@ -161,7 +162,7 @@ Vitest：规范化、趋势计算、评分、预算、幂等、Zod、Provider Mo
 
 ## 部署与监控
 
-Web 沿用现有 Next.js 部署；长任务由持久 Worker 执行（Railway/Render/VPS 或已有平台），数据库和 Redis 复用 Starter。监控队列积压、任务失败、外部服务延迟、费用、模型 tokens、缓存命中率。日志去除凭据与敏感数据。首次上线前做数据库备份和迁移回滚演练。
+Web 沿用现有 Next.js 部署（Vercel）；API 部署在 Cloudflare Workers，经 Hyperdrive 连接数据库（`docs/adr/012-api-modular-monolith.md`）；长任务由 Worker 执行（Cloudflare Containers），数据库复用 Starter，Redis 用 Upstash（`docs/adr/011-worker.md`）。监控队列积压、任务失败、外部服务延迟、费用、模型 tokens、缓存命中率。日志去除凭据与敏感数据。首次上线前做数据库备份和迁移回滚演练。
 
 ## 完成定义
 

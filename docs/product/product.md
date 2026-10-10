@@ -100,7 +100,7 @@ DeepSeek 负责新概念/任务提取、意图分类、模糊聚类复核、SERP
 
 ## 外部服务与预算
 
-P0：Google Trends 可用公开导出、Hacker News API、DataForSEO、DeepSeek API；复用 Starter 的 PostgreSQL、Auth、Jobs/Redis、AI、Analytics、SEO 等实际存在的模块。Waffo/Credits 暂不用于 Termrise 自身对外收费。
+P0：Google Trends 可用公开导出、Hacker News API、DataForSEO、DeepSeek API；复用 Starter 的 PostgreSQL、Auth、AI、Analytics、SEO 等实际存在的模块；后台任务新增 BullMQ + Upstash Redis，Worker 部署在 Cloudflare Containers（`docs/adr/011-worker.md`）；API 在 `apps/api`，部署在 Cloudflare Workers（`docs/adr/012-api-modular-monolith.md`）。Waffo/Credits 暂不用于 Termrise 自身对外收费。
 
 首次研究实验预算建议 DataForSEO ≤$20、AI ≤$5（不等于服务商报价或最低充值）。派发前原子预留、完成后实际费用结算、缓存、熔断、幂等重试。
 

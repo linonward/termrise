@@ -6,7 +6,7 @@
 Vercel（GitHub 集成）
 ```
 
-Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 与 `apps/worker` 不部署。
+Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 现在不部署。Termrise 决定把 `apps/api` 部署到 Cloudflare Workers（`docs/adr/012-api-modular-monolith.md`，部署方式在迁移 Slice 中补充），`apps/worker` 部署在 Cloudflare，见 [Worker](#worker)。
 
 | Git      | Vercel 环境                        |
 | -------- | ---------------------------------- |
@@ -24,6 +24,19 @@ Preview 按需手动部署，节省 Hobby 额度：
 - Hobby 条款不允许商业用途；开始收费前升级 Pro。以 Vercel 当前条款为准。
 - Hobby 的函数执行时长上限较低。付费操作调用慢的 Provider（例如 AI 模型）时，先确认耗时在上限内，否则改为异步，见 [tasks.md](tasks.md)。
 - Pro 的月费计入产品的固定成本。
+
+---
+
+## Worker
+
+Termrise 的 `apps/worker` 运行在 Cloudflare Containers（需要 Workers Paid），Redis 用 Upstash（Fixed 套餐）。决策见 `docs/adr/011-worker.md`。
+
+- Cloudflare Worker + Durable Object 启动容器；容器内运行 `apps/worker` 的 Node 进程。
+- 容器可能随时被停止：平台先发 SIGTERM，最多等 15 分钟再 SIGKILL。Worker 收到 SIGTERM 后停止取任务，等待进行中的任务结束。
+- 磁盘是临时的。任务状态只存在 PostgreSQL 和 Redis 中。
+- Worker 与 web 连接同一个 Neon 数据库。
+
+部署配置、保持容器运行的方式和发布步骤在实现 Worker 的 Slice 中按 Cloudflare 官方文档补充。
 
 ---
 

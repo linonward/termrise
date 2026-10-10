@@ -28,6 +28,8 @@ Server-side Services
 
 Production 只部署 Next.js，不部署独立 API Service。`apps/api`（Hono）是可选骨架，见 [Monorepo](#monorepo)。
 
+Termrise 已决定改为模块化单体：全部 API 迁到 `apps/api`（Cloudflare Workers），`apps/web` 只经 HTTP 调用 API，见 `docs/adr/012-api-modular-monolith.md`。迁移完成前，本文描述的仍是当前代码。
+
 ---
 
 ### Database
@@ -423,7 +425,7 @@ ESLint（`eslint.config.mjs`，规则测试在 `eslint-boundaries.test.ts`）检
 
 汇总导出和「同一业务规则只实现一次」不由 ESLint 检查，只靠 Review 保证。
 
-`apps/api` 与 `apps/worker` 是骨架：有接口和测试，没有部署配置。`pnpm dev:api` 在 3001 端口启动 API。Worker 需要一个持久化队列适配器才能运行，见 [jobs.md](jobs.md)。
+`apps/api` 与 `apps/worker` 是骨架：有接口和测试，没有部署配置。Termrise 把 `apps/worker` 部署到 Cloudflare Containers，见 [Worker](deployment.md#worker)。`pnpm dev:api` 在 3001 端口启动 API。Worker 需要一个持久化队列适配器才能运行，见 [jobs.md](jobs.md)。
 
 Turborepo 的配置和命令随版本变化。修改 `turbo.json` 前，先读安装包自带的文档：`node_modules/turbo/docs/`。`turbo.json` 设置了 `agentGuidance: false`，Turborepo 不再向 `AGENTS.md` 写入说明。
 
