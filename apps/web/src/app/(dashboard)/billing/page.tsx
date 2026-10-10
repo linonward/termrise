@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { CreditPackId } from "@repo/billing/credit-packs";
-import { toPurchaseDto } from "@repo/billing/purchase-dto";
+import type { toPurchaseDto } from "@repo/billing/purchase-dto";
+import type { SubscriptionDto } from "@repo/billing/subscription-dto";
 import type { SubscriptionPlanId } from "@repo/billing/subscription-plans";
-import { toCreditActivityDto } from "@repo/credits/credit-activity";
+import type { CreditActivityDto } from "@repo/credits/credit-activity";
 import { Button } from "@repo/ui/components/button";
 
 import { CancelSubscription } from "@/components/billing/cancel-subscription";
@@ -16,9 +17,10 @@ import { PurchaseStatus } from "@/components/billing/purchase-status";
 import { SubscriptionStatus } from "@/components/billing/subscription-status";
 import { LocalDateTime } from "@/components/local-date-time";
 import { formatUsd } from "@/lib/format-usd";
+import { apiGet, getBalance } from "@/server/api/api";
 import { getRequestSession } from "@/server/auth/auth";
-import { getBillingService } from "@/server/billing/billing";
-import { balanceForUser, getCreditService } from "@/server/credits/credits";
+
+type PurchaseDto = ReturnType<typeof toPurchaseDto>;
 
 export default async function BillingPage({
   searchParams,
@@ -29,21 +31,27 @@ export default async function BillingPage({
   if (!session) redirect("/sign-in?next=%2Fbilling");
   const t = await getTranslations("billing");
   const tp = await getTranslations("pricing");
-  const userId = session.user.id;
-  const credits = getCreditService();
-  const billing = getBillingService();
   const checkoutParam = (await searchParams).checkout;
   // First: it refunds stale tasks, so the activity below includes the refunds.
-  const balance = await balanceForUser(userId);
-  const [activity, purchases, subscriptionCheckout, subscription] =
+  const balance = await getBalance();
+  const [activity, { purchases }, subscriptionCheckout, billing] =
     await Promise.all([
-      credits.listActivity(userId),
-      billing.listPurchases(userId).then((list) => list.map(toPurchaseDto)),
+      apiGet<{
+        transactions: CreditActivityDto[];
+        nextCursor: string | null;
+      }>("/api/billing/credit-activity"),
+      apiGet<{ purchases: PurchaseDto[] }>("/api/billing/purchases"),
       checkoutParam === "subscription"
-        ? billing.subscriptionCheckoutStatus(userId)
+        ? apiGet<{ checkout: { granted: boolean } | null }>(
+            "/api/billing/subscription/checkout-status",
+          ).then((r) => r.checkout)
         : null,
-      billing.currentSubscription(userId),
+      apiGet<{
+        subscription: SubscriptionDto | null;
+        customerPortalUrl: string;
+      }>("/api/billing/subscription"),
     ]);
+  const { subscription } = billing;
   // Refunded, failed or no purchase: nothing is on its way, so no banner.
   const newest = purchases[0]?.status;
   const checkout =
@@ -61,7 +69,7 @@ export default async function BillingPage({
   // Waffo sends the period end as a date, so it is shown as a UTC date.
   const periodEnd =
     subscription?.currentPeriodEnd &&
-    format.dateTime(subscription.currentPeriodEnd, {
+    format.dateTime(new Date(subscription.currentPeriodEnd), {
       dateStyle: "medium",
       timeZone: "UTC",
     });
@@ -161,8 +169,8 @@ export default async function BillingPage({
         </h2>
         {/* Remount when the checkout refresh brings a new entry. */}
         <CreditActivity
-          key={activity.items[0]?.id}
-          initial={activity.items.map(toCreditActivityDto)}
+          key={activity.transactions[0]?.id}
+          initial={activity.transactions}
           initialCursor={activity.nextCursor}
         />
       </section>
