@@ -167,6 +167,8 @@ const eslintConfig = defineConfig([
   },
   globalIgnores([
     "**/.next/**",
+    // wrangler dev bundle of apps/api.
+    "**/.wrangler/**",
     "**/dist/**",
     ".turbo/**",
     "out/**",

@@ -13,7 +13,7 @@ export function useLogout() {
     setError(false);
     try {
       // Loaded on click: the dashboard only needs the auth client to sign out.
-      const { authClient } = await import("@repo/auth/client");
+      const { authClient } = await import("@/lib/auth-client");
       const result = await authClient.signOut();
       if (result.error) throw new Error();
       withPostHog((posthog) => posthog.reset());

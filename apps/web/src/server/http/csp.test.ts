@@ -20,6 +20,12 @@ it("allows uploads to the local storage endpoint", () => {
   ).toContain("https://*.r2.cloudflarestorage.com http://localhost:8333");
 });
 
+it("allows calls to apps/api", () => {
+  expect(
+    reportOnlyCsp({ nonce: "abc", apiUrl: "https://api.example.com/x" }),
+  ).toContain("https://*.r2.cloudflarestorage.com https://api.example.com");
+});
+
 it("reports violations when a report URI is given", () => {
   expect(
     reportOnlyCsp({ nonce: "abc", reportUri: "https://r.example/csp" }),

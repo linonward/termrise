@@ -77,12 +77,13 @@ Webhook Route 必须读取原始 request body 做签名验证，再解析 JSON�
 
 ## Auth on the API
 
-`apps/api` 也在 `/api/auth/*` 提供 Better Auth（`apps/api/src/routes/auth.ts`，迁移中，见 `docs/adr/012-api-modular-monolith.md`）。与 web 的不同：
+Better Auth 只在 `apps/api` 的 `/api/auth/*`（`apps/api/src/routes/auth.ts`，见 `docs/adr/012-api-modular-monolith.md`）。web 不连接认证表：浏览器经 `NEXT_PUBLIC_API_URL` 调用 API；服务端用 `createSessionClient()`（`packages/auth/src/session-client.ts`）带上请求的 cookie 调用 `GET /api/auth/get-session`，API 失败时抛错，不当作未登录。
 
 - `baseURL` 是 API 自己的地址（`BETTER_AUTH_URL`）；`APP_URL`（web）加入 `trustedOrigins`，也是唯一允许的 CORS origin（`credentials: true`）。
 - callback URL 可以是 web origin 上的绝对 URL（`isSafeCallback()`，路径部分仍经 `safeNext()` 校验）；其他 origin 返回 400。
 - 设置 `AUTH_COOKIE_DOMAIN`（例如 `termrise.com`）时，session cookie 带 `Domain`，web 与 API 的子域名共用。本地不设置：`localhost` 的 cookie 不区分端口。
-- Magic Link 的 IP 限流读 `cf-connecting-ip`；文案在 `apps/api/messages/*.json`，语言按 `NEXT_LOCALE` cookie → `Accept-Language` 选择（`packages/config/src/locale.ts`）。
+- Magic Link 的 IP 限流读 `cf-connecting-ip`；文案在 `apps/api/messages/*.json`，语言按 `NEXT_LOCALE` cookie → `Accept-Language` 选择（`packages/config/src/locale.ts`）。web 的登录表单把界面语言放在 `Accept-Language` 中发送，因为 web 的 `NEXT_LOCALE` cookie 不会发到 API 的子域名。
+- 浏览器调用 API 需要 CSP 的 `connect-src` 包含 `NEXT_PUBLIC_API_URL` 的 origin（`apps/web/src/server/http/csp.ts`）。
 
 ---
 

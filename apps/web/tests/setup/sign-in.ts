@@ -7,7 +7,7 @@ import { createOnUserCreated } from "@repo/auth/on-user-created";
 import { createCreditService } from "@repo/credits/credit-service";
 import { testDb } from "@repo/db/testing/db";
 
-import { e2eEnv } from "./e2e-env";
+import { e2eApiVars, e2eEnv } from "./e2e-env";
 import product from "../../../../product.config";
 
 // Test-only magic link: Better Auth runs in the test process against the same
@@ -18,10 +18,11 @@ export async function magicLink(email: string) {
     testDb(),
     {
       appName: "Acme",
-      baseURL: e2eEnv.APP_URL,
-      secret: e2eEnv.BETTER_AUTH_SECRET,
-      googleClientId: e2eEnv.GOOGLE_CLIENT_ID,
-      googleClientSecret: e2eEnv.GOOGLE_CLIENT_SECRET,
+      baseURL: e2eApiVars.BETTER_AUTH_URL,
+      appOrigin: e2eEnv.APP_URL,
+      secret: e2eApiVars.BETTER_AUTH_SECRET,
+      googleClientId: e2eApiVars.GOOGLE_CLIENT_ID,
+      googleClientSecret: e2eApiVars.GOOGLE_CLIENT_SECRET,
     },
     async ({ url }) => {
       link = url;
@@ -34,7 +35,7 @@ export async function magicLink(email: string) {
   );
   await auth.api.signInMagicLink({
     headers: new Headers({ origin: e2eEnv.APP_URL }),
-    body: { email, callbackURL: "/dashboard" },
+    body: { email, callbackURL: `${e2eEnv.APP_URL}/dashboard` },
   });
   return { auth, link };
 }

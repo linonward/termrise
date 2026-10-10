@@ -5,12 +5,8 @@ import { EnvError, parseServerEnv } from "./env";
 const valid = {
   APP_URL: "http://localhost:3000",
   DATABASE_URL: "postgresql://user:pass@localhost:5432/app",
-  BETTER_AUTH_SECRET: "x".repeat(32),
-  BETTER_AUTH_URL: "http://localhost:3000",
+  NEXT_PUBLIC_API_URL: "http://localhost:3001",
   GOOGLE_CLIENT_ID: "google-id",
-  GOOGLE_CLIENT_SECRET: "google-secret",
-  RESEND_API_KEY: "re_test",
-  EMAIL_FROM: "Example <hello@example.com>",
   R2_ACCOUNT_ID: "account",
   R2_ACCESS_KEY_ID: "key",
   R2_SECRET_ACCESS_KEY: "secret",
@@ -30,10 +26,10 @@ describe("parseServerEnv", () => {
   it("lists every missing variable by name", () => {
     const rest: Record<string, string | undefined> = { ...valid };
     delete rest.DATABASE_URL;
-    delete rest.RESEND_API_KEY;
+    delete rest.NEXT_PUBLIC_API_URL;
     expect(() => parseServerEnv(rest)).toThrow(EnvError);
     expect(() => parseServerEnv(rest)).toThrow(
-      /DATABASE_URL[\s\S]*RESEND_API_KEY/,
+      /DATABASE_URL[\s\S]*NEXT_PUBLIC_API_URL/,
     );
   });
 

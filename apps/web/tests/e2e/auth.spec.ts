@@ -22,10 +22,12 @@ test("requests a magic link using a safe return URL and displays delivery state"
   page,
 }) => {
   await page.route("**/api/auth/sign-in/magic-link", async (route) => {
+    // Better Auth runs on apps/api: callbacks are absolute URLs on this site.
     expect(route.request().postDataJSON()).toMatchObject({
-      callbackURL: "/dashboard",
+      callbackURL: "http://localhost:3100/dashboard",
       email: "test@example.com",
     });
+    expect(route.request().headers()["accept-language"]).toBe("en");
     await route.fulfill({ json: { status: true } });
   });
   await page.goto("/sign-in?next=https://evil.example");

@@ -64,7 +64,7 @@
    pnpm dev
    ```
 
-   本地用 Magic Link 登录时，`RESEND_API_KEY` 和 `EMAIL_FROM` 的填法见 [Email](docs/architecture/overview.md#email)。
+   登录由 `apps/api` 提供：另开一个终端运行 `pnpm dev:api`，变量见 [API Bindings](docs/architecture/environment.md#api-bindings)。本地用 Magic Link 登录时，`RESEND_API_KEY` 和 `EMAIL_FROM` 的填法见 [Email](docs/architecture/overview.md#email)。
 
 6. 运行测试：
 

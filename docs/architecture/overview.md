@@ -174,7 +174,7 @@ Sentry
 Resend
 ```
 
-只用于 Magic Link。
+只用于 Magic Link，由 `apps/api` 发送。
 
 本地开发不使用本地邮件服务，直接调用 Resend：
 
@@ -186,7 +186,7 @@ EMAIL_FROM="Acme <onboarding@resend.dev>"
 - 没有验证域名时，Resend 只允许从 `onboarding@resend.dev` 发信，并且只发给注册 Resend 账号的邮箱。发给其他邮箱返回 403，登录页显示发信失败。
 - 要给其他邮箱发信，先在 Resend 验证发信域名，再把 `EMAIL_FROM` 改为该域名的地址。
 - 测试邮件计入 Resend 的发信额度。
-- 本地的 Key 只放在 `.env.local`，不用于 Preview 或 Production。
+- 本地的 Key 只放在 `apps/api/.dev.vars`，不用于 Preview 或 Production。
 
 ---
 
@@ -378,7 +378,7 @@ saas-starter/
 └── AGENTS.md · CLAUDE.md · README.md
 ```
 
-`apps/web/src/app/api/auth/[...all]` 是 Better Auth 的挂载点，不属于业务 API。
+Better Auth 挂载在 `apps/api` 的 `/api/auth/*`。web 的浏览器代码经 `apps/web/src/lib/auth-client.ts` 调用它，服务端经 `apps/web/src/server/auth/auth.ts` 读取 session。
 
 `apps/web/src` 中按代码类型放置：
 

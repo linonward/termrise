@@ -227,7 +227,7 @@ DATABASE_URL='<Production 连接串>' R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_
 通用步骤：
 
 1. 在服务商控制台创建新的 key（旧 key 先保留）。
-2. Vercel 项目 `<project>` → Settings → Environment Variables，更新对应环境的变量，类型选 Secret。
+2. Vercel 项目 `<project>` → Settings → Environment Variables，更新对应环境的变量，类型选 Secret。`apps/api` 的变量（`RESEND_API_KEY`、`GOOGLE_CLIENT_SECRET`、`BETTER_AUTH_SECRET`）在 `apps/api` 中用 `npx wrangler secret put <NAME>` 更新，立即生效，不需要第 3 步。
 3. 重新部署：环境变量只对新部署生效。Deployments → 最新 Production 部署 → Redeploy。
 4. 验证下表的检查项。
 5. 在服务商控制台删除旧 key。

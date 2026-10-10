@@ -10,12 +10,11 @@ const serverSchema = z
     DATABASE_URL: z
       .string()
       .regex(/^postgres(ql)?:\/\//, "must be a postgres connection string"),
-    BETTER_AUTH_SECRET: z.string().min(32),
-    BETTER_AUTH_URL: z.url(),
+    // apps/api: Better Auth and, as the migration goes on, the other APIs
+    // (docs/adr/012-api-modular-monolith.md). Inlined into the browser bundle at build time.
+    NEXT_PUBLIC_API_URL: z.url(),
+    // Google One Tap; the client ID is public.
     GOOGLE_CLIENT_ID: z.string().min(1),
-    GOOGLE_CLIENT_SECRET: z.string().min(1),
-    RESEND_API_KEY: z.string().min(1),
-    EMAIL_FROM: z.string().min(1),
     R2_ACCOUNT_ID: z.string().min(1),
     R2_ACCESS_KEY_ID: z.string().min(1),
     R2_SECRET_ACCESS_KEY: z.string().min(1),

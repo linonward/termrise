@@ -8,6 +8,8 @@ export function reportOnlyCsp(options: {
   dev?: boolean;
   /** Local storage endpoint (R2_ENDPOINT); production uploads go to R2. */
   storageEndpoint?: string;
+  /** apps/api (NEXT_PUBLIC_API_URL): the browser calls Better Auth there. */
+  apiUrl?: string;
   reportUri?: string;
 }) {
   const script = [`'nonce-${options.nonce}'`, "'strict-dynamic'"];
@@ -20,6 +22,7 @@ export function reportOnlyCsp(options: {
   ];
   if (options.storageEndpoint)
     connect.push(new URL(options.storageEndpoint).origin);
+  if (options.apiUrl) connect.push(new URL(options.apiUrl).origin);
   const directives = [
     `script-src ${script.join(" ")}`,
     `connect-src ${connect.join(" ")}`,

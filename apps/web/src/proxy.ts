@@ -31,6 +31,7 @@ export async function proxy(request: NextRequest) {
     nonce,
     dev: process.env.NODE_ENV === "development",
     storageEndpoint: process.env.R2_ENDPOINT,
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
     reportUri: sentryCspReportUri(process.env.SENTRY_DSN),
   });
   // Next.js takes the nonce for its own scripts from the request's CSP header and
