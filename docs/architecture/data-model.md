@@ -643,6 +643,7 @@ processed_at = now()
 - 记录项目、运行、预算类型、Provider、操作（`expand`、`serp`、`analyze`）、预留额、费用、状态和时间。删除项目时随之删除。
 - 运行中的预算不足：一个种子词都扩不了时，运行 `failed`（`BUDGET_EXHAUSTED`），项目状态为 `budget_exhausted`，可以修改预算后再运行；扩词、SERP 中途不足时停止该阶段；AI 预算不足时该机会不做分析（`analysis_error` 为 `BUDGET_EXHAUSTED`），分数照常。有阶段因预算提前结束时运行为 `partial`。
 - fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。
+- DeepSeek 不返回费用：按返回的 token（缓存命中、未命中、输出）乘以 `adapters/deepseek-prices.ts` 中的价格计算，向上取整。官方价格页（2026-10-10 核对）分高峰和低谷价格，高峰时段排除中国法定节假日，代码无法可靠判断，所以一律按高峰价结算：账本可能高于实际账单，不会低于。价格表中没有的模型不能使用。每次分析的预留额 = 7000 个输入 token 按未命中价 + 1500 个输出 token（`deepseek-flash` 为 0.0039 美元）。
 
 ---
 
@@ -651,12 +652,13 @@ processed_at = now()
 运行的最后一个阶段（`evaluating`，`packages/research/src/evaluate.ts`）把关键词按来源种子词分组，每组是一个机会候选，打分后保留前 5 个。
 
 - `opportunities`：项目中的一个机会，`(project_id, cluster)` 唯一，`cluster` 是种子词。`status` 为 `unreviewed`（默认）/ `needs_validation` / `go` / `no_go`，只由用户的决策修改（S16）。再次运行时沿用同一行。
-- `opportunity_evaluations`：一次运行对一个机会的评估，只追加。记录 `run_id`、`scoring_version`、总分 `score`（0–100）、六个维度的评分 `dimensions`（每项 0–5）、`confidence`（0–100）、`needs_review`、名次 `rank`（1–5）、AI 分析 `analysis`、分析失败的原因 `analysis_error`、分析 Provider 与 Prompt 版本，以及评分用到的证据 `evidence`（关键词、SERP 快照、信号的 id）。
+- `opportunity_evaluations`：一次运行对一个机会的评估，只追加。记录 `run_id`、`scoring_version`、总分 `score`（0–100）、六个维度的评分 `dimensions`（每项 0–5）、`confidence`（0–100）、`needs_review`、名次 `rank`（1–5）、AI 分析 `analysis`、分析失败的原因 `analysis_error`、分析 Provider、模型（`analyst_model`，fake 为 null）与 Prompt 版本，以及评分用到的证据 `evidence`（关键词、SERP 快照、信号的 id）。
 - 当前评估：项目最近一次产生评估的运行中，每个机会最新的一条。上一次进入前 5、这一次没有进入的机会不再列出，历史评估保留。
 - 评分（`scoring.ts`，版本 `v1`）只由数据计算，AI 不写分数。维度与权重：趋势 20（信号中出现的不同天数）、需求 15（组内最大的搜索量，同义词不相加）、竞争 20（最大关键词的 KD，越低越高）、商业意图 25（购买类关键词的占比 + 最高 CPC）、MVP 适配 10（寻找工具、应用、模板的关键词占比）、分发 10（不同来源的数量）。总分 = Σ 评分 / 5 × 权重，四舍五入。没有搜索量的组不打分。
 - 可信度：指标完整的关键词占比 40、有 SERP 审核 25、指标在 30 天内 15、有信号 20。分数不低于 60 而可信度低于 50 时 `needs_review` 为 true，页面提示先核对证据。
 - 意图（`intent.ts`）：按词判断导航、交易、信息、商业类；问题词（how、what、guide 等）优先于商业词；无法判断时为信息类，不抬高商业意图。
-- AI 分析（`opportunity-analyst.ts` 端口）：输入是组名、关键词与意图、SERP 标题、信号来源，输出用 Zod 校验（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险）。输出不合格时 `analysis` 为 null，`analysis_error` 为 `AI_INVALID_OUTPUT`；调用失败为 `AI_ERROR`。两种情况分数照常保存。现在只有 `fake`（`adapters/fake-analyst.ts`，模板文字，只在 `ALLOW_FAKE_PROVIDERS=1` 时可用），真实 Provider（DeepSeek）实现同一个端口。
+- AI 分析（`opportunity-analyst.ts` 端口）：输入是组名、关键词与意图、SERP 标题、信号来源，输出用 Zod 校验（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险）。输出不合格时 `analysis` 为 null，`analysis_error` 为 `AI_INVALID_OUTPUT`；调用失败为 `AI_ERROR`。两种情况分数照常保存。实现有两个：`fake`（`adapters/fake-analyst.ts`，模板文字，只在 `ALLOW_FAKE_PROVIDERS=1` 时可用）和 `deepseek`（见下一条）。
+- DeepSeek（`adapters/deepseek-analyst.ts`，经 `packages/ai` 的 `createDeepSeekJson()` 调用，AI SDK 只在 `packages/ai` 中）：JSON 模式（`response_format: json_object`，说明中写出 json 与示例形状），关闭思考模式（思考 token 也计费），不重试（重试是预算没有预留的第二次付费调用）。来源数据放在用户消息中，说明要求只把它当作数据，忽略其中的指令；说明要求不编造数字。Prompt 最多 12000 字符（超出时从末尾去掉关键词），输出最多 1500 token。Prompt 版本 `analysis-v1`。
 - 删除项目时，机会与评估随之删除。账号导出包含每个项目的机会（组名、状态、创建时间）。
 
 ---

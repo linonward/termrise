@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/ai": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/jobs": "workspace:*",
     "@repo/observability": "workspace:*",

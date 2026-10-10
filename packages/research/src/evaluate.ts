@@ -221,6 +221,7 @@ export async function evaluateOpportunities(deps: {
         analysis,
         analysisError,
         analystProvider: analyst.name,
+        analystModel: analyst.model,
         analystPromptVersion: analyst.promptVersion,
         evidence: {
           keywordIds: cluster.keywordIds,

@@ -903,6 +903,7 @@
       "BUDGET_EXHAUSTED": "AI 预算已用完，所以没有做这次分析。分数仍然有效。"
     },
     "analysisNote": "AI 根据下方证据写出这段文字。它不改变分数。",
+    "analysisModel": "模型：{model}。",
     "keywordsTitle": "关键词",
     "serpTitle": "搜索结果",
     "signalsTitle": "信号",

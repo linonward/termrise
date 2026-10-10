@@ -399,6 +399,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -612,6 +615,9 @@ importers:
 
   packages/research:
     dependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@repo/db':
         specifier: workspace:*
         version: link:../db

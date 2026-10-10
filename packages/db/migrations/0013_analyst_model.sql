@@ -1,0 +1,1 @@
+ALTER TABLE "opportunity_evaluations" ADD COLUMN "analyst_model" text;

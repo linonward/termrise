@@ -27,7 +27,9 @@ export type AnalysisInput = {
 };
 
 export interface OpportunityAnalyst {
-  name: "fake";
+  name: "fake" | "deepseek";
+  /** The model, for providers that have one. */
+  model: string | null;
   /** Changes when the prompt or its output shape changes. */
   promptVersion: string;
   /** The most one analysis can cost, reserved from the AI budget before it. */

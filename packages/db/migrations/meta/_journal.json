@@ -92,6 +92,13 @@
       "when": 1791619387014,
       "tag": "0012_radar",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791620626464,
+      "tag": "0013_analyst_model",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/ai": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/observability": "workspace:*",
     "drizzle-orm": "^0.45.3",

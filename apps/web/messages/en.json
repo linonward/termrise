@@ -907,6 +907,7 @@
       "BUDGET_EXHAUSTED": "The AI budget ran out, so this analysis was not made. The score is still valid."
     },
     "analysisNote": "AI writes this text from the evidence below. It does not change the score.",
+    "analysisModel": "Model: {model}.",
     "keywordsTitle": "Keywords",
     "serpTitle": "Search results",
     "signalsTitle": "Signals",

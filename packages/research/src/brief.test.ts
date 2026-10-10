@@ -35,6 +35,7 @@ const base: OpportunityDetailDto = {
   },
   analysisError: null,
   analystProvider: "deepseek",
+  analystModel: "deepseek-flash",
   evaluatedAt: "2026-10-10T00:00:00.000Z",
   keywords: [
     {
@@ -103,6 +104,7 @@ it("covers every section a coding agent needs, from stored data only", () => {
   expect(md).toContain(
     "2026-10-11 go by Ada (scoring v1, score 72): Pre-orders came in",
   );
+  expect(md).toContain("AI text (deepseek deepseek-flash) is a hypothesis");
 });
 
 it("labels test data only when a provider is fake", () => {
