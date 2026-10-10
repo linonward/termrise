@@ -159,7 +159,7 @@ E2E：`security-headers.spec.ts` 检查两个头，并在 `/`、`/sign-in`、`/p
 
 ## Rate Limiting
 
-产品 API 的限额（Task、Checkout、Upload）在 `packages/auth/src/api-rate-limits.ts` 的 `API_RATE_LIMITS` 中维护：`apps/api` 的路由用 `rateLimit(name)` middleware，web 的路由用 `userRoute({ rateLimit })` 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
+产品 API 的限额（Task、Checkout、Upload）在 `packages/auth/src/api-rate-limits.ts` 的 `API_RATE_LIMITS` 中维护：`apps/api` 的路由（Task、Upload）用 `rateLimit(name)` middleware，web 的路由（Checkout）用 `userRoute({ rateLimit })` 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
 
 Task（`task:{userId}`）：
 

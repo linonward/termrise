@@ -54,19 +54,22 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 
 `apps/api` 运行在 Cloudflare Workers，没有 `process.env`：配置来自 `apps/api/wrangler.jsonc` 的 binding，在路由中经 `c.env` 读取，类型在 `apps/api/src/env.ts`。`packages/*` 不读取它们，由路由作为参数传入。
 
-| Binding / 变量                                             | 作用                                                                                                                        |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `HYPERDRIVE`                                               | Hyperdrive 配置，`connectionString` 指向 Neon（创建步骤见 deployment.md 的 API 一节）                                       |
-| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | 只用于本地 `pnpm dev:api`：wrangler dev 直接连接这个数据库（例如本 worktree 的 Neon `dev/{topic}` 分支），不经过 Hyperdrive |
-| `APP_URL`                                                  | web 的地址：CORS origin、Better Auth 的 trusted origin、登录后跳转的 origin                                                 |
-| `BETTER_AUTH_URL`                                          | API 自己的地址；Magic Link 和 Google 回调地址用它生成                                                                       |
-| `BETTER_AUTH_SECRET`                                       | 至少 32 字符；只有 `apps/api` 使用                                                                                          |
-| `AUTH_COOKIE_DOMAIN`                                       | 可选，web 与 API 共同的上级域名（例如 `termrise.com`）；本地不设置                                                          |
-| `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`                 | Google OAuth；client ID 也给 web 的 One Tap 使用                                                                            |
-| `RESEND_API_KEY`、`EMAIL_FROM`                             | 登录邮件（Resend），本地填法见 overview.md 的 Email                                                                         |
-| `POSTHOG_KEY`、`POSTHOG_HOST`                              | 可选，服务端事件；未设置 key 时不发送；host 默认 `https://us.i.posthog.com`                                                 |
-| `TASK_PROVIDER`                                            | `example` \| `deepseek` \| `fake`，默认 `example`；含义同 web 的同名变量                                                    |
-| `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                       | `TASK_PROVIDER=deepseek` 时必填；key 用 `wrangler secret put` 设置                                                          |
-| `ALLOW_FAKE_PROVIDERS`                                     | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以 `TASK_PROVIDER=fake` 一律需要它                                          |
+| Binding / 变量                                                           | 作用                                                                                                                        |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `HYPERDRIVE`                                                             | Hyperdrive 配置，`connectionString` 指向 Neon（创建步骤见 deployment.md 的 API 一节）                                       |
+| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`               | 只用于本地 `pnpm dev:api`：wrangler dev 直接连接这个数据库（例如本 worktree 的 Neon `dev/{topic}` 分支），不经过 Hyperdrive |
+| `APP_URL`                                                                | web 的地址：CORS origin、Better Auth 的 trusted origin、登录后跳转的 origin                                                 |
+| `BETTER_AUTH_URL`                                                        | API 自己的地址；Magic Link 和 Google 回调地址用它生成                                                                       |
+| `BETTER_AUTH_SECRET`                                                     | 至少 32 字符；只有 `apps/api` 使用                                                                                          |
+| `AUTH_COOKIE_DOMAIN`                                                     | 可选，web 与 API 共同的上级域名（例如 `termrise.com`）；本地不设置                                                          |
+| `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`                               | Google OAuth；client ID 也给 web 的 One Tap 使用                                                                            |
+| `RESEND_API_KEY`、`EMAIL_FROM`                                           | 登录邮件（Resend），本地填法见 overview.md 的 Email                                                                         |
+| `POSTHOG_KEY`、`POSTHOG_HOST`                                            | 可选，服务端事件；未设置 key 时不发送；host 默认 `https://us.i.posthog.com`                                                 |
+| `TASK_PROVIDER`                                                          | `example` \| `deepseek` \| `fake`，默认 `example`；含义同 web 的同名变量                                                    |
+| `R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET` | 签名上传（`POST /api/uploads`）；与 web 用同一个 bucket 和 token                                                            |
+| `R2_ENDPOINT`                                                            | 可选，只用于本地（SeaweedFS）。Workers 无法判断是否为 Production，因此 Production 不设置它由部署步骤保证                    |
+| `STORAGE_PROVIDER`                                                       | `r2` \| `fake`，默认 `r2`                                                                                                   |
+| `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                                     | `TASK_PROVIDER=deepseek` 时必填；key 用 `wrangler secret put` 设置                                                          |
+| `ALLOW_FAKE_PROVIDERS`                                                   | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以 `TASK_PROVIDER=fake`、`STORAGE_PROVIDER=fake` 一律需要它                 |
 
 `apps/api/src/env.ts` 的 `apiEnv()` 用 zod 校验，错误只含变量名和规则。本地把变量写在 `apps/api/.dev.vars`（不提交）；Production 用 `wrangler secret put <NAME>` 或 Cloudflare 控制台设置。

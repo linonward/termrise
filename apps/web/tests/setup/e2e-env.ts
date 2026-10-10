@@ -41,5 +41,10 @@ export const e2eApiVars = {
   RESEND_API_KEY: "e2e-disabled",
   EMAIL_FROM: "test@example.com",
   TASK_PROVIDER: "fake",
+  STORAGE_PROVIDER: "fake",
+  R2_ACCOUNT_ID: "e2e-disabled",
+  R2_ACCESS_KEY_ID: "e2e-disabled",
+  R2_SECRET_ACCESS_KEY: "e2e-disabled",
+  R2_BUCKET: "e2e-disabled",
   ALLOW_FAKE_PROVIDERS: "1",
 };

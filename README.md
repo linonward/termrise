@@ -15,7 +15,7 @@
 - 支付：Waffo Pancake 一次性 Credit Pack、Webhook、退款、Pending 过期，见 [billing.md](docs/architecture/billing.md)。
 - 月度订阅：每期发放 Credits、站内取消、退款按期扣回，见 [billing.md](docs/architecture/billing.md)。
 - 示例任务：`tasks` 表、TaskService、AiProvider（`@repo/ai`）、`/api/tasks`、Dashboard 的 TaskPanel，见 [tasks.md](docs/architecture/tasks.md)。
-- 存储：R2 预签名上传与 `/api/uploads`，测试用 FakeStorage，见 [storage.md](docs/architecture/storage.md)。
+- 存储：R2 预签名上传与 `apps/api` 的 `/api/uploads`，测试用 FakeStorage，见 [storage.md](docs/architecture/storage.md)。
 - 管理台：`/admin` 搜索用户、调整 Credits，另有 `pnpm admin:adjust`，见 [runbook.md](docs/runbook.md)。
 - Analytics 与监控：PostHog（用户同意 Cookie 后）、服务端事件、Vercel Web Analytics、Speed Insights、Sentry、结构化日志，见 [observability.md](docs/architecture/observability.md)。
 - i18n：英文 + 中文（next-intl，Cookie `NEXT_LOCALE`），见 [ux.md](docs/product/ux.md)。

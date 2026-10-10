@@ -18,6 +18,10 @@ export function testBindings(
     GOOGLE_CLIENT_SECRET: "test-google-secret",
     RESEND_API_KEY: "test-resend-key",
     EMAIL_FROM: "test@example.com",
+    R2_ACCOUNT_ID: "test-account",
+    R2_ACCESS_KEY_ID: "test-access-key",
+    R2_SECRET_ACCESS_KEY: "test-secret-key",
+    R2_BUCKET: "test-bucket",
     ...overrides,
   };
 }

@@ -9,18 +9,20 @@ GET /api/tasks（先把超时的 PENDING Task 改为 FAILED 并退款，再返�
 
 POST /api/tasks（{ requestId, input }，示例付费操作，成功返回 201 + Task，见 tasks.md）
 
+POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，见 storage.md）
+
+POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横幅选择，成功返回 204，见 observability.md）
+
 GET /api/health（同 web 的 /api/health）
 
 /api/auth/*（Better Auth）
 ```
 
-`apps/api` 的已登录路由按顺序使用这些 middleware（`apps/api/src/middleware/`），不手写这些步骤：`webCors`（只允许 `APP_URL`，带 cookie）→ `webCsrf`（form 与 `text/plain` 请求不经过 CORS preflight，只接受 `APP_URL` 的 Origin，否则 `403 FORBIDDEN`）→ `database`（每请求一个连接）→ `session`（`c.var.user`，未登录 `401 UNAUTHORIZED`）→ 可选的 `rateLimit("task")`（key 为 `task:{userId}`）。错误由 `onError` 的 `errorHandler` 转为 Error Contract。浏览器调用时用 `NEXT_PUBLIC_API_URL` 加路径，并设置 `credentials: "include"`。
+`apps/api` 的已登录路由从 `userRoutes()`（`apps/api/src/routes/user-routes.ts`）开始，按顺序使用这些 middleware（`apps/api/src/middleware/`），不手写这些步骤：`webCors`（只允许 `APP_URL`，带 cookie）→ `webCsrf`（form 与 `text/plain` 请求不经过 CORS preflight，只接受 `APP_URL` 的 Origin，否则 `403 FORBIDDEN`）→ `database`（每请求一个连接）→ `session`（`c.var.user`，未登录 `401 UNAUTHORIZED`）→ 可选的 `rateLimit("task")`（key 为 `task:{userId}`）。JSON body 用 `readJson(c)`（`apps/api/src/http.ts`）读取，不是 JSON 时返回 `400 INVALID_INPUT`。错误由 `onError` 的 `errorHandler` 转为 Error Contract。浏览器调用时用 `NEXT_PUBLIC_API_URL` 加路径，并设置 `credentials: "include"`。
 
 web 的路由（`apps/web/src/app/api/`），按 ADR-012 的迁移顺序逐步迁到 `apps/api`：
 
 ```text
-POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，见 storage.md）
-
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）
 
 GET /api/billing/purchases（先把超过 60 分钟的 PENDING 购买改为 FAILED，见 Pending Expiry，再返回当前用户的购买记录）
@@ -28,8 +30,6 @@ GET /api/billing/purchases（先把超过 60 分钟的 PENDING 购买改为 FAIL
 GET /api/billing/credit-activity?cursor=（Credit 明细，每页 20 条）
 
 POST /api/billing/subscription/cancel（取消当前订阅，返回 200 { status, currentPeriodEnd }；没有可取消的订阅返回 404 SUBSCRIPTION_NOT_FOUND，见 billing.md 的 Cancel Subscription）
-
-POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横幅选择，见 observability.md）
 
 POST /api/webhooks/waffo
 

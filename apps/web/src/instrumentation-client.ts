@@ -10,6 +10,9 @@ Sentry.init({
   tracesSampleRate: 0.1,
 });
 
-initAnalytics(process.env.NEXT_PUBLIC_POSTHOG_KEY, { productId: product.id });
+initAnalytics(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+  productId: product.id,
+  apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "",
+});
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

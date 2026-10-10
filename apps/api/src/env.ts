@@ -28,6 +28,14 @@ const schema = z
     TASK_PROVIDER: z.enum(["example", "deepseek", "fake"]).default("example"),
     DEEPSEEK_API_KEY: z.string().min(1).optional(),
     DEEPSEEK_MODEL: z.string().min(1).optional(),
+    // Presigned uploads to R2 (docs/architecture/storage.md).
+    R2_ACCOUNT_ID: z.string().min(1),
+    R2_ACCESS_KEY_ID: z.string().min(1),
+    R2_SECRET_ACCESS_KEY: z.string().min(1),
+    R2_BUCKET: z.string().min(1),
+    /** Local S3-compatible server (docker-compose.yml); never set in production. */
+    R2_ENDPOINT: z.url().optional(),
+    STORAGE_PROVIDER: z.enum(["r2", "fake"]).default("r2"),
     /** Only E2E sets it. Workers have no NODE_ENV, so fake providers always need it. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })
@@ -40,12 +48,14 @@ const schema = z
             path: [key],
             message: "required when TASK_PROVIDER=deepseek",
           });
-    if (env.TASK_PROVIDER === "fake" && !env.ALLOW_FAKE_PROVIDERS)
-      ctx.addIssue({
-        code: "custom",
-        path: ["TASK_PROVIDER"],
-        message: "fake provider needs ALLOW_FAKE_PROVIDERS=1",
-      });
+    if (!env.ALLOW_FAKE_PROVIDERS)
+      for (const key of ["TASK_PROVIDER", "STORAGE_PROVIDER"] as const)
+        if (env[key] === "fake")
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "fake provider needs ALLOW_FAKE_PROVIDERS=1",
+          });
   });
 
 export type Bindings = z.input<typeof schema>;

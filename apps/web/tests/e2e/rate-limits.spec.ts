@@ -9,11 +9,11 @@ import { signIn } from "../setup/sign-in";
 test.skip(({ isMobile }) => isMobile);
 test.afterAll(closeTestDb);
 
-// apps/api serves /api/tasks; the cookie for localhost goes to every port.
+// apps/api serves /api/tasks and /api/uploads; the cookie for localhost goes to every port.
 for (const [path, limit] of [
   [`${E2E_API_URL}/api/tasks`, 10],
   ["/api/checkout", 10],
-  ["/api/uploads", 20],
+  [`${E2E_API_URL}/api/uploads`, 20],
 ] as const)
   test(`${path} allows ${limit} requests a minute, then answers 429`, async ({
     context,
