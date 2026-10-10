@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type {
+  DecisionDto,
+  ExperimentDto,
   KeywordDto,
   OpportunityDto,
   SerpDto,
@@ -12,6 +14,9 @@ import type {
 import { WEIGHTS } from "@repo/research/scoring";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { DecisionForm } from "@/features/opportunities/decision-form";
+import { ExperimentForm } from "@/features/opportunities/experiment-form";
+import { ExperimentProgress } from "@/features/opportunities/experiment-progress";
 import {
   NeedsReview,
   OpportunityStatus,
@@ -27,6 +32,8 @@ type Detail = OpportunityDto & {
   keywords: KeywordDto[];
   serps: SerpDto[];
   signals: SourceSignalDto[];
+  decisions: DecisionDto[];
+  experiments: ExperimentDto[];
 };
 
 async function loadOpportunity(id: string) {
@@ -54,6 +61,7 @@ export default async function OpportunityPage({
 }: PageProps<"/opportunities/[id]">) {
   const o = await loadOpportunity((await params).id);
   const t = await getTranslations("opportunities");
+  const td = await getTranslations("decisions");
   const format = await getFormatter();
   const fixture =
     o.analystProvider === "fake" ||
@@ -216,6 +224,140 @@ export default async function OpportunityPage({
           <p className="text-[13px] text-muted-foreground">
             {t("analysisNote")}
           </p>
+        </section>
+      </div>
+      <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
+        <section
+          aria-labelledby="experiments-title"
+          className="min-w-0 flex-1 space-y-4"
+        >
+          <div className="space-y-2">
+            <h2
+              id="experiments-title"
+              className="font-heading text-2xl font-semibold"
+            >
+              {td("experimentsTitle")}{" "}
+              <span className="text-muted-foreground tabular-nums">
+                {o.experiments.length}
+              </span>
+            </h2>
+            <p className="text-[15px] text-muted-foreground">
+              {td("experimentsBody")}
+            </p>
+          </div>
+          {o.experiments.length === 0 ? (
+            <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
+              {td("experimentsEmpty")}
+            </div>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {o.experiments.map((e) => (
+                <li
+                  key={e.id}
+                  data-testid="experiment"
+                  className="space-y-3 px-6 py-5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{td(`kind.${e.kind}`)}</p>
+                    <span
+                      data-testid="experiment-status"
+                      className="inline-flex h-6 items-center rounded-full bg-surface-strong px-2 text-xs font-semibold tracking-[1px] text-muted-foreground uppercase"
+                    >
+                      {td(`experimentStatus.${e.status}`)}
+                    </span>
+                  </div>
+                  <p className="text-[15px]">{e.hypothesis}</p>
+                  <dl className="grid gap-x-6 gap-y-2 text-[13px] md:grid-cols-2">
+                    {(
+                      [
+                        ["channel", e.channel],
+                        ["metric", e.metric],
+                        ["successThreshold", e.successThreshold],
+                        ["stopCondition", e.stopCondition],
+                        [
+                          "budgetUsd",
+                          format.number(e.budgetUsd, {
+                            style: "currency",
+                            currency: "USD",
+                          }),
+                        ],
+                        ["durationDays", td("days", { count: e.durationDays })],
+                      ] as const
+                    ).map(([key, value]) => (
+                      <div key={key}>
+                        <dt className="text-muted-foreground">
+                          {td(`field.${key}`)}
+                        </dt>
+                        <dd className="font-medium">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {e.resultNote && (
+                    <p className="text-[15px]">
+                      <span className="text-muted-foreground">
+                        {td("resultNote")}:
+                      </span>{" "}
+                      {e.resultNote}
+                    </p>
+                  )}
+                  {e.nextStatuses.length > 0 && (
+                    <ExperimentProgress opportunityId={o.id} experiment={e} />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <details className="rounded-lg border border-border">
+            <summary className="cursor-pointer px-6 py-4 text-[15px] font-semibold">
+              {td("newExperiment")}
+            </summary>
+            <div className="border-t border-border p-6">
+              <ExperimentForm opportunityId={o.id} />
+            </div>
+          </details>
+        </section>
+        <section
+          aria-labelledby="decision-title"
+          className="space-y-5 rounded-lg border border-border p-6 md:w-100"
+        >
+          <div className="space-y-2">
+            <h2
+              id="decision-title"
+              className="font-heading text-xl font-semibold"
+            >
+              {td("title")}
+            </h2>
+            <p className="text-[15px] text-muted-foreground">{td("body")}</p>
+          </div>
+          <DecisionForm opportunityId={o.id} nextDecisions={o.nextDecisions} />
+          {o.decisions.length > 0 && (
+            <div className="space-y-3 border-t border-border pt-5">
+              <h3 className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+                {td("history")}
+              </h3>
+              <ol className="space-y-4">
+                {o.decisions.map((d) => (
+                  <li
+                    key={d.id}
+                    data-testid="decision"
+                    className="space-y-1 text-[15px]"
+                  >
+                    <p className="font-semibold">
+                      {td(`decided.${d.decision}`)}
+                    </p>
+                    <p>{d.reason}</p>
+                    <p className="text-[13px] text-muted-foreground">
+                      {d.deciderName} · <LocalDateTime iso={d.createdAt} /> ·{" "}
+                      {td("evidenceVersion", {
+                        version: d.scoringVersion,
+                        score: d.score,
+                      })}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </section>
       </div>
       <section aria-labelledby="keywords-title" className="space-y-4">

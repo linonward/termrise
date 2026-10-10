@@ -20,11 +20,11 @@ beforeEach(async () => {
 });
 afterAll(closeTestDb);
 
-const post = (path: string, body: unknown) =>
+const post = (path: string, body: unknown, cookie = owner, method = "POST") =>
   call(path, {
-    method: "POST",
+    method,
     headers: {
-      cookie: owner,
+      cookie,
       Origin: TEST_APP_URL,
       "Content-Type": "application/json",
     },
@@ -83,4 +83,61 @@ it("hides other users' opportunities", async () => {
 
 it("requires a session", async () => {
   expect((await call("/api/opportunities")).status).toBe(401);
+});
+
+it("records a decision and an experiment, and shows them in the detail", async () => {
+  await runProject();
+  const { items } = await (await get("/api/opportunities")).json();
+  const base = `/api/opportunities/${items[0].id}`;
+  expect(items[0].nextDecisions).toEqual(["needs_validation", "no_go"]);
+
+  const decided = await post(`${base}/decisions`, {
+    decision: "needs_validation",
+    reason: "Worth a smoke test",
+  });
+  expect(decided.status).toBe(201);
+  const invalid = await post(`${base}/decisions`, {
+    decision: "needs_validation",
+    reason: "x",
+  });
+  expect(invalid.status).toBe(409);
+  expect((await invalid.json()).error.code).toBe(
+    "OPPORTUNITY_DECISION_INVALID",
+  );
+
+  const created = await post(`${base}/experiments`, {
+    kind: "free_tool",
+    hypothesis: "People use a free summary tool",
+    channel: "Product Hunt",
+    metric: "weekly active users",
+    budgetUsd: 0,
+    durationDays: 7,
+    successThreshold: "50 users",
+    stopCondition: "Under 10 users after 7 days",
+  });
+  expect(created.status).toBe(201);
+  const experiment = await created.json();
+  const moved = await post(
+    `${base}/experiments/${experiment.id}`,
+    { status: "running" },
+    owner,
+    "PATCH",
+  );
+  expect(await moved.json()).toMatchObject({ status: "running" });
+
+  const detail = await (await get(base)).json();
+  expect(detail).toMatchObject({
+    status: "needs_validation",
+    nextDecisions: ["go", "no_go"],
+    decisions: [{ decision: "needs_validation", reason: "Worth a smoke test" }],
+    experiments: [{ id: experiment.id, status: "running" }],
+  });
+  expect(detail.decisions[0]).not.toHaveProperty("deciderId");
+
+  const foreign = await post(
+    `${base}/decisions`,
+    { decision: "no_go", reason: "x" },
+    other,
+  );
+  expect(foreign.status).toBe(404);
 });

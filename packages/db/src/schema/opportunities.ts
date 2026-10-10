@@ -13,6 +13,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { user } from "./auth";
 import { createdAt, inList } from "./columns";
 import { researchRuns } from "./keywords";
 import { researchProjects } from "./research";
@@ -100,6 +101,99 @@ export const opportunityEvaluations = pgTable(
     check(
       "opportunity_evaluations_ranges",
       sql`${t.score} between 0 and 100 and ${t.confidence} between 0 and 100 and ${t.rank} >= 1`,
+    ),
+  ],
+);
+
+// Decisions a person makes; never set by AI or by a score.
+export const DECISIONS = ["needs_validation", "go", "no_go"] as const;
+
+// The decision history, append-only: each row sets the opportunity's status
+// (docs/architecture/data-model.md#decisions-and-experiments).
+export const opportunityDecisions = pgTable(
+  "opportunity_decisions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    opportunityId: uuid()
+      .notNull()
+      .references(() => opportunities.id, { onDelete: "cascade" }),
+    decision: text({ enum: DECISIONS }).notNull(),
+    reason: text().notNull(),
+    deciderId: text()
+      .notNull()
+      .references(() => user.id),
+    /** The evidence version: the evaluation that was current when deciding. */
+    evaluationId: uuid()
+      .notNull()
+      .references(() => opportunityEvaluations.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("opportunity_decisions_opportunity_idx").on(
+      t.opportunityId,
+      t.createdAt,
+    ),
+    check(
+      "opportunity_decisions_decision_valid",
+      sql`${t.decision} in (${inList(DECISIONS)})`,
+    ),
+  ],
+);
+
+// docs/product/product.md#f06-无访谈验证
+export const EXPERIMENT_KINDS = [
+  "review_analysis",
+  "free_tool",
+  "landing_smoke_test",
+  "sample_paid_upgrade",
+  "paid_pilot",
+] as const;
+export const EXPERIMENT_STATUSES = [
+  "planned",
+  "running",
+  "passed",
+  "failed",
+  "stopped",
+] as const;
+
+// A validation experiment without interviews. The result is what the person records.
+export const validationExperiments = pgTable(
+  "validation_experiments",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    opportunityId: uuid()
+      .notNull()
+      .references(() => opportunities.id, { onDelete: "cascade" }),
+    kind: text({ enum: EXPERIMENT_KINDS }).notNull(),
+    hypothesis: text().notNull(),
+    channel: text().notNull(),
+    /** The event that is counted, e.g. a paid order. */
+    metric: text().notNull(),
+    budgetMicros: integer().notNull(),
+    durationDays: integer().notNull(),
+    successThreshold: text().notNull(),
+    stopCondition: text().notNull(),
+    status: text({ enum: EXPERIMENT_STATUSES }).notNull().default("planned"),
+    resultNote: text(),
+    createdAt: createdAt(),
+    updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("validation_experiments_opportunity_idx").on(
+      t.opportunityId,
+      t.createdAt,
+    ),
+    check(
+      "validation_experiments_kind_valid",
+      sql`${t.kind} in (${inList(EXPERIMENT_KINDS)})`,
+    ),
+    check(
+      "validation_experiments_status_valid",
+      sql`${t.status} in (${inList(EXPERIMENT_STATUSES)})`,
+    ),
+    check(
+      "validation_experiments_ranges",
+      sql`${t.budgetMicros} >= 0 and ${t.durationDays} between 1 and 365`,
     ),
   ],
 );

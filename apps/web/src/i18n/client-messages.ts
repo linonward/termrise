@@ -10,6 +10,7 @@ export const CLIENT_NAMESPACES = [
   "auth",
   "billing",
   "cookies",
+  "decisions",
   "errorPage",
   "errors",
   "meta",

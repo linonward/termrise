@@ -526,7 +526,10 @@
     "RESEARCH_PROJECT_NOT_FOUND": "This research project doesn't exist.",
     "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed.",
     "RESEARCH_PROVIDER_UNAVAILABLE": "Research can't run yet: no keyword data source is set up.",
-    "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist."
+    "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist.",
+    "OPPORTUNITY_DECISION_INVALID": "This decision is not possible from the current status. Reload the page and try again.",
+    "EXPERIMENT_NOT_FOUND": "This experiment doesn't exist.",
+    "EXPERIMENT_FINISHED": "This experiment is finished and can no longer change."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -851,5 +854,67 @@
     "signalsTitle": "Signals",
     "signalsEmpty": "No signals for this term. The trend and distribution ratings are 0.",
     "sourceCsv": "CSV import"
+  },
+  "decisions": {
+    "title": "Decision",
+    "body": "Go, validate or no-go is your call. A high score is not a chance of success.",
+    "choose": "Decision",
+    "action": {
+      "needs_validation": "Validate first",
+      "go": "Go: build it",
+      "no_go": "No-go: drop it"
+    },
+    "reason": "Reason",
+    "reasonHint": "What evidence the decision rests on. It stays in the history.",
+    "save": "Save decision",
+    "saving": "Saving…",
+    "update": "Update",
+    "history": "History",
+    "decided": {
+      "needs_validation": "Validate",
+      "go": "Go",
+      "no_go": "No-go"
+    },
+    "evidenceVersion": "scoring {version}, score {score}",
+    "experimentsTitle": "Validation experiments",
+    "experimentsBody": "Small tests without interviews. Clicks and waitlist sign-ups are not sales.",
+    "experimentsEmpty": "No experiments yet. Plan one before you decide Go.",
+    "newExperiment": "Plan an experiment",
+    "addExperiment": "Add experiment",
+    "kind": {
+      "review_analysis": "Public review analysis",
+      "free_tool": "Free small tool",
+      "landing_smoke_test": "Landing page smoke test",
+      "sample_paid_upgrade": "Sample with paid upgrade",
+      "paid_pilot": "Transparent paid pilot"
+    },
+    "field": {
+      "kind": "Type",
+      "hypothesis": "Hypothesis",
+      "channel": "Channel",
+      "metric": "Event counted",
+      "budgetUsd": "Budget (USD)",
+      "durationDays": "Duration (days)",
+      "successThreshold": "Success threshold",
+      "stopCondition": "Stop condition"
+    },
+    "placeholder": {
+      "hypothesis": "Sales reps pay for call summaries",
+      "channel": "r/sales, Product Hunt",
+      "metric": "Paid pre-orders",
+      "successThreshold": "3 paid pre-orders in 14 days",
+      "stopCondition": "No order after 300 visitors"
+    },
+    "days": "{count, plural, one {# day} other {# days}}",
+    "experimentStatus": {
+      "planned": "Planned",
+      "running": "Running",
+      "passed": "Passed",
+      "failed": "Failed",
+      "stopped": "Stopped"
+    },
+    "nextStatus": "New status",
+    "resultNote": "Result",
+    "resultNoteHint": "What you observed. Needed for passed or failed."
   }
 }

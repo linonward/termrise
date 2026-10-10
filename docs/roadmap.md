@@ -21,6 +21,7 @@
 | S13   | CSV 导入（termrise.md M1-03 的 CSV 部分）：`source_signals` 表与 migration；按行校验的 CSV 解析（行号、重复不新增）；导入到 draft 项目并合并种子词；`/api/research/projects/:id/import` 与 `/signals`；详情页的 Signals 表与导入面板                                                                                                                                                                                                                                                  | 单元测试覆盖解析与行号；集成测试覆盖导入、重复、50 个种子词上限、并发导入、锁定与归属、账号导出；E2E 覆盖导入与重复导入                                        | 已完成 |
 | S14   | 运行研究（fixture）：`research_runs`、`keywords`、`keyword_metric_snapshots`、`serp_snapshots`、`serp_results` 与 migration；关键词数据端口 `KeywordProvider` 与确定性的 fake 实现；ResearchRunner（同步执行：扩词与指标 → SERP 审核，幂等、并发只启动一次、失败与部分失败、失败后重试）；运行与结果的 API；详情页的运行面板、关键词表、SERP 与测试数据提示；`KEYWORD_PROVIDER` binding                                                                                               | 集成测试覆盖完整运行、null 与 0、200 个上限、幂等与并发、失败与重试、partial、归属与锁定；API 测试覆盖未配置 Provider 时 503；E2E 覆盖运行成功与失败           | 已完成 |
 | S15   | 机会（fixture）：`opportunities`、`opportunity_evaluations` 与 migration；意图分类与评分 `v1`（六个维度、权重、可信度、needs_review）；AI 分析端口 `OpportunityAnalyst` 与 fake 实现（Zod 校验，不写分数）；运行增加 `evaluating` 阶段，每次保留前 5；`/api/opportunities` 列表与详情；`/opportunities` 列表与详情页（无设计稿）；`ANALYST_PROVIDER` binding                                                                                                                          | 单元测试覆盖评分；集成测试覆盖前 5、证据、无效 AI 输出、归属、跨项目、导出与删除；API 测试覆盖列表、详情与 404；E2E 覆盖运行后查看机会与详情                   | 已完成 |
+| S16   | 决策与验证实验：`opportunity_decisions`（只追加，记录决策人、理由、证据版本）与 `validation_experiments` 表与 migration；状态转换（Go 之前必须验证）与实验状态；`/api/opportunities/:id/decisions`、`/experiments`；详情页的决策面板、决策历史与实验                                                                                                                                                                                                                                  | 集成测试覆盖历史、转换、理由与归属、并发、实验状态与结果、导出；API 测试覆盖决策、实验与 409；E2E 覆盖验证 → 实验 → Go                                         | 已完成 |
 
 ## Confirmed Decisions
 
@@ -47,6 +48,7 @@
 - 2026-10-10：Termrise 品牌色为紫罗兰 `#6D4AFF`（`brand-foreground` 白色），与状态色（绿、蓝、琥珀、红）区分；Logo 为上升折线与箭头（brand）加起点圆点（foreground），由 Pen 的 SVG 生成后整理为两条 path。
 - 2026-10-10：上线前，「含 migration 的 PR 合并前已对 Production 执行 migration」改为对本地库 `termrise_local` 执行；上线部署时再对 Production 执行全部 migration（deployment.md 的 Migrations）。
 - 2026-10-10：业务功能优先：先用 fixture / fake Provider 打通「创建 → 导入 → 运行 → 机会 → 决策 → 导出 → 结果」（S13 CSV 导入、S14 运行研究、S15 机会、S16 决策与 Brief、S17 执行与收入），研究的运行先在 API 中同步执行（各阶段写成 packages 中的函数，接真实 API 时移到 Worker）；之后再做预算账本、真实 DataForSEO / DeepSeek / HN / Trends、Worker 与定时采集、Radar。
+- 2026-10-10：S16 拆小：S16 决策与验证实验，S17 Brief Markdown 导出，S18 执行与收入记录。Brief 用英文模板生成（面向 Codex），内容来自评估、分析、证据、实验和决策，不调用 AI。
 - 2026-10-10：Waffo 与 Credits 保留代码、隐藏入口：注册不发 Credits，UI 不显示收费入口。在品牌 Slice 中实施。
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 
