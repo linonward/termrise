@@ -27,6 +27,14 @@ POST /api/research/projects/:id/import（{ csv }：CSV 文本，最多 1,000,000
 
 GET /api/research/projects/:id/signals（项目的信号，观测时间新的在前，最多 200 条）
 
+POST /api/research/projects/:id/runs（{ requestId }：运行研究，现在同步执行，完成后返回 201 + 运行记录；同一个 requestId 返回同一次运行；没有配置关键词 Provider 时 503 RESEARCH_PROVIDER_UNAVAILABLE；项目不是 draft / failed 时 409 RESEARCH_PROJECT_LOCKED）
+
+GET /api/research/projects/:id/runs（运行记录，新的在前）
+
+GET /api/research/projects/:id/keywords（关键词与最新指标，搜索量高的在前，没有数据的在后；指标缺失为 null）
+
+GET /api/research/projects/:id/serps（每个已审核关键词最新的前 10 个结果）
+
 GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
 
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）

@@ -130,3 +130,72 @@ test("imports terms from a CSV into a draft", async ({ page, context }) => {
   );
   await expect(page.getByTestId("signal-row")).toHaveCount(2);
 });
+
+async function createProject(
+  page: import("@playwright/test").Page,
+  name: string,
+  seeds: string,
+) {
+  await page.goto("/research");
+  await page.getByLabel("Name").fill(name);
+  await page.getByLabel("Seed terms").fill(seeds);
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+}
+
+test("runs research and shows keywords, metrics and search results", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await createProject(page, "Run project", "meeting notes");
+  await expect(
+    page.getByText("No keywords yet.", { exact: false }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Run research" }).click();
+  await expect(
+    page.getByRole("main").getByText("Completed", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByTestId("last-run")).toContainText("Completed");
+  // Fixture data is labelled as such.
+  await expect(page.getByTestId("fixture-notice")).toContainText(
+    "not real search data",
+  );
+  await expect(page.getByTestId("keyword-row")).toHaveCount(8);
+  await expect(
+    page.getByTestId("keyword-row").filter({ hasText: "Seed" }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByTestId("serp").first().getByRole("listitem"),
+  ).toHaveCount(10);
+  // Running locks the project: no run, import or delete, and the form is read-only.
+  await expect(page.getByRole("button", { name: "Run research" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByLabel("CSV file")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Delete project" }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Seed terms")).toBeDisabled();
+});
+
+test("shows a failed run and offers to run it again", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  // The fake provider fails on seeds with [fail].
+  await createProject(page, "Failing project", "broken [fail]");
+  await page.getByRole("button", { name: "Run research" }).click();
+  await expect(page.getByTestId("last-run")).toContainText("Failed");
+  await expect(
+    page.getByText("The keyword data source did not answer."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("The last run failed. Run it again", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Run research" }),
+  ).toBeVisible();
+});

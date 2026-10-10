@@ -133,3 +133,70 @@ it("imports a CSV into a draft and lists its signals", async () => {
       .status,
   ).toBe(404);
 });
+
+it("refuses to run without a keyword provider", async () => {
+  const project = await (await create()).json();
+  const response = await send(
+    "POST",
+    `/api/research/projects/${project.id}/runs`,
+    owner,
+    { requestId: crypto.randomUUID() },
+  );
+  expect(response.status).toBe(503);
+  expect((await response.json()).error.code).toBe(
+    "RESEARCH_PROVIDER_UNAVAILABLE",
+  );
+});
+
+it("runs a project with the fake provider and lists what it stored", async () => {
+  const withProvider = createTestClient({
+    KEYWORD_PROVIDER: "fake",
+    ALLOW_FAKE_PROVIDERS: "1",
+  });
+  const cookie = await withProvider.signIn("runner@example.com");
+  const project = await (
+    await withProvider.call("/api/research/projects", {
+      method: "POST",
+      headers: {
+        cookie,
+        Origin: TEST_APP_URL,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: "Run me", seeds: ["meeting notes"] }),
+    })
+  ).json();
+  const base = `/api/research/projects/${project.id}`;
+  const run = await withProvider.call(`${base}/runs`, {
+    method: "POST",
+    headers: {
+      cookie,
+      Origin: TEST_APP_URL,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ requestId: crypto.randomUUID() }),
+  });
+  expect(run.status).toBe(201);
+  expect(await run.json()).toMatchObject({
+    status: "completed",
+    errorCode: null,
+  });
+  const get = async (path: string) =>
+    (
+      await withProvider.call(`${base}/${path}`, { headers: { cookie } })
+    ).json();
+  const { items: keywords } = await get("keywords");
+  expect(keywords).toHaveLength(8);
+  expect(keywords[0]).toMatchObject({ provider: "fake" });
+  expect(keywords[0]).toHaveProperty("cpcUsd");
+  const { items: serps } = await get("serps");
+  expect(serps[0].results).toHaveLength(10);
+  const { items: runs } = await get("runs");
+  expect(runs).toHaveLength(1);
+  expect(
+    (
+      await withProvider.call(`${base}/keywords`, {
+        headers: { cookie: other },
+      })
+    ).status,
+  ).toBe(404);
+});

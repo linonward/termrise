@@ -52,6 +52,8 @@ const schema = z
           .map((id) => id.trim())
           .filter(Boolean),
       ),
+    /** Keyword data for research runs; unset: runs answer 503. Only fake for now (docs/roadmap.md). */
+    KEYWORD_PROVIDER: z.enum(["fake"]).optional(),
     /** Only E2E sets it. Workers have no NODE_ENV, so fake providers always need it. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })
@@ -78,6 +80,7 @@ const schema = z
         "TASK_PROVIDER",
         "STORAGE_PROVIDER",
         "PAYMENT_PROVIDER",
+        "KEYWORD_PROVIDER",
       ] as const)
         if (env[key] === "fake")
           ctx.addIssue({

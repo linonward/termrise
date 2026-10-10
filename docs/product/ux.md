@@ -290,6 +290,9 @@ Logout
 
 - 下方是 Signals 表（词、来源、观测日期、链接），右侧是 draft 才有的「从 CSV 导入」：选择文件后在浏览器读取文本并提交，显示导入、重复、跳过的数量和新增种子词数，跳过的行按电子表格行号列出原因（最多 20 行）。
 - CSV 模板：第一行是表头，列名不区分大小写、顺序任意：`term`（必填）、`url`（http/https）、`observed_at`（`YYYY-MM-DD` 或带时区的 ISO 时间）、`source`、`note`。空白行忽略。导入后编辑表单重新加载，显示新的种子词。
+- 右侧在 draft 或 failed 时有「运行研究」面板（说明 + [Run research]；failed 时说明改为「上次运行失败，可以再运行一次」），下方显示最近一次运行的状态和时间，失败时显示原因，partial 时说明部分搜索结果没有取到。运行现在是同步的：按钮显示 Running… 直到完成。
+- Keywords 表：关键词（种子词带 `brand-soft` 的 Seed 标签）、搜索量、CPC、广告竞争、KD，数字右对齐；缺失的值显示「No data / 暂无数据」，不显示 0。数据来自测试 Provider 时，表格上方显示 `info-soft` 的提示「测试数据，不是真实的搜索数据」。
+- Top search results：每个已审核关键词一个可折叠的列表（第一个展开），列出排名、标题（链接）和域名。
 - 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除和导入。
 - 不属于当前用户或不存在的项目返回 404 页面。
 - 状态徽章样式见 design-system.md 的 Status：draft 为 `surface-strong` + `pencil-line`；运行中各状态为 `info-soft` + `loader-circle`；completed 为 `success-soft`；failed、budget_exhausted 为 `destructive-soft`；cancelled、partial 为 `surface-strong`。
