@@ -11,8 +11,10 @@ const INFORMATIONAL =
   /\b(how|what|why|when|guide|tutorial|examples?|meaning|ideas)\b/;
 const NAVIGATIONAL = /\b(login|log in|sign in|website|official)\b/;
 // Phrases that ask for something to use: the product kind an indie developer can build.
+// v2 adds product nouns ("note taker", "recorder", "software") and a bare "ai", which
+// asks for an AI tool: "ai meeting notes", "meeting summary ai".
 const TOOL =
-  /\b(tool|tools|app|apps|generator|calculator|template|templates|checker|converter|extension|plugin|online|api)\b/;
+  /\b(tools?|apps?|generators?|calculators?|templates?|checkers?|converters?|extensions?|plugins?|online|api|ai|software|platform|bots?|chatbots?|assistants?|takers?|notetakers?|makers?|builders?|creators?|editors?|recorders?|transcription|transcribers?|summarizers?|translators?|scanners?|trackers?|planners?|detectors?|removers?|downloaders?|writers?|integrations?)\b/;
 
 export function classifyIntent(phrase: string): Intent {
   if (NAVIGATIONAL.test(phrase)) return "navigational";

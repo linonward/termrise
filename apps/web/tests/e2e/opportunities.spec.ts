@@ -58,18 +58,17 @@ test("a research run ranks opportunities with their score and evidence", async (
   await expect(
     page.getByRole("rowheader", { name: "Monthly searches" }),
   ).toBeVisible();
-  await expect(page.getByTestId("compare-row")).toHaveCount(20);
+  await expect(page.getByTestId("compare-row")).toHaveCount(21);
   const compareUrl = page.url();
   await page.goBack();
   await expect(page.getByTestId("opportunity-row")).toHaveCount(2);
 
-  await page
-    .getByTestId("opportunity-row")
-    .first()
-    .getByRole("link")
-    .first()
-    .click();
+  await page.getByRole("link", { name: "meeting notes", exact: true }).click();
   await expect(page).toHaveURL(/\/opportunities\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId("build-advice-panel")).toBeVisible();
+  await expect(page.getByTestId("serp-competition")).toContainText(
+    "Top 10 results",
+  );
   await expect(page.getByTestId("opportunity-score")).toContainText("/100");
   await expect(page.getByTestId("dimension-row")).toHaveCount(6);
   await expect(page.getByTestId("analysis")).toContainText("MVP scope");

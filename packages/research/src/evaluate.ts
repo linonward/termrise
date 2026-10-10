@@ -13,6 +13,7 @@ import {
 import { logger } from "@repo/observability/logger";
 
 import type { Budget } from "./budget";
+import { buildAdvice } from "./build-advice";
 import { classifyIntent } from "./intent";
 import { analysisSchema, type OpportunityAnalyst } from "./opportunity-analyst";
 import {
@@ -23,6 +24,7 @@ import {
   totalScore,
   type ClusterEvidence,
 } from "./scoring";
+import { serpCompetition } from "./serp-competition";
 
 /** At most this many opportunities per run (docs/product/product.md#f05-产品机会). */
 export const TOP_OPPORTUNITIES = 5;
@@ -93,6 +95,22 @@ async function clusters(database: Database, projectId: string) {
       const snapshot = newestSerp.get(m.id);
       return snapshot ? [snapshot] : [];
     });
+    // The audited keyword with the most searches stands for the cluster's competition.
+    const strongestAudited = members
+      .filter((m) => newestSerp.has(m.id))
+      .sort(
+        (a, b) =>
+          (latest.get(b.id)?.searchVolume ?? -1) -
+          (latest.get(a.id)?.searchVolume ?? -1),
+      )[0];
+    const serp = strongestAudited
+      ? serpCompetition(
+          strongestAudited.phrase,
+          titles.filter(
+            (t) => t.snapshotId === newestSerp.get(strongestAudited.id)!.id,
+          ),
+        )
+      : null;
     return {
       name: seed,
       keywordIds: members.map((m) => m.id),
@@ -109,6 +127,7 @@ async function clusters(database: Database, projectId: string) {
           };
         }),
         serpAudited: audited.length > 0,
+        serp,
         signals: clusterSignals.map((s) => ({
           observedAt: s.observedAt,
           source: s.metadata.source ?? null,
@@ -225,6 +244,8 @@ export async function evaluateOpportunities(deps: {
         analysisError,
         analystProvider: analyst.name,
         analystModel: analyst.model,
+        serpCompetition: cluster.evidence.serp ?? null,
+        buildAdvice: buildAdvice(cluster.evidence),
         analystPromptVersion: analyst.promptVersion,
         evidence: {
           keywordIds: cluster.keywordIds,

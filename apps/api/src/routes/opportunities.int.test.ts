@@ -55,17 +55,32 @@ it("lists the ranked opportunities of a run and shows one with its evidence", as
     projectId,
     projectName: "Notes",
     status: "unreviewed",
-    scoringVersion: "v1",
+    scoringVersion: "v2",
     analystProvider: "fake",
     rank: 1,
   });
   expect(items[0]).not.toHaveProperty("evidence");
 
-  const detail = await (await get(`/api/opportunities/${items[0].id}`)).json();
-  expect(detail).toMatchObject({ id: items[0].id, score: items[0].score });
+  const first = await (await get(`/api/opportunities/${items[0].id}`)).json();
+  expect(first).toMatchObject({ id: items[0].id, score: items[0].score });
+  // Only the project's top keywords are audited: take the opportunity with a SERP.
+  const details = await Promise.all(
+    items.map(async (o: { id: string }) =>
+      (await get(`/api/opportunities/${o.id}`)).json(),
+    ),
+  );
+  const detail = details.find((d) => d.serps.length > 0);
   expect(detail.keywords.length).toBeGreaterThan(0);
-  expect(detail.serps.length).toBeGreaterThan(0);
   expect(detail.analysis.mvpScope.length).toBeGreaterThan(0);
+  // Rule-based competition and advice, from the stored SERP and metrics.
+  expect(detail.serpCompetition).toMatchObject({ results: 10 });
+  expect(
+    detail.serpCompetition.homepages + detail.serpCompetition.innerPages,
+  ).toBe(10);
+  expect(detail.buildAdvice).toMatchObject({ version: "build-v1" });
+  expect(["new_site", "inner_page", "weak_demand", "unknown"]).toContain(
+    detail.buildAdvice.advice,
+  );
 });
 
 it("hides other users' opportunities", async () => {

@@ -38,6 +38,7 @@
 | S29   | 收藏：`opportunities.starred_at`、`radar_favorites` 与 migration；`favorites.ts`（只有所有者收藏机会、Radar 收藏按用户、重复操作不变、导出与删除）；`PUT / DELETE .../star` 与 `starred=1`；星标按钮与「只看收藏」                                                                                                                                                                                                                                                                    | 集成测试覆盖按用户收藏、筛选、归属、导出与删除；API 测试覆盖收藏、筛选、404；E2E 覆盖 Radar 与机会的收藏和筛选                                                                                          | 已完成 |
 | S30   | 机会比较：列表复选框与 [Compare selected]；`/opportunities/compare`（最多 4 个，分数、维度、关键词指标、SERP、AI 假设并排；其他用户的机会不显示；少于 2 个时说明）；没有新的 API                                                                                                                                                                                                                                                                                                      | E2E 覆盖选择两个机会后比较、其他用户打开同一链接时不显示                                                                                                                                                | 已完成 |
 | S31   | Google Trends（termrise.md M1-04）：Trending Now RSS 适配器（`fast-xml-parser`，用保存的真实订阅测试，字段变化时失败）；`collectGoogleTrends()`（每个搜索、市场、日期一个条目，近似搜索次数为下限）；Radar 来源与列表的 CHECK 与 migration；生命周期只为 HN 计算增长；Worker 的 `GOOGLE_TRENDS_ENABLED` 与每个来源一个 Job Scheduler；心跳的 `radar_sources`；Radar 页面的热度与来源链接                                                                                              | 单元测试覆盖解析、流量标签、实体、形状变化、HTTP 错误；集成测试覆盖保存、同日观测、隔日新条目与重复出现；Worker 测试覆盖两个来源；E2E 覆盖 Trends 条目的热度与链接                                      | 已完成 |
+| S32   | 评分 v2 与建站建议（参考 Web.Cafe 新词发现）：`serp-competition.ts`（前 10 中的首页、内页、专门页面）；评分 `v2`（工具意图增加产品名词和单独的 ai；竞争加入专门页面）；`build-advice.ts`（`build-v1`：新站 / 内页 / 需求弱 / 数据不足，带理由）；`opportunity_evaluations.serp_competition`、`build_advice` 与 migration；详情页、列表、比较页与 Brief                                                                                                                                | 单元测试覆盖首页判断、专门页面、v2 的 MVP 与竞争、建站建议的各条规则；API 测试覆盖新字段；E2E 覆盖详情页的建议与 SERP 计数、比较页的新行                                                                | 已完成 |
 
 ## Confirmed Decisions
 
@@ -73,6 +74,7 @@
 - 2026-10-10：`/settings/providers` 不提供「测试连接」：DeepSeek 余额接口的文档没有写认证方式和是否收费，不猜。连接状态用最近一次真实调用的结果，服务配置来自 Worker 心跳（API 不读取 Worker 的环境变量）。预算仍按研究项目设置。
 - 2026-10-10：F02 生命周期先只用 HN 的讨论热度（分数随时间的变化和同一个词的更早条目），规则 `lifecycle-v1` 在读取时计算、不存储。接入有搜索趋势的数据源后再增加按搜索趋势的版本。
 - 2026-10-10：接入 Google Trends Trending Now 的 RSS：Trends 帮助页把它列为导出方式之一，公开、不需要 Key，robots.txt 不禁止。它没有字段说明，所以用保存的真实订阅测试，字段变化时任务失败。只采集美国市场；近似搜索次数是下限，不当作月搜索量。不使用网页内部接口（如 pytrends）。
+- 2026-10-10：参考 Web.Cafe 的新词发现，增加 SERP 竞争计数与建站建议。只用已保存的前 10 结果（F04 的范围，不增加费用），规则确定、有版本，不用 AI 判断。阈值（1000 搜索量、KD 40、3 个专门页面）是初版，观察真实数据后再调整。
 
 ## Open Questions
 

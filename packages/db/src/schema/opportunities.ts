@@ -95,6 +95,20 @@ export const opportunityEvaluations = pgTable(
     analystModel: text(),
     analystPromptVersion: text().notNull(),
     evidence: jsonb().$type<OpportunityEvidence>().notNull(),
+    /** Top results of the strongest audited keyword (serp-competition.ts); null when none. */
+    serpCompetition: jsonb().$type<{
+      phrase: string;
+      results: number;
+      homepages: number;
+      innerPages: number;
+      dedicatedPages: number;
+    }>(),
+    /** What to build (build-advice.ts); null for evaluations before build-v1. */
+    buildAdvice: jsonb().$type<{
+      version: string;
+      advice: string;
+      reasons: string[];
+    }>(),
     createdAt: createdAt(),
   },
   (t) => [

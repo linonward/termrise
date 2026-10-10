@@ -113,3 +113,48 @@ it("scores missing data as 0 and flags a high score on weak evidence", () => {
     distribution: 0,
   });
 });
+
+it("v2 counts product nouns and a bare ai as tool intent", () => {
+  const phrases = [
+    "ai meeting notes",
+    "automatic meeting note taker",
+    "otter zoom transcription",
+    "meeting notes",
+    "how meetings work",
+  ];
+  const dims = scoreDimensions({
+    keywords: phrases.map((phrase) => ({
+      phrase,
+      searchVolume: 100,
+      cpcUsd: null,
+      keywordDifficulty: null,
+      fetchedAt: null,
+    })),
+    serpAudited: false,
+    signals: [],
+  });
+  // 3 of 5 phrases ask for a tool: 0.6.
+  expect(dims.mvp).toBe(4);
+});
+
+it("v2 opens or closes competition with the pages made for the keyword", () => {
+  const serp = (dedicatedPages: number) => ({
+    phrase: "meeting notes tool",
+    results: 10,
+    homepages: 2,
+    innerPages: 8,
+    dedicatedPages,
+  });
+  // KD 18 of the strongest rated keyword scores 4.
+  expect(scoreDimensions({ ...strong, serp: serp(1) }).competition).toBe(5);
+  expect(scoreDimensions({ ...strong, serp: serp(4) }).competition).toBe(4);
+  expect(scoreDimensions({ ...strong, serp: serp(8) }).competition).toBe(3);
+  // Without a KD, the dedicated pages alone decide.
+  const noKd = strong.keywords.map((k) => ({ ...k, keywordDifficulty: null }));
+  expect(
+    scoreDimensions({ ...strong, keywords: noKd, serp: serp(1) }).competition,
+  ).toBe(4);
+  expect(
+    scoreDimensions({ ...strong, keywords: noKd, serp: serp(10) }).competition,
+  ).toBe(1);
+});

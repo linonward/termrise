@@ -698,7 +698,9 @@ processed_at = now()
 - `opportunities`：项目中的一个机会，`(project_id, cluster)` 唯一，`cluster` 是种子词。`status` 为 `unreviewed`（默认）/ `needs_validation` / `go` / `no_go`，只由用户的决策修改（S16）。再次运行时沿用同一行。
 - `opportunity_evaluations`：一次运行对一个机会的评估，只追加。记录 `run_id`、`scoring_version`、总分 `score`（0–100）、六个维度的评分 `dimensions`（每项 0–5）、`confidence`（0–100）、`needs_review`、名次 `rank`（1–5）、AI 分析 `analysis`、分析失败的原因 `analysis_error`、分析 Provider、模型（`analyst_model`，fake 为 null）与 Prompt 版本，以及评分用到的证据 `evidence`（关键词、SERP 快照、信号的 id）。
 - 当前评估：项目最近一次产生评估的运行中，每个机会最新的一条。上一次进入前 5、这一次没有进入的机会不再列出，历史评估保留。
-- 评分（`scoring.ts`，版本 `v1`）只由数据计算，AI 不写分数。维度与权重：趋势 20（信号中出现的不同天数）、需求 15（组内最大的搜索量，同义词不相加）、竞争 20（最大关键词的 KD，越低越高）、商业意图 25（购买类关键词的占比 + 最高 CPC）、MVP 适配 10（寻找工具、应用、模板的关键词占比）、分发 10（不同来源的数量）。总分 = Σ 评分 / 5 × 权重，四舍五入。没有搜索量的组不打分。
+- 评分（`scoring.ts`，版本 `v2`）只由数据计算，AI 不写分数。维度与权重：趋势 20（信号中出现的不同天数）、需求 15（组内最大的搜索量，同义词不相加）、竞争 20（最大关键词的 KD，越低越高；v2 起，前排结果中专门页面不超过 2 个加一、不少于 7 个减一，没有 KD 时只看专门页面）、商业意图 25（购买类关键词的占比 + 最高 CPC）、MVP 适配 10（要用东西的关键词占比：工具、应用、模板，v2 起还有 note taker、recorder、software、assistant 等产品名词和单独的 ai）、分发 10（不同来源的数量）。总分 = Σ 评分 / 5 × 权重，四舍五入。没有搜索量的组不打分。
+- SERP 竞争（`serp-competition.ts`，只用已保存的前 10）：取组内已审核、搜索量最大的关键词，数首页（路径为空，或只有语言段如 `/en`）、内页、专门页面（标题含有关键词的全部单词，复数的 s 忽略）。存在评估的 `serp_competition` 中，没有审核时为 null。
+- 建站建议（`build-advice.ts`，版本 `build-v1`）：最大关键词月搜索量少于 100 为 `weak_demand`；没有搜索量为 `unknown`；搜索量不少于 1000、KD 不高于 40、专门页面不超过 3 个，三条同时满足为 `new_site`；其余为 `inner_page`。每条建议带理由代码（例如 `volume_high`、`kd_high`、`dedicated_few`），页面和 Brief 显示理由和数字。存在评估的 `build_advice` 中；v2 之前的评估为 null。
 - 可信度：指标完整的关键词占比 40、有 SERP 审核 25、指标在 30 天内 15、有信号 20。分数不低于 60 而可信度低于 50 时 `needs_review` 为 true，页面提示先核对证据。
 - 意图（`intent.ts`）：按词判断导航、交易、信息、商业类；问题词（how、what、guide 等）优先于商业词；无法判断时为信息类，不抬高商业意图。
 - AI 分析（`opportunity-analyst.ts` 端口）：输入是组名、关键词与意图、SERP 标题、信号来源，输出用 Zod 校验（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险）。输出不合格时 `analysis` 为 null，`analysis_error` 为 `AI_INVALID_OUTPUT`；调用失败为 `AI_ERROR`。两种情况分数照常保存。实现有两个：`fake`（`adapters/fake-analyst.ts`，模板文字，只在 `ALLOW_FAKE_PROVIDERS=1` 时可用）和 `deepseek`（见下一条）。

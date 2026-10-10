@@ -959,7 +959,8 @@
       "targetUser": "Target user",
       "pricing": "Pricing",
       "mvpScope": "MVP scope",
-      "risks": "Risks"
+      "risks": "Risks",
+      "build": "Build"
     }
   },
   "opportunities": {
@@ -980,7 +981,8 @@
       "dimension": "Dimension",
       "rating": "Rating",
       "weight": "Weight",
-      "select": "Select"
+      "select": "Select",
+      "build": "Build"
     },
     "status": {
       "unreviewed": "Unreviewed",
@@ -1004,9 +1006,9 @@
     "dimensionHint": {
       "trend": "Days on which the term was seen in signals.",
       "demand": "Monthly search volume of the biggest keyword. Synonyms are not added up.",
-      "competition": "Keyword difficulty of the biggest keyword; lower rates higher.",
+      "competition": "Keyword difficulty of the biggest keyword, lower rates higher; few pages made for the keyword in its top results add one, many take one away.",
       "commercial": "Share of buying keywords and the highest CPC.",
-      "mvp": "Share of keywords that ask for a tool, app or template.",
+      "mvp": "Share of keywords that ask for something to use: a tool, app, template, note taker, software, or an AI tool.",
       "distribution": "Number of different sources that mention the term."
     },
     "scoreNote": "Scoring {version}: each rating from 0 to 5, multiplied by its weight. Confidence drops when data is missing, old or not audited.",
@@ -1038,7 +1040,31 @@
     "starredEmpty": "No starred opportunities yet. Use the star on an opportunity to keep it here.",
     "compare": "Compare selected",
     "compareHint": "Select 2 to {max} opportunities.",
-    "selectOne": "Select {name} to compare"
+    "selectOne": "Select {name} to compare",
+    "build": {
+      "title": "What to build",
+      "notEvaluated": "No build advice: this evaluation was made before the rules existed. Run the research again.",
+      "advice": {
+        "new_site": "New site",
+        "inner_page": "Inner page",
+        "weak_demand": "Weak demand",
+        "unknown": "Not enough data"
+      },
+      "reason": {
+        "no_volume": "No keyword has search volume data.",
+        "volume_low": "The biggest keyword has {volume} monthly searches, fewer than {minVolume}.",
+        "volume_mid": "The biggest keyword has {volume} monthly searches: enough for a page, fewer than {siteVolume} for a site.",
+        "volume_high": "The biggest keyword has {volume} monthly searches, {siteVolume} or more.",
+        "kd_low": "Its KD is {kd}, {maxKd} or lower.",
+        "kd_high": "Its KD is {kd}, higher than {maxKd}.",
+        "kd_missing": "Its KD is unknown.",
+        "no_serp": "Its search results were not audited.",
+        "dedicated_few": "{dedicated} of the top results are made for this keyword: {maxDedicated} or fewer leaves room.",
+        "dedicated_many": "{dedicated} of the top results are made for this keyword: more than {maxDedicated}."
+      },
+      "serp": "Top {results} results for “{phrase}”: {homepages} home pages, {innerPages} inner pages, {dedicated} made for the keyword.",
+      "note": "Rules {version}. A new site needs all three: the demand, a KD it can beat, and room in the top results. Check the results yourself before you build."
+    }
   },
   "decisions": {
     "title": "Decision",

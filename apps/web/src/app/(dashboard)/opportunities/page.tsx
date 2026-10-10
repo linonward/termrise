@@ -6,6 +6,7 @@ import type { OpportunityDto } from "@repo/research/research-dto";
 import { Button } from "@repo/ui/components/button";
 
 import { StarButton } from "@/components/favorites/star-button";
+import { BuildAdviceBadge } from "@/features/opportunities/build-advice";
 import {
   NeedsReview,
   OpportunityStatus,
@@ -99,6 +100,7 @@ export default async function OpportunitiesPage({
                       "project",
                       "score",
                       "confidence",
+                      "build",
                       "status",
                     ] as const
                   ).map((key) => (
@@ -160,6 +162,19 @@ export default async function OpportunitiesPage({
                     </td>
                     <td className="py-4 pr-4 text-right tabular-nums">
                       {o.confidence}%
+                    </td>
+                    <td className="py-4 pr-4">
+                      {o.buildAdvice ? (
+                        <BuildAdviceBadge
+                          advice={
+                            o.buildAdvice.advice as NonNullable<
+                              OpportunityDto["buildAdvice"]
+                            >["advice"]
+                          }
+                        />
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="py-4 pr-4">
                       <OpportunityStatus status={o.status} />

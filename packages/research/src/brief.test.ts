@@ -36,6 +36,18 @@ const base: OpportunityDetailDto = {
   analysisError: null,
   analystProvider: "deepseek",
   starred: false,
+  serpCompetition: {
+    phrase: "meeting notes",
+    results: 10,
+    homepages: 3,
+    innerPages: 7,
+    dedicatedPages: 2,
+  },
+  buildAdvice: {
+    version: "build-v1",
+    advice: "new_site",
+    reasons: ["volume_high", "kd_low", "dedicated_few"],
+  },
   analystModel: "deepseek-flash",
   evaluatedAt: "2026-10-10T00:00:00.000Z",
   keywords: [
@@ -96,9 +108,14 @@ it("covers every section a coding agent needs, from stored data only", () => {
     "Pricing and Experiments",
     "Risks",
     "Decisions",
+    "Build Advice",
   ])
     expect(md).toContain(`\n## ${heading}\n`);
   expect(md).toContain("# Product Brief: meeting notes");
+  expect(md).toContain("Build a new site around the keyword. Rules build-v1");
+  expect(md).toContain(
+    'Top 10 results for "meeting notes": 3 home pages, 7 inner pages, 2 made for the keyword.',
+  );
   expect(md).toContain("| meeting notes | 5400 | $2.50 | no data |");
   expect(md).toContain("1. Otter (otter.ai)");
   expect(md).toContain("- [ ] Paste a transcript");
