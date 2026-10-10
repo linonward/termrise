@@ -42,6 +42,27 @@ test("a research run ranks opportunities with their score and evidence", async (
   await page.getByRole("link", { name: "All opportunities" }).click();
   await expect(page.getByTestId("opportunity-row")).toHaveCount(2);
 
+  // Compare both, side by side.
+  for (const box of await page
+    .getByRole("checkbox", { name: /to compare$/ })
+    .all())
+    await box.check();
+  await page.getByRole("button", { name: "Compare selected" }).click();
+  await expect(page).toHaveURL(/\/opportunities\/compare\?id=/);
+  await expect(
+    page.getByRole("columnheader", { name: "meeting notes" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "invoice tool" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("rowheader", { name: "Monthly searches" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("compare-row")).toHaveCount(20);
+  const compareUrl = page.url();
+  await page.goBack();
+  await expect(page.getByTestId("opportunity-row")).toHaveCount(2);
+
   await page
     .getByTestId("opportunity-row")
     .first()
@@ -55,11 +76,16 @@ test("a research run ranks opportunities with their score and evidence", async (
   await expect(page.getByTestId("keyword-row")).toHaveCount(8);
   await expect(page.getByTestId("serp").first()).toBeVisible();
 
-  // Another user does not see it.
+  // Another user does not see it, nor can compare it.
   const other = await browser.newContext();
   await signIn(other);
-  const response = await (await other.newPage()).goto(page.url());
+  const otherPage = await other.newPage();
+  const response = await otherPage.goto(page.url());
   expect(response?.status()).toBe(404);
+  await otherPage.goto(compareUrl);
+  await expect(
+    otherPage.getByText("Select 2 to 4 of your opportunities"),
+  ).toBeVisible();
   await other.close();
 });
 

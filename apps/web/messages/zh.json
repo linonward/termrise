@@ -921,6 +921,30 @@
     "cancelling": "正在取消…",
     "runCancelledBody": "上次运行已取消。可以再运行一次。"
   },
+  "compare": {
+    "metaTitle": "比较机会",
+    "title": "比较机会",
+    "subtitle": "并排显示已保存的分数、证据和 AI 假设。",
+    "back": "机会",
+    "tooFew": "请在列表中选择 2 到 {max} 个你的机会进行比较。",
+    "noData": "暂无数据",
+    "row": {
+      "project": "项目",
+      "status": "状态",
+      "score": "分数",
+      "confidence": "可信度",
+      "topKeyword": "最大关键词",
+      "searchVolume": "月搜索量",
+      "keywordDifficulty": "KD",
+      "cpc": "CPC",
+      "keywords": "关键词数",
+      "serps": "已审核 SERP",
+      "targetUser": "目标用户",
+      "pricing": "定价",
+      "mvpScope": "MVP 范围",
+      "risks": "风险"
+    }
+  },
   "opportunities": {
     "metaTitle": "机会",
     "title": "机会",
@@ -938,7 +962,8 @@
       "status": "状态",
       "dimension": "维度",
       "rating": "评分",
-      "weight": "权重"
+      "weight": "权重",
+      "select": "选择"
     },
     "status": {
       "unreviewed": "未评审",
@@ -993,7 +1018,10 @@
     "sourceCsv": "CSV 导入",
     "starredOnly": "只看收藏",
     "showAllStars": "全部机会",
-    "starredEmpty": "还没有收藏的机会。点击机会旁的星标即可收藏。"
+    "starredEmpty": "还没有收藏的机会。点击机会旁的星标即可收藏。",
+    "compare": "比较所选",
+    "compareHint": "选择 2 到 {max} 个机会。",
+    "selectOne": "选择 {name} 进行比较"
   },
   "decisions": {
     "title": "决策",

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import { MAX_COMPARED } from "@repo/research/opportunity-rules";
 import type { OpportunityDto } from "@repo/research/research-dto";
+import { Button } from "@repo/ui/components/button";
 
 import { StarButton } from "@/components/favorites/star-button";
 import {
@@ -83,77 +85,99 @@ export default async function OpportunitiesPage({
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[15px]">
-            <thead>
-              <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-                {(
-                  [
-                    "opportunity",
-                    "project",
-                    "score",
-                    "confidence",
-                    "status",
-                  ] as const
-                ).map((key) => (
-                  <th
-                    key={key}
-                    className={
-                      key === "score" || key === "confidence"
-                        ? "pr-4 pb-3 text-right font-semibold"
-                        : "pr-4 pb-3 font-semibold"
-                    }
-                  >
-                    {t(`column.${key}`)}
+        <form action="/opportunities/compare" className="space-y-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[15px]">
+              <thead>
+                <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+                  <th className="pr-4 pb-3">
+                    <span className="sr-only">{t("column.select")}</span>
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((o) => (
-                <tr
-                  key={o.id}
-                  data-testid="opportunity-row"
-                  className="border-b border-border"
-                >
-                  <td className="py-4 pr-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StarButton
-                        path={`/api/opportunities/${o.id}/star`}
-                        starred={o.starred}
-                        name={o.cluster}
-                      />
-                      <Link
-                        href={`/opportunities/${o.id}`}
-                        className="font-semibold hover:underline hover:underline-offset-4"
-                      >
-                        {o.cluster}
-                      </Link>
-                      {o.needsReview && <NeedsReview />}
-                    </div>
-                  </td>
-                  <td className="py-4 pr-4 text-muted-foreground">
-                    <Link
-                      href={`/research/${o.projectId}`}
-                      className="hover:underline hover:underline-offset-4"
+                  {(
+                    [
+                      "opportunity",
+                      "project",
+                      "score",
+                      "confidence",
+                      "status",
+                    ] as const
+                  ).map((key) => (
+                    <th
+                      key={key}
+                      className={
+                        key === "score" || key === "confidence"
+                          ? "pr-4 pb-3 text-right font-semibold"
+                          : "pr-4 pb-3 font-semibold"
+                      }
                     >
-                      {o.projectName}
-                    </Link>
-                  </td>
-                  <td className="py-4 pr-4 text-right font-heading text-xl font-semibold tabular-nums">
-                    {o.score}
-                  </td>
-                  <td className="py-4 pr-4 text-right tabular-nums">
-                    {o.confidence}%
-                  </td>
-                  <td className="py-4 pr-4">
-                    <OpportunityStatus status={o.status} />
-                  </td>
+                      {t(`column.${key}`)}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((o) => (
+                  <tr
+                    key={o.id}
+                    data-testid="opportunity-row"
+                    className="border-b border-border"
+                  >
+                    <td className="py-4 pr-4">
+                      <input
+                        type="checkbox"
+                        name="id"
+                        value={o.id}
+                        aria-label={t("selectOne", { name: o.cluster })}
+                        className="size-4 accent-brand"
+                      />
+                    </td>
+                    <td className="py-4 pr-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StarButton
+                          path={`/api/opportunities/${o.id}/star`}
+                          starred={o.starred}
+                          name={o.cluster}
+                        />
+                        <Link
+                          href={`/opportunities/${o.id}`}
+                          className="font-semibold hover:underline hover:underline-offset-4"
+                        >
+                          {o.cluster}
+                        </Link>
+                        {o.needsReview && <NeedsReview />}
+                      </div>
+                    </td>
+                    <td className="py-4 pr-4 text-muted-foreground">
+                      <Link
+                        href={`/research/${o.projectId}`}
+                        className="hover:underline hover:underline-offset-4"
+                      >
+                        {o.projectName}
+                      </Link>
+                    </td>
+                    <td className="py-4 pr-4 text-right font-heading text-xl font-semibold tabular-nums">
+                      {o.score}
+                    </td>
+                    <td className="py-4 pr-4 text-right tabular-nums">
+                      {o.confidence}%
+                    </td>
+                    <td className="py-4 pr-4">
+                      <OpportunityStatus status={o.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" variant="outline" className="h-10 px-4">
+              {t("compare")}
+            </Button>
+            <p className="text-[13px] text-muted-foreground">
+              {t("compareHint", { max: MAX_COMPARED })}
+            </p>
+          </div>
+        </form>
       )}
     </main>
   );

@@ -35,6 +35,8 @@
 
 /opportunities
 
+/opportunities/compare
+
 /opportunities/:id
 
 /projects
@@ -378,6 +380,14 @@ Open link（有链接时）、Discussion（HN 讨论页），新窗口打开，r
 - 状态徽章：unreviewed 为 `surface-strong`，needs_validation 为 `info-soft`，go 为 `success-soft`，no_go 为 `destructive-soft`。
 - 不属于当前用户或不存在的机会返回 404 页面。
 - 机会为 go 时，Decision 面板上方有 `success-soft` 的提示：没有产品时是 [Start product]（开始后进入产品页），有产品时是 Open product 链接。
+
+---
+
+## Compare
+
+- 机会列表每行有一个复选框，表格下方是 [Compare selected] 和「选择 2 到 4 个机会」的说明。表单用 GET 打开 `/opportunities/compare?id=…&id=…`。
+- `/opportunities/compare`（无设计稿）：每个机会一列（标题链接到详情），行为项目、状态、分数、可信度（需要复核时带标记）、六个维度、最大关键词及其月搜索量、KD、CPC、关键词数、已审核 SERP 数、目标用户、定价、MVP 范围、风险。缺失的值显示「暂无数据」。数据来自测试 Provider 时显示测试数据提示。
+- 最多比较 4 个；不属于当前用户或不存在的机会不显示。少于 2 个时显示说明。没有新的 API，页面读取 `GET /api/opportunities/:id`。
 
 ---
 

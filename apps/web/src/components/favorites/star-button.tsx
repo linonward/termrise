@@ -46,6 +46,8 @@ export function StarButton({
 
   return (
     <Button
+      // Inside the compare form of the opportunity list: not a submit button.
+      type="button"
       variant="ghost"
       size="icon-sm"
       aria-pressed={starred}
