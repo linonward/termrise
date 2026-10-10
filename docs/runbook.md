@@ -10,14 +10,14 @@
 
 ## Production Access
 
-| 需要              | 位置                                                                                                                              |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Production 连接串 | Neon 项目 `<project>` → `main` 分支 → Connect（pooled）                                                                           |
-| 管理台            | `https://<domain>/admin`，用 `ADMIN_USER_IDS` 中的账号登录（见 [Admin Access](architecture/security.md#admin-access)）            |
-| 只读查询          | Neon 控制台的 SQL Editor，选 `main` 分支                                                                                          |
-| 日志              | Vercel 项目 `<project>` → Logs，按 `eventType` 搜索（日志格式见 [observability.md](architecture/observability.md#observability)） |
-| 错误              | Sentry Production project                                                                                                         |
-| 部署              | Vercel 项目 `<project>` → Deployments                                                                                             |
+| 需要              | 位置                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Production 连接串 | Neon 项目 `<project>` → `main` 分支 → Connect（pooled）                                                                              |
+| 管理台            | `https://<domain>/admin`，用 `apps/api` 的 `ADMIN_USER_IDS` 中的账号登录（见 [Admin Access](architecture/security.md#admin-access)） |
+| 只读查询          | Neon 控制台的 SQL Editor，选 `main` 分支                                                                                             |
+| 日志              | Vercel 项目 `<project>` → Logs，按 `eventType` 搜索（日志格式见 [observability.md](architecture/observability.md#observability)）    |
+| 错误              | Sentry Production project                                                                                                            |
+| 部署              | Vercel 项目 `<project>` → Deployments                                                                                                |
 
 连接串只在本机终端的环境变量里使用，不写入文件，不贴到工单或聊天里。
 
@@ -183,7 +183,7 @@ where t.balance_after <> u.credit_balance;
 
 1. 确认请求来自账号自己的 email。不是同一个 email 时，回复用户从账号 email 重新发送。
 2. 在 `/admin` 用 email 找到用户，记下 user id。
-3. 两个脚本都需要 Production 的 `DATABASE_URL` 和 R2 变量（`R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`），从 Vercel 环境变量取得。脚本先输出目标数据库的 host，确认是 Production 再继续。
+3. 两个脚本都需要 Production 的 `DATABASE_URL` 和 R2 变量（`R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`），从 Neon 控制台和 Cloudflare R2 取得（R2 密钥与 `apps/api` 的相同）。脚本先输出目标数据库的 host，确认是 Production 再继续。
 
 导出：
 
@@ -227,7 +227,7 @@ DATABASE_URL='<Production 连接串>' R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_
 通用步骤：
 
 1. 在服务商控制台创建新的 key（旧 key 先保留）。
-2. Vercel 项目 `<project>` → Settings → Environment Variables，更新对应环境的变量，类型选 Secret。`apps/api` 的变量（`RESEND_API_KEY`、`GOOGLE_CLIENT_SECRET`、`BETTER_AUTH_SECRET`）在 `apps/api` 中用 `npx wrangler secret put <NAME>` 更新，立即生效，不需要第 3 步。
+2. Vercel 项目 `<project>` → Settings → Environment Variables，更新对应环境的变量，类型选 Secret。`apps/api` 的变量（`RESEND_API_KEY`、`GOOGLE_CLIENT_SECRET`、`BETTER_AUTH_SECRET`、`R2_*`、`WAFFO_PRIVATE_KEY`、`DEEPSEEK_API_KEY`）在 `apps/api` 中用 `npx wrangler secret put <NAME>` 更新，立即生效，不需要第 3 步。
 3. 重新部署：环境变量只对新部署生效。Deployments → 最新 Production 部署 → Redeploy。
 4. 验证下表的检查项。
 5. 在服务商控制台删除旧 key。

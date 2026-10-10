@@ -9,20 +9,14 @@ import {
 import type { Database } from "@repo/db/client";
 import { creditTransactions, purchases, user } from "@repo/db/schema";
 
+import { ADJUST_LIMIT, type AdminErrorCode } from "./admin-rules";
+
+export { ADJUST_LIMIT, type AdminErrorCode };
+
 // Admin console reads and the one admin write (docs/architecture/security.md#admin-access).
 // Balances still change only through CreditService.
 
-/** Largest single adjustment; bigger changes need several, each with a reason. */
-export const ADJUST_LIMIT = 1000;
 const LIST_LIMIT = 20;
-
-export type AdminErrorCode =
-  | "INVALID_INPUT"
-  | "INVALID_AMOUNT"
-  | "INVALID_REASON"
-  | "USER_NOT_FOUND"
-  | "INSUFFICIENT_CREDITS"
-  | "IDEMPOTENCY_CONFLICT";
 
 export class AdminError extends Error {
   constructor(public code: AdminErrorCode) {

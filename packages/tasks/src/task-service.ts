@@ -12,9 +12,10 @@ import { tasks } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
-import { TASK_CREDIT_COST } from "./credit-cost";
+import { TASK_CREDIT_COST, TASK_INPUT_MAX_LENGTH } from "./credit-cost";
 
-export const TASK_INPUT_MAX_LENGTH = 500;
+export { TASK_INPUT_MAX_LENGTH };
+
 // Longer than any function run: a PENDING task this old was lost in a crash or timeout.
 export const STALE_TASK_MS = 15 * 60_000;
 

@@ -5,9 +5,21 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import prettier from "eslint-config-prettier/flat";
 
-const NO_DATABASE = {
-  group: ["@repo/db/*", "drizzle-orm", "drizzle-orm/*"],
-  message: "Read and write data through a service.",
+// The web app reads and writes data only through apps/api (docs/adr/012-api-modular-monolith.md):
+// no database, services or provider adapters. Types from them are fine.
+const NO_SERVER_CODE = {
+  group: [
+    "@repo/db",
+    "@repo/db/*",
+    "drizzle-orm",
+    "drizzle-orm/*",
+    "@repo/*/*-service",
+    "@repo/*/adapters/*",
+    "@repo/tasks/user-data",
+    "@repo/auth/create-auth",
+  ],
+  message: "The web app reads and writes data through apps/api.",
+  allowTypeImports: true,
 };
 const NO_FEATURES = {
   group: ["@/features/*"],
@@ -126,41 +138,42 @@ const eslintConfig = defineConfig([
     ],
     rules: { "no-restricted-properties": "off" },
   },
-  // UI and route handlers go through services, never the database
-  // (docs/architecture/overview.md#architecture-rules).
+  // The web app has no database access (docs/architecture/overview.md#architecture-rules).
+  // A separate rule from the feature boundary below, so neither replaces the other.
   {
-    files: ["apps/web/src/app/**", "apps/web/src/features/**/*.tsx"],
-    // Tests of Server Actions and Route Handlers seed and check the test database.
-    ignores: ["**/*.test.ts"],
+    files: ["apps/web/src/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: [NO_DATABASE] }],
-    },
-  },
-  // Platform code reaches the replaceable feature only through server/product.ts and
-  // server/product-data.ts (docs/architecture/overview.md#repository-structure). One block per file set:
-  // a later no-restricted-imports replaces an earlier one.
-  {
-    files: ["apps/web/src/components/**"],
-    rules: {
-      "no-restricted-imports": [
+      "@typescript-eslint/no-restricted-imports": [
         "error",
-        { patterns: [NO_DATABASE, NO_FEATURES] },
+        { patterns: [NO_SERVER_CODE] },
       ],
     },
   },
+  // apps/api serves the API; the web app keeps only /api/health for uptime monitors.
+  {
+    files: ["apps/web/src/app/**/route.{ts,tsx}"],
+    ignores: ["apps/web/src/app/api/health/route.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Program",
+          message: "Add API routes to apps/api, not to the web app.",
+        },
+      ],
+    },
+  },
+  // Platform code reaches the replaceable feature only through server/product.ts
+  // (docs/architecture/overview.md#repository-structure).
   {
     files: [
+      "apps/web/src/components/**",
       "apps/web/src/server/**",
       "apps/web/src/lib/**",
       "apps/web/src/i18n/**",
       "apps/web/scripts/**",
     ],
-    // Tests may build the feature service against the test database.
-    ignores: [
-      "apps/web/src/server/product.ts",
-      "apps/web/src/server/product-data.ts",
-      "**/*.test.ts",
-    ],
+    ignores: ["apps/web/src/server/product.ts", "**/*.test.ts"],
     rules: {
       "no-restricted-imports": ["error", { patterns: [NO_FEATURES] }],
     },

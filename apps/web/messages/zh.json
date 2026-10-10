@@ -516,7 +516,8 @@
     "STORAGE_ERROR": "文件存储暂时不可用，请重试。",
     "INTERNAL_ERROR": "服务器出错了，请重试。",
     "NETWORK_ERROR": "无法连接服务器，请检查网络后重试。",
-    "TASK_NOT_FOUND": "这个任务不存在。"
+    "TASK_NOT_FOUND": "这个任务不存在。",
+    "NOT_FOUND": "这个页面或记录不存在。"
   },
   "errorPage": {
     "title": "出错了",

@@ -4,15 +4,14 @@
 import { pathToFileURL } from "node:url";
 import { parseArgs as parseNodeArgs } from "node:util";
 
-import { createDb } from "@repo/db/client";
-
 import {
   AccountError,
   createAccountService,
-} from "@/server/account/account-service";
-import { productData } from "@/server/product-data";
+} from "@repo/admin/account-service";
+import { createDb } from "@repo/db/client";
 
 import { storageFromEnv } from "./script-storage";
+import { productData } from "../src/product-data";
 
 const USAGE = "Usage: pnpm admin:delete-user --user <userId> [--yes]";
 

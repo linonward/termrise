@@ -518,7 +518,8 @@
     "STORAGE_ERROR": "File storage is unavailable. Try again.",
     "INTERNAL_ERROR": "Something went wrong on our side. Try again.",
     "NETWORK_ERROR": "Can't reach the server. Check your connection and try again.",
-    "TASK_NOT_FOUND": "This task doesn't exist."
+    "TASK_NOT_FOUND": "This task doesn't exist.",
+    "NOT_FOUND": "This page or record doesn't exist."
   },
   "errorPage": {
     "title": "Something went wrong",

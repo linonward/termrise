@@ -1,0 +1,24 @@
+{
+  "name": "@repo/admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Admin console reads and credit adjustments, account export and deletion",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/credits": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/observability": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@repo/ai": "workspace:*",
+    "@repo/tasks": "workspace:*"
+  }
+}

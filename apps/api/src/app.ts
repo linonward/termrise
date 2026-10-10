@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { AuthDeps } from "./auth";
 import type { AppEnv } from "./env";
 import { errorHandler } from "./middleware/error-handler";
+import { adminRoutes } from "./routes/admin";
 import { analytics } from "./routes/analytics";
 import { authRoutes } from "./routes/auth";
 import { billing } from "./routes/billing";
@@ -27,5 +28,6 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/billing", billing)
     .route("/credits", credits)
     .route("/webhooks", webhooks)
+    .route("/admin", adminRoutes)
     .onError(errorHandler);
 }

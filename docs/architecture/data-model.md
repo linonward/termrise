@@ -54,7 +54,7 @@ updated_at
 
 `credit_balance` 通过 Better Auth 的 additional fields 扩展到 user 表，具体方式以官方文档为准。客户端不得写入该字段。
 
-删除账号不删除 `user` 行：账本、购买和订阅引用它，这些记录要保留。`AccountService.deleteUser()`（`apps/web/src/server/account/account-service.ts`）在一个事务中把 email 改为 `deleted-{id}@deleted.invalid`、name 改为 `Deleted user`、清空 image，删除 session、account、analytics_consents，并清空产品内容；之后删除 R2 中的 `uploads/{id}/`。有 ACTIVE、PAST_DUE 或 CANCELING 订阅时拒绝删除。操作步骤见 runbook 的 Delete or Export an Account。
+删除账号不删除 `user` 行：账本、购买和订阅引用它，这些记录要保留。`AccountService.deleteUser()`（`packages/admin/src/account-service.ts`）在一个事务中把 email 改为 `deleted-{id}@deleted.invalid`、name 改为 `Deleted user`、清空 image，删除 session、account、analytics_consents，并清空产品内容；之后删除 R2 中的 `uploads/{id}/`。有 ACTIVE、PAST_DUE 或 CANCELING 订阅时拒绝删除。操作步骤见 runbook 的 Delete or Export an Account。
 
 注意：
 
@@ -401,7 +401,7 @@ CreditService 只负责余额与 Ledger，不读取也不修改 Task、Purchase�
 - `reverse(entry)`：每个幂等键只扣回一次，最多 `credits`，以余额为上限；返回 `{ transaction, shortfall }`，`shortfall` 是余额不足的部分。实际扣回为 0 时不写 Ledger（`amount <> 0`），`transaction` 为 `null`。扣回写入 Ledger 后，重复调用返回第一次的结果；扣回为 0 时没有记录，同一幂等键再次调用会重新计算，余额已增加时会再扣。调用方要自己保存「已扣回」的标记：Purchase 用 REFUNDED 状态。订阅付款退款目前依靠 webhook inbox 按事件 id 去重：同一笔付款的退款以不同事件 id 再次投递，且第一次扣回为 0 时，会再次扣回。Waffo 重试时事件 id 不变，所以当前不会发生；新增事件重放入口或复用 `reverse()` 前，先补上这个标记。
 - `findEntry(idempotencyKey)`：按幂等键读取一条 Ledger。
 
-`adminAdjust()` 有两个调用入口：管理台的用户详情页（`/admin/users/[id]`，见 [Admin Access](security.md#admin-access)），和脚本 `apps/web/scripts/admin-adjust.ts`（`pnpm admin:adjust`）。操作步骤在 runbook 的 Adjust Credits。
+`adminAdjust()` 有两个调用入口：管理台的用户详情页（`/admin/users/[id]`，见 [Admin Access](security.md#admin-access)），和脚本 `apps/api/scripts/admin-adjust.ts`（`pnpm admin:adjust`）。操作步骤在 runbook 的 Adjust Credits。
 
 调用入口为 `createCreditService(database)`。需要与业务状态共同提交时传入已有的 Drizzle transaction：`createCreditService(tx)`；内部使用 savepoint，调用方回滚时余额与 Ledger 同时回滚。
 

@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { UserSearch } from "@/components/admin/user-search";
-import { getAdminSession } from "@/server/auth/auth";
+import { isAdmin } from "@/server/api/api";
 
 export default async function AdminPage() {
-  if (!(await getAdminSession())) notFound();
+  if (!(await isAdmin())) notFound();
   const t = await getTranslations("admin");
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:py-16">

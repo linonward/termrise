@@ -382,10 +382,9 @@ Better Auth 挂载在 `apps/api` 的 `/api/auth/*`。web 的浏览器代码经 `
 
 `apps/web/src` 中按代码类型放置：
 
-- `features/<name>/`：产品要整体替换的业务功能（示例 Task）。Service、组装和页面组件放在一起，替换时只改这一个目录、`server/product.ts` 和 `server/product-data.ts`。
-- `server/product.ts`：平台代码（`server/`、`components/`）读取 Feature 的入口：每次使用的 Credits（`CREDIT_COST_PER_USE`）、管理台的记录列表（`listPaidRecords`）。读余额前的清理（`beforeBalanceRead`）在 `apps/api/src/product.ts`。
-- `server/product-data.ts`：删除与导出账号时读写 Feature 的用户内容（`productData.export` / `erase`）。它不带 `server-only`，因为 `scripts/` 中的管理脚本导入它。平台代码和 `scripts/` 只经这两个文件导入 `@/features/*`（ESLint 检查）。
-- `server/<domain>/` 和 `components/<domain>/`：可复用的平台能力（billing、credits、auth、analytics、storage）在本应用中的组装和 UI。业务规则在 `packages/*`。
+- `features/<name>/`：产品要整体替换的业务功能的页面组件（示例 Task 的 `TaskPanel`）。规则在 `packages/tasks`，API 在 `apps/api`。
+- `server/product.ts`：平台代码（`server/`、`components/`）读取 Feature 的入口：每次使用的 Credits（`CREDIT_COST_PER_USE`）。平台代码只经这个文件导入 `@/features/*`（ESLint 检查）。`apps/api` 中对应的入口是 `apps/api/src/product.ts`（读余额前的清理 `beforeBalanceRead`、管理台的记录列表 `listPaidRecords`）和 `apps/api/src/product-data.ts`（删除与导出账号时的用户内容）。
+- `server/api/`：服务端调用 `apps/api` 的 client（`apiGet()`、`apiRequest()`、`getBalance()`、`isAdmin()`）；`server/auth/`：读取 session。`components/<domain>/`：平台能力的 UI。业务规则在 `packages/*`，数据经 `apps/api` 读写。
 - 平台能力不放进 `features/`，否则会被当作要替换的示例。具体表格见 `apps/web/README.md`。
 
 ---

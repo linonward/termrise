@@ -29,6 +29,14 @@ POST /api/billing/subscription/cancel（取消当前订阅，返回 200 { status
 
 POST /api/webhooks/waffo（Waffo 调用，见 billing.md）
 
+GET /api/admin/session（管理员 204，否则 404；以下 /api/admin/* 相同，见 security.md 的 Admin Access）
+
+POST /api/admin/users/search（{ query }：email 或 user id，返回 { id }，找不到 404）
+
+GET /api/admin/users/:id（用户、余额与账本合计、最近的流水、Task 和购买）
+
+POST /api/admin/users/:id/credits（{ amount, id, reason }，返回 { balance, transactionId }；规则错误返回 { error: { code } }，code 为 AdminErrorCode）
+
 GET /api/health（同 web 的 /api/health）
 
 /api/auth/*（Better Auth）
@@ -38,7 +46,7 @@ GET /api/health（同 web 的 /api/health）
 
 Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the API）。web 的页面经 `NEXT_PUBLIC_API_URL` 调用 `GET /api/auth/get-session` 读取 session；浏览器代码用 `apiFetch()`（`apps/web/src/lib/api-fetch.ts`）调用 API，它带上 cookie。
 
-web 只保留 `GET /api/health`（`apps/web/src/app/api/health/`，公开，给 uptime 监控用；数据库可用时 200 `{ status: "ok" }`，否则 503 `{ status: "error" }`，不缓存，见 observability.md 的 Uptime Monitoring）。`/dashboard`、`/billing` 和导航栏在服务端用 `apiGet()`（`apps/web/src/server/api/api.ts`）带上请求的 cookie 调用 API，API 失败时抛错。`/admin` 仍直接读取数据库，直到 S10。
+web 只保留 `GET /api/health`（`apps/web/src/app/api/health/`，公开，不缓存，总是 200 `{ status: "ok" }`；数据库由 `apps/api` 的 `/api/health` 检查，见 observability.md 的 Uptime Monitoring）。ESLint 拒绝 web 中的其他 Route Handler，以及数据库、Service 和 Provider 适配器的导入（类型导入除外）。`/dashboard`、`/billing` 和导航栏在服务端用 `apiGet()`（`apps/web/src/server/api/api.ts`）带上请求的 cookie 调用 API，API 失败时抛错。`/admin` 的页面和 Server Action 同样调用 `/api/admin/*`。
 
 不得因为“以后可能用”提前创建 API。
 

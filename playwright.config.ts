@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 import {
   E2E_API_PORT,
+  E2E_DATABASE_URL,
   e2eApiVars,
   e2eEnv,
 } from "./apps/web/tests/setup/e2e-env";
@@ -58,7 +59,7 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-          e2eEnv.DATABASE_URL,
+          E2E_DATABASE_URL,
         WRANGLER_SEND_METRICS: "false",
       },
     },

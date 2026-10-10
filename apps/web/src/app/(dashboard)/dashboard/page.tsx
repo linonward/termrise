@@ -3,9 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { TASK_CREDIT_COST } from "@repo/tasks/credit-cost";
+import {
+  TASK_CREDIT_COST,
+  TASK_INPUT_MAX_LENGTH,
+} from "@repo/tasks/credit-cost";
 import type { TaskDto } from "@repo/tasks/task-dto";
-import { TASK_INPUT_MAX_LENGTH } from "@repo/tasks/task-service";
 import { Button } from "@repo/ui/components/button";
 
 import { TrackView } from "@/components/analytics/track";

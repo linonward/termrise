@@ -5,24 +5,50 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { ADJUST_LIMIT } from "@repo/admin/admin-rules";
+import type { createAdminService } from "@repo/admin/admin-service";
 import type { CreditPackId } from "@repo/billing/credit-packs";
+import type { Task } from "@repo/tasks/task-service";
 
 import { AdjustCreditsForm } from "@/components/admin/adjust-credits-form";
 import { DataTable } from "@/components/admin/data-table";
 import { PurchaseStatus } from "@/components/billing/purchase-status";
 import { LocalDateTime } from "@/components/local-date-time";
 import { formatUsd } from "@/lib/format-usd";
-import { getAdminService } from "@/server/admin/admin";
-import { ADJUST_LIMIT } from "@/server/admin/admin-service";
-import { getAdminSession } from "@/server/auth/auth";
+import { apiRequest, isAdmin } from "@/server/api/api";
+
+// GET /api/admin/users/:id: the overview as JSON, dates as ISO strings. The paid
+// records are Tasks in the starter (apps/api/src/product.ts).
+type Overview = Jsonified<
+  Omit<
+    NonNullable<
+      Awaited<
+        ReturnType<ReturnType<typeof createAdminService>["getUserOverview"]>
+      >
+    >,
+    "tasks"
+  > & { tasks: Task[] }
+>;
+type Jsonified<T> = T extends Date
+  ? string
+  : T extends (infer U)[]
+    ? Jsonified<U>[]
+    : T extends object
+      ? { [K in keyof T]: Jsonified<T[K]> }
+      : T;
 
 export default async function AdminUserPage({
   params,
 }: PageProps<"/admin/users/[id]">) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await isAdmin())) notFound();
   const { id } = await params;
-  const overview = await getAdminService().getUserOverview(id);
-  if (!overview) notFound();
+  const response = await apiRequest(
+    `/api/admin/users/${encodeURIComponent(id)}`,
+  );
+  if (response.status === 404) notFound();
+  if (!response.ok)
+    throw new Error(`API /api/admin/users failed: ${response.status}`);
+  const overview = (await response.json()) as Overview;
   const t = await getTranslations("admin");
   const ts = await getTranslations("status");
   const tc = await getTranslations("admin.column");
@@ -46,7 +72,7 @@ export default async function AdminUserPage({
           </h1>
           <p className="text-[15px] break-all text-muted-foreground">
             {t("userId")}: {user.id} · {t("joined")}:{" "}
-            <LocalDateTime iso={user.createdAt.toISOString()} />
+            <LocalDateTime iso={user.createdAt} />
           </p>
         </div>
       </div>
@@ -105,7 +131,7 @@ export default async function AdminUserPage({
           rows={overview.transactions.map((x) => ({
             key: x.id,
             cells: [
-              <LocalDateTime key="d" iso={x.createdAt.toISOString()} />,
+              <LocalDateTime key="d" iso={x.createdAt} />,
               t(`transactionType.${x.type}`),
               <span key="a" className="tabular-nums">
                 {x.amount > 0 ? `+${x.amount}` : x.amount}
@@ -127,7 +153,7 @@ export default async function AdminUserPage({
           rows={overview.tasks.map((task) => ({
             key: task.id,
             cells: [
-              <LocalDateTime key="d" iso={task.createdAt.toISOString()} />,
+              <LocalDateTime key="d" iso={task.createdAt} />,
               ts(task.status),
               <span key="c" className="tabular-nums">
                 {task.creditsCost}
@@ -155,7 +181,7 @@ export default async function AdminUserPage({
           rows={overview.purchases.map((p) => ({
             key: p.id,
             cells: [
-              <LocalDateTime key="d" iso={p.createdAt.toISOString()} />,
+              <LocalDateTime key="d" iso={p.createdAt} />,
               tp(`pack.${p.packId as CreditPackId}`),
               <span key="p" className="tabular-nums">
                 {formatUsd(p.amountUsd, { cents: true })}
