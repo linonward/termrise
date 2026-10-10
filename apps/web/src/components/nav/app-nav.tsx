@@ -155,6 +155,13 @@ function MobileMenu({
         </nav>
         <div className="space-y-6 border-t border-border px-4 pt-6">
           <p className="truncate text-[13px] text-muted-foreground">{email}</p>
+          <Link
+            href="/settings/providers"
+            onClick={() => setOpen(false)}
+            className="block text-[15px] font-medium"
+          >
+            {t("providers")}
+          </Link>
           <ChoiceGroup
             label={t("language")}
             value={locale}
@@ -227,6 +234,10 @@ export function AppNav({
               <DropdownMenuLabel className="truncate font-normal text-muted-foreground">
                 {email}
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings/providers">{t("providers")}</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
               <LocaleItems />

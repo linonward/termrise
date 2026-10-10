@@ -30,6 +30,7 @@
 | S22   | DeepSeek 机会分析：`packages/ai` 的 `createDeepSeekJson()`（JSON 模式、关闭思考、不重试、返回计费 token）；`packages/research` 的 DeepSeek 分析适配器（数据与指令分开、Prompt 上限、价格表按高峰价结算）；`opportunity_evaluations.analyst_model` 与 migration；Worker 的 `ANALYST_PROVIDER=deepseek`、`DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                                                                                                                                           | 单元测试（stub fetch）覆盖请求参数、token、错误不含 Prompt、非 JSON、费用与上限、未知模型；集成测试覆盖完整运行的分析、模型与结算、错误形状、调用失败保留预留；不调用真实 DeepSeek                      | 已完成 |
 | S23   | DataForSEO 关键词与 SERP：v3 适配器（Basic auth、状态码、按响应的 `cost` 结算、Google Ads 每分钟 12 次的间隔）；Google Ads 扩词与指标；端口增加可选的 `difficulty()`，运行在扩词后补查一次 KD（失败或预算不足时 partial）；SERP organic 前 10；Worker 的 `KEYWORD_PROVIDER=dataforseo`、`DATAFORSEO_LOGIN`、`DATAFORSEO_PASSWORD`                                                                                                                                                     | 单元测试（stub fetch）覆盖认证、请求体、null 与 0、费用、KD、organic 过滤与排序、错误不含账号、调用间隔；集成测试覆盖完整运行的指标、KD、SERP、结算、KD 失败为 partial、扩词失败；不调用真实 DataForSEO | 已完成 |
 | S24   | 恢复中途崩溃的运行：`research_runs.claimed_at` 与 migration；`failStaleRuns()`（领取超过 30 分钟仍在运行的改为 failed / `RUN_TIMED_OUT`，项目可再运行，未结算的调用改为 failed）；`research.scan` 先恢复再入队；阶段和结束的更新要求运行仍为 running；页面显示原因                                                                                                                                                                                                                    | 集成测试覆盖超时前不动、超时后失败、调用关闭、原 Worker 恢复后不改状态、项目可再运行、排队中的不动；Worker 测试覆盖扫描顺序                                                                             | 已完成 |
+| S25   | 服务设置：`worker_heartbeats` 与 migration（Worker 启动时和每分钟写入配置，`WORKER_ID`）；`provider-status.ts`（在线判断、按服务汇总当前用户的花费、最近一次调用的结果）；`GET /api/settings/providers`；`/settings/providers`（账号菜单与移动端入口）                                                                                                                                                                                                                                | 集成测试覆盖心跳、在线与离线、按用户汇总、最近状态；API 测试覆盖读取与 401；E2E 覆盖服务状态、运行后的花费、需要登录                                                                                    | 已完成 |
 
 ## Confirmed Decisions
 
@@ -62,6 +63,7 @@
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 - 2026-10-10：DeepSeek 的费用按返回的 token 和价格表计算，一律按高峰价（低谷价依赖中国法定节假日，无法可靠判断），账本可能高于实际账单。分析关闭思考模式、不重试。价格表中没有的模型不能使用；价格页变化时更新 `deepseek-prices.ts`。
 - 2026-10-10：DataForSEO 按响应报告的 `cost` 结算，预留额取高于官方价格的固定值。扩词只用 Google Ads `keywords_for_keywords`（一次调用即有搜索量、CPC、广告竞争度），KD 用 Labs `bulk_keyword_difficulty` 补查；暂不使用 `keyword_suggestions`、`related_keywords`、`search_volume`。
+- 2026-10-10：`/settings/providers` 不提供「测试连接」：DeepSeek 余额接口的文档没有写认证方式和是否收费，不猜。连接状态用最近一次真实调用的结果，服务配置来自 Worker 心跳（API 不读取 Worker 的环境变量）。预算仍按研究项目设置。
 
 ## Open Questions
 

@@ -134,7 +134,8 @@
     "radar": "Radar",
     "research": "Research",
     "opportunities": "Opportunities",
-    "products": "Products"
+    "products": "Products",
+    "providers": "Providers"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",
@@ -670,6 +671,56 @@
     "empty": "No runs yet.",
     "emptyHint": "Enter some text and run your first task.",
     "buyCredits": "Buy credits"
+  },
+  "providers": {
+    "metaTitle": "Providers",
+    "title": "Providers",
+    "subtitle": "The data and AI services your research uses, and what your projects spent on them.",
+    "services": "Services",
+    "service": {
+      "worker": "Background worker",
+      "keywords": "Keyword data",
+      "analyst": "AI analysis",
+      "radar": "Radar"
+    },
+    "online": "Online",
+    "offline": "Offline",
+    "notStarted": "Not started",
+    "lastSeen": "Last seen",
+    "fakeNote": "Test data: not real search data or AI.",
+    "radarOn": "Hacker News, every hour",
+    "radarOff": "Off",
+    "radarItems": "{count, plural, one {# story} other {# stories}}",
+    "lastCollected": "last collected",
+    "radarNever": "Not collected yet",
+    "keysNote": "API keys are set on the worker. They are never shown or entered here.",
+    "usage": "Spending by provider",
+    "usageEmpty": "Your projects have made no paid calls yet.",
+    "column": {
+      "provider": "Provider",
+      "budget": "Budget",
+      "calls": "Calls",
+      "failed": "Failed",
+      "spent": "Spent",
+      "held": "Held",
+      "lastCall": "Last call"
+    },
+    "kind": {
+      "data": "Data",
+      "ai": "AI"
+    },
+    "lastStatus": {
+      "settled": "OK",
+      "failed": "Failed",
+      "reserved": "Running"
+    },
+    "provider": {
+      "fake": "Test data",
+      "dataforseo": "DataForSEO",
+      "deepseek": "DeepSeek"
+    },
+    "budgetNote": "Held is the amount kept for calls that are running or failed with an unknown cost. Each research project has its own data and AI budget.",
+    "budgetLink": "Research projects"
   },
   "radar": {
     "metaTitle": "Radar",

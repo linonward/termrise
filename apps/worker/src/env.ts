@@ -16,6 +16,10 @@ const schema = z
     HACKER_NEWS_ENABLED: z.literal("1").optional(),
     /** How often the radar collects its sources. */
     TREND_INTERVAL_MS: z.coerce.number().int().min(60_000).default(3_600_000),
+    /** How often the worker writes its heartbeat (worker_heartbeats). */
+    HEARTBEAT_INTERVAL_MS: z.coerce.number().int().min(100).default(60_000),
+    /** Names this process in the heartbeat; default the host name. */
+    WORKER_ID: z.string().min(1).max(100).optional(),
     /** Health check port (GET /health). */
     PORT: z.coerce.number().int().min(1).default(8080),
     /** dataforseo makes paid calls, charged to each project's data budget. */

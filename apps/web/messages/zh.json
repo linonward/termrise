@@ -134,7 +134,8 @@
     "radar": "Radar",
     "research": "研究",
     "opportunities": "机会",
-    "products": "产品"
+    "products": "产品",
+    "providers": "服务"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -666,6 +667,56 @@
     "empty": "还没有运行记录。",
     "emptyHint": "输入一段文字，运行第一个任务。",
     "buyCredits": "购买积分"
+  },
+  "providers": {
+    "metaTitle": "服务",
+    "title": "服务",
+    "subtitle": "研究使用的数据和 AI 服务，以及你的项目在这些服务上花费的金额。",
+    "services": "服务状态",
+    "service": {
+      "worker": "后台 Worker",
+      "keywords": "关键词数据",
+      "analyst": "AI 分析",
+      "radar": "Radar"
+    },
+    "online": "在线",
+    "offline": "离线",
+    "notStarted": "未启动",
+    "lastSeen": "最近在线",
+    "fakeNote": "测试数据：不是真实的搜索数据或 AI。",
+    "radarOn": "Hacker News，每小时",
+    "radarOff": "关闭",
+    "radarItems": "{count} 个故事",
+    "lastCollected": "最近采集",
+    "radarNever": "还没有采集",
+    "keysNote": "API Key 在 Worker 中设置。这里不显示 Key，也不能输入 Key。",
+    "usage": "按服务的花费",
+    "usageEmpty": "你的项目还没有付费调用。",
+    "column": {
+      "provider": "服务",
+      "budget": "预算",
+      "calls": "调用",
+      "failed": "失败",
+      "spent": "已花费",
+      "held": "预留",
+      "lastCall": "最近调用"
+    },
+    "kind": {
+      "data": "数据",
+      "ai": "AI"
+    },
+    "lastStatus": {
+      "settled": "成功",
+      "failed": "失败",
+      "reserved": "进行中"
+    },
+    "provider": {
+      "fake": "测试数据",
+      "dataforseo": "DataForSEO",
+      "deepseek": "DeepSeek"
+    },
+    "budgetNote": "预留是为进行中的调用、以及失败且费用未知的调用保留的金额。每个研究项目有自己的数据预算和 AI 预算。",
+    "budgetLink": "研究项目"
   },
   "radar": {
     "metaTitle": "Radar",
