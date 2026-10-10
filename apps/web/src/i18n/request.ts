@@ -1,7 +1,8 @@
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-import { LOCALE_COOKIE, resolveLocale } from "./locale";
+import { LOCALE_COOKIE, resolveLocale } from "@repo/config/locale";
+
 import { messages } from "./messages";
 
 export default getRequestConfig(async () => {

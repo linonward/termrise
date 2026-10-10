@@ -97,7 +97,7 @@ messages 的 errors.* 为每个 Error Code 提供提示，外加 NETWORK_ERROR�
 页面渲染出错 → 兜底页（见 404 & Error Pages）
 ```
 
-所有文案必须来自 `apps/web/messages/*.json`，组件中不得硬编码用户可见字符串。品牌名来自 `meta.title`。
+所有文案必须来自 `apps/web/messages/*.json`，组件中不得硬编码用户可见字符串。品牌名来自 `meta.title`。`apps/api` 自己发送的文案（登录邮件）在 `apps/api/messages/*.json`，`apps/api/src/messages.test.ts` 检查两种语言的 key 一致。
 
 测试（`apps/web/src/i18n/messages.test.ts`）检查 `en.json` 与 `zh.json` 的 key 集合一致。
 

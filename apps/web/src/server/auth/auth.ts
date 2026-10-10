@@ -6,17 +6,16 @@ import { cache } from "react";
 import { createAuth } from "@repo/auth/create-auth";
 import { createAuthGuards } from "@repo/auth/guards";
 import { createMagicLinkLimiter } from "@repo/auth/magic-link-limit";
+import { createOnUserCreated } from "@repo/auth/on-user-created";
 import { createRateLimitService } from "@repo/auth/rate-limit";
 import { serverEnv } from "@repo/config/env";
+import { localeFromHeaders } from "@repo/config/locale";
 import { db } from "@repo/db/client";
 
-import { localeFromHeaders } from "@/i18n/locale";
 import { getAnalyticsService } from "@/server/analytics/analytics";
 import { getCreditService } from "@/server/credits/credits";
 import { sendMagicLinkEmail } from "@/server/email/magic-link";
 import product from "@product";
-
-import { createOnUserCreated } from "./on-user-created";
 
 let instance: ReturnType<typeof createAuth> | undefined;
 export function getAuth() {

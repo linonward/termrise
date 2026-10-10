@@ -8,6 +8,7 @@ export function isLocale(value: unknown): value is Locale {
 }
 
 // Priority: NEXT_LOCALE cookie → Accept-Language → en (docs/product/ux.md#internationalization).
+// apps/web picks the UI language with it, apps/api the language of auth emails.
 export function resolveLocale(
   cookie: string | undefined,
   acceptLanguage: string | null,

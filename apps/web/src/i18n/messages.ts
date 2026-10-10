@@ -1,4 +1,5 @@
-import type { Locale } from "./locale";
+import type { Locale } from "@repo/config/locale";
+
 import en from "../../messages/en.json";
 import zh from "../../messages/zh.json";
 

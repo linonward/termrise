@@ -62,3 +62,12 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `HYPERDRIVE`                                               | Hyperdrive 配置，`connectionString` 指向 Neon（创建步骤见 deployment.md 的 API 一节）                                       |
 | `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | 只用于本地 `pnpm dev:api`：wrangler dev 直接连接这个数据库（例如本 worktree 的 Neon `dev/{topic}` 分支），不经过 Hyperdrive |
+| `APP_URL`                                                  | web 的地址：CORS origin、Better Auth 的 trusted origin、登录后跳转的 origin                                                 |
+| `BETTER_AUTH_URL`                                          | API 自己的地址；Magic Link 和 Google 回调地址用它生成                                                                       |
+| `BETTER_AUTH_SECRET`                                       | 至少 32 字符；与 web 相同（迁移期间两个应用读同一批 session）                                                               |
+| `AUTH_COOKIE_DOMAIN`                                       | 可选，web 与 API 共同的上级域名（例如 `termrise.com`）；本地不设置                                                          |
+| `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`                 | 同 web                                                                                                                      |
+| `RESEND_API_KEY`、`EMAIL_FROM`                             | 同 web                                                                                                                      |
+| `POSTHOG_KEY`、`POSTHOG_HOST`                              | 可选，服务端事件；未设置 key 时不发送；host 默认 `https://us.i.posthog.com`                                                 |
+
+`apps/api/src/env.ts` 的 `apiEnv()` 用 zod 校验，错误只含变量名和规则。本地把变量写在 `apps/api/.dev.vars`（不提交）；Production 用 `wrangler secret put <NAME>` 或 Cloudflare 控制台设置。
