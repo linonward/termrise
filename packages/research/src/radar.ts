@@ -6,9 +6,9 @@ import { radarFavorites, radarItems, radarObservations } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import type { GoogleTrendsSource } from "./adapters/google-trends";
 import {
   HACKER_NEWS_LISTS,
-  type HackerNewsItem,
   type HackerNewsList,
   type HackerNewsSource,
 } from "./adapters/hacker-news";
@@ -25,7 +25,18 @@ import {
 export type RadarItem = typeof radarItems.$inferSelect;
 export type RadarObservation = typeof radarObservations.$inferSelect;
 
-type Sighting = { list: HackerNewsList; rank: number };
+type Sighting = { list: HackerNewsList | "trending"; rank: number };
+
+/** One source item as the radar stores it. */
+type SourceItem = {
+  provider: RadarItem["provider"];
+  externalId: string;
+  title: string;
+  url: string | undefined | null;
+  postedAt: Date | null;
+  score: number | null;
+  comments: number | null;
+};
 
 const listQuery = z.object({
   q: z.string().trim().max(100).optional().catch(undefined),
@@ -55,31 +66,32 @@ async function forEachLimit<T>(
 export function createRadar(deps: {
   database: Database;
   hackerNews?: HackerNewsSource;
+  googleTrends?: GoogleTrendsSource;
   now?: () => Date;
 }) {
   const { database } = deps;
   const now = deps.now ?? (() => new Date());
 
   async function save(
-    item: HackerNewsItem & { title: string },
+    item: SourceItem,
     sightings: Sighting[],
     observedAt: Date,
   ) {
     const title = item.title.trim().slice(0, RADAR_TITLE_MAX_LENGTH);
     const current = {
-      url: safeUrl(item.url),
+      url: safeUrl(item.url ?? undefined),
       title,
       normalizedTerm: radarTerm(title),
-      score: item.score ?? null,
-      comments: item.descendants ?? null,
+      score: item.score,
+      comments: item.comments,
     };
     await database.transaction(async (tx) => {
       const [row] = await tx
         .insert(radarItems)
         .values({
-          provider: "hacker_news",
-          externalId: String(item.id),
-          postedAt: item.time ? new Date(item.time * 1000) : null,
+          provider: item.provider,
+          externalId: item.externalId,
+          postedAt: item.postedAt,
           firstSeenAt: observedAt,
           lastSeenAt: observedAt,
           ...current,
@@ -150,7 +162,15 @@ export function createRadar(deps: {
         return;
       }
       await save(
-        { ...item, title: item.title },
+        {
+          provider: "hacker_news",
+          externalId: String(item.id),
+          title: item.title,
+          url: item.url,
+          postedAt: item.time ? new Date(item.time * 1000) : null,
+          score: item.score ?? null,
+          comments: item.descendants ?? null,
+        },
         sightings.get(id)!,
         observedAt,
       );
@@ -158,6 +178,42 @@ export function createRadar(deps: {
     });
     if (ids.length > 0 && result.failed === ids.length)
       throw new Error("Every Hacker News item failed");
+    return result;
+  }
+
+  /**
+   * Reads Google Trends Trending Now for a market. One item per search, market and day
+   * it trended: a search that trends again on another day is a new item, so its
+   * lifecycle can show it recurring. A failed feed fails the job.
+   */
+  async function collectGoogleTrends(geo: string) {
+    const source = deps.googleTrends;
+    if (!source) throw new Error("No Google Trends source");
+    const observedAt = now();
+    const searches = await source.trending(geo);
+    const result = { saved: 0, skipped: 0, failed: 0 };
+    for (const [index, search] of searches.entries()) {
+      const term = radarTerm(search.term);
+      if (!term) {
+        result.skipped++;
+        continue;
+      }
+      const day = (search.publishedAt ?? observedAt).toISOString().slice(0, 10);
+      await save(
+        {
+          provider: "google_trends",
+          externalId: `${geo}:${day}:${term}`,
+          title: search.term,
+          url: search.newsUrl,
+          postedAt: search.publishedAt,
+          score: search.approxTraffic,
+          comments: null,
+        },
+        [{ list: "trending", rank: index + 1 }],
+        observedAt,
+      );
+      result.saved++;
+    }
     return result;
   }
 
@@ -210,6 +266,8 @@ export function createRadar(deps: {
       starred: stars.has(item.id),
       lifecycle: lifecycle({
         firstSeenAt: item.firstSeenAt,
+        // Only Hacker News scores are points that grow.
+        measureGrowth: item.provider === "hacker_news",
         observations: observations.filter((o) => o.itemId === item.id),
         earlierSightings: sameTerm
           .filter((s) => s.term === item.normalizedTerm && s.id !== item.id)
@@ -274,7 +332,7 @@ export function createRadar(deps: {
     return { item: withState, observations };
   }
 
-  return { collectHackerNews, list, get };
+  return { collectHackerNews, collectGoogleTrends, list, get };
 }
 
 const notFound = () =>

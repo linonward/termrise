@@ -686,7 +686,7 @@
     "notStarted": "未启动",
     "lastSeen": "最近在线",
     "fakeNote": "测试数据：不是真实的搜索数据或 AI。",
-    "radarOn": "Hacker News，每小时",
+    "radarOn": "{sources}，每小时",
     "radarOff": "关闭",
     "radarItems": "{count} 个故事",
     "lastCollected": "最近采集",
@@ -718,7 +718,11 @@
       "deepseek": "DeepSeek"
     },
     "budgetNote": "预留是为进行中的调用、以及失败且费用未知的调用保留的金额。每个研究项目有自己的数据预算和 AI 预算。",
-    "budgetLink": "研究项目"
+    "budgetLink": "研究项目",
+    "radarSource": {
+      "hacker_news": "Hacker News",
+      "google_trends": "Google Trends"
+    }
   },
   "favorites": {
     "star": "收藏 {name}",
@@ -729,8 +733,8 @@
     "metaTitle": "Radar",
     "title": "Radar",
     "subtitle": "来自公开来源的新故事。找到值得研究的词。",
-    "noticeTitle": "这是讨论热度，不是搜索需求",
-    "noticeBody": "分数和评论数表示讨论的多少，不是搜索量。要得到搜索数据，请运行研究。",
+    "noticeTitle": "这是热度，不是月搜索量",
+    "noticeBody": "Hacker News 的分数和评论表示讨论热度。Google Trends 显示近期搜索的约数，是下限，例如 500+。两者都不是月搜索量：要得到搜索数据，请运行研究。",
     "search": "搜索词",
     "sortLabel": "排序",
     "sort": {
@@ -739,13 +743,13 @@
     },
     "apply": "应用",
     "emptyTitle": "还没有故事",
-    "emptyBody": "Worker 每小时采集一次 Hacker News。第一次采集后，故事显示在这里。",
+    "emptyBody": "Worker 每小时采集一次 Hacker News 和 Google Trends。第一次采集后，条目显示在这里。",
     "noMatchTitle": "没有匹配的故事",
     "noMatchBody": "请换一个搜索词。",
     "column": {
       "story": "故事",
       "source": "来源",
-      "points": "分数",
+      "points": "热度",
       "comments": "评论",
       "firstSeen": "首次发现",
       "lastSeen": "最近发现",
@@ -756,15 +760,16 @@
       "trend": "趋势"
     },
     "provider": {
-      "hacker_news": "Hacker News"
+      "hacker_news": "Hacker News",
+      "google_trends": "Google Trends"
     },
     "list": {
       "top": "热门",
-      "show": "Show HN"
+      "show": "Show HN",
+      "trending": "Trending Now"
     },
     "back": "Radar",
     "openLink": "打开链接",
-    "openDiscussion": "讨论",
     "observations": "观测记录",
     "noData": "暂无数据",
     "researchTitle": "研究这个词",
@@ -787,7 +792,15 @@
       "insufficient_data": "观测不够，不能计算增长。需要至少 3 次观测，且跨越 3 小时以上。"
     },
     "starredOnly": "只看收藏",
-    "starredEmpty": "还没有收藏的故事。点击故事旁的星标即可收藏。"
+    "starredEmpty": "还没有收藏的故事。点击故事旁的星标即可收藏。",
+    "openSource": {
+      "hacker_news": "讨论",
+      "google_trends": "Google Trends"
+    },
+    "activity": {
+      "points": "{count} 分",
+      "searches": "{count}+ 次搜索"
+    }
   },
   "research": {
     "metaTitle": "研究",

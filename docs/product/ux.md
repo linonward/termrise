@@ -286,9 +286,9 @@ Logout
 
 ```text
 标题 + 说明
-info-soft 提示：分数和评论数是讨论热度，不是搜索量
+info-soft 提示：HN 的分数和评论是讨论热度，Google Trends 是近似搜索次数的下限，两者都不是月搜索量
 搜索框（搜索词）+ 排序（首次发现 / 分数）+ 只看收藏（复选框）+ [Apply]（GET 表单，参数写在 URL 中）
-表：故事（→ 详情）、趋势徽章（生命周期）、来源徽章、分数、评论、首次发现
+表：故事（→ 详情）、趋势徽章（生命周期）、来源徽章、热度（HN「42 分」，Google Trends「500+ 次搜索」）、评论、首次发现
 ```
 
 - 没有条目时说明 Worker 每小时采集一次 Hacker News；搜索没有结果时说明换一个词。
@@ -299,7 +299,7 @@ info-soft 提示：分数和评论数是讨论热度，不是搜索量
 ```text
 ← Radar
 标题 + 来源徽章 + 趋势徽章，下方一句话说明这个生命周期的判断依据
-Open link（有链接时）、Discussion（HN 讨论页），新窗口打开，rel="noopener noreferrer nofollow"
+Open link（有链接时；Google Trends 为它关联的第一条新闻）、来源链接（HN 为 Discussion，Google Trends 为该市场的 Trending Now 页面），新窗口打开，rel="noopener noreferrer nofollow"
 同一条提示
 左侧：观测记录表（时间、列表、排名、分数、评论）
 右侧：事实（发布时间、首次发现、最近发现、分数、评论；缺失为「暂无数据」）+「研究这个词」面板 [Start research]

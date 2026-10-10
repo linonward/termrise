@@ -51,7 +51,7 @@ it("lists radar items for any signed-in user, filtered and sorted", async () => 
     term: "invoice parser",
     suggestedSeed: "invoice parser",
     url: "https://invoice.example/",
-    discussionUrl: "https://news.ycombinator.com/item?id=1",
+    sourceUrl: "https://news.ycombinator.com/item?id=1",
     score: 5,
     comments: 2,
   });

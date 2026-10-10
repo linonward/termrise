@@ -20,7 +20,7 @@ const worker = {
   keywordProvider: "dataforseo",
   analystProvider: "deepseek",
   analystModel: "deepseek-flash",
-  radarEnabled: true,
+  radarSources: ["hacker_news"],
 };
 
 beforeEach(async () => {
@@ -45,7 +45,7 @@ it("shows the worker online until it stops writing, and keeps its start time", a
     keywordProvider: "dataforseo",
     analystProvider: "deepseek",
     analystModel: "deepseek-flash",
-    radarEnabled: true,
+    radarSources: ["hacker_news"],
   });
   clock = new Date(clock.getTime() + WORKER_OFFLINE_MS);
   expect((await status.forUser("a")).worker).toMatchObject({

@@ -4,6 +4,7 @@ import { hostname } from "node:os";
 import { createDb } from "@repo/db/client";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
+import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
@@ -24,9 +25,22 @@ async function main() {
     provider: createKeywordProvider(env),
     analyst: createAnalyst(env),
   });
-  const radar = env.HACKER_NEWS_ENABLED
-    ? createRadar({ database, hackerNews: createHackerNewsClient() })
-    : undefined;
+  const radarSources = [
+    ...(env.HACKER_NEWS_ENABLED ? (["hacker_news"] as const) : []),
+    ...(env.GOOGLE_TRENDS_ENABLED ? (["google_trends"] as const) : []),
+  ];
+  const radar =
+    radarSources.length > 0
+      ? createRadar({
+          database,
+          hackerNews: env.HACKER_NEWS_ENABLED
+            ? createHackerNewsClient()
+            : undefined,
+          googleTrends: env.GOOGLE_TRENDS_ENABLED
+            ? createGoogleTrendsClient()
+            : undefined,
+        })
+      : undefined;
 
   const stops: (() => Promise<unknown>)[] = [];
   if (env.WORKER_QUEUE === "bullmq") {
@@ -35,11 +49,20 @@ async function main() {
       await startWorker(queue, createHandlers({ runner, queue, radar })),
     );
     await queue.schedule("research.scan", env.SCAN_INTERVAL_MS);
-    if (radar)
-      await queue.schedule("trend.ingest", env.TREND_INTERVAL_MS, {
-        provider: "hacker_news",
-      });
-    else await queue.unschedule("trend.ingest");
+    // One schedule per source; a source turned off loses its schedule. The schedule
+    // without a source in its id is from before Google Trends.
+    await queue.unschedule("trend.ingest");
+    for (const provider of ["hacker_news", "google_trends"] as const) {
+      const id = `trend.ingest-${provider}`;
+      if (radarSources.includes(provider))
+        await queue.schedule(
+          "trend.ingest",
+          env.TREND_INTERVAL_MS,
+          { provider },
+          id,
+        );
+      else await queue.unschedule(id);
+    }
   } else {
     // E2E: no radar collection; tests write radar items themselves.
     const queue = createMemoryQueue();
@@ -68,7 +91,7 @@ async function main() {
         analystProvider: env.ANALYST_PROVIDER,
         analystModel:
           env.ANALYST_PROVIDER === "deepseek" ? env.DEEPSEEK_MODEL! : null,
-        radarEnabled: Boolean(radar),
+        radarSources: [...radarSources],
       })
       .catch((error: unknown) =>
         logger.warn("worker.heartbeat_failed", { error }),
@@ -85,7 +108,7 @@ async function main() {
   logger.info("worker.started", {
     queue: env.WORKER_QUEUE,
     port: env.PORT,
-    radar: Boolean(radar),
+    radar: radarSources,
     analyst: env.ANALYST_PROVIDER,
     keywords: env.KEYWORD_PROVIDER,
   });

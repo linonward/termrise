@@ -20,9 +20,11 @@ export function createBullQueue(redisUrl: string) {
         name: N,
         everyMs: number,
         payload?: JobPayloads[N],
+        /** Tells apart schedules of one job name; default the name. */
+        id?: string,
       ): Promise<void>;
       /** Stops a schedule; nothing happens when there is none. */
-      unschedule(name: JobName): Promise<void>;
+      unschedule(id: string): Promise<void>;
     } = {
     async enqueue(name, payload, options = {}) {
       const job = await queue.add(name, payload, {
@@ -34,9 +36,9 @@ export function createBullQueue(redisUrl: string) {
       });
       return { id: job.id ?? "" };
     },
-    async schedule(name, everyMs, payload) {
+    async schedule(name, everyMs, payload, id) {
       await queue.upsertJobScheduler(
-        `schedule-${name}`,
+        `schedule-${id ?? name}`,
         { every: everyMs },
         {
           name,
@@ -45,8 +47,8 @@ export function createBullQueue(redisUrl: string) {
         },
       );
     },
-    async unschedule(name) {
-      await queue.removeJobScheduler(`schedule-${name}`);
+    async unschedule(id) {
+      await queue.removeJobScheduler(`schedule-${id}`);
     },
     async start(handlers: JobHandlers) {
       worker = new Worker(

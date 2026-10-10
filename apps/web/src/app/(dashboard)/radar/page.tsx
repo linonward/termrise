@@ -8,6 +8,7 @@ import { Button } from "@repo/ui/components/button";
 import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import {
+  Activity,
   DiscussionNotice,
   LifecycleBadge,
   SourceBadge,
@@ -157,7 +158,7 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
                     <SourceBadge provider={item.provider} />
                   </td>
                   <td className="py-4 pr-4 text-right tabular-nums">
-                    {item.score ?? "—"}
+                    <Activity provider={item.provider} score={item.score} />
                   </td>
                   <td className="py-4 pr-4 text-right tabular-nums">
                     {item.comments ?? "—"}

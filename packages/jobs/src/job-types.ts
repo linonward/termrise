@@ -8,7 +8,7 @@ export interface JobPayloads {
   /** Executes one queued research run (packages/research research-runner.ts). */
   "research.run": { runId: string };
   /** Collects one public source into the radar (packages/research radar.ts). Scheduled. */
-  "trend.ingest": { provider: "hacker_news" };
+  "trend.ingest": { provider: "hacker_news" | "google_trends" };
 }
 
 export type JobName = keyof JobPayloads;

@@ -77,6 +77,39 @@ test("starts research from a radar story", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
 });
 
+test("shows a Google Trends search with its approximate searches", async ({
+  page,
+  context,
+}) => {
+  const term = `trends term ${Date.now()}`;
+  await createRadar({
+    database: testDb(),
+    googleTrends: {
+      trending: async () => [
+        {
+          term,
+          approxTraffic: 500,
+          publishedAt: new Date(),
+          newsUrl: "https://news.example/story",
+        },
+      ],
+    },
+  }).collectGoogleTrends("US");
+  await signIn(context);
+  await page.goto(`/radar?q=${encodeURIComponent(term)}`);
+  const row = page.getByTestId("radar-row");
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText("Google Trends");
+  await expect(row).toContainText("500+ searches");
+  await row.getByRole("link", { name: term }).click();
+  await expect(
+    page.getByRole("link", { name: "Google Trends" }),
+  ).toHaveAttribute("href", "https://trends.google.com/trending?geo=US");
+  await expect(page.getByTestId("observation-row")).toContainText(
+    "Trending Now",
+  );
+});
+
 test("shows no match for an unknown term and 404 for an unknown item", async ({
   page,
   context,

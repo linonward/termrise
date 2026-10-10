@@ -13,6 +13,7 @@ import { Button } from "@repo/ui/components/button";
 import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import {
+  Activity,
   DiscussionNotice,
   LifecycleBadge,
   SourceBadge,
@@ -50,7 +51,12 @@ export default async function RadarItemPage({
     ["posted", item.postedAt && <LocalDateTime iso={item.postedAt} />],
     ["firstSeen", <LocalDateTime key="f" iso={item.firstSeenAt} />],
     ["lastSeen", <LocalDateTime key="l" iso={item.lastSeenAt} />],
-    ["points", item.score],
+    [
+      "points",
+      item.score === null ? null : (
+        <Activity key="a" provider={item.provider} score={item.score} />
+      ),
+    ],
     ["comments", item.comments],
   ] as const;
   return (
@@ -94,12 +100,12 @@ export default async function RadarItemPage({
             </a>
           )}
           <a
-            href={item.discussionUrl}
+            href={item.sourceUrl}
             target="_blank"
             rel="noopener noreferrer nofollow"
             className="flex items-center gap-1 underline underline-offset-4"
           >
-            {t("openDiscussion")}
+            {t(`openSource.${item.provider}`)}
             <ExternalLink aria-hidden="true" className="size-4" />
           </a>
         </div>
@@ -157,7 +163,7 @@ export default async function RadarItemPage({
                       {o.rank}
                     </td>
                     <td className="py-3 pr-4 text-right tabular-nums">
-                      {o.score ?? "—"}
+                      <Activity provider={item.provider} score={o.score} />
                     </td>
                     <td className="py-3 pr-4 text-right tabular-nums">
                       {o.comments ?? "—"}

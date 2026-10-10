@@ -64,3 +64,22 @@ export function LifecycleBadge({
     </span>
   );
 }
+
+/** Points on Hacker News; Google Trends' approximate searches, a lower bound. */
+export function Activity({
+  provider,
+  score,
+}: {
+  provider: RadarItemDto["provider"];
+  score: number | null;
+}) {
+  const t = useTranslations("radar");
+  if (score === null) return <>—</>;
+  return (
+    <>
+      {provider === "google_trends"
+        ? t("activity.searches", { count: score })
+        : t("activity.points", { count: score })}
+    </>
+  );
+}

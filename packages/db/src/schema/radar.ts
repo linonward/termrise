@@ -15,8 +15,9 @@ import {
 import { user } from "./auth";
 import { inList } from "./columns";
 
-export const RADAR_PROVIDERS = ["hacker_news"] as const;
-export const RADAR_LISTS = ["top", "show"] as const;
+export const RADAR_PROVIDERS = ["hacker_news", "google_trends"] as const;
+/** top and show: Hacker News lists; trending: Google Trends Trending Now. */
+export const RADAR_LISTS = ["top", "show", "trending"] as const;
 
 // A story the radar saw on a public source (docs/product/product.md#f01-热词发现). Global:
 // every signed-in user sees the same items. One row per story; each collection appends

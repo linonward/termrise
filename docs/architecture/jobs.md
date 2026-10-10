@@ -60,7 +60,7 @@ Redis 用 Upstash（TCP + TLS，`rediss://`）；本地用 `docker compose up -d
 - 任务：`research.scan`（Job Scheduler 每 `SCAN_INTERVAL_MS` 一次）找出 `pending` 的研究运行，为每个运行入队一个 `research.run`（`jobId` 为 `research-run-{runId}`，只加一次）；`research.run` 调用 `packages/research` 的 `execute(runId)`。`execute` 用一个条件更新把运行从 `pending` 改为 `running`，第二个 Worker 或重试拿不到同一个运行。
 - `apps/worker/src/bullmq.ts`：BullMQ 适配器（`Queue.add`、`upsertJobScheduler` / `removeJobScheduler`、`Worker`，并发 2；ioredis 连接设置 `maxRetriesPerRequest: null`）。
 - `apps/worker/src/index.ts`：读取 env、创建数据库和 runner、启动消费与定时扫描、提供 `GET /health`；收到 SIGTERM 时停止消费、关闭连接后退出。
-- 任务：`trend.ingest`（`{ provider: "hacker_news" }`，Job Scheduler 每 `TREND_INTERVAL_MS` 一次，默认 1 小时）把 Hacker News 采集到 Radar（`packages/research` 的 `collectHackerNews()`，见 data-model.md 的 Radar）。只在 `HACKER_NEWS_ENABLED=1` 时启用；没有启用时，Worker 启动时删除这个 Job Scheduler。`memory` 队列（E2E）不采集。
+- 任务：`trend.ingest`（`{ provider: "hacker_news" | "google_trends" }`，每个来源一个 Job Scheduler（`trend.ingest-<provider>`），每 `TREND_INTERVAL_MS` 一次，默认 1 小时）把来源采集到 Radar（`collectHackerNews()`、`collectGoogleTrends("US")`，见 data-model.md 的 Radar）。分别由 `HACKER_NEWS_ENABLED=1`、`GOOGLE_TRENDS_ENABLED=1` 启用；没有启用的来源，Worker 启动时删除它的 Job Scheduler。`memory` 队列（E2E）不采集。
 - 中途崩溃的恢复：Worker 领取运行时记录 `claimed_at`。每次 `research.scan` 先把领取超过 30 分钟（`STALE_RUN_MS`）仍为 `running` 的运行改为 `failed`（`RUN_TIMED_OUT`），项目改为 `failed`（可以再运行），该运行仍为 `reserved` 的付费调用改为 `failed`（费用未知，预留额继续计入）。之后原 Worker 即使恢复，也不再修改这个运行和项目（阶段和结束的更新都要求运行仍为 `running`）。
 - 还没有部署到 Cloudflare Containers。
 
