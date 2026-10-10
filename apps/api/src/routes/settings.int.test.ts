@@ -20,14 +20,14 @@ it("shows the worker's services and the user's spending", async () => {
     keywordProvider: "fake",
     analystProvider: "fake",
     analystModel: null,
-    radarEnabled: false,
+    radarSources: [],
   });
   const response = await call("/api/settings/providers", {
     headers: { cookie },
   });
   expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({
-    worker: { online: true, keywordProvider: "fake", radarEnabled: false },
+    worker: { online: true, keywordProvider: "fake", radarSources: [] },
     radar: { items: 0, lastCollectedAt: null },
     usage: [],
   });

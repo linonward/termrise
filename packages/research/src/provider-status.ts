@@ -16,7 +16,7 @@ export type WorkerInfo = {
   keywordProvider: string;
   analystProvider: string;
   analystModel: string | null;
-  radarEnabled: boolean;
+  radarSources: string[];
 };
 
 // The services as the worker runs them, and what a user's projects spent on each
@@ -41,7 +41,7 @@ export function createProviderStatus(deps: {
           keywordProvider: info.keywordProvider,
           analystProvider: info.analystProvider,
           analystModel: info.analystModel,
-          radarEnabled: info.radarEnabled,
+          radarSources: info.radarSources,
           lastSeenAt: at,
         },
       });
@@ -115,7 +115,7 @@ export function toProviderStatusDto(s: ProviderStatus) {
       keywordProvider: s.worker.keywordProvider,
       analystProvider: s.worker.analystProvider,
       analystModel: s.worker.analystModel,
-      radarEnabled: s.worker.radarEnabled,
+      radarSources: s.worker.radarSources,
     },
     radar: {
       items: s.radar.items,

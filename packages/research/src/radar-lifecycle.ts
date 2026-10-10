@@ -33,6 +33,11 @@ export type LifecycleInput = {
   observations: { observedAt: Date; score: number | null }[];
   /** First-seen times of other radar items with the same term. */
   earlierSightings: Date[];
+  /**
+   * False when the scores are not points that grow, e.g. Google Trends traffic ranges:
+   * only recurring and seasonal can be told then.
+   */
+  measureGrowth?: boolean;
 };
 
 export function lifecycle(input: LifecycleInput): Lifecycle {
@@ -49,6 +54,7 @@ export function lifecycle(input: LifecycleInput): Lifecycle {
   )
     return "seasonal";
   if (earlier.length > 0) return "recurring";
+  if (input.measureGrowth === false) return "insufficient_data";
 
   const points = input.observations
     .filter((o): o is { observedAt: Date; score: number } => o.score !== null)

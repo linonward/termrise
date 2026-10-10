@@ -4,6 +4,7 @@ import { radarObservations } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createFakeHackerNews } from "./adapters/fake-hacker-news";
+import type { TrendingSearch } from "./adapters/google-trends";
 import type { HackerNewsItem } from "./adapters/hacker-news";
 import { createRadar } from "./radar";
 import { toRadarItemDto } from "./radar-dto";
@@ -55,7 +56,7 @@ it("saves stories from both lists with one observation per list", async () => {
     term: "story 5",
     suggestedSeed: "story 5",
     url: null,
-    discussionUrl: "https://news.ycombinator.com/item?id=5",
+    sourceUrl: "https://news.ycombinator.com/item?id=5",
     postedAt: "2025-10-09T08:53:20.000Z",
     firstSeenAt: "2026-10-10T08:00:00.000Z",
     score: null,
@@ -209,4 +210,60 @@ it("shows a lifecycle from the observations and earlier items of the term", asyn
   await radar.collectHackerNews();
   const again = (await radar.list("u")).find((i) => i.externalId === "2")!;
   expect(again.lifecycle).toBe("recurring");
+});
+
+it("saves Google Trends searches, one item per market, day and term", async () => {
+  const searches: TrendingSearch[] = [
+    {
+      term: "Atlanta Airport",
+      approxTraffic: 500,
+      publishedAt: new Date("2026-10-10T07:00:00Z"),
+      newsUrl: "https://news.example/a",
+    },
+    { term: "  ", approxTraffic: null, publishedAt: null, newsUrl: null },
+  ];
+  const radar = createRadar({
+    database: db,
+    now,
+    googleTrends: { trending: async () => searches },
+  });
+  clock = new Date("2026-10-10T08:00:00Z");
+  expect(await radar.collectGoogleTrends("US")).toEqual({
+    saved: 1,
+    skipped: 1,
+    failed: 0,
+  });
+  // The same search an hour later is the same item, with a new observation.
+  clock = new Date("2026-10-10T09:00:00Z");
+  searches[0] = { ...searches[0]!, approxTraffic: 1000 };
+  await radar.collectGoogleTrends("US");
+
+  const [item] = await radar.list("u");
+  expect(toRadarItemDto(item)).toMatchObject({
+    provider: "google_trends",
+    title: "Atlanta Airport",
+    term: "atlanta airport",
+    url: "https://news.example/a",
+    sourceUrl: "https://trends.google.com/trending?geo=US",
+    score: 1000,
+    comments: null,
+    // Traffic ranges are not points: no growth is measured.
+    lifecycle: "insufficient_data",
+  });
+  const { observations } = await radar.get("u", item.id);
+  expect(observations.map((o) => [o.list, o.rank, o.score])).toEqual([
+    ["trending", 1, 1000],
+    ["trending", 1, 500],
+  ]);
+
+  // Trending again 10 days later: a new item, recurring.
+  searches[0] = {
+    ...searches[0]!,
+    publishedAt: new Date("2026-10-20T07:00:00Z"),
+  };
+  clock = new Date("2026-10-20T08:00:00Z");
+  await radar.collectGoogleTrends("US");
+  const items = await radar.list("u");
+  expect(items).toHaveLength(2);
+  expect(items[0].lifecycle).toBe("recurring");
 });

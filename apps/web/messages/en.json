@@ -690,7 +690,7 @@
     "notStarted": "Not started",
     "lastSeen": "Last seen",
     "fakeNote": "Test data: not real search data or AI.",
-    "radarOn": "Hacker News, every hour",
+    "radarOn": "{sources}, every hour",
     "radarOff": "Off",
     "radarItems": "{count, plural, one {# story} other {# stories}}",
     "lastCollected": "last collected",
@@ -722,7 +722,11 @@
       "deepseek": "DeepSeek"
     },
     "budgetNote": "Held is the amount kept for calls that are running or failed with an unknown cost. Each research project has its own data and AI budget.",
-    "budgetLink": "Research projects"
+    "budgetLink": "Research projects",
+    "radarSource": {
+      "hacker_news": "Hacker News",
+      "google_trends": "Google Trends"
+    }
   },
   "favorites": {
     "star": "Star {name}",
@@ -733,8 +737,8 @@
     "metaTitle": "Radar",
     "title": "Radar",
     "subtitle": "New stories from public sources. Find a term worth researching.",
-    "noticeTitle": "Discussion, not search demand",
-    "noticeBody": "Points and comments show how much people discuss a story. They are not search volume. Run research to get search data.",
+    "noticeTitle": "Activity, not monthly search volume",
+    "noticeBody": "Hacker News points and comments show discussion. Google Trends shows approximate recent searches as a lower bound, like 500+. Neither is monthly search volume: run research to get search data.",
     "search": "Search terms",
     "sortLabel": "Sort by",
     "sort": {
@@ -743,13 +747,13 @@
     },
     "apply": "Apply",
     "emptyTitle": "No stories yet",
-    "emptyBody": "The worker collects Hacker News every hour. Stories show here after the first collection.",
+    "emptyBody": "The worker collects Hacker News and Google Trends every hour. Stories show here after the first collection.",
     "noMatchTitle": "No matching stories",
     "noMatchBody": "Try a different search term.",
     "column": {
       "story": "Story",
       "source": "Source",
-      "points": "Points",
+      "points": "Activity",
       "comments": "Comments",
       "firstSeen": "First seen",
       "lastSeen": "Last seen",
@@ -760,15 +764,16 @@
       "trend": "Trend"
     },
     "provider": {
-      "hacker_news": "Hacker News"
+      "hacker_news": "Hacker News",
+      "google_trends": "Google Trends"
     },
     "list": {
       "top": "Top stories",
-      "show": "Show HN"
+      "show": "Show HN",
+      "trending": "Trending Now"
     },
     "back": "Radar",
     "openLink": "Open link",
-    "openDiscussion": "Discussion",
     "observations": "Observations",
     "noData": "No data",
     "researchTitle": "Research this term",
@@ -791,7 +796,15 @@
       "insufficient_data": "Not enough observations to measure growth. It needs 3 or more observations across 3 hours or more."
     },
     "starredOnly": "Starred only",
-    "starredEmpty": "No starred stories yet. Use the star on a story to keep it here."
+    "starredEmpty": "No starred stories yet. Use the star on a story to keep it here.",
+    "openSource": {
+      "hacker_news": "Discussion",
+      "google_trends": "Google Trends"
+    },
+    "activity": {
+      "points": "{count, plural, one {# point} other {# points}}",
+      "searches": "{count}+ searches"
+    }
   },
   "research": {
     "metaTitle": "Research",

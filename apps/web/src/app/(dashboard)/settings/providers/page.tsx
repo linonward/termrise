@@ -92,7 +92,17 @@ export default async function ProvidersPage() {
     ],
     [
       "radar",
-      worker?.radarEnabled ? t("radarOn") : t("radarOff"),
+      worker?.radarSources.length
+        ? t("radarOn", {
+            sources: worker.radarSources
+              .map((s) =>
+                s === "hacker_news" || s === "google_trends"
+                  ? t(`radarSource.${s}`)
+                  : s,
+              )
+              .join(", "),
+          })
+        : t("radarOff"),
       radar.lastCollectedAt ? (
         <>
           {t("radarItems", { count: radar.items })} · {t("lastCollected")}{" "}

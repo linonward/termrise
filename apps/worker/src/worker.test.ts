@@ -96,10 +96,14 @@ it("validates its own environment and never echoes values", () => {
 it("collects the radar on trend.ingest and fails when it is disabled", async () => {
   const log = vi.spyOn(console, "log").mockImplementation(() => {});
   const queue = createMemoryQueue();
-  let collected = 0;
+  const collected: string[] = [];
   const radar = {
     collectHackerNews: async () => {
-      collected++;
+      collected.push("hacker_news");
+      return { saved: 1, skipped: 0, failed: 0 };
+    },
+    collectGoogleTrends: async (geo: string) => {
+      collected.push(`google_trends:${geo}`);
       return { saved: 1, skipped: 0, failed: 0 };
     },
   };
@@ -108,8 +112,9 @@ it("collects the radar on trend.ingest and fails when it is disabled", async () 
     createHandlers({ runner, queue, radar }),
   );
   await queue.enqueue("trend.ingest", { provider: "hacker_news" });
+  await queue.enqueue("trend.ingest", { provider: "google_trends" });
   expect(await queue.drain()).toEqual([]);
-  expect(collected).toBe(1);
+  expect(collected).toEqual(["hacker_news", "google_trends:US"]);
   await stop();
 
   const disabled = createMemoryQueue();

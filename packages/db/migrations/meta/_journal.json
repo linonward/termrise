@@ -134,6 +134,20 @@
       "when": 1791626029002,
       "tag": "0018_favorites",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791628306822,
+      "tag": "0019_google_trends",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791628307291,
+      "tag": "0020_drop_radar_enabled",
+      "breakpoints": true
     }
   ]
 }

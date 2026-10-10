@@ -66,10 +66,15 @@ describe.skipIf(!url)("BullMQ queue", () => {
         providers.push(job.payload.provider);
       },
     });
-    await queue.schedule("trend.ingest", 200, { provider: "hacker_news" });
+    await queue.schedule(
+      "trend.ingest",
+      200,
+      { provider: "hacker_news" },
+      "trend.ingest-hacker_news",
+    );
     await waitFor(() => providers.length >= 1);
     expect(providers[0]).toBe("hacker_news");
-    await queue.unschedule("trend.ingest");
+    await queue.unschedule("trend.ingest-hacker_news");
     await new Promise((r) => setTimeout(r, 300));
     const seen = providers.length;
     await new Promise((r) => setTimeout(r, 600));

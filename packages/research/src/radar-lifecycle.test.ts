@@ -121,3 +121,25 @@ it("is recurring or seasonal when the term was seen before", () => {
     }),
   ).toBe("seasonal");
 });
+
+it("does not measure growth when the scores are not points", () => {
+  expect(
+    lifecycle({
+      ...base,
+      measureGrowth: false,
+      observations: obs([
+        [0, 100],
+        [4, 500],
+        [5, 1000],
+      ]),
+    }),
+  ).toBe("insufficient_data");
+  expect(
+    lifecycle({
+      firstSeenAt: t0,
+      measureGrowth: false,
+      observations: [],
+      earlierSightings: [new Date("2026-08-01T00:00:00Z")],
+    }),
+  ).toBe("recurring");
+});

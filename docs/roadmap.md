@@ -36,6 +36,7 @@
 | S28   | 热词生命周期（F02）：`radar-lifecycle.ts`（`lifecycle-v1`：breakout、emerging、sustained、recurring、seasonal、insufficient_data，只用讨论热度，观测不足时不计算增长）；Radar 列表与详情返回 `lifecycle`；趋势徽章与判断依据                                                                                                                                                                                                                                                          | 单元测试覆盖观测不足、增长窗口、持续、重复与季节；集成测试覆盖多次采集与重复出现；E2E 覆盖数据不足的徽章与说明                                                                                          | 已完成 |
 | S29   | 收藏：`opportunities.starred_at`、`radar_favorites` 与 migration；`favorites.ts`（只有所有者收藏机会、Radar 收藏按用户、重复操作不变、导出与删除）；`PUT / DELETE .../star` 与 `starred=1`；星标按钮与「只看收藏」                                                                                                                                                                                                                                                                    | 集成测试覆盖按用户收藏、筛选、归属、导出与删除；API 测试覆盖收藏、筛选、404；E2E 覆盖 Radar 与机会的收藏和筛选                                                                                          | 已完成 |
 | S30   | 机会比较：列表复选框与 [Compare selected]；`/opportunities/compare`（最多 4 个，分数、维度、关键词指标、SERP、AI 假设并排；其他用户的机会不显示；少于 2 个时说明）；没有新的 API                                                                                                                                                                                                                                                                                                      | E2E 覆盖选择两个机会后比较、其他用户打开同一链接时不显示                                                                                                                                                | 已完成 |
+| S31   | Google Trends（termrise.md M1-04）：Trending Now RSS 适配器（`fast-xml-parser`，用保存的真实订阅测试，字段变化时失败）；`collectGoogleTrends()`（每个搜索、市场、日期一个条目，近似搜索次数为下限）；Radar 来源与列表的 CHECK 与 migration；生命周期只为 HN 计算增长；Worker 的 `GOOGLE_TRENDS_ENABLED` 与每个来源一个 Job Scheduler；心跳的 `radar_sources`；Radar 页面的热度与来源链接                                                                                              | 单元测试覆盖解析、流量标签、实体、形状变化、HTTP 错误；集成测试覆盖保存、同日观测、隔日新条目与重复出现；Worker 测试覆盖两个来源；E2E 覆盖 Trends 条目的热度与链接                                      | 已完成 |
 
 ## Confirmed Decisions
 
@@ -63,13 +64,14 @@
 - 2026-10-10：上线前，「含 migration 的 PR 合并前已对 Production 执行 migration」改为对本地库 `termrise_local` 执行；上线部署时再对 Production 执行全部 migration（deployment.md 的 Migrations）。
 - 2026-10-10：业务功能优先：先用 fixture / fake Provider 打通「创建 → 导入 → 运行 → 机会 → 决策 → 导出 → 结果」（S13 CSV 导入、S14 运行研究、S15 机会、S16 决策与 Brief、S17 执行与收入），研究的运行先在 API 中同步执行（各阶段写成 packages 中的函数，接真实 API 时移到 Worker）；之后再做预算账本、真实 DataForSEO / DeepSeek / HN / Trends、Worker 与定时采集、Radar。
 - 2026-10-10：S16 拆小：S16 决策与验证实验，S17 Brief Markdown 导出，S18 执行与收入记录。Brief 用英文模板生成（面向 Codex），内容来自评估、分析、证据、实验和决策，不调用 AI。
-- 2026-10-10：先在本地跑通 Worker：Redis 用 docker compose，部署到 Cloudflare Containers 与 Upstash 留到上线前。研究运行改为 API 排队、Worker 执行。本地登录用 `pnpm dev:login`（只接受本地数据库）。Radar 的数据源先只用 HN 和 CSV，不接 Google Trends。
+- 2026-10-10：先在本地跑通 Worker：Redis 用 docker compose，部署到 Cloudflare Containers 与 Upstash 留到上线前。研究运行改为 API 排队、Worker 执行。本地登录用 `pnpm dev:login`（只接受本地数据库）。Radar 的数据源先只用 HN 和 CSV，不接 Google Trends（2026-10-10 改为接入 Trending Now RSS，见下）。
 - 2026-10-10：Waffo 与 Credits 保留代码、隐藏入口：注册不发 Credits，UI 不显示收费入口。在品牌 Slice 中实施。
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 - 2026-10-10：DeepSeek 的费用按返回的 token 和价格表计算，一律按高峰价（低谷价依赖中国法定节假日，无法可靠判断），账本可能高于实际账单。分析关闭思考模式、不重试。价格表中没有的模型不能使用；价格页变化时更新 `deepseek-prices.ts`。
 - 2026-10-10：DataForSEO 按响应报告的 `cost` 结算，预留额取高于官方价格的固定值。扩词只用 Google Ads `keywords_for_keywords`（一次调用即有搜索量、CPC、广告竞争度），KD 用 Labs `bulk_keyword_difficulty` 补查；暂不使用 `keyword_suggestions`、`related_keywords`、`search_volume`。
 - 2026-10-10：`/settings/providers` 不提供「测试连接」：DeepSeek 余额接口的文档没有写认证方式和是否收费，不猜。连接状态用最近一次真实调用的结果，服务配置来自 Worker 心跳（API 不读取 Worker 的环境变量）。预算仍按研究项目设置。
 - 2026-10-10：F02 生命周期先只用 HN 的讨论热度（分数随时间的变化和同一个词的更早条目），规则 `lifecycle-v1` 在读取时计算、不存储。接入有搜索趋势的数据源后再增加按搜索趋势的版本。
+- 2026-10-10：接入 Google Trends Trending Now 的 RSS：Trends 帮助页把它列为导出方式之一，公开、不需要 Key，robots.txt 不禁止。它没有字段说明，所以用保存的真实订阅测试，字段变化时任务失败。只采集美国市场；近似搜索次数是下限，不当作月搜索量。不使用网页内部接口（如 pytrends）。
 
 ## Open Questions
 
