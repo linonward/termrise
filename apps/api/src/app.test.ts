@@ -5,11 +5,21 @@ import { AppError } from "@repo/observability/errors";
 
 import { createApp } from "./app";
 import { errorHandler } from "./middleware/error-handler";
+import { testBindings, testExecutionContext } from "./testing/worker";
 
-it("answers the health check", async () => {
-  const response = await createApp().request("/health");
-  expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ status: "ok" });
+it("reports an unreachable database as 503", async () => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  // Nothing listens on port 1: the connection is refused at once.
+  const env = testBindings("postgresql://postgres:postgres@localhost:1/app");
+  const response = await createApp().request(
+    "/api/health",
+    {},
+    env,
+    testExecutionContext(),
+  );
+  expect(response.status).toBe(503);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(await response.json()).toEqual({ status: "error" });
 });
 
 it("maps errors to the shared error contract", async () => {
