@@ -29,6 +29,8 @@ radar_items、radar_observations（Radar：公开来源的故事与每次观测�
 
 worker_heartbeats（每个 Worker 进程运行的服务配置）
 
+provider_cache（付费服务的回答，在有效期内复用）
+
 research_runs、keywords、keyword_metric_snapshots、serp_snapshots、serp_results（研究运行的结果）
 ```
 
@@ -660,6 +662,17 @@ processed_at = now()
 - fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。
 - DataForSEO 每个响应都报告费用（美元），按任务的 `cost` 结算。预留额高于官方价格页（2026-10-10 核对）：扩词 0.10 美元（Google Ads Live 每任务 0.09）、SERP 0.01（每 10 个结果 0.002，带 `site:` 等运算符时 5 倍）、KD 0.05（Labs 每任务 0.012 + 每个关键词 0.00012）。操作名为 `expand`、`difficulty`、`serp`。
 - DeepSeek 不返回费用：按返回的 token（缓存命中、未命中、输出）乘以 `adapters/deepseek-prices.ts` 中的价格计算，向上取整。官方价格页（2026-10-10 核对）分高峰和低谷价格，高峰时段排除中国法定节假日，代码无法可靠判断，所以一律按高峰价结算：账本可能高于实际账单，不会低于。价格表中没有的模型不能使用。每次分析的预留额 = 7000 个输入 token 按未命中价 + 1500 个输出 token（`deepseek-flash` 为 0.0039 美元）。
+
+---
+
+## Provider Cache
+
+`provider_cache`（`packages/db/src/schema/cache.ts`，`packages/research/src/provider-cache.ts`）：付费服务的回答，在有效期内复用，不再付费（termrise.md 的「避免重复计费」）。只缓存市场数据，所有用户共用，不含用户数据。
+
+- 键是 SHA-256（缓存版本、服务、操作、地区、语言、参数）。值是适配器映射后的结果，记录服务回答的时间 `fetched_at` 和到期时间 `expires_at`。再次付费时覆盖同一行。
+- 只有声明了 `cacheTtlMs` 的服务使用缓存（fake 不使用）。DataForSEO：扩词与 KD 30 天（Google Ads 的搜索量是月度数据，KD 变化慢），SERP 7 天。
+- 扩词按种子词缓存，SERP 按关键词缓存，KD 按关键词缓存：只为没有缓存的关键词付费；没有数据（null）也缓存。
+- 命中缓存时不写账本（没有费用）。指标和 SERP 快照的 `fetched_at` 用服务回答的时间，不用本次运行的时间，所以证据的时间是真实的。
 
 ---
 
