@@ -1,0 +1,112 @@
+# web, API and Worker in Docker on a local machine (docs/architecture/environment.md#docker).
+# PostgreSQL and Redis are the shared containers of /docker-compose.yml, reached through
+# host.docker.internal; `pnpm local:down` stops only the services below.
+name: termrise-local
+
+x-app: &app
+  image: termrise-local
+  init: true
+  restart: unless-stopped
+  network_mode: service:net
+  depends_on:
+    net:
+      condition: service_started
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  # Holds the shared network namespace and the published ports. web reaches the API at
+  # localhost:3001 (NEXT_PUBLIC_API_URL), the same address the browser uses.
+  net:
+    image: termrise-local
+    build:
+      context: ../..
+      dockerfile: infra/local/Dockerfile
+    init: true
+    restart: unless-stopped
+    command: ["sleep", "infinity"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3010:3010"
+      - "3001:3001"
+      - "8080:8080"
+
+  migrate:
+    image: termrise-local
+    network_mode: service:net
+    depends_on:
+      net:
+        condition: service_started
+    command: ["pnpm", "db:migrate"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:54330/termrise_local
+
+  web:
+    <<: *app
+    command: ["pnpm", "--filter", "web", "start", "--port", "3010"]
+    env_file: ../../apps/web/.env.local
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3010').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  api:
+    <<: *app
+    command:
+      [
+        "pnpm",
+        "--filter",
+        "api",
+        "exec",
+        "wrangler",
+        "dev",
+        "--port",
+        "3001",
+        "--ip",
+        "0.0.0.0",
+      ]
+    volumes:
+      - ../../apps/api/.dev.vars:/repo/apps/api/.dev.vars:ro
+    environment:
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@host.docker.internal:54330/termrise_local
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3001/api/auth/ok').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  worker:
+    <<: *app
+    command: ["pnpm", "--filter", "worker", "start"]
+    env_file: ../../apps/worker/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:54330/termrise_local
+      REDIS_URL: redis://host.docker.internal:63790/0
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 20s

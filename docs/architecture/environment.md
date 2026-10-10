@@ -103,3 +103,19 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 5. 启动 web：`pnpm dev`（端口 3000 被占用时，Next.js 改用其他端口；这时用 `pnpm --filter web exec next dev --port <端口>` 固定端口，并把 `APP_URL` 改为该端口）。
 6. 启动 Worker：`pnpm dev:worker`。
 7. 登录：`DATABASE_URL=<本地库> pnpm dev:login --email you@example.com` 打印一个 Magic Link，在浏览器中打开即登录，不需要 Resend。脚本只接受 `localhost` 的数据库。用真实邮件登录时，按 overview.md 的 Email 一节设置 Resend。
+
+### Docker
+
+用 Docker 运行 web、API 和 Worker，适合长时间观测（不热更新）。准备好上面第 3 步的三个变量文件后：
+
+- `pnpm local:up`：启动共享的 PostgreSQL、Redis、SeaweedFS，构建镜像，执行 migration，再启动三个服务。端口：web 3010、API 3001、Worker 8080。
+- `pnpm local:down`：只停止并删除三个服务的容器。PostgreSQL、Redis 和 SeaweedFS 是所有 worktree 与其他仓库共用的容器，继续运行。
+- `pnpm local:ps` / `pnpm local:logs`：查看状态（含健康检查）/ 跟踪日志。
+
+配置在 `infra/local/`（`Dockerfile`、`compose.yml`）。说明：
+
+- 三个服务共用一个网络命名空间（`net` 服务），所以 web 的服务端按 `NEXT_PUBLIC_API_URL=http://localhost:3001` 访问 API，与浏览器使用同一个地址。
+- 变量来自本机的 `apps/web/.env.local`、`apps/api/.dev.vars`、`apps/worker/.env`，不进镜像（`.dockerignore`）。compose 把数据库和 Redis 的地址改为 `host.docker.internal`，并固定使用 `termrise_local`。
+- web 运行 `next build` 的结果，`NEXT_PUBLIC_API_URL` 在构建时写入页面；修改它或代码后重新运行 `pnpm local:up`。
+- `apps/worker/.env` 设置了真实 Provider（`KEYWORD_PROVIDER=dataforseo`、`ANALYST_PROVIDER=deepseek`）时，容器中的 Worker 同样会产生付费调用。
+- 改用本机进程（`pnpm dev` 等）前先运行 `pnpm local:down`，否则端口冲突。

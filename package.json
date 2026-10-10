@@ -27,7 +27,11 @@
     "seo:validate": "pnpm --filter web seo:validate",
     "dev:api": "pnpm --filter api dev",
     "dev:worker": "pnpm --filter worker dev",
-    "dev:login": "pnpm --filter api dev:login"
+    "dev:login": "pnpm --filter api dev:login",
+    "local:up": "docker compose up -d --wait postgres redis storage && docker compose -f infra/local/compose.yml up -d --build",
+    "local:down": "docker compose -f infra/local/compose.yml down",
+    "local:ps": "docker compose -f infra/local/compose.yml ps",
+    "local:logs": "docker compose -f infra/local/compose.yml logs -f --tail=100"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
