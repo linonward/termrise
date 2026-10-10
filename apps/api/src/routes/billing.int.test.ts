@@ -3,6 +3,7 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
+import { expectRateLimited } from "../testing/rate-limit";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient({
@@ -75,12 +76,11 @@ it("needs a session", async () => {
 });
 
 it("allows ten checkouts a minute, then answers 429", async () => {
-  for (let i = 0; i < 10; i++)
-    expect((await post("/api/checkout", { packId: "starter" })).status).toBe(
-      201,
-    );
-  const limited = await post("/api/checkout", { packId: "starter" });
-  expect(limited.status).toBe(429);
+  const limited = await expectRateLimited(
+    () => post("/api/checkout", { packId: "starter" }),
+    10,
+  );
+  expect((await limited.json()).error.code).toBe("RATE_LIMITED");
   // Cancel shares the numbers under its own key, not the count.
   expect((await post("/api/billing/subscription/cancel")).status).toBe(404);
 });

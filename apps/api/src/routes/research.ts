@@ -1,6 +1,9 @@
 import type { Context } from "hono";
 
-import { toResearchProjectDto } from "@repo/research/research-dto";
+import {
+  toResearchProjectDto,
+  toSourceSignalDto,
+} from "@repo/research/research-dto";
 import { createResearchService } from "@repo/research/research-service";
 
 import type { AppEnv } from "../env";
@@ -35,6 +38,23 @@ export const researchRoutes = userRoutes()
       await readJson(c),
     );
     return c.json(toResearchProjectDto(project));
+  })
+  // A CSV of terms, sent as JSON { csv } (docs/product/ux.md#research).
+  .post("/projects/:id/import", rateLimit("research"), async (c) =>
+    c.json(
+      await research(c).importCsv(
+        c.var.user.id,
+        c.req.param("id"),
+        await readJson(c),
+      ),
+    ),
+  )
+  .get("/projects/:id/signals", async (c) => {
+    const items = await research(c).listSignals(
+      c.var.user.id,
+      c.req.param("id"),
+    );
+    return c.json({ items: items.map(toSourceSignalDto) });
   })
   .delete("/projects/:id", rateLimit("research"), async (c) => {
     await research(c).remove(c.var.user.id, c.req.param("id"));

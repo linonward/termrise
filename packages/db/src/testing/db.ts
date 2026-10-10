@@ -12,7 +12,7 @@ export function testDb() {
 
 export async function resetDb() {
   await testDb().execute(sql`
-    truncate table analytics_consents, credit_transactions, payment_events, rate_limits, research_projects, tasks, purchases, subscriptions,
+    truncate table analytics_consents, credit_transactions, payment_events, rate_limits, source_signals, research_projects, tasks, purchases, subscriptions,
       verification, account, session, "user" restart identity cascade
   `);
 }

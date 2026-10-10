@@ -18,6 +18,7 @@
 | S10   | 迁移第 5 步（admin 与清理）：`apps/api` 提供 `/api/admin/*`（`ADMIN_USER_IDS` binding，只在 API 判断管理员）；AdminService、AccountService 移到 `packages/admin`，admin 脚本移到 `apps/api/scripts`；`/admin` 经 API 读写；web 去掉 `@repo/db` 等运行时依赖和不再使用的变量；ESLint 禁止 web 中的数据库、Service、适配器导入和 `/api/health` 以外的 Route Handler                                                                                                                     | API 集成测试覆盖非管理员 404、查找、概览、调整的幂等与校验；ESLint 规则测试；全部 E2E 通过                                                                     | 已完成 |
 | S11   | 品牌改为 Termrise：`product.config.ts`（`termrise.com`、`support@termrise.com`、运营主体占位）；按 product.md 重写 Landing、注册页、Blog 入门文章和 `llms.txt`（中英）；`billingEnabled: false` 隐藏 Pricing、Billing、Credits、退款政策入口，注册不发 Credits，Dashboard 显示抢先体验空状态；删除示例文章 `how-credits-work` 与示例关键词簇；`product.config.ts` 加入 turbo 的 `globalDependencies`                                                                                  | E2E 在开关关闭时通过（收费测试跳过）；临时打开开关时全部 E2E 也通过；API 测试显式发放 Credits                                                                  | 已完成 |
 | S12   | Research Project（termrise.md M1-01）：`research_projects` 表与 migration；`packages/research`（ResearchService、规则、DTO、账号导出与删除）；`apps/api` 的 `/api/research/projects` CRUD（只能修改和删除 draft，`research` 限流）；web 的 `/research`、`/research/:id`、导航与登录保护，Dashboard 列出最新项目；Pen 设计稿与导出 PNG；设计主题改为 Termrise：品牌色 `#6D4AFF`（四个 brand token，设计文件与 `theme.css`）、新 Logo 标记（上升折线 + 圆点）、App Icon、favicon、OG 图 | Service 与 API 集成测试覆盖归属、校验、锁定、限流；E2E 覆盖创建、编辑、删除、404、需要登录                                                                     | 已完成 |
+| S13   | CSV 导入（termrise.md M1-03 的 CSV 部分）：`source_signals` 表与 migration；按行校验的 CSV 解析（行号、重复不新增）；导入到 draft 项目并合并种子词；`/api/research/projects/:id/import` 与 `/signals`；详情页的 Signals 表与导入面板                                                                                                                                                                                                                                                  | 单元测试覆盖解析与行号；集成测试覆盖导入、重复、50 个种子词上限、并发导入、锁定与归属、账号导出；E2E 覆盖导入与重复导入                                        | 已完成 |
 
 ## Confirmed Decisions
 
@@ -43,6 +44,7 @@
 - 2026-10-10：品牌事实：域名 `termrise.com`，支持邮箱 `support@termrise.com`，运营主体暂用占位值「Termrise」，上线前确认。收费入口用 `product.config.ts` 的 `billingEnabled` 开关隐藏（`/pricing`、`/billing`、`/refund-policy` 返回 404），不删除代码；Dashboard 在研究项目上线前显示空状态。Landing 文案按 product.md 写，处于抢先体验阶段，不写尚未提供的数字和承诺。
 - 2026-10-10：Termrise 品牌色为紫罗兰 `#6D4AFF`（`brand-foreground` 白色），与状态色（绿、蓝、琥珀、红）区分；Logo 为上升折线与箭头（brand）加起点圆点（foreground），由 Pen 的 SVG 生成后整理为两条 path。
 - 2026-10-10：上线前，「含 migration 的 PR 合并前已对 Production 执行 migration」改为对本地库 `termrise_local` 执行；上线部署时再对 Production 执行全部 migration（deployment.md 的 Migrations）。
+- 2026-10-10：业务功能优先：先用 fixture / fake Provider 打通「创建 → 导入 → 运行 → 机会 → 决策 → 导出 → 结果」（S13 CSV 导入、S14 运行研究、S15 机会、S16 决策与 Brief、S17 执行与收入），研究的运行先在 API 中同步执行（各阶段写成 packages 中的函数，接真实 API 时移到 Worker）；之后再做预算账本、真实 DataForSEO / DeepSeek / HN / Trends、Worker 与定时采集、Radar。
 - 2026-10-10：Waffo 与 Credits 保留代码、隐藏入口：注册不发 Credits，UI 不显示收费入口。在品牌 Slice 中实施。
 - 2026-10-10：不新增 `DEEPSEEK_BASE_URL`，沿用 `DEEPSEEK_API_KEY` + `DEEPSEEK_MODEL`。
 

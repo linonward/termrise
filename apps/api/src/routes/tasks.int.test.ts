@@ -6,6 +6,7 @@ import { FAKE_AI_FAILURE } from "@repo/ai/adapters/fake";
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
+import { expectRateLimited } from "../testing/rate-limit";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient({
@@ -107,10 +108,7 @@ it("rejects a body that is not JSON", async () => {
 });
 
 it("allows ten runs a minute, then answers 429", async () => {
-  for (let i = 0; i < 10; i++)
-    expect((await run("hello")).status, `run ${i + 1}`).not.toBe(429);
-  const limited = await run("hello");
-  expect(limited.status).toBe(429);
+  const limited = await expectRateLimited(() => run("hello"), 10);
   expect((await limited.json()).error.code).toBe("RATE_LIMITED");
   expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
 });

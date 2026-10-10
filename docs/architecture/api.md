@@ -23,6 +23,10 @@ PATCH /api/research/projects/:id（部分字段；不是 draft 时 409 RESEARCH_
 
 DELETE /api/research/projects/:id（只删除 draft，成功返回 204）
 
+POST /api/research/projects/:id/import（{ csv }：CSV 文本，最多 1,000,000 字符、1000 行；只导入 draft。返回 { imported, duplicates, rejectedCount, rejected: [{ line, reason }]（最多 20 条）, seedsAdded, seedsSkipped }；整个文件无效时 400 INVALID_INPUT，error.reason 为 empty / too_large / too_many_rows / missing_term_column）
+
+GET /api/research/projects/:id/signals（项目的信号，观测时间新的在前，最多 200 条）
+
 GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
 
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）

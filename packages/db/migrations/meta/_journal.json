@@ -36,6 +36,13 @@
       "when": 1791600861530,
       "tag": "0004_research_projects",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791604919074,
+      "tag": "0005_source_signals",
+      "breakpoints": true
     }
   ]
 }

@@ -709,6 +709,38 @@
       "cancelled": "已取消",
       "budget_exhausted": "预算用完"
     },
-    "created": "创建于"
+    "created": "创建于",
+    "signalsTitle": "信号",
+    "signalsEmpty": "还没有信号。导入一个热词 CSV 来添加。",
+    "signalColumn": {
+      "term": "热词",
+      "source": "来源",
+      "observed": "观测日期",
+      "link": "链接"
+    },
+    "open": "打开",
+    "noDate": "—",
+    "importTitle": "从 CSV 导入热词",
+    "importHint": "第一行是表头，之后每行一个词。列：term（必填）、url、observed_at（YYYY-MM-DD）、source、note。最多 {rows} 行。",
+    "importFile": "CSV 文件",
+    "importButton": "导入",
+    "importing": "正在导入…",
+    "importResult": "导入 {imported} 个词，{duplicates} 个重复，跳过 {rejected} 行。{seeds, plural, =0 {没有新增种子词。} other {新增 # 个种子词。}}",
+    "importSeedsFull": "有 {count} 个词没有加入种子词：每个项目最多 50 个。",
+    "importRejectedLine": "第 {line} 行：{reason}",
+    "rejectReason": {
+      "missing_term": "没有词",
+      "term_too_long": "词超过 80 个字符",
+      "invalid_url": "url 不是 http(s) 链接",
+      "invalid_date": "observed_at 不是 YYYY-MM-DD"
+    },
+    "importProblem": {
+      "empty": "表头之后没有数据行。",
+      "too_large": "文件超过 1 MB。",
+      "too_many_rows": "文件超过 1000 行。",
+      "missing_term_column": "表头里没有 term 列。",
+      "unreadable": "无法读取这个文件。"
+    },
+    "sourceCsv": "CSV 导入"
   }
 }

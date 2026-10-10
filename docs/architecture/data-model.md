@@ -22,6 +22,8 @@ rate_limits
 analytics_consents
 
 research_projects（Termrise 的研究项目）
+
+source_signals（热词的观测来源）
 ```
 
 Better Auth 需要的内部表（user / session / account / verification）由 Better Auth CLI（`auth generate`）生成到 `packages/db/src/schema/auth.ts`，之后手工修改（`credit_balance` 的 NOT NULL 和 CHECK）。重新生成后要再次应用这些修改。
@@ -580,6 +582,25 @@ processed_at = now()
 - 只有 ResearchService（`packages/research/src/research-service.ts`）修改研究项目。只有 `draft` 可以修改和删除；修改和删除的条件包含 `status = 'draft'`，项目在此期间开始运行时返回 `RESEARCH_PROJECT_LOCKED`（409）。
 - 状态迁移（运行、暂停、重试）在后续 Slice 中由 ResearchService 和 Worker 实现。
 - 删除账号时，`apps/api/src/product-data.ts` 删除用户的研究项目（没有其他表引用它们）；导出账号时包含它们（`packages/research/src/user-data.ts`）。
+
+---
+
+## Source Signals
+
+`source_signals`（`packages/db/src/schema/signals.ts`）：某个词在某个来源被观测到一次（product.md 的 F01）。现在只有 CSV 导入（`provider = 'csv'`），属于一个研究项目；Hacker News、Google Trends 的全局信号在 Radar 的 Slice 中加入。
+
+| 列                        | 说明                                                                                                                                          |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project_id`              | 外键 `research_projects.id`，`ON DELETE CASCADE`：删除项目时删除它的信号                                                                      |
+| `provider`、`external_id` | 来源与来源 id；CSV 的 `external_id` 是「规范化的词 + url + 观测时间」的 SHA-256。`(project_id, provider, external_id)` 唯一，重复导入不新增行 |
+| `raw_title`               | 原文（最多 500 字符）                                                                                                                         |
+| `normalized_term`         | 与种子词相同的规范化（`normalizeSeeds()`）                                                                                                    |
+| `observed_at`             | 来源观测到的时间；来源没有给出时为 null，不用导入时间代替                                                                                     |
+| `ingested_at`             | 导入时间                                                                                                                                      |
+| `metadata`                | CSV 的 `source`、`note`（各最多 500 字符）                                                                                                    |
+
+- 导入（`ResearchService.importCsv()`）在一个事务中锁住项目行，只允许 draft；新词按出现顺序追加到种子词，最多 50 个，其余只保留为信号。并发导入同一个项目时种子词不会丢失（集成测试覆盖）。
+- 账号导出包含每个项目的信号；删除账号时随项目一起删除。
 
 ---
 

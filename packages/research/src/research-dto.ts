@@ -1,4 +1,4 @@
-import type { ResearchProject } from "./research-service";
+import type { ResearchProject, SourceSignal } from "./research-service";
 
 const usd = (micros: number) => micros / 1_000_000;
 
@@ -19,3 +19,20 @@ export function toResearchProjectDto(p: ResearchProject) {
 }
 
 export type ResearchProjectDto = ReturnType<typeof toResearchProjectDto>;
+
+// Public shape of a source signal: no project id or row hash.
+export function toSourceSignalDto(s: SourceSignal) {
+  return {
+    id: s.id,
+    provider: s.provider,
+    term: s.normalizedTerm,
+    rawTitle: s.rawTitle,
+    url: s.url,
+    observedAt: s.observedAt?.toISOString() ?? null,
+    ingestedAt: s.ingestedAt.toISOString(),
+    source: s.metadata.source ?? null,
+    note: s.metadata.note ?? null,
+  };
+}
+
+export type SourceSignalDto = ReturnType<typeof toSourceSignalDto>;

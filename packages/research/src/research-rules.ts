@@ -32,3 +32,21 @@ export function normalizeSeeds(seeds: readonly string[]) {
 
 /** One seed per line, as typed in the form. */
 export const seedsFromText = (text: string) => normalizeSeeds(text.split("\n"));
+
+// The CSV template (docs/product/ux.md#research): a header row, then one term per row.
+// Columns are matched by name in any order; only `term` is required.
+export const CSV_COLUMNS = [
+  "term",
+  "url",
+  "observed_at",
+  "source",
+  "note",
+] as const;
+export const MAX_CSV_LENGTH = 1_000_000;
+export const MAX_CSV_ROWS = 1000;
+
+export type RejectReason =
+  "missing_term" | "term_too_long" | "invalid_url" | "invalid_date";
+
+export type CsvProblem =
+  "empty" | "too_large" | "too_many_rows" | "missing_term_column";
