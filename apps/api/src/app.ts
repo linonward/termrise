@@ -10,6 +10,7 @@ import { billing } from "./routes/billing";
 import { checkout } from "./routes/checkout";
 import { credits } from "./routes/credits";
 import { health } from "./routes/health";
+import { opportunityRoutes } from "./routes/opportunities";
 import { researchRoutes } from "./routes/research";
 import { tasks } from "./routes/tasks";
 import { uploads } from "./routes/uploads";
@@ -29,6 +30,7 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/billing", billing)
     .route("/credits", credits)
     .route("/research", researchRoutes)
+    .route("/opportunities", opportunityRoutes)
     .route("/webhooks", webhooks)
     .route("/admin", adminRoutes)
     .onError(errorHandler);

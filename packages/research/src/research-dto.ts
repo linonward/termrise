@@ -1,11 +1,14 @@
 import type {
   keywordMetricSnapshots,
   keywords,
+  opportunities,
+  opportunityEvaluations,
   researchRuns,
   serpResults,
   serpSnapshots,
 } from "@repo/db/schema";
 
+import type { Analysis } from "./opportunity-analyst";
 import type { ResearchProject, SourceSignal } from "./research-service";
 
 const usd = (micros: number) => micros / 1_000_000;
@@ -106,3 +109,34 @@ export function toSerpDto(row: {
 }
 
 export type SerpDto = ReturnType<typeof toSerpDto>;
+
+type OpportunityRow = typeof opportunities.$inferSelect;
+type EvaluationRow = typeof opportunityEvaluations.$inferSelect;
+
+// An opportunity with its current evaluation; the analysis stays as validated.
+export function toOpportunityDto(row: {
+  opportunity: OpportunityRow;
+  evaluation: EvaluationRow;
+  projectName: string;
+}) {
+  const e = row.evaluation;
+  return {
+    id: row.opportunity.id,
+    projectId: row.opportunity.projectId,
+    projectName: row.projectName,
+    cluster: row.opportunity.cluster,
+    status: row.opportunity.status,
+    score: e.score,
+    dimensions: e.dimensions,
+    confidence: e.confidence,
+    needsReview: e.needsReview,
+    rank: e.rank,
+    scoringVersion: e.scoringVersion,
+    analysis: e.analysis as Analysis | null,
+    analysisError: e.analysisError,
+    analystProvider: e.analystProvider,
+    evaluatedAt: e.createdAt.toISOString(),
+  };
+}
+
+export type OpportunityDto = ReturnType<typeof toOpportunityDto>;

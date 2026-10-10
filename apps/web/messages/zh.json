@@ -131,7 +131,8 @@
       "en": "English",
       "zh": "简体中文"
     },
-    "research": "研究"
+    "research": "研究",
+    "opportunities": "机会"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -522,7 +523,8 @@
     "NOT_FOUND": "这个页面或记录不存在。",
     "RESEARCH_PROJECT_NOT_FOUND": "这个研究项目不存在。",
     "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。",
-    "RESEARCH_PROVIDER_UNAVAILABLE": "暂时无法运行研究：还没有配置关键词数据来源。"
+    "RESEARCH_PROVIDER_UNAVAILABLE": "暂时无法运行研究：还没有配置关键词数据来源。",
+    "OPPORTUNITY_NOT_FOUND": "这个机会不存在。"
   },
   "errorPage": {
     "title": "出错了",
@@ -774,6 +776,76 @@
     "fixtureTitle": "测试数据",
     "fixtureBody": "这些数字和结果来自测试数据来源，不是真实的搜索数据。",
     "serpTitle": "搜索结果前 10 名",
-    "serpBody": "搜索量最高的几个关键词在桌面端的前 10 个自然搜索结果。"
+    "serpBody": "搜索量最高的几个关键词在桌面端的前 10 个自然搜索结果。",
+    "viewOpportunities": "查看机会"
+  },
+  "opportunities": {
+    "metaTitle": "机会",
+    "title": "机会",
+    "subtitle": "每次研究运行会给最强的关键词组排名。分数只由数据计算，不由 AI 给出。",
+    "projectFilter": "只显示一个项目：{name}。",
+    "showAll": "显示全部",
+    "emptyTitle": "还没有机会",
+    "emptyBody": "运行一个研究项目，为它的关键词组排名。",
+    "emptyLink": "前往研究",
+    "column": {
+      "opportunity": "机会",
+      "project": "项目",
+      "score": "分数",
+      "confidence": "可信度",
+      "status": "状态",
+      "dimension": "维度",
+      "rating": "评分",
+      "weight": "权重"
+    },
+    "status": {
+      "unreviewed": "未评审",
+      "needs_validation": "待验证",
+      "go": "Go",
+      "no_go": "No-go"
+    },
+    "needsReview": "需核对证据",
+    "back": "机会",
+    "evaluated": "评估于",
+    "score": "分数",
+    "confidence": "可信度",
+    "dimension": {
+      "trend": "趋势",
+      "demand": "需求",
+      "competition": "竞争",
+      "commercial": "商业意图",
+      "mvp": "MVP 适配",
+      "distribution": "分发"
+    },
+    "dimensionHint": {
+      "trend": "信号中出现该词的天数。",
+      "demand": "最大关键词的月搜索量。同义词的搜索量不相加。",
+      "competition": "最大关键词的关键词难度；难度越低，评分越高。",
+      "commercial": "购买类关键词的占比与最高 CPC。",
+      "mvp": "寻找工具、应用或模板的关键词占比。",
+      "distribution": "提到该词的不同来源数量。"
+    },
+    "scoreNote": "评分 {version}：每项评分 0 到 5，乘以权重。数据缺失、过旧或没有审核 SERP 时，可信度降低。",
+    "analysisTitle": "AI 分析",
+    "analysis": {
+      "targetUser": "目标用户",
+      "job": "要完成的任务",
+      "alternatives": "替代方案",
+      "differentiation": "差异化",
+      "pricing": "定价",
+      "channels": "渠道",
+      "mvpScope": "MVP 范围",
+      "risks": "风险"
+    },
+    "analysisError": {
+      "AI_INVALID_OUTPUT": "AI 的回答格式不符合要求，所以不显示。分数仍然有效。",
+      "AI_ERROR": "AI 分析没有完成。分数仍然有效。"
+    },
+    "analysisNote": "AI 根据下方证据写出这段文字。它不改变分数。",
+    "keywordsTitle": "关键词",
+    "serpTitle": "搜索结果",
+    "signalsTitle": "信号",
+    "signalsEmpty": "这个词没有信号。趋势和分发评分为 0。",
+    "sourceCsv": "CSV 导入"
   }
 }

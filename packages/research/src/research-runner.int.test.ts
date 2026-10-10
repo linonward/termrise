@@ -11,6 +11,7 @@ import {
 } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
+import { createFakeAnalyst } from "./adapters/fake-analyst";
 import {
   createFakeKeywordProvider,
   FAKE_KEYWORDS_FAILURE,
@@ -29,7 +30,8 @@ import { createResearchService } from "./research-service";
 const db = testDb();
 const service = createResearchService({ database: db });
 const fake = createFakeKeywordProvider();
-const runner = createResearchRunner({ database: db, provider: fake });
+const analyst = createFakeAnalyst();
+const runner = createResearchRunner({ database: db, provider: fake, analyst });
 const results = createResearchResults({ database: db });
 
 beforeEach(async () => {
@@ -48,7 +50,7 @@ const status = async (id: string) => (await service.get("a", id)).status;
 it("expands the seeds, stores metrics and audits the top SERPs", async () => {
   const { id } = await project();
   const run = await runner.run("a", id, { requestId: randomUUID() });
-  expect(run).toMatchObject({ status: "completed", stage: "auditing" });
+  expect(run).toMatchObject({ status: "completed", stage: "evaluating" });
   expect(await status(id)).toBe("completed");
 
   const list = (await results.listKeywords("a", id)).map(toKeywordDto);
@@ -128,6 +130,7 @@ it("fails the run when expansion fails, and a retry can succeed", async () => {
   const retry = await createResearchRunner({
     database: db,
     provider: recovered,
+    analyst,
   }).run("a", id, { requestId: randomUUID() });
   expect(retry.status).toBe("completed");
   expect((await results.listRuns("a", id)).map((r) => r.status)).toEqual([
@@ -146,6 +149,7 @@ it("finishes as partial when a SERP fails", async () => {
   const run = await createResearchRunner({
     database: db,
     provider: failingSerp,
+    analyst,
   }).run("a", id, { requestId: randomUUID() });
   expect(run.status).toBe("partial");
   expect(await status(id)).toBe("partial");

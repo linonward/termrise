@@ -151,6 +151,7 @@ it("refuses to run without a keyword provider", async () => {
 it("runs a project with the fake provider and lists what it stored", async () => {
   const withProvider = createTestClient({
     KEYWORD_PROVIDER: "fake",
+    ANALYST_PROVIDER: "fake",
     ALLOW_FAKE_PROVIDERS: "1",
   });
   const cookie = await withProvider.signIn("runner@example.com");

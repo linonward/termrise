@@ -59,6 +59,7 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `WAFFO_ENVIRONMENT`                                                      | `test` \| `prod`，默认 `test`；必须与 API Key 的环境一致，只有 Production 为 `prod`                                                                  |
 | `ADMIN_USER_IDS`                                                         | 可以使用管理台（`/api/admin/*`、web 的 `/admin`）的 user id，逗号分隔；未设置时没有管理员，见 [Admin Access](security.md#admin-access)               |
 | `KEYWORD_PROVIDER`                                                       | 研究运行的关键词数据来源；现在只有 `fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）。未设置时运行返回 503 `RESEARCH_PROVIDER_UNAVAILABLE`，不会用测试数据代替 |
+| `ANALYST_PROVIDER`                                                       | 研究运行中机会分析的来源；现在只有 `fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）。未设置时运行返回 503 `RESEARCH_PROVIDER_UNAVAILABLE`                     |
 | `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                                     | `TASK_PROVIDER=deepseek` 时必填；key 用 `wrangler secret put` 设置                                                                                   |
 | `ALLOW_FAKE_PROVIDERS`                                                   | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以 `*_PROVIDER=fake` 一律需要它                                                                      |
 

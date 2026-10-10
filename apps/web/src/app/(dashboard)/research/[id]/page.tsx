@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -114,6 +114,16 @@ export default async function ResearchProjectPage({
             />
           )}
           {lastRun && <LastRun run={lastRun} />}
+          {(lastRun?.status === "completed" ||
+            lastRun?.status === "partial") && (
+            <Link
+              href={`/opportunities?project=${project.id}`}
+              className="flex w-fit items-center gap-1 text-[15px] font-semibold underline underline-offset-4"
+            >
+              {t("viewOpportunities")}
+              <ArrowRight aria-hidden="true" className="size-4" />
+            </Link>
+          )}
           <dl className="space-y-4 rounded-lg bg-surface p-6">
             {(
               [
