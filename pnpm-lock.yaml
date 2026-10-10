@@ -247,6 +247,9 @@ importers:
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@repo/research':
+        specifier: workspace:*
+        version: link:../../packages/research
       '@repo/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -299,6 +302,9 @@ importers:
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
+      '@repo/research':
+        specifier: workspace:*
+        version: link:../../packages/research
       '@repo/seo':
         specifier: workspace:*
         version: link:../../packages/seo
@@ -567,6 +573,21 @@ importers:
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+
+  packages/research:
+    dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@repo/observability':
+        specifier: workspace:*
+        version: link:../observability
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/seo:
     dependencies:

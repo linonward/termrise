@@ -1,5 +1,5 @@
 {
-  "version": "2.20",
+  "version": "2.21",
   "children": [
     {
       "type": "frame",
@@ -664,7 +664,7 @@
                       "id": "Lxgqv",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#FF5B2E",
+                      "content": "#6D4AFF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -715,7 +715,7 @@
                       "id": "BhfuV",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#FFEEE7",
+                      "content": "#EFEBFF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -766,7 +766,7 @@
                       "id": "OvAPd",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#C2410C",
+                      "content": "#5332E0",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -817,7 +817,7 @@
                       "id": "b0Uen",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#111318",
+                      "content": "#FFFFFF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -1943,7 +1943,7 @@
                       "id": "gkhAt",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#FF5B2E",
+                      "content": "#6D4AFF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -1994,7 +1994,7 @@
                       "id": "cPKpx",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#3A1E14",
+                      "content": "#221A45",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -2045,7 +2045,7 @@
                       "id": "U1b5u",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#FF8A65",
+                      "content": "#A996FF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -2096,7 +2096,7 @@
                       "id": "EGyy0",
                       "name": "Hex",
                       "fill": "$muted-foreground",
-                      "content": "#111318",
+                      "content": "#FFFFFF",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -4351,15 +4351,15 @@
                   "id": "i5q9WQ",
                   "x": 24,
                   "y": 24,
-                  "name": "C",
-                  "geometry": "M188.95 31.74a112 112 0 1 0 0 176.52 31 31 0 0 0-38.17-48.86 50 50 0 1 1 0-78.8 31 31 0 0 0 38.17-48.86z",
+                  "name": "Rise",
+                  "geometry": "M221.76 48.54l-62.28 17.7c-0.48 0.12-0.6 0.66-0.24 0.96l15.18 14.88-43.08 42.54-24.72-23.7c-6.3-5.76-16.08-5.76-22.2 0.12l-46.62 46.02c-4.02 3.96-4.08 10.56-0.06 14.28l5.76 5.4c4.2 3.9 10.74 4.02 14.76 0l37.38-36.72 24.42 23.4c6.42 5.94 16.38 6.24 22.2 0.3l52.32-51.96 15.06 14.82c0.42 0.36 0.96 0.18 1.02-0.3l11.82-67.02c0.12-0.48-0.3-0.84-0.72-0.72z",
                   "viewBox": [
                     0,
                     0,
                     240,
                     240
                   ],
-                  "fill": "#FF5B2E",
+                  "fill": "#6D4AFF",
                   "width": 72,
                   "height": 72
                 },
@@ -4368,8 +4368,8 @@
                   "id": "f7Zxa",
                   "x": 24,
                   "y": 24,
-                  "name": "Play",
-                  "geometry": "M135.68 79.71q-11.68-5.71-11.68 7.29l0 66q0 13 11.68 7.29l70.64-34.58q11.68-5.71 0-11.42z",
+                  "name": "Dot",
+                  "geometry": "M8 188a16 16 0 1 0 32 0 16 16 0 1 0-32 0z",
                   "viewBox": [
                     0,
                     0,
@@ -4397,15 +4397,15 @@
                   "id": "h4Yxyo",
                   "x": 12.8,
                   "y": 12.8,
-                  "name": "C",
-                  "geometry": "M188.95 31.74a112 112 0 1 0 0 176.52 31 31 0 0 0-38.17-48.86 50 50 0 1 1 0-78.8 31 31 0 0 0 38.17-48.86z",
+                  "name": "Rise",
+                  "geometry": "M221.76 48.54l-62.28 17.7c-0.48 0.12-0.6 0.66-0.24 0.96l15.18 14.88-43.08 42.54-24.72-23.7c-6.3-5.76-16.08-5.76-22.2 0.12l-46.62 46.02c-4.02 3.96-4.08 10.56-0.06 14.28l5.76 5.4c4.2 3.9 10.74 4.02 14.76 0l37.38-36.72 24.42 23.4c6.42 5.94 16.38 6.24 22.2 0.3l52.32-51.96 15.06 14.82c0.42 0.36 0.96 0.18 1.02-0.3l11.82-67.02c0.12-0.48-0.3-0.84-0.72-0.72z",
                   "viewBox": [
                     0,
                     0,
                     240,
                     240
                   ],
-                  "fill": "#FF5B2E",
+                  "fill": "#6D4AFF",
                   "width": 38.4,
                   "height": 38.4
                 },
@@ -4414,8 +4414,8 @@
                   "id": "UOhfU",
                   "x": 12.8,
                   "y": 12.8,
-                  "name": "Play",
-                  "geometry": "M135.68 79.71q-11.68-5.71-11.68 7.29l0 66q0 13 11.68 7.29l70.64-34.58q11.68-5.71 0-11.42z",
+                  "name": "Dot",
+                  "geometry": "M8 188a16 16 0 1 0 32 0 16 16 0 1 0-32 0z",
                   "viewBox": [
                     0,
                     0,
@@ -4443,15 +4443,15 @@
                   "id": "XOMWs",
                   "x": 6.4,
                   "y": 6.4,
-                  "name": "C",
-                  "geometry": "M188.95 31.74a112 112 0 1 0 0 176.52 31 31 0 0 0-38.17-48.86 50 50 0 1 1 0-78.8 31 31 0 0 0 38.17-48.86z",
+                  "name": "Rise",
+                  "geometry": "M221.76 48.54l-62.28 17.7c-0.48 0.12-0.6 0.66-0.24 0.96l15.18 14.88-43.08 42.54-24.72-23.7c-6.3-5.76-16.08-5.76-22.2 0.12l-46.62 46.02c-4.02 3.96-4.08 10.56-0.06 14.28l5.76 5.4c4.2 3.9 10.74 4.02 14.76 0l37.38-36.72 24.42 23.4c6.42 5.94 16.38 6.24 22.2 0.3l52.32-51.96 15.06 14.82c0.42 0.36 0.96 0.18 1.02-0.3l11.82-67.02c0.12-0.48-0.3-0.84-0.72-0.72z",
                   "viewBox": [
                     0,
                     0,
                     240,
                     240
                   ],
-                  "fill": "#FF5B2E",
+                  "fill": "#6D4AFF",
                   "width": 19.2,
                   "height": 19.2
                 },
@@ -4460,8 +4460,8 @@
                   "id": "jJTgU",
                   "x": 6.4,
                   "y": 6.4,
-                  "name": "Play",
-                  "geometry": "M135.68 79.71q-11.68-5.71-11.68 7.29l0 66q0 13 11.68 7.29l70.64-34.58q11.68-5.71 0-11.42z",
+                  "name": "Dot",
+                  "geometry": "M8 188a16 16 0 1 0 32 0 16 16 0 1 0-32 0z",
                   "viewBox": [
                     0,
                     0,
@@ -7603,7 +7603,8 @@
                               "fill": "$muted-foreground",
                               "content": "per month",
                               "fontFamily": "$font-sans",
-                              "fontSize": 14
+                              "fontSize": 14,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -7651,7 +7652,8 @@
                               "fill": "$foreground",
                               "content": "60 credits every month",
                               "fontFamily": "$font-sans",
-                              "fontSize": 14
+                              "fontSize": 14,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -7680,7 +7682,8 @@
                               "fill": "$foreground",
                               "content": "60 runs",
                               "fontFamily": "$font-sans",
-                              "fontSize": 14
+                              "fontSize": 14,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -7771,7 +7774,8 @@
                               "fill": "$foreground",
                               "content": "Credits never expire",
                               "fontFamily": "$font-sans",
-                              "fontSize": 14
+                              "fontSize": 14,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -7901,7 +7905,8 @@
                               "fill": "$muted-foreground",
                               "content": "per month",
                               "fontFamily": "$font-sans",
-                              "fontSize": 14
+                              "fontSize": 14,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -7942,7 +7947,8 @@
                           "fill": "$foreground",
                           "content": "60 credits every month",
                           "fontFamily": "$font-sans",
-                          "fontSize": 14
+                          "fontSize": 14,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -7971,7 +7977,8 @@
                           "fill": "$foreground",
                           "content": "60 runs",
                           "fontFamily": "$font-sans",
-                          "fontSize": 14
+                          "fontSize": 14,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -8053,7 +8060,8 @@
                           "fill": "$foreground",
                           "content": "Credits never expire",
                           "fontFamily": "$font-sans",
-                          "fontSize": 14
+                          "fontSize": 14,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -8286,7 +8294,7 @@
                       "id": "Jyr4c",
                       "name": "Brand",
                       "fill": "$foreground",
-                      "content": "Acme",
+                      "content": "Termrise",
                       "fontFamily": "$font-heading",
                       "fontSize": 20,
                       "fontWeight": "700",
@@ -8308,8 +8316,8 @@
                       "id": "A8edt",
                       "x": 0,
                       "y": 0,
-                      "name": "C",
-                      "geometry": "M188.95 31.74a112 112 0 1 0 0 176.52 31 31 0 0 0-38.17-48.86 50 50 0 1 1 0-78.8 31 31 0 0 0 38.17-48.86z",
+                      "name": "Rise",
+                      "geometry": "M221.76 48.54l-62.28 17.7c-0.48 0.12-0.6 0.66-0.24 0.96l15.18 14.88-43.08 42.54-24.72-23.7c-6.3-5.76-16.08-5.76-22.2 0.12l-46.62 46.02c-4.02 3.96-4.08 10.56-0.06 14.28l5.76 5.4c4.2 3.9 10.74 4.02 14.76 0l37.38-36.72 24.42 23.4c6.42 5.94 16.38 6.24 22.2 0.3l52.32-51.96 15.06 14.82c0.42 0.36 0.96 0.18 1.02-0.3l11.82-67.02c0.12-0.48-0.3-0.84-0.72-0.72z",
                       "viewBox": [
                         0,
                         0,
@@ -8325,8 +8333,8 @@
                       "id": "CDmEM",
                       "x": 0,
                       "y": 0,
-                      "name": "Play",
-                      "geometry": "M135.68 79.71q-11.68-5.71-11.68 7.29l0 66q0 13 11.68 7.29l70.64-34.58q11.68-5.71 0-11.42z",
+                      "name": "Dot",
+                      "geometry": "M8 188a16 16 0 1 0 32 0 16 16 0 1 0-32 0z",
                       "viewBox": [
                         0,
                         0,
@@ -10167,6 +10175,1673 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "MmO8r",
+      "x": 0,
+      "y": 7400,
+      "name": "Research / Desktop",
+      "clip": true,
+      "width": 1440,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "IotCO",
+          "type": "ref",
+          "ref": "evDai",
+          "name": "Top Nav",
+          "width": "fill_container",
+          "descendants": {
+            "TVI5f": {
+              "strokeWidth": 0
+            },
+            "j1sHv": {
+              "fill": "$muted-foreground",
+              "fontWeight": "500"
+            },
+            "c7rhW": {
+              "stroke": "$foreground",
+              "strokeWidth": {
+                "bottom": 2
+              }
+            },
+            "C4mwdl": {
+              "content": "Research",
+              "fill": "$foreground",
+              "fontWeight": "600"
+            },
+            "G3OB90": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "z5EJT",
+          "name": "Main",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            64,
+            120,
+            96,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "CNsZ2",
+              "name": "Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zfW8H",
+                  "name": "Title",
+                  "fill": "$foreground",
+                  "content": "Research",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 36,
+                  "fontWeight": "700",
+                  "letterSpacing": -0.5
+                },
+                {
+                  "type": "text",
+                  "id": "iKf3N",
+                  "name": "Subtitle",
+                  "fill": "$muted-foreground",
+                  "content": "Each project starts from seed terms in one market. Projects stay drafts until you run them.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "m08jG",
+              "name": "Columns",
+              "width": "fill_container",
+              "gap": 48,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Nbh8j",
+                  "name": "Projects",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "qut8A",
+                      "name": "Section Title",
+                      "fill": "$foreground",
+                      "content": "Projects",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 24,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "whmhK",
+                      "name": "Table",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "y7qvHO",
+                          "name": "Head",
+                          "width": "fill_container",
+                          "stroke": "$border",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            0,
+                            0,
+                            12,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lYWmw",
+                              "name": "Name",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 320,
+                              "content": "NAME",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "gT2NP",
+                              "name": "Seeds",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 120,
+                              "content": "SEEDS",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "r0uLX",
+                              "name": "Status",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 160,
+                              "content": "STATUS",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "aLK4O",
+                              "name": "Created",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 160,
+                              "content": "CREATED",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "c2KNw",
+                          "name": "Row",
+                          "width": "fill_container",
+                          "stroke": "$border",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            16,
+                            0
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LB62b",
+                              "name": "Name",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 320,
+                              "content": "AI meeting notes for sales",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "MW3V7",
+                              "name": "Seeds",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 120,
+                              "content": "12",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "TvwH9",
+                              "name": "Status Cell",
+                              "width": 160,
+                              "children": [
+                                {
+                                  "id": "TBLN7",
+                                  "type": "ref",
+                                  "ref": "bMGvH",
+                                  "name": "Status Badge/Draft",
+                                  "descendants": {
+                                    "zdTi6": {
+                                      "icon": "pencil-line"
+                                    },
+                                    "OkOEI": {
+                                      "content": "DRAFT"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "QvZlx",
+                              "name": "Created",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 160,
+                              "content": "Jan 8, 2027",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "JwYUn",
+                          "name": "Row",
+                          "width": "fill_container",
+                          "stroke": "$border",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            16,
+                            0
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TkJkB",
+                              "name": "Name",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 320,
+                              "content": "Invoice tools for freelancers",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dGASh",
+                              "name": "Seeds",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 120,
+                              "content": "7",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "vdpiX",
+                              "name": "Status Cell",
+                              "width": 160,
+                              "children": [
+                                {
+                                  "id": "bZl0R",
+                                  "type": "ref",
+                                  "ref": "bMGvH",
+                                  "name": "Status Badge/Draft",
+                                  "descendants": {
+                                    "zdTi6": {
+                                      "icon": "pencil-line"
+                                    },
+                                    "OkOEI": {
+                                      "content": "DRAFT"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "NGTYW",
+                              "name": "Created",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 160,
+                              "content": "Jan 6, 2027",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "EN0JB",
+                          "name": "Row",
+                          "width": "fill_container",
+                          "stroke": "$border",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            16,
+                            0
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "o4yv7S",
+                              "name": "Name",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 320,
+                              "content": "Browser automation",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "awe9J",
+                              "name": "Seeds",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 120,
+                              "content": "3",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "I77TEg",
+                              "name": "Status Cell",
+                              "width": 160,
+                              "children": [
+                                {
+                                  "id": "N6qKK5",
+                                  "type": "ref",
+                                  "ref": "bMGvH",
+                                  "name": "Status Badge/Draft",
+                                  "descendants": {
+                                    "zdTi6": {
+                                      "icon": "pencil-line"
+                                    },
+                                    "OkOEI": {
+                                      "content": "DRAFT"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "K4Meq",
+                              "name": "Created",
+                              "fill": "$muted-foreground",
+                              "textGrowth": "fixed-width",
+                              "width": 160,
+                              "content": "Jan 2, 2027",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "s5JI4S",
+                  "name": "New Project",
+                  "width": 400,
+                  "cornerRadius": "$radius-lg",
+                  "stroke": "$border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yIiKy",
+                      "name": "Form Title",
+                      "fill": "$foreground",
+                      "content": "New research project",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZSYd4",
+                      "name": "Name",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "al1OL",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Name",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WwYvf",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 44,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "swkR6",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "AI meeting notes for sales",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "J6hyf",
+                      "name": "Seed terms",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "chY2c",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Seed terms",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cWGbw",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 120,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "II0nd",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "ai meeting notes\nsales call summary\nmeeting recorder",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "cYaMo",
+                          "name": "Hint",
+                          "fill": "$muted-foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "One per line, up to 50.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "x6AkK",
+                      "name": "Market",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jsfIT",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Market",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Webtm",
+                          "name": "Value",
+                          "fill": "$muted-foreground",
+                          "content": "United States · English",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "H4xc4",
+                      "name": "Budgets",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "nw4jX",
+                          "name": "Data budget (USD)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "J4rYET",
+                              "name": "Label",
+                              "fill": "$foreground",
+                              "content": "Data budget (USD)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "kA3q8",
+                              "name": "Input",
+                              "width": "fill_container",
+                              "height": 44,
+                              "cornerRadius": "$radius-md",
+                              "stroke": "$border-strong",
+                              "strokeWidth": 1,
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "A09MR",
+                                  "name": "Value",
+                                  "fill": "$foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "20",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qSvOR",
+                          "name": "AI budget (USD)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "J4z1OD",
+                              "name": "Label",
+                              "fill": "$foreground",
+                              "content": "AI budget (USD)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "O39Tai",
+                              "name": "Input",
+                              "width": "fill_container",
+                              "height": 44,
+                              "cornerRadius": "$radius-md",
+                              "stroke": "$border-strong",
+                              "strokeWidth": 1,
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "EU1cx",
+                                  "name": "Value",
+                                  "fill": "$foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "5",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "jDvUU",
+                      "type": "ref",
+                      "ref": "Epq7r",
+                      "name": "Create",
+                      "width": "fill_container",
+                      "height": 40,
+                      "justifyContent": "center",
+                      "descendants": {
+                        "WT8Ng": {
+                          "content": "Create project"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "GPyj8",
+      "x": 1520,
+      "y": 7400,
+      "name": "Research Project / Desktop",
+      "clip": true,
+      "width": 1440,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "X6Fon",
+          "type": "ref",
+          "ref": "evDai",
+          "name": "Top Nav",
+          "width": "fill_container",
+          "descendants": {
+            "TVI5f": {
+              "strokeWidth": 0
+            },
+            "j1sHv": {
+              "fill": "$muted-foreground",
+              "fontWeight": "500"
+            },
+            "c7rhW": {
+              "stroke": "$foreground",
+              "strokeWidth": {
+                "bottom": 2
+              }
+            },
+            "C4mwdl": {
+              "content": "Research",
+              "fill": "$foreground",
+              "fontWeight": "600"
+            },
+            "G3OB90": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "c6AHT",
+          "name": "Main",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 40,
+          "padding": [
+            64,
+            120,
+            96,
+            120
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "zzGsQ",
+              "name": "Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "RlvWM",
+                  "name": "Back",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "UAO6r",
+                      "name": "Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "arrow-left",
+                      "library": "lucide",
+                      "fill": "$foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "s7jG8A",
+                      "name": "Label",
+                      "fill": "$foreground",
+                      "content": "Research",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G7RVX1",
+                  "name": "Title Row",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ThUjJ",
+                      "name": "Title",
+                      "fill": "$foreground",
+                      "content": "AI meeting notes for sales",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 36,
+                      "fontWeight": "700",
+                      "letterSpacing": -0.5
+                    },
+                    {
+                      "id": "qMplz",
+                      "type": "ref",
+                      "ref": "bMGvH",
+                      "name": "Status Badge/Draft",
+                      "descendants": {
+                        "zdTi6": {
+                          "icon": "pencil-line"
+                        },
+                        "OkOEI": {
+                          "content": "DRAFT"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "sX5Yb",
+                  "name": "Meta",
+                  "fill": "$muted-foreground",
+                  "content": "United States · English · Created Jan 8, 2027 · 14:20",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XI9lI",
+              "name": "Columns",
+              "width": "fill_container",
+              "gap": 48,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JECPK",
+                  "name": "Edit",
+                  "width": "fill_container",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": "$border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "llkZz",
+                      "name": "Section Title",
+                      "fill": "$foreground",
+                      "content": "Seeds and budgets",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "HmlSm",
+                      "name": "Note",
+                      "fill": "$muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "You can edit a draft. Seeds and budgets lock when the project runs.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "O0UJd",
+                      "name": "Name",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YxkfO",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Name",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "XEg5S",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 44,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "hjxWp",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "AI meeting notes for sales",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zFSo8",
+                      "name": "Seed terms",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "c89dX",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Seed terms",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xwqx7",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 120,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IYpWv",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "ai meeting notes\nsales call summary\nmeeting recorder",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ylBqn",
+                      "name": "Budgets",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "WWON6",
+                          "name": "Data budget (USD)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vBRd6",
+                              "name": "Label",
+                              "fill": "$foreground",
+                              "content": "Data budget (USD)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "jkNmI",
+                              "name": "Input",
+                              "width": "fill_container",
+                              "height": 44,
+                              "cornerRadius": "$radius-md",
+                              "stroke": "$border-strong",
+                              "strokeWidth": 1,
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Q0gxcA",
+                                  "name": "Value",
+                                  "fill": "$foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "20",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "x1cHM",
+                          "name": "AI budget (USD)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fQU73",
+                              "name": "Label",
+                              "fill": "$foreground",
+                              "content": "AI budget (USD)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Aousj",
+                              "name": "Input",
+                              "width": "fill_container",
+                              "height": 44,
+                              "cornerRadius": "$radius-md",
+                              "stroke": "$border-strong",
+                              "strokeWidth": 1,
+                              "padding": [
+                                12,
+                                16
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "dLOER",
+                                  "name": "Value",
+                                  "fill": "$foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "5",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "y7gqLO",
+                      "type": "ref",
+                      "ref": "Epq7r",
+                      "name": "Save",
+                      "height": 40,
+                      "descendants": {
+                        "WT8Ng": {
+                          "content": "Save changes"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PUqmD",
+                  "name": "Side",
+                  "width": 360,
+                  "layout": "vertical",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "F1Aqd7",
+                      "name": "Summary",
+                      "width": "fill_container",
+                      "fill": "$surface",
+                      "cornerRadius": "$radius-lg",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "padding": 24,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ghXCw",
+                          "name": "SEED TERMS",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MG9kd",
+                              "name": "Label",
+                              "fill": "$muted-foreground",
+                              "content": "SEED TERMS",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "UTklO",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "content": "3",
+                              "fontFamily": "$font-heading",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "v6ZH5T",
+                          "name": "DATA BUDGET",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MqkXZ",
+                              "name": "Label",
+                              "fill": "$muted-foreground",
+                              "content": "DATA BUDGET",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "DLaPd",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "content": "$20.00",
+                              "fontFamily": "$font-heading",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ETy5F",
+                          "name": "AI BUDGET",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Fz9lx",
+                              "name": "Label",
+                              "fill": "$muted-foreground",
+                              "content": "AI BUDGET",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1
+                            },
+                            {
+                              "type": "text",
+                              "id": "t0M4ob",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "content": "$5.00",
+                              "fontFamily": "$font-heading",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "f1qpbz",
+                      "name": "Delete",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "uU4Qa",
+                          "name": "Hint",
+                          "fill": "$muted-foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Deleting a draft removes it and its seed terms.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "id": "Nqd0a",
+                          "type": "ref",
+                          "ref": "Ynmyi",
+                          "name": "Delete Button",
+                          "height": 40,
+                          "descendants": {
+                            "b9vtcf": {
+                              "content": "Delete project"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "eh2xU",
+      "x": 3040,
+      "y": 7400,
+      "name": "Research / Mobile · Empty",
+      "clip": true,
+      "width": 390,
+      "fill": "$background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "q0PFF0",
+          "type": "ref",
+          "ref": "KNGS0",
+          "name": "Mobile Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "b5krv": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "e4HDFk",
+          "name": "Main",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 32,
+          "padding": [
+            32,
+            20,
+            48,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "lefZW",
+              "name": "Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dpvIJ",
+                  "name": "Title",
+                  "fill": "$foreground",
+                  "content": "Research",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 28,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "O2Ippe",
+                  "name": "Subtitle",
+                  "fill": "$muted-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Each project starts from seed terms in one market. Projects stay drafts until you run them.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aLtmc",
+              "name": "Projects",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VfnxE",
+                  "name": "Section Title",
+                  "fill": "$foreground",
+                  "content": "Projects",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 24,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "fbSeR",
+                  "name": "Empty",
+                  "width": "fill_container",
+                  "cornerRadius": "$radius-lg",
+                  "stroke": "$border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k5WlTA",
+                      "name": "Title",
+                      "fill": "$foreground",
+                      "content": "No research projects yet",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "i9APIX",
+                      "name": "Body",
+                      "fill": "$muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Create one with a few seed terms you want to explore.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jxEDI",
+              "name": "New Project",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "X49K9",
+                  "name": "Form Title",
+                  "fill": "$foreground",
+                  "content": "New research project",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "qXybo",
+                  "name": "Name",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rX6Dj",
+                      "name": "Label",
+                      "fill": "$foreground",
+                      "content": "Name",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "v1tRc",
+                      "name": "Input",
+                      "width": "fill_container",
+                      "height": 44,
+                      "cornerRadius": "$radius-md",
+                      "stroke": "$border-strong",
+                      "strokeWidth": 1,
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WXXYw",
+                          "name": "Value",
+                          "fill": "$foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wmeVW",
+                  "name": "Seed terms",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "MvruO",
+                      "name": "Label",
+                      "fill": "$foreground",
+                      "content": "Seed terms",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "D0FhF3",
+                      "name": "Input",
+                      "width": "fill_container",
+                      "height": 120,
+                      "cornerRadius": "$radius-md",
+                      "stroke": "$border-strong",
+                      "strokeWidth": 1,
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scy54",
+                          "name": "Value",
+                          "fill": "$foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "O7HlJP",
+                  "name": "Hint",
+                  "fill": "$muted-foreground",
+                  "content": "One per line, up to 50.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "EGQAs",
+                  "name": "Market",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "A3oBXr",
+                      "name": "Label",
+                      "fill": "$foreground",
+                      "content": "Market",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "TA8l8",
+                      "name": "Value",
+                      "fill": "$muted-foreground",
+                      "content": "United States · English",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bSP33",
+                  "name": "Budgets",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "iwKxe",
+                      "name": "Data budget (USD)",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jZ6pE",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "Data budget (USD)",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "GkMtp",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 44,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "RxIUW",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "20",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hLa6E",
+                      "name": "AI budget (USD)",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dbTY5",
+                          "name": "Label",
+                          "fill": "$foreground",
+                          "content": "AI budget (USD)",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "M37get",
+                          "name": "Input",
+                          "width": "fill_container",
+                          "height": 44,
+                          "cornerRadius": "$radius-md",
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "padding": [
+                            12,
+                            16
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NThrg",
+                              "name": "Value",
+                              "fill": "$foreground",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "5",
+                              "lineHeight": 1.5,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "a9kUui",
+                  "type": "ref",
+                  "ref": "dUebA",
+                  "name": "Create",
+                  "width": "fill_container",
+                  "justifyContent": "center",
+                  "descendants": {
+                    "aNBEY": {
+                      "content": "Create project"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
@@ -10365,19 +12040,19 @@
     },
     "brand": {
       "type": "color",
-      "value": "#FF5B2E"
+      "value": "#6D4AFF"
     },
     "brand-soft": {
       "type": "color",
       "value": [
         {
-          "value": "#FFEEE7",
+          "value": "#EFEBFF",
           "theme": {
             "mode": "light"
           }
         },
         {
-          "value": "#3A1E14",
+          "value": "#221A45",
           "theme": {
             "mode": "dark"
           }
@@ -10388,13 +12063,13 @@
       "type": "color",
       "value": [
         {
-          "value": "#C2410C",
+          "value": "#5332E0",
           "theme": {
             "mode": "light"
           }
         },
         {
-          "value": "#FF8A65",
+          "value": "#A996FF",
           "theme": {
             "mode": "dark"
           }
@@ -10403,7 +12078,7 @@
     },
     "brand-foreground": {
       "type": "color",
-      "value": "#111318"
+      "value": "#FFFFFF"
     },
     "success": {
       "type": "color",

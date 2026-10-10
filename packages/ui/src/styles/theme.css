@@ -16,10 +16,10 @@
   --primary: #111318;
   --primary-hover: #2a2d35;
   --primary-foreground: #ffffff;
-  --brand: #ff5b2e;
-  --brand-soft: #ffeee7;
-  --brand-text: #c2410c;
-  --brand-foreground: #111318;
+  --brand: #6d4aff;
+  --brand-soft: #efebff;
+  --brand-text: #5332e0;
+  --brand-foreground: #ffffff;
   --success: #15803d;
   --success-soft: #e8f6ec;
   --info: #2457d6;
@@ -57,8 +57,8 @@
   --primary: #f4f3ef;
   --primary-hover: #dcdad4;
   --primary-foreground: #111318;
-  --brand-soft: #3a1e14;
-  --brand-text: #ff8a65;
+  --brand-soft: #221a45;
+  --brand-text: #a996ff;
   --success: #4ade80;
   --success-soft: #12291b;
   --info: #7fa6ff;

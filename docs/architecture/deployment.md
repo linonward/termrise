@@ -124,6 +124,8 @@ CI 运行 `pnpm db:generate`。生成了新的 migration 文件时 CI 失败：�
 | Preview    | 手动部署 Preview 构建时自动执行，作用于该 Preview 自己的 Neon 分支 |
 | Production | 手动执行，构建时不执行                                             |
 
+Production 数据库建好之前（Termrise 尚未上线），含 migration 的 PR 在合并前对本地库 `termrise_local`（本地 Docker PostgreSQL，`postgresql://postgres:postgres@localhost:54330/termrise_local`）执行 `pnpm db:migrate`，代替 Production。第一次部署时，先对 Production 执行全部 migration，再部署 `apps/api` 和 web。
+
 `apps/web/vercel.json` 的 `buildCommand` 为 `pnpm vercel-build`（`apps/web/scripts/vercel-build.mjs`），根据 `VERCEL_ENV` 判断：`preview` 时先 `pnpm db:migrate` 再 build；`production` 时只 build，不连接数据库做 migration。
 
 Production 发布顺序（PR 含 migration 时）：

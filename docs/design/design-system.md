@@ -59,10 +59,10 @@ token 或组件有变化时，同步更新本文件和 `packages/ui/src/styles/t
 | `primary`                          | `#111318`             | `#F4F3EF`             | 主按钮底色                         |
 | `primary-hover`                    | `#2A2D35`             | `#DCDAD4`             | 主按钮悬停                         |
 | `primary-foreground`               | `#FFFFFF`             | `#111318`             | 主按钮文字                         |
-| `brand`                            | `#FF5B2E`             | `#FF5B2E`             | Logo、Credits 图标、焦点环         |
-| `brand-soft`                       | `#FFEEE7`             | `#3A1E14`             | 品牌色浅底（标签）                 |
-| `brand-text`                       | `#C2410C`             | `#FF8A65`             | `background` 上的品牌色文字        |
-| `brand-foreground`                 | `#111318`             | `#111318`             | `brand` 底色上的文字               |
+| `brand`                            | `#6D4AFF`             | `#6D4AFF`             | Logo、Credits 图标、焦点环         |
+| `brand-soft`                       | `#EFEBFF`             | `#221A45`             | 品牌色浅底（标签）                 |
+| `brand-text`                       | `#5332E0`             | `#A996FF`             | `background` 上的品牌色文字        |
+| `brand-foreground`                 | `#FFFFFF`             | `#FFFFFF`             | `brand` 底色上的文字               |
 | `success` / `success-soft`         | `#15803D` / `#E8F6EC` | `#4ADE80` / `#12291B` | 成功、已付款、Save 标签            |
 | `info` / `info-soft`               | `#2457D6` / `#EAF0FD` | `#7FA6FF` / `#17223D` | 处理中、等待到账                   |
 | `warning` / `warning-soft`         | `#A35A00` / `#FFF4DF` | `#F5B544` / `#2E2210` | 提醒（如到账超时）                 |
@@ -197,12 +197,12 @@ Checkout 跳转回 Billing 页后的提示使用 `Alert`：等待到账为 `info
 
 ## Logo
 
-`LogoMark`（`apps/web/src/components/logo-mark.tsx`，内联 SVG，viewBox 240）是占位 Logo：`brand` 色的 C + `foreground` 色的播放三角。每个产品换成自己的标记，只改两条 path，保持一个部分用 `fill-brand`、一个部分用 `fill-foreground`，深色主题自动适配。
+`LogoMark`（`apps/web/src/components/logo-mark.tsx`，内联 SVG，viewBox 240）是 Termrise 的标记：`brand` 色的上升折线和箭头（`LOGO_RISE_PATH`），起点是 `foreground` 色的圆点（`LOGO_DOT_PATH`），表示「从一个词开始的上升趋势」。标记用 Pen 的 SVG 生成后整理为两条 path，一条用 `fill-brand`、一条用 `fill-foreground`，深色主题自动适配。
 
 - `Logo/Full`：标记 + 品牌名（`meta.title`，Bricolage Grotesque 700），用于桌面端导航、Landing、页脚。
 - `Logo/Icon`：只有标记，用于移动端应用顶栏（品牌名保留为 `sr-only`）。
 
-App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.png`、`apps/web/src/app/favicon.ico`）和 Open Graph 图（`apps/web/src/app/opengraph-image.tsx`）也要一起替换。
+App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.png`、`apps/web/src/app/favicon.ico`）固定为 `#111318` 底、`#6D4AFF` 折线、白色圆点，不随主题变化；PNG 和 ICO 由 `icon.svg` 渲染（180 / 48 / 32 / 16 px）。Open Graph 图（`apps/web/src/app/opengraph-image.tsx`）使用同样的两条 path。换标记时这几处一起改。
 
 ---
 
@@ -211,6 +211,8 @@ App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.
 已有页面的布局要点。页面结构和交互规则在 `docs/product/ux.md`。
 
 Dashboard：标题下是 `surface` 的 Credits 卡片（余额 36 / 700 `tabular-nums`，桌面端右侧 `Button/Secondary` 的 Buy credits），下方是 TaskPanel：`textarea`（`border-strong` 描边、`radius-md`，焦点环 `brand`）、`Button/Large`、`border` 描边的结果列表。
+
+Research（`/research`、`/research/:id`）：画板 `Research / Desktop`、`Research Project / Desktop`、`Research / Mobile · Empty`。列表与 Billing 的表格同一样式；新建表单为 `border` 描边、`radius-lg` 的面板（移动端去掉描边），输入框同 TaskPanel 的 textarea（高 44）；详情页右侧是 `surface` 摘要（12 / 600 大写标签 + 24 / 600 数值）。研究状态徽章沿用 Status 一节的样式。
 
 Billing（`/billing`）：标题下依次是 Checkout 提示、`surface` 余额面板、订阅面板（有订阅时）、Credit 明细表、购买记录表。订阅面板用 `border` 描边、`radius-lg`，无底色；左侧是 12 / 600 大写 `muted-foreground` 标签、方案名（24 / 600）+ 状态徽章（样式同购买记录的状态徽章：ACTIVE `success-soft`，PAST_DUE `warning-soft`，CANCELING `surface-strong`）、15 号 `muted-foreground` 的续费或结束日期；PAST_DUE 时改为说明文字 + 600 字重下划线链接；桌面端右侧是 `Button/Secondary` 的 Cancel subscription（只在订阅已激活、状态为 ACTIVE 或 PAST_DUE 时显示），确认时并排 `Button` destructive 和 `Button/Secondary`。表头 12 / 600 大写 `muted-foreground`，行间 `border` 分隔。Credit 明细四列：日期、内容、Credits、余额。Credits 列 600 字重；增加写作 `+n`，用 `success`；减少写作 `−n`（U+2212），用 `foreground`。表格下方居中放 `Button/Secondary` 的 Load more（无图标）。
 

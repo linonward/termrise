@@ -20,6 +20,8 @@ payment_events
 rate_limits
 
 analytics_consents
+
+research_projects（Termrise 的研究项目）
 ```
 
 Better Auth 需要的内部表（user / session / account / verification）由 Better Auth CLI（`auth generate`）生成到 `packages/db/src/schema/auth.ts`，之后手工修改（`credit_balance` 的 NOT NULL 和 CHECK）。重新生成后要再次应用这些修改。
@@ -559,6 +561,25 @@ processed_at = now()
 
 已存在且 `processed_at` 不为空：直接返回 200。
 已存在但 `processed_at` 为空（上次处理失败）：重新处理。
+
+---
+
+## Research Projects
+
+`research_projects`（`packages/db/src/schema/research.ts`）：一个研究项目是一个市场中的一组种子词，加上付费数据和 AI 调用的预算。
+
+| 列                                       | 说明                                                                                                                               |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `user_id`                                | 所有者，外键 `user.id`。只有所有者能读写；其他用户和格式错误的 id 一律返回 `RESEARCH_PROJECT_NOT_FOUND`                            |
+| `name`                                   | 1–100 字符（CHECK）                                                                                                                |
+| `location_code`、`language_code`         | DataForSEO 的地区和语言代码。现在固定为 2840 / `en`（美国、英语，`packages/research/src/research-rules.ts`）                       |
+| `seeds`                                  | `text[]`，1–50 个（CHECK）。存入前规范化：NFKC、去首尾空白、合并空白、小写、去重，保留顺序（`normalizeSeeds()`）；每个最多 80 字符 |
+| `data_budget_micros`、`ai_budget_micros` | 预算，整数微美元（1 USD = 1,000,000），≥ 0（CHECK）。API 以美元表示，精确到分，每项最多 1000 美元；默认 20 / 5 美元                |
+| `status`                                 | product.md 的研究状态（`draft` 到 `completed`，异常 `partial` / `failed` / `cancelled` / `budget_exhausted`），默认 `draft`        |
+
+- 只有 ResearchService（`packages/research/src/research-service.ts`）修改研究项目。只有 `draft` 可以修改和删除；修改和删除的条件包含 `status = 'draft'`，项目在此期间开始运行时返回 `RESEARCH_PROJECT_LOCKED`（409）。
+- 状态迁移（运行、暂停、重试）在后续 Slice 中由 ResearchService 和 Worker 实现。
+- 删除账号时，`apps/api/src/product-data.ts` 删除用户的研究项目（没有其他表引用它们）；导出账号时包含它们（`packages/research/src/user-data.ts`）。
 
 ---
 

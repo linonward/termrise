@@ -29,6 +29,7 @@ pnpm --filter api run deploy
 | `src/routes/admin.ts`、`src/middleware/admin.ts`  | 管理台 API：只给 `ADMIN_USER_IDS`，其他用户 404                                          |
 | `src/product-data.ts`                             | 删除与导出账号时的产品数据（admin 脚本也导入）                                           |
 | `scripts/admin-*.ts`                              | `pnpm admin:adjust` / `admin:export-user` / `admin:delete-user`，直接连接 `DATABASE_URL` |
+| `src/routes/research.ts`                          | `/api/research/projects`：研究项目 CRUD                                                  |
 | `src/routes/user-routes.ts`                       | `userRoutes()`：已登录路由的 middleware 组合                                             |
 | `src/storage.ts`、`src/http.ts`                   | 按 binding 选择存储适配器；`readJson()`                                                  |
 | `src/auth.ts`、`src/analytics.ts`                 | 每个请求的 Better Auth（含登录邮件）与服务端 Analytics                                   |

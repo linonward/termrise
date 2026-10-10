@@ -26,7 +26,8 @@ it("has no empty messages", () => {
 it("has no template placeholders or drafts", () => {
   for (const locale of ["en", "zh"] as const)
     for (const [key, value] of leaves(messages[locale]))
+      // "草稿" is also the research project status: only a bracketed marker is a draft.
       expect(value, `${locale}.${key}`).not.toMatch(
-        /\[[A-Z_]{3,}\]|DRAFT|草稿/,
+        /\[[A-Z_]{3,}\]|DRAFT|[（【[]草稿[）】\]]/,
       );
 });
