@@ -6,6 +6,9 @@ import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
 
+// apps/api serves checkout.
+const CHECKOUT = "**/api/checkout";
+
 test("checkout errors show a localized message for each failure kind", async ({
   page,
   context,
@@ -15,7 +18,7 @@ test("checkout errors show a localized message for each failure kind", async ({
   const buy = page.getByRole("button", { name: "Buy Starter" });
   const alert = page.getByTestId("pack-starter").getByRole("alert");
 
-  await page.route("/api/checkout", (route) =>
+  await page.route(CHECKOUT, (route) =>
     route.fulfill({
       status: 502,
       json: { error: { code: "PAYMENT_ERROR", message: "x" } },
@@ -26,8 +29,8 @@ test("checkout errors show a localized message for each failure kind", async ({
     "Checkout is unavailable right now. Try again in a few minutes.",
   );
 
-  await page.unroute("/api/checkout");
-  await page.route("/api/checkout", (route) =>
+  await page.unroute(CHECKOUT);
+  await page.route(CHECKOUT, (route) =>
     route.fulfill({ status: 500, body: "Internal Server Error" }),
   );
   await buy.click();
@@ -35,8 +38,8 @@ test("checkout errors show a localized message for each failure kind", async ({
     "Something went wrong on our side. Try again.",
   );
 
-  await page.unroute("/api/checkout");
-  await page.route("/api/checkout", (route) => route.abort());
+  await page.unroute(CHECKOUT);
+  await page.route(CHECKOUT, (route) => route.abort());
   await buy.click();
   await expect(alert).toHaveText(
     "Can't reach the server. Check your connection and try again.",

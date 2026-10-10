@@ -13,6 +13,7 @@
 | S05   | 迁移第 2 步（切换）：web 的登录改用 `apps/api`：auth client 指向 `NEXT_PUBLIC_API_URL`、callback 为绝对 URL、登录邮件语言经 `Accept-Language`；服务端经 HTTP 读取 session；删除 web 的 `/api/auth`、邮件发送和不再使用的变量；E2E 同时启动 `apps/api` | 全部 E2E 在 web + `apps/api`（wrangler dev）上通过；web 不再引用 `createAuth`                                                                                  | 已完成 |
 | S06   | 迁移第 3 步（tasks）：TaskService 移到 `packages/tasks`；`apps/api` 提供 `GET` / `POST /api/tasks`（CORS、CSRF Origin 检查、session、限流 middleware）；TaskPanel 经 `NEXT_PUBLIC_API_URL` 调用；删除 web 的 `/api/tasks`。uploads、consent 留给 S07  | API 集成测试覆盖运行、列表、401、preflight、CSRF、非 JSON、429；全部 E2E 在 web + `apps/api` 上通过；`wrangler deploy --dry-run` 打包成功                      | 已完成 |
 | S07   | 迁移第 3 步（uploads、consent）：`apps/api` 提供 `POST /api/uploads`（R2 签名，`STORAGE_PROVIDER` binding）与 `POST /api/analytics/consent`；`uploadImage()`、`initAnalytics()` 接受 `apiUrl` 并带 cookie；删除 web 的两个路由                        | API 集成测试覆盖签名、校验、401、429、consent 写入；`wrangler dev` 上对 SeaweedFS 验证签名上传；全部 E2E 通过                                                  | 已完成 |
+| S08   | 迁移第 4 步：`apps/api` 提供 checkout、`/api/billing/*`、Waffo webhook；`PAYMENT_PROVIDER`、`WAFFO_*`、`WAFFO_ENVIRONMENT` binding；web 组件经 `apiFetch()` 调用；删除 web 的这些路由和不再使用的 `userRoute()`                                       | API 集成测试覆盖 checkout、购买列表、Credit 明细、取消、webhook（验签、幂等、500 重试）；workerd 上验证 Waffo RSA 签名与验签；全部 E2E 通过                    | 已完成 |
 
 ## Confirmed Decisions
 

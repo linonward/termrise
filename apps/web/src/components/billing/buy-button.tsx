@@ -9,6 +9,7 @@ import type { SubscriptionPlanId } from "@repo/billing/subscription-plans";
 import { Button } from "@repo/ui/components/button";
 
 import { errorCodeOf } from "@/lib/api-error";
+import { apiFetch } from "@/lib/api-fetch";
 
 // Signed in: POST /api/checkout and follow checkoutUrl. Signed out: sign up first.
 // `item` is a pack or a subscription plan; the server prices both.
@@ -40,7 +41,7 @@ export function BuyButton({
   async function buy() {
     setPending(true);
     setError(undefined);
-    const response = await fetch("/api/checkout", {
+    const response = await apiFetch("/api/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(item),

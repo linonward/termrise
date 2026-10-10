@@ -16,19 +16,3 @@ export function getBillingService() {
     analytics: getAnalyticsService(),
   });
 }
-
-type Purchase = Awaited<
-  ReturnType<ReturnType<typeof getBillingService>["listPurchases"]>
->[number];
-
-// Public shape: no provider ids.
-export function toPurchaseDto(p: Purchase) {
-  return {
-    id: p.id,
-    packId: p.packId,
-    amountUsd: p.amountUsd,
-    credits: p.credits,
-    status: p.status,
-    createdAt: p.createdAt.toISOString(),
-  };
-}

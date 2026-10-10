@@ -69,7 +69,10 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET` | 签名上传（`POST /api/uploads`）；与 web 用同一个 bucket 和 token                                                            |
 | `R2_ENDPOINT`                                                            | 可选，只用于本地（SeaweedFS）。Workers 无法判断是否为 Production，因此 Production 不设置它由部署步骤保证                    |
 | `STORAGE_PROVIDER`                                                       | `r2` \| `fake`，默认 `r2`                                                                                                   |
+| `PAYMENT_PROVIDER`                                                       | `waffo` \| `fake`，必填                                                                                                     |
+| `WAFFO_MERCHANT_ID`、`WAFFO_PRIVATE_KEY`                                 | `PAYMENT_PROVIDER=waffo` 时必填；私钥用 `wrangler secret put` 设置                                                          |
+| `WAFFO_ENVIRONMENT`                                                      | `test` \| `prod`，默认 `test`；必须与 API Key 的环境一致，只有 Production 为 `prod`                                         |
 | `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`                                     | `TASK_PROVIDER=deepseek` 时必填；key 用 `wrangler secret put` 设置                                                          |
-| `ALLOW_FAKE_PROVIDERS`                                                   | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以 `TASK_PROVIDER=fake`、`STORAGE_PROVIDER=fake` 一律需要它                 |
+| `ALLOW_FAKE_PROVIDERS`                                                   | 只有 E2E 设置为 `1`。Workers 没有 `NODE_ENV`，所以三个 `*_PROVIDER=fake` 一律需要它                                         |
 
 `apps/api/src/env.ts` 的 `apiEnv()` 用 zod 校验，错误只含变量名和规则。本地把变量写在 `apps/api/.dev.vars`（不提交）；Production 用 `wrangler secret put <NAME>` 或 Cloudflare 控制台设置。

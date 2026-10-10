@@ -42,6 +42,7 @@ export const e2eApiVars = {
   EMAIL_FROM: "test@example.com",
   TASK_PROVIDER: "fake",
   STORAGE_PROVIDER: "fake",
+  PAYMENT_PROVIDER: "fake",
   R2_ACCOUNT_ID: "e2e-disabled",
   R2_ACCESS_KEY_ID: "e2e-disabled",
   R2_SECRET_ACCESS_KEY: "e2e-disabled",

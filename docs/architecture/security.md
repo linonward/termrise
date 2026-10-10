@@ -71,7 +71,7 @@ Webhook Route 必须读取原始 request body 做签名验证，再解析 JSON�
 | 乐观重定向 | `apps/web/src/proxy.ts`（`/dashboard`、`/billing`） | 只用 `getSessionCookie()` 检查 session cookie 是否存在，不查数据库。没有 cookie → `/sign-in?next=<原路径>`。有 cookie → 放行，并把原路径写入请求头 `x-sign-in-next`（覆盖客户端发来的值） |
 | 校验       | `(dashboard)/layout.tsx` 与各页面                   | `getRequestSession()` 查询并校验 session。无效（过期、已退出、伪造）→ `/sign-in?next=<x-sign-in-next，经 safeNext()>`                                                                     |
 
-`getSessionCookie()` 不校验 cookie，所以 proxy 不是安全边界：每个需要登录的页面、Route Handler（`userRoute`）和 Server Action 都自己校验 session。E2E：`dashboard.spec.ts` 用伪造的 cookie 检查重定向。
+`getSessionCookie()` 不校验 cookie，所以 proxy 不是安全边界：每个需要登录的页面、`apps/api` 的路由（`session` middleware）和 Server Action 都自己校验 session。E2E：`dashboard.spec.ts` 用伪造的 cookie 检查重定向。
 
 ---
 
@@ -159,7 +159,7 @@ E2E：`security-headers.spec.ts` 检查两个头，并在 `/`、`/sign-in`、`/p
 
 ## Rate Limiting
 
-产品 API 的限额（Task、Checkout、Upload）在 `packages/auth/src/api-rate-limits.ts` 的 `API_RATE_LIMITS` 中维护：`apps/api` 的路由（Task、Upload）用 `rateLimit(name)` middleware，web 的路由（Checkout）用 `userRoute({ rateLimit })` 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
+产品 API 的限额（Task、Checkout、Upload）在 `packages/auth/src/api-rate-limits.ts` 的 `API_RATE_LIMITS` 中维护：`apps/api` 的路由用 `rateLimit(name, key?)` middleware 引用；Magic Link 的限额在 `packages/auth/src/rate-limit.ts` 的 `MAGIC_LINK_LIMITS` 中维护。计数服务 `createRateLimitService()` 在 `@repo/auth`。
 
 Task（`task:{userId}`）：
 
