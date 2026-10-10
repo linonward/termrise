@@ -63,6 +63,20 @@ it("validates its own environment and never echoes values", () => {
       DEEPSEEK_MODEL: "deepseek-flash",
     }).ANALYST_PROVIDER,
   ).toBe("deepseek");
+  const dataforseo = {
+    ...base,
+    WORKER_QUEUE: "memory",
+    KEYWORD_PROVIDER: "dataforseo",
+  };
+  expect(() => workerEnv(dataforseo)).toThrow("DATAFORSEO_LOGIN");
+  expect(() =>
+    workerEnv({ ...dataforseo, DATAFORSEO_LOGIN: "me@example.com" }),
+  ).toThrow("DATAFORSEO_PASSWORD");
+  try {
+    workerEnv({ ...dataforseo, DATAFORSEO_PASSWORD: "dfs-secret" });
+  } catch (error) {
+    expect(String(error)).not.toContain("dfs-secret");
+  }
   try {
     workerEnv({ ...deepseek, DEEPSEEK_API_KEY: "sk-secret-key" });
   } catch (error) {

@@ -24,7 +24,7 @@ export const RUN_STATUSES = [
   "failed",
 ] as const;
 export const KEYWORD_SOURCES = ["seed", "expansion"] as const;
-export const KEYWORD_PROVIDERS = ["fake"] as const;
+export const KEYWORD_PROVIDERS = ["fake", "dataforseo"] as const;
 
 // One run of a research project's stages. requestId makes a retried request start one run.
 export const researchRuns = pgTable(

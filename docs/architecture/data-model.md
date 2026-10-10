@@ -629,7 +629,8 @@ processed_at = now()
 - `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。
 - `keyword_metric_snapshots`：Provider 报告的指标，只追加。`search_volume`（月均搜索量）、`cpc_micros`（微美元）、`ads_competition`（Google Ads 竞争度 0–100）、`keyword_difficulty`（SEO 难度 0–100）各自独立，Provider 没有报告时为 null，不写 0（product.md 的 F03）。页面显示最新的一条。
 - `serp_snapshots` / `serp_results`：搜索量最高的 5 个关键词（搜索量为 null 或 0 的不审核）在桌面端的前 10 个自然结果，记录 Provider、设备、地区、语言和时间。某个关键词的 SERP 失败时跳过它，运行结束为 `partial`。
-- 每条指标和 SERP 都记录 `provider`。现在只有 `fake`（`packages/research/src/adapters/fake-keywords.ts`）：按词生成确定性的测试数据，SERP 链接到 `.invalid` 域名；只在 `ALLOW_FAKE_PROVIDERS=1` 时可用，页面在数据来自 `fake` 时显示「测试数据，不是真实的搜索数据」。真实 Provider（DataForSEO）实现同一个端口（`keyword-provider.ts`），按官方文档映射响应。
+- 每条指标和 SERP 都记录 `provider`。现在只有 `fake`（`packages/research/src/adapters/fake-keywords.ts`）：按词生成确定性的测试数据，SERP 链接到 `.invalid` 域名；只在 `ALLOW_FAKE_PROVIDERS=1` 时可用，页面在数据来自 `fake` 时显示「测试数据，不是真实的搜索数据」。真实 Provider 是 DataForSEO（见下一条），实现同一个端口（`keyword-provider.ts`）。
+- DataForSEO（`adapters/dataforseo.ts`，v3，HTTP Basic auth，每次 Live 调用一个任务，顶层与任务的 `status_code` 都是 20000 才算成功）：扩词用 Google Ads `keywords_for_keywords/live`（每个种子词一次；搜索量、CPC、`competition_index` 作为广告竞争度 0–100，不当作 KD；同一进程中两次调用至少间隔 5 秒，官方限制为每分钟 12 次）；扩词后，对没有 KD 的关键词调用一次 Labs `bulk_keyword_difficulty/live`（最多 200 个），没有数据的仍为 null；KD 调用失败或预算不足时继续运行，KD 为 null，运行为 `partial`；SERP 用 `serp/google/organic/live/advanced`（桌面端，`depth` 10，只保留 `organic` 结果，按 `rank_group` 取前 10）。错误只包含路径和状态码，不包含账号和响应内容。
 - 删除项目时，运行、关键词、指标和 SERP 随之删除（`ON DELETE CASCADE`）。
 
 ---
@@ -643,6 +644,7 @@ processed_at = now()
 - 记录项目、运行、预算类型、Provider、操作（`expand`、`serp`、`analyze`）、预留额、费用、状态和时间。删除项目时随之删除。
 - 运行中的预算不足：一个种子词都扩不了时，运行 `failed`（`BUDGET_EXHAUSTED`），项目状态为 `budget_exhausted`，可以修改预算后再运行；扩词、SERP 中途不足时停止该阶段；AI 预算不足时该机会不做分析（`analysis_error` 为 `BUDGET_EXHAUSTED`），分数照常。有阶段因预算提前结束时运行为 `partial`。
 - fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。
+- DataForSEO 每个响应都报告费用（美元），按任务的 `cost` 结算。预留额高于官方价格页（2026-10-10 核对）：扩词 0.10 美元（Google Ads Live 每任务 0.09）、SERP 0.01（每 10 个结果 0.002，带 `site:` 等运算符时 5 倍）、KD 0.05（Labs 每任务 0.012 + 每个关键词 0.00012）。操作名为 `expand`、`difficulty`、`serp`。
 - DeepSeek 不返回费用：按返回的 token（缓存命中、未命中、输出）乘以 `adapters/deepseek-prices.ts` 中的价格计算，向上取整。官方价格页（2026-10-10 核对）分高峰和低谷价格，高峰时段排除中国法定节假日，代码无法可靠判断，所以一律按高峰价结算：账本可能高于实际账单，不会低于。价格表中没有的模型不能使用。每次分析的预留额 = 7000 个输入 token 按未命中价 + 1500 个输出 token（`deepseek-flash` 为 0.0039 美元）。
 
 ---
