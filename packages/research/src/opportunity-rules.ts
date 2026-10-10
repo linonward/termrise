@@ -32,3 +32,6 @@ export const NEXT_EXPERIMENT_STATUSES: Record<
 };
 
 export const REASON_MAX_LENGTH = 1000;
+
+/** Opportunities shown side by side on the compare page. */
+export const MAX_COMPARED = 4;

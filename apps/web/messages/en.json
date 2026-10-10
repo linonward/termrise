@@ -925,6 +925,30 @@
     "cancelling": "Cancelling…",
     "runCancelledBody": "The last run was cancelled. You can run it again."
   },
+  "compare": {
+    "metaTitle": "Compare opportunities",
+    "title": "Compare opportunities",
+    "subtitle": "Stored scores, evidence and AI hypotheses, side by side.",
+    "back": "Opportunities",
+    "tooFew": "Select 2 to {max} of your opportunities on the list to compare them.",
+    "noData": "No data",
+    "row": {
+      "project": "Project",
+      "status": "Status",
+      "score": "Score",
+      "confidence": "Confidence",
+      "topKeyword": "Top keyword",
+      "searchVolume": "Monthly searches",
+      "keywordDifficulty": "KD",
+      "cpc": "CPC",
+      "keywords": "Keywords",
+      "serps": "Audited SERPs",
+      "targetUser": "Target user",
+      "pricing": "Pricing",
+      "mvpScope": "MVP scope",
+      "risks": "Risks"
+    }
+  },
   "opportunities": {
     "metaTitle": "Opportunities",
     "title": "Opportunities",
@@ -942,7 +966,8 @@
       "status": "Status",
       "dimension": "Dimension",
       "rating": "Rating",
-      "weight": "Weight"
+      "weight": "Weight",
+      "select": "Select"
     },
     "status": {
       "unreviewed": "Unreviewed",
@@ -997,7 +1022,10 @@
     "sourceCsv": "CSV import",
     "starredOnly": "Starred only",
     "showAllStars": "All opportunities",
-    "starredEmpty": "No starred opportunities yet. Use the star on an opportunity to keep it here."
+    "starredEmpty": "No starred opportunities yet. Use the star on an opportunity to keep it here.",
+    "compare": "Compare selected",
+    "compareHint": "Select 2 to {max} opportunities.",
+    "selectOne": "Select {name} to compare"
   },
   "decisions": {
     "title": "Decision",
