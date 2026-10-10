@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { safeNext } from "./auth-redirect";
+import { isSafeCallback, safeNext } from "./auth-redirect";
 
 describe("safeNext", () => {
   it("preserves an internal path and query", () => {
@@ -33,5 +33,32 @@ describe("safeNext", () => {
     ["/dashboard"],
   ])("rejects unsafe targets: %s", (value) => {
     expect(safeNext(value)).toBe("/dashboard");
+  });
+});
+
+// apps/api serves Better Auth on its own origin, so callbacks to the web app are absolute.
+describe("isSafeCallback", () => {
+  const app = "http://localhost:3000";
+  it("accepts safe relative paths", () => {
+    expect(isSafeCallback("/dashboard?x=1")).toBe(true);
+    expect(isSafeCallback("/dashboard", app)).toBe(true);
+  });
+  it("accepts safe absolute URLs on the app origin", () => {
+    expect(isSafeCallback(`${app}/dashboard?x=1`, app)).toBe(true);
+  });
+  it.each([
+    "https://evil.example/dashboard",
+    `${app}@evil.example/`,
+    `${app}.evil.example/`,
+    `${app}//evil.example`,
+    `${app}/\\evil.example`,
+    app,
+    "//evil.example",
+    42,
+  ])("rejects %s", (value) => {
+    expect(isSafeCallback(value, app)).toBe(false);
+  });
+  it("rejects absolute URLs when no app origin is set", () => {
+    expect(isSafeCallback(`${app}/dashboard`)).toBe(false);
   });
 });

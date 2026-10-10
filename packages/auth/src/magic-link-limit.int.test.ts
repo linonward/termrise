@@ -135,3 +135,16 @@ it("returns 429 from the sign-in endpoint before sending the email", async () =>
   expect(await blocked.json()).toMatchObject({ code: "RATE_LIMITED" });
   expect(sent).toBe(3);
 });
+
+it("reads the client IP with the given function (cf-connecting-ip on Cloudflare)", async () => {
+  const cloudflare = createMagicLinkLimiter(
+    createRateLimitService(testDb(), () => now),
+    { clientIp: (headers) => headers.get("cf-connecting-ip") ?? undefined },
+  );
+  const viaCloudflare = new Headers({ "cf-connecting-ip": "203.0.113.9" });
+  for (let i = 0; i < 10; i++)
+    await cloudflare(`c${i}@example.com`, viaCloudflare);
+  await expect(
+    cloudflare("x@example.com", viaCloudflare),
+  ).rejects.toMatchObject({ statusCode: 429 });
+});

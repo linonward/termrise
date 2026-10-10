@@ -1,8 +1,25 @@
 import type { Bindings } from "../env";
 
-// What the Workers runtime passes to fetch(): bindings from wrangler.jsonc and the execution context.
-export function testBindings(connectionString: string): Bindings {
-  return { HYPERDRIVE: { connectionString } };
+// What the Workers runtime passes to fetch(): bindings from wrangler.jsonc and secrets,
+// and the execution context.
+export const TEST_APP_URL = "http://localhost:3000";
+export const TEST_API_URL = "http://localhost:3001";
+
+export function testBindings(
+  connectionString: string,
+  overrides: Partial<Bindings> = {},
+): Bindings {
+  return {
+    HYPERDRIVE: { connectionString },
+    APP_URL: TEST_APP_URL,
+    BETTER_AUTH_URL: TEST_API_URL,
+    BETTER_AUTH_SECRET: "test-secret-for-integration-tests-only-123456789",
+    GOOGLE_CLIENT_ID: "test-google-id",
+    GOOGLE_CLIENT_SECRET: "test-google-secret",
+    RESEND_API_KEY: "test-resend-key",
+    EMAIL_FROM: "test@example.com",
+    ...overrides,
+  };
 }
 
 export function testExecutionContext() {

@@ -239,3 +239,48 @@ describe("unhandled errors", () => {
     }
   });
 });
+
+// apps/api: Better Auth on the API origin, callbacks and cookies for the web app.
+describe("on a separate API origin", () => {
+  const apiURL = "http://localhost:3001";
+  const appOrigin = "http://localhost:3000";
+  const links: string[] = [];
+  const api = createAuth(
+    testDb(),
+    {
+      appName: "Acme",
+      baseURL: apiURL,
+      appOrigin,
+      cookieDomain: "localhost",
+      secret: "test-secret-for-integration-tests-only-123456789",
+      googleClientId: "test-google-id",
+      googleClientSecret: "test-google-secret",
+    },
+    async ({ url }) => {
+      links.push(url);
+    },
+  );
+  const send = (callbackURL: string) =>
+    api.handler(
+      new Request(`${apiURL}/api/auth/sign-in/magic-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: appOrigin },
+        body: JSON.stringify({ email: "api@example.com", callbackURL }),
+      }),
+    );
+
+  it("redirects to the web app and shares the session cookie", async () => {
+    expect((await send(`${appOrigin}/dashboard`)).status).toBe(200);
+    const verified = await api.handler(new Request(links.at(-1)!));
+    expect(verified.headers.get("location")).toBe(`${appOrigin}/dashboard`);
+    const sessionCookie = verified.headers
+      .getSetCookie()
+      .find((value) => value.startsWith("better-auth.session_token="))!;
+    expect(sessionCookie).toMatch(/; Domain=localhost/i);
+  });
+
+  it("rejects callbacks to other origins", async () => {
+    expect((await send("https://evil.example/dashboard")).status).toBe(400);
+    expect((await send(`${apiURL}.evil.example/`)).status).toBe(400);
+  });
+});
