@@ -18,10 +18,21 @@ import {
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 import { createFakeStorage } from "@repo/storage/adapters/fake";
 import { createTaskService } from "@repo/tasks/task-service";
+import { eraseTaskData, exportTaskData } from "@repo/tasks/user-data";
 
-import { productData } from "@/server/product-data";
+import {
+  AccountError,
+  createAccountService,
+  type ProductData,
+} from "./account-service";
 
-import { AccountError, createAccountService } from "./account-service";
+// As the app composes it (apps/api/src/product-data.ts).
+const productData: ProductData = {
+  export: async (database, userId) => ({
+    tasks: await exportTaskData(database, userId),
+  }),
+  erase: eraseTaskData,
+};
 
 const db = testDb();
 beforeEach(resetDb);

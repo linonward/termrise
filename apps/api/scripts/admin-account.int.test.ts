@@ -5,15 +5,14 @@ import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, expect, it } from "vitest";
 
+import { createAccountService } from "@repo/admin/account-service";
 import { user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 import { createFakeStorage } from "@repo/storage/adapters/fake";
 
-import { createAccountService } from "@/server/account/account-service";
-import { productData } from "@/server/product-data";
-
 import * as deleteScript from "./admin-delete-user";
 import * as exportScript from "./admin-export-user";
+import { productData } from "../src/product-data";
 
 const db = testDb();
 const dir = mkdtempSync(join(tmpdir(), "admin-account-"));

@@ -42,6 +42,16 @@ const schema = z
     WAFFO_PRIVATE_KEY: z.string().min(1).optional(),
     /** Must match the API key: prod only in Production. */
     WAFFO_ENVIRONMENT: z.enum(["test", "prod"]).default("test"),
+    /** User ids allowed into the admin API (docs/architecture/security.md#admin-access). */
+    ADMIN_USER_IDS: z
+      .string()
+      .default("")
+      .transform((ids) =>
+        ids
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean),
+      ),
     /** Only E2E sets it. Workers have no NODE_ENV, so fake providers always need it. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })

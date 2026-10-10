@@ -1,14 +1,6 @@
-import { withRequestContext } from "@repo/observability/logger";
-
-import { checkHealth } from "@/server/health/health";
-
-// For uptime monitors: public, no rate limit, no details about what failed.
+// For uptime monitors: public, never cached. The web app has no database of its own;
+// apps/api's /api/health checks the database (docs/architecture/observability.md#uptime-monitoring).
 export const dynamic = "force-dynamic";
 
-export const GET = withRequestContext(async () => {
-  const ok = await checkHealth();
-  return Response.json(
-    { status: ok ? "ok" : "error" },
-    { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
-  );
-});
+export const GET = () =>
+  Response.json({ status: "ok" }, { headers: { "Cache-Control": "no-store" } });

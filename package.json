@@ -20,9 +20,9 @@
     "db:migrate": "pnpm --filter @repo/db db:migrate",
     "db:studio": "pnpm --filter @repo/db db:studio",
     "waffo:products": "pnpm --filter web waffo:products",
-    "admin:adjust": "pnpm --filter web admin:adjust",
-    "admin:export-user": "pnpm --filter web admin:export-user",
-    "admin:delete-user": "pnpm --filter web admin:delete-user",
+    "admin:adjust": "pnpm --filter api admin:adjust",
+    "admin:export-user": "pnpm --filter api admin:export-user",
+    "admin:delete-user": "pnpm --filter api admin:delete-user",
     "indexnow": "pnpm --filter web indexnow",
     "seo:validate": "pnpm --filter web seo:validate",
     "dev:api": "pnpm --filter api dev"

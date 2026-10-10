@@ -13,11 +13,19 @@ import {
 import { logger } from "@repo/observability/logger";
 import type { ObjectStorage } from "@repo/storage/types";
 
-import type { ProductData } from "@/server/product-data";
-
 // Account export and deletion for support requests (docs/runbook.md#delete-or-export-an-account).
 // Deletion anonymizes the user row and keeps the ledger, purchases and subscriptions:
 // the Privacy Policy keeps records the law requires. Balances do not change.
+
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
+/** The product's per-user data; the app passes its own (apps/api/src/product-data.ts). */
+export type ProductData = {
+  /** Everything the user created in the product, for the export file. */
+  export(database: Database, userId: string): Promise<Record<string, unknown>>;
+  /** Erases the user's content; runs inside the deletion transaction. */
+  erase(database: Database | Transaction, userId: string): Promise<void>;
+};
 
 export type AccountErrorCode = "USER_NOT_FOUND" | "ACTIVE_SUBSCRIPTION";
 

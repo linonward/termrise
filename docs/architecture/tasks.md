@@ -17,7 +17,6 @@
 | `packages/tasks/src/credit-cost.ts`    | `TASK_CREDIT_COST = 1`；定价页经 `server/product.ts` 的 `CREDIT_COST_PER_USE` 用它计算次数和单价                                                                                                                                                                                                   |
 | `packages/tasks/src/task-dto.ts`       | `toTaskDto()` 输出公开字段（不含 `requestId`）                                                                                                                                                                                                                                                     |
 | `apps/api/src/routes/tasks.ts`         | `GET` / `POST /api/tasks`：按 `TASK_PROVIDER` binding 组装 Service                                                                                                                                                                                                                                 |
-| `features/tasks/tasks.ts`              | web 的 `getTaskService()`：页面和 `server/product.ts` 读取 Task、清理超时 Task，直到这些页面改为调用 API（ADR-012 第 5 步）                                                                                                                                                                        |
 
 UI：`/dashboard` 的 `TaskPanel`（`apps/web/src/features/tasks/task-panel.tsx`）：输入框、运行按钮（显示花费 1 Credit）和结果列表。运行时浏览器直接调用 `apps/api` 的 `POST /api/tasks`。
 

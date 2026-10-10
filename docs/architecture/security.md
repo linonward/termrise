@@ -110,12 +110,12 @@ Better Auth `lastLoginMethod()` 插件在登录成功后写入 Cookie `better-au
 
 ## Admin Access
 
-`/admin` 是内部管理台，只给 `ADMIN_USER_IDS` 中的用户使用（逗号分隔的 user id，只在服务端读取）。
+`/admin` 是内部管理台，只给 `apps/api` 的 `ADMIN_USER_IDS` binding 中的用户使用（逗号分隔的 user id）。只有 `apps/api` 判断谁是管理员：`admin` middleware（`apps/api/src/middleware/admin.ts`）保护全部 `/api/admin/*`，非管理员返回 404 `NOT_FOUND`。web 的页面经 `GET /api/admin/session` 询问（`isAdmin()`，`apps/web/src/server/api/api.ts`）。
 
 - 未登录或不是管理员：所有 `/admin` 页面返回 404，不返回 401 / 403，也不跳转到登录页，不暴露入口是否存在。`/admin` 不出现在导航、sitemap 和 `robots.txt` 中，页面带 `noindex`。
-- 每个页面和每个 Server Action（`apps/web/src/app/admin/actions.ts`）都单独检查 `getAdminSession()`，不只依赖 layout：Server Action 是可以直接 POST 的公开入口。未授权 action 不执行用户查找或 Credits 写入；用户查找返回 `{ notFound: true }`，调整 Credits 返回 `USER_NOT_FOUND` 状态。页面的 404 行为不等于 action 的 HTTP 响应。
+- 每个页面都调用 `isAdmin()`，不只依赖 layout。Server Action（`apps/web/src/app/admin/actions.ts`）是可以直接 POST 的公开入口，它们调用的 `/api/admin/*` 每次都检查管理员；非管理员时用户查找返回 `{ notFound: true }`，调整 Credits 返回 `USER_NOT_FOUND` 状态。页面的 404 行为不等于 action 的 HTTP 响应。
 - 用户查找用 POST 提交，email 不进 URL 和日志。
-- 写操作只有调整 Credits：经 `CreditService.adminAdjust()`，每次最多 ±1000，原因必填。description 前加 `[by <管理员 user id>]`，同时写日志 `admin.credits_adjusted`。
+- 写操作只有调整 Credits（`POST /api/admin/users/:id/credits`）：经 `AdminService`（`packages/admin`）调用 `CreditService.adminAdjust()`，每次最多 ±1000，原因必填。description 前加 `[by <管理员 user id>]`，`apps/api` 同时写日志 `admin.credits_adjusted`。
 - 幂等 id 在页面渲染时由服务端生成：重复提交同一表单不会重复调整；调整成功后页面重新渲染，生成新的 id。
 
 管理员账号的邮箱被盗，等于管理台被盗。`ADMIN_USER_IDS` 只放必要的账号，这些账号的邮箱开启两步验证。

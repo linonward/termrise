@@ -2,7 +2,7 @@
 
 ## Storage Adapter
 
-`packages/storage` 提供 `ObjectStorage` 接口（`types.ts`）与 R2、Fake 适配器；`apps/api/src/storage.ts`（`POST /api/uploads`）和 admin 脚本（`apps/web/scripts/script-storage.ts`）各自按 env 选择适配器。业务代码只依赖这个接口，不直接使用 S3 SDK。
+`packages/storage` 提供 `ObjectStorage` 接口（`types.ts`）与 R2、Fake 适配器；`apps/api/src/storage.ts`（`POST /api/uploads`）和 admin 脚本（`apps/api/scripts/script-storage.ts`）各自按 env 选择适配器。业务代码只依赖这个接口，不直接使用 S3 SDK。
 
 ```text
 createUploadUrl()     签名 PUT URL（浏览器直传）

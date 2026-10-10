@@ -87,9 +87,9 @@ Footer 的 Cookie settings 重新打开横幅
 
 `posthog-js` 用动态 `import()` 加载，不进入任何页面的首屏 JS。Consent Cookie 为“接受”时，页面加载后立即加载 SDK；访客点击横幅按钮或 Cookie settings 时，加载 SDK 来写入或清除选择。没有选择或已拒绝时不下载 SDK，横幅是否显示由 Cookie 判断，`track` 和 `identify` 被丢弃。`client.ts` 记住最近一次 `identify` 的 user id：已登录用户在当前页面点 Accept 时，SDK 加载并 `opt_in_capturing()` 后立即再 `identify` 一次，之后的事件属于该用户，不用刷新页面。SDK 加载完成前的 `track` 和 SDK 调用会在加载后按顺序执行；组件只通过 `packages/analytics/src/client.ts` 调用 SDK，不直接 import `posthog-js`。
 
-服务端事件在响应发出后才执行（`next/server` 的 `after()`，同意状态查询也在其中），不增加 webhook、注册和页面的响应时间。
+服务端事件在响应发出后才执行（`apps/api` 的 `c.var.defer()`，经 `waitUntil()`，同意状态查询也在其中），不增加 webhook、注册和 API 的响应时间。
 
-服务端事件（`packages/analytics/src/analytics-service.ts`，装配在 `apps/web/src/server/analytics/`，AnalyticsService → AnalyticsProvider → posthog-node `captureImmediate`）：
+服务端事件（`packages/analytics/src/analytics-service.ts`，装配在 `apps/api/src/analytics.ts`，AnalyticsService → AnalyticsProvider → posthog-node `captureImmediate`）：
 
 ```text
 signup_completed       应用的 onUserCreated（Better Auth user.create.after 调用）；注册请求带 cookie_consent 时先写入 analytics_consents
@@ -101,7 +101,7 @@ task_failed            TaskService：Provider 抛出错误后（带 taskId，不
 - 只发给 `analytics_consents.granted = true` 的用户（见 [data-model.md · analytics_consents](data-model.md#analytics_consents)）；webhook 请求没有浏览器 Cookie，所以同意状态存在数据库。
 - 写入：登录用户点 Accept / Decline → `apps/api` 的 `POST /api/analytics/consent`（`initAnalytics()` 的 `apiUrl`，带 cookie）；未登录时做的选择在下次进入 Dashboard 时同步。
 - 发送失败只记 `analytics.capture_failed`（warn），不影响业务流程。
-- 未设置 `NEXT_PUBLIC_POSTHOG_KEY` 时，服务端使用空实现，丢弃事件（`apps/web/src/server/analytics/provider.ts`）。测试使用 Fake Provider，它在内存中保存事件。
+- `apps/api` 未设置 `POSTHOG_KEY` 时，服务端使用空实现，丢弃事件，仍保存同意状态（`apps/api/src/analytics.ts`）。测试使用 Fake Provider，它在内存中保存事件。
 
 ### Web Analytics
 
@@ -201,7 +201,7 @@ source maps：build 时有 SENTRY_AUTH_TOKEN 才上传
 
 Sentry 只在请求出错时上报。站点完全无法访问时没有请求，也就没有报错，所以需要外部的 uptime 监控。Starter 不选定服务商：每个产品选一个支持 HTTP 检查和告警的服务。
 
-`GET /api/health`（`apps/web/src/app/api/health/route.ts`，检查在 `packages/db/src/health.ts`）：
+有两个检查地址，都要监控：web 的 `GET /api/health`（`apps/web/src/app/api/health/route.ts`）只说明页面能响应，总是返回 200 `{ "status": "ok" }`；`apps/api` 的 `GET /api/health`（`apps/api/src/routes/health.ts`，检查在 `packages/db/src/health.ts`）检查数据库：
 
 - 不需要登录，不限流，`Cache-Control: no-store`。
 - 在 3 秒内执行数据库 `select 1`：成功返回 200 `{ "status": "ok" }`，失败或超时返回 503 `{ "status": "error" }`。响应不包含失败原因，原因写在日志 `health.database_unavailable` 中。

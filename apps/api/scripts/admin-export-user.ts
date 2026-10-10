@@ -5,12 +5,11 @@ import { writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { parseArgs as parseNodeArgs } from "node:util";
 
+import { createAccountService } from "@repo/admin/account-service";
 import { createDb } from "@repo/db/client";
 
-import { createAccountService } from "@/server/account/account-service";
-import { productData } from "@/server/product-data";
-
 import { storageFromEnv } from "./script-storage";
+import { productData } from "../src/product-data";
 
 const USAGE = "Usage: pnpm admin:export-user --user <userId> --out <file>";
 

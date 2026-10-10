@@ -220,6 +220,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@repo/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
       '@repo/ai':
         specifier: workspace:*
         version: link:../../packages/ai
@@ -260,6 +263,12 @@ importers:
       '@types/node':
         specifier: ^20.19.43
         version: 20.19.43
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -269,9 +278,9 @@ importers:
 
   apps/web:
     dependencies:
-      '@repo/ai':
+      '@repo/admin':
         specifier: workspace:*
-        version: link:../../packages/ai
+        version: link:../../packages/admin
       '@repo/analytics':
         specifier: workspace:*
         version: link:../../packages/analytics
@@ -287,18 +296,12 @@ importers:
       '@repo/credits':
         specifier: workspace:*
         version: link:../../packages/credits
-      '@repo/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@repo/observability':
         specifier: workspace:*
         version: link:../../packages/observability
       '@repo/seo':
         specifier: workspace:*
         version: link:../../packages/seo
-      '@repo/storage':
-        specifier: workspace:*
-        version: link:../../packages/storage
       '@repo/tasks':
         specifier: workspace:*
         version: link:../../packages/tasks
@@ -323,9 +326,6 @@ importers:
       cn:
         specifier: ^0.4.0
         version: 0.4.0
-      drizzle-orm:
-        specifier: ^0.45.3
-        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
       lucide-react:
         specifier: ^1.51.0
         version: 1.51.0(@types/react@19.3.0)(react@19.2.8)
@@ -354,6 +354,9 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
@@ -366,6 +369,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.3.0(@types/react@19.3.0)
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
       shadcn:
         specifier: ^4.21.1
         version: 4.21.1(supports-color@7.2.0)(typescript@5.9.3)
@@ -397,6 +403,34 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/admin:
+    dependencies:
+      '@repo/credits':
+        specifier: workspace:*
+        version: link:../credits
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@repo/observability':
+        specifier: workspace:*
+        version: link:../observability
+      '@repo/storage':
+        specifier: workspace:*
+        version: link:../storage
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@repo/tasks':
+        specifier: workspace:*
+        version: link:../tasks
 
   packages/ai:
     dependencies:

@@ -3,14 +3,14 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { LogoLink } from "@/components/logo-link";
-import { getAdminSession } from "@/server/auth/auth";
+import { isAdmin } from "@/server/api/api";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // Not an admin, or signed out: 404, so /admin does not reveal that it exists.
 // Pages and actions check again; this layout alone does not protect them.
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await isAdmin())) notFound();
   const t = await getTranslations("admin");
   return (
     <>

@@ -7,16 +7,14 @@ const nextConfig: NextConfig = {
   agentRules: false,
   // Workspace packages ship TypeScript source (docs/architecture/overview.md#monorepo).
   transpilePackages: [
-    "@repo/ai",
+    "@repo/admin",
     "@repo/analytics",
     "@repo/auth",
     "@repo/billing",
     "@repo/config",
     "@repo/credits",
-    "@repo/db",
     "@repo/observability",
     "@repo/seo",
-    "@repo/storage",
     "@repo/tasks",
     "@repo/ui",
   ],
