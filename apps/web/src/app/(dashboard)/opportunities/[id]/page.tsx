@@ -243,7 +243,7 @@ export default async function OpportunityPage({
               />
               <p className="text-[13px]">
                 {t(
-                  `analysisError.${o.analysisError === "AI_INVALID_OUTPUT" ? "AI_INVALID_OUTPUT" : "AI_ERROR"}`,
+                  `analysisError.${o.analysisError === "AI_INVALID_OUTPUT" || o.analysisError === "BUDGET_EXHAUSTED" ? o.analysisError : "AI_ERROR"}`,
                 )}
               </p>
             </div>

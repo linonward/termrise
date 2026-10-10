@@ -13,6 +13,7 @@ import {
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import { createBudget } from "./budget";
 import { evaluateOpportunities } from "./evaluate";
 import type { KeywordIdea, KeywordProvider } from "./keyword-provider";
 import type { OpportunityAnalyst } from "./opportunity-analyst";
@@ -27,7 +28,7 @@ export const SERP_AUDIT_COUNT = 5;
 
 const runSchema = z.object({ requestId: z.uuid() });
 // Statuses a run may start from: a fresh draft, or a retry after a failure.
-const STARTABLE = ["draft", "failed"] as const;
+const STARTABLE = ["draft", "failed", "budget_exhausted"] as const;
 
 // Runs a research project's stages (docs/architecture/data-model.md#research-runs-and-keywords):
 // expand the seeds with metrics, audit the SERP of the top keywords, then cluster, score
@@ -42,6 +43,7 @@ export function createResearchRunner(deps: {
 }) {
   const { database, provider, analyst } = deps;
   const now = deps.now ?? (() => new Date());
+  const budget = createBudget({ database, now });
 
   async function ownedProject(userId: string, projectId: string) {
     if (!z.uuid().safeParse(projectId).success) throw notFound();
@@ -125,6 +127,7 @@ export function createResearchRunner(deps: {
     run: ResearchRun,
     status: "completed" | "partial" | "failed",
     errorCode: string | null = null,
+    projectStatus: "budget_exhausted" | null = null,
   ) {
     const [finished] = await database
       .update(researchRuns)
@@ -135,19 +138,38 @@ export function createResearchRunner(deps: {
       .returning();
     await database
       .update(researchProjects)
-      .set({ status, updatedAt: now() })
+      .set({ status: projectStatus ?? status, updatedAt: now() })
       .where(eq(researchProjects.id, run.projectId));
     return finished ?? run;
   }
 
+  // Each paid call goes through the budget ledger first (budget.ts).
+  const call = (run: ResearchRun, operation: "expand" | "serp") => ({
+    projectId: run.projectId,
+    runId: run.id,
+    kind: "data" as const,
+    provider: provider.name,
+    operation,
+    maxCostMicros: provider.maxCostMicros[operation],
+  });
+
   async function expand(
+    run: ResearchRun,
     seeds: string[],
     market: { locationCode: number; languageCode: string },
   ) {
     const ideas: { phrase: string; seed: string; idea: KeywordIdea }[] = [];
     const seen = new Set<string>();
+    let budgetExhausted = false;
     for (const seed of seeds) {
-      for (const idea of await provider.expand(seed, market)) {
+      const charged = await budget.charge(call(run, "expand"), () =>
+        provider.expand(seed, market),
+      );
+      if (!charged) {
+        budgetExhausted = true;
+        break;
+      }
+      for (const idea of charged.value) {
         const [phrase] = normalizeSeeds([idea.phrase]);
         if (!phrase || seen.has(phrase)) continue;
         seen.add(phrase);
@@ -156,15 +178,18 @@ export function createResearchRunner(deps: {
     }
     // Seeds always stay; expansions fill the rest up to the cap.
     const seedSet = new Set(seeds);
-    return [
-      ...ideas.filter((i) => seedSet.has(i.phrase)),
-      ...ideas.filter((i) => !seedSet.has(i.phrase)),
-    ].slice(0, MAX_KEYWORDS);
+    return {
+      ideas: [
+        ...ideas.filter((i) => seedSet.has(i.phrase)),
+        ...ideas.filter((i) => !seedSet.has(i.phrase)),
+      ].slice(0, MAX_KEYWORDS),
+      budgetExhausted,
+    };
   }
 
   async function saveKeywords(
     run: ResearchRun,
-    ideas: Awaited<ReturnType<typeof expand>>,
+    ideas: Awaited<ReturnType<typeof expand>>["ideas"],
   ) {
     return database.transaction(async (tx) => {
       const rows = await tx
@@ -202,6 +227,7 @@ export function createResearchRunner(deps: {
   }
 
   async function auditSerps(
+    run: ResearchRun,
     saved: { id: string; phrase: string; searchVolume: number | null }[],
     market: { locationCode: number; languageCode: string },
   ) {
@@ -210,10 +236,18 @@ export function createResearchRunner(deps: {
       .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0))
       .slice(0, SERP_AUDIT_COUNT);
     let failures = 0;
+    let budgetExhausted = false;
     for (const keyword of top) {
       let items;
       try {
-        items = await provider.serp(keyword.phrase, market);
+        const charged = await budget.charge(call(run, "serp"), () =>
+          provider.serp(keyword.phrase, market),
+        );
+        if (!charged) {
+          budgetExhausted = true;
+          break;
+        }
+        items = charged.value;
       } catch (error) {
         failures++;
         logger.warn("research.serp_failed", { keywordId: keyword.id, error });
@@ -237,7 +271,7 @@ export function createResearchRunner(deps: {
             );
       });
     }
-    return failures;
+    return { failures, budgetExhausted };
   }
 
   /** Starts a run and carries it to the end; a retried request returns the same run. */
@@ -255,25 +289,43 @@ export function createResearchRunner(deps: {
       languageCode: project.languageCode,
     };
     try {
-      let ideas;
+      let expanded;
       try {
-        ideas = await expand(project.seeds, market);
+        expanded = await expand(run, project.seeds, market);
       } catch (error) {
         logger.warn("research.expand_failed", { runId: run.id, error });
         return await finish(run, "failed", "PROVIDER_ERROR");
       }
-      const saved = await saveKeywords(run, ideas);
+      // Not even one seed fits the data budget: nothing to evaluate. Raise it and retry.
+      if (expanded.ideas.length === 0 && expanded.budgetExhausted)
+        return await finish(
+          run,
+          "failed",
+          "BUDGET_EXHAUSTED",
+          "budget_exhausted",
+        );
+      const saved = await saveKeywords(run, expanded.ideas);
       await setStage(run, "auditing");
-      const failures = await auditSerps(saved, market);
+      const audit = await auditSerps(run, saved, market);
       await setStage(run, "evaluating");
-      await evaluateOpportunities({
+      const evaluation = await evaluateOpportunities({
         database,
         analyst,
+        budget,
         now,
         projectId,
         runId: run.id,
       });
-      return await finish(run, failures > 0 ? "partial" : "completed");
+      // A short budget ends a stage early: the run is partial, and says why.
+      const budgetExhausted =
+        expanded.budgetExhausted ||
+        audit.budgetExhausted ||
+        evaluation.budgetExhausted;
+      return await finish(
+        run,
+        audit.failures > 0 || budgetExhausted ? "partial" : "completed",
+        budgetExhausted ? "BUDGET_EXHAUSTED" : null,
+      );
     } catch (error) {
       logger.error("research.run_failed", { runId: run.id, error });
       await finish(run, "failed", "INTERNAL_ERROR");

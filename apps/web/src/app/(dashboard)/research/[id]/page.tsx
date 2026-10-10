@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type {
+  CostsDto,
   KeywordDto,
   ResearchProjectDto,
   ResearchRunDto,
@@ -52,14 +53,19 @@ export default async function ResearchProjectPage({
     { items: runs },
     { items: keywords },
     { items: serps },
+    costs,
   ] = await Promise.all([
     apiGet<{ items: SourceSignalDto[] }>(`${base}/signals`),
     apiGet<{ items: ResearchRunDto[] }>(`${base}/runs`),
     apiGet<{ items: KeywordDto[] }>(`${base}/keywords`),
     apiGet<{ items: SerpDto[] }>(`${base}/serps`),
+    apiGet<CostsDto>(`${base}/costs`),
   ]);
   const lastRun = runs[0];
-  const canRun = project.status === "draft" || project.status === "failed";
+  const canRun =
+    project.status === "draft" ||
+    project.status === "failed" ||
+    project.status === "budget_exhausted";
   const fixture =
     keywords.some((k) => k.provider === "fake") ||
     serps.some((s) => s.provider === "fake");
@@ -99,7 +105,11 @@ export default async function ResearchProjectPage({
               {t("editTitle")}
             </h2>
             <p className="text-[15px] text-muted-foreground">
-              {draft ? t("editNote") : t("lockedNote")}
+              {project.status === "budget_exhausted"
+                ? t("budgetNote")
+                : draft
+                  ? t("editNote")
+                  : t("lockedNote")}
             </p>
           </div>
           {/* An import that adds signals can add seeds behind this uncontrolled form:
@@ -110,7 +120,13 @@ export default async function ResearchProjectPage({
           {canRun && (
             <RunResearch
               projectId={project.id}
-              retry={project.status === "failed"}
+              retry={
+                project.status === "failed"
+                  ? "failed"
+                  : project.status === "budget_exhausted"
+                    ? "budget"
+                    : null
+              }
             />
           )}
           {lastRun && <LastRun run={lastRun} />}
@@ -127,11 +143,11 @@ export default async function ResearchProjectPage({
           <dl className="space-y-4 rounded-lg bg-surface p-6">
             {(
               [
-                ["summarySeeds", String(project.seeds.length)],
-                ["summaryDataBudget", usd(project.dataBudgetUsd)],
-                ["summaryAiBudget", usd(project.aiBudgetUsd)],
+                ["summarySeeds", String(project.seeds.length), null],
+                ["summaryDataBudget", usd(project.dataBudgetUsd), costs.data],
+                ["summaryAiBudget", usd(project.aiBudgetUsd), costs.ai],
               ] as const
-            ).map(([label, value]) => (
+            ).map(([label, value, used]) => (
               <div key={label} className="space-y-1">
                 <dt className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
                   {t(label)}
@@ -139,6 +155,17 @@ export default async function ResearchProjectPage({
                 <dd className="font-heading text-2xl font-semibold tabular-nums">
                   {value}
                 </dd>
+                {used && (
+                  <dd
+                    className="text-[13px] text-muted-foreground tabular-nums"
+                    data-testid={`${label}-used`}
+                  >
+                    {t("budgetUsed", {
+                      spent: usd(used.spentUsd),
+                      held: usd(used.heldUsd),
+                    })}
+                  </dd>
+                )}
               </div>
             ))}
           </dl>

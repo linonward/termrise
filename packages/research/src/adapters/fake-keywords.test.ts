@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 
 import {
   createFakeKeywordProvider,
+  FAKE_COSTS,
   FAKE_KEYWORDS_FAILURE,
 } from "./fake-keywords";
 
@@ -10,9 +11,12 @@ const provider = createFakeKeywordProvider();
 
 it("expands a seed into the same ideas every time, the seed first", async () => {
   const first = await provider.expand("meeting notes", market);
-  expect(first[0].phrase).toBe("meeting notes");
-  expect(first).toHaveLength(8);
+  expect(first.value[0].phrase).toBe("meeting notes");
+  expect(first.value).toHaveLength(8);
   expect(await provider.expand("meeting notes", market)).toEqual(first);
+  // Made-up costs within the reserved maximum.
+  expect(first.costMicros).toBe(FAKE_COSTS.expand.actual);
+  expect(first.costMicros).toBeLessThanOrEqual(provider.maxCostMicros.expand);
 });
 
 it("keeps metrics in range and uses null for missing data", async () => {
@@ -22,7 +26,7 @@ it("keeps metrics in range and uses null for missing data", async () => {
         provider.expand(`seed ${seed}`, market),
       ),
     )
-  ).flat();
+  ).flatMap((r) => r.value);
   for (const { metrics } of ideas) {
     for (const value of [metrics.adsCompetition, metrics.keywordDifficulty])
       if (value !== null) expect(value).toBeGreaterThanOrEqual(0);
@@ -34,7 +38,11 @@ it("keeps metrics in range and uses null for missing data", async () => {
 });
 
 it("returns ten organic results on .invalid domains", async () => {
-  const results = await provider.serp("meeting notes", market);
+  const { value: results, costMicros } = await provider.serp(
+    "meeting notes",
+    market,
+  );
+  expect(costMicros).toBeLessThanOrEqual(provider.maxCostMicros.serp);
   expect(results.map((r) => r.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   for (const r of results)
     expect(new URL(r.url).hostname).toMatch(/\.fixture\.invalid$/);

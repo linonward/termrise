@@ -24,10 +24,15 @@ export type SerpItem = {
   type: string;
 };
 
+/** A call's result and what the provider charged for it, in micro-USD. */
+export type Charged<T> = { value: T; costMicros: number };
+
 export interface KeywordProvider {
   name: "fake";
+  /** The most one call can cost, reserved from the data budget before it (budget.ts). */
+  maxCostMicros: { expand: number; serp: number };
   /** Ideas for one seed, the seed itself included, with their metrics. */
-  expand(seed: string, market: Market): Promise<KeywordIdea[]>;
+  expand(seed: string, market: Market): Promise<Charged<KeywordIdea[]>>;
   /** The top 10 organic results on desktop. */
-  serp(phrase: string, market: Market): Promise<SerpItem[]>;
+  serp(phrase: string, market: Market): Promise<Charged<SerpItem[]>>;
 }

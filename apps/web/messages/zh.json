@@ -766,7 +766,8 @@
     },
     "runError": {
       "PROVIDER_ERROR": "关键词数据来源没有响应。",
-      "INTERNAL_ERROR": "运行时出错了。"
+      "INTERNAL_ERROR": "运行时出错了。",
+      "BUDGET_EXHAUSTED": "数据预算不够一次扩词。"
     },
     "runPartialNote": "部分搜索结果没有取到；关键词是完整的。",
     "keywordsTitle": "关键词",
@@ -784,7 +785,11 @@
     "fixtureBody": "这些数字和结果来自测试数据来源，不是真实的搜索数据。",
     "serpTitle": "搜索结果前 10 名",
     "serpBody": "搜索量最高的几个关键词在桌面端的前 10 个自然搜索结果。",
-    "viewOpportunities": "查看机会"
+    "viewOpportunities": "查看机会",
+    "runPartialBudget": "预算在全部步骤完成前用完。下面的结果只包含预算内完成的部分。",
+    "runBudgetBody": "数据预算不够一次扩词。提高数据预算后再运行。",
+    "budgetUsed": "已花费 {spent} · 预留 {held}",
+    "budgetNote": "预算在取得任何数据之前用完。提高数据预算后再运行。"
   },
   "opportunities": {
     "metaTitle": "机会",
@@ -846,7 +851,8 @@
     },
     "analysisError": {
       "AI_INVALID_OUTPUT": "AI 的回答格式不符合要求，所以不显示。分数仍然有效。",
-      "AI_ERROR": "AI 分析没有完成。分数仍然有效。"
+      "AI_ERROR": "AI 分析没有完成。分数仍然有效。",
+      "BUDGET_EXHAUSTED": "AI 预算已用完，所以没有做这次分析。分数仍然有效。"
     },
     "analysisNote": "AI 根据下方证据写出这段文字。它不改变分数。",
     "keywordsTitle": "关键词",

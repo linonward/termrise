@@ -3,7 +3,9 @@ import type { Context } from "hono";
 import { AppError } from "@repo/observability/errors";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
+import { createBudget } from "@repo/research/budget";
 import {
+  toCostsDto,
   toKeywordDto,
   toResearchProjectDto,
   toResearchRunDto,
@@ -109,6 +111,12 @@ export const researchRoutes = userRoutes()
   .get("/projects/:id/serps", async (c) => {
     const items = await reader(c).listSerps(c.var.user.id, c.req.param("id"));
     return c.json({ items: items.map(toSerpDto) });
+  })
+  .get("/projects/:id/costs", async (c) => {
+    const project = await research(c).get(c.var.user.id, c.req.param("id"));
+    return c.json(
+      toCostsDto(await createBudget({ database: c.var.db }).usage(project.id)),
+    );
   })
   .delete("/projects/:id", rateLimit("research"), async (c) => {
     await research(c).remove(c.var.user.id, c.req.param("id"));

@@ -13,6 +13,11 @@ export const FAKE_KEYWORDS_FAILURE = "[fail]";
 export const FAKE_SERP_FAILURE = "[serp-fail]";
 
 const SUFFIXES = ["tool", "app", "free", "online", "for teams"];
+// Made-up prices, so the budget ledger has something to count; not a provider's rates.
+export const FAKE_COSTS = {
+  expand: { max: 100_000, actual: 75_000 },
+  serp: { max: 20_000, actual: 6_000 },
+} as const;
 const PREFIXES = ["best", "how to use"];
 
 // A stable number in [0, max) from the phrase, so a run gives the same data every time.
@@ -47,6 +52,10 @@ function metrics(phrase: string): KeywordMetrics {
 export function createFakeKeywordProvider(): KeywordProvider {
   return {
     name: "fake",
+    maxCostMicros: {
+      expand: FAKE_COSTS.expand.max,
+      serp: FAKE_COSTS.serp.max,
+    },
     async expand(seed) {
       if (seed.includes(FAKE_KEYWORDS_FAILURE))
         throw new Error("fake keyword provider failure");
@@ -55,15 +64,18 @@ export function createFakeKeywordProvider(): KeywordProvider {
         ...SUFFIXES.map((suffix) => `${seed} ${suffix}`),
         ...PREFIXES.map((prefix) => `${prefix} ${seed}`),
       ];
-      return phrases.map((phrase): KeywordIdea => ({
-        phrase,
-        metrics: metrics(phrase),
-      }));
+      return {
+        value: phrases.map((phrase): KeywordIdea => ({
+          phrase,
+          metrics: metrics(phrase),
+        })),
+        costMicros: FAKE_COSTS.expand.actual,
+      };
     },
     async serp(phrase) {
       if (phrase.includes(FAKE_SERP_FAILURE))
         throw new Error("fake SERP failure");
-      return Array.from({ length: 10 }, (_, i): SerpItem => {
+      const items = Array.from({ length: 10 }, (_, i): SerpItem => {
         const site = `site-${seeded(phrase, `site-${i}`, 50) + 1}`;
         return {
           rank: i + 1,
@@ -72,6 +84,7 @@ export function createFakeKeywordProvider(): KeywordProvider {
           type: "organic",
         };
       });
+      return { value: items, costMicros: FAKE_COSTS.serp.actual };
     },
   };
 }

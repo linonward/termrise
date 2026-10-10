@@ -12,6 +12,7 @@ import {
 } from "@repo/db/schema";
 import { logger } from "@repo/observability/logger";
 
+import type { Budget } from "./budget";
 import { classifyIntent } from "./intent";
 import { analysisSchema, type OpportunityAnalyst } from "./opportunity-analyst";
 import {
@@ -131,11 +132,13 @@ async function clusters(database: Database, projectId: string) {
 export async function evaluateOpportunities(deps: {
   database: Database;
   analyst: OpportunityAnalyst;
+  budget: Budget;
   now: () => Date;
   projectId: string;
   runId: string;
 }) {
-  const { database, analyst, now, projectId, runId } = deps;
+  const { database, analyst, budget, now, projectId, runId } = deps;
+  let budgetExhausted = false;
   const scored = (await clusters(database, projectId))
     .filter((c) => c.evidence.keywords.some((k) => k.searchVolume !== null))
     .map((c) => {
@@ -157,25 +160,42 @@ export async function evaluateOpportunities(deps: {
     let analysis: Record<string, unknown> | null = null;
     let analysisError: string | null = null;
     try {
-      const raw = await analyst.analyze({
-        cluster: cluster.name,
-        keywords: cluster.evidence.keywords.map((k, i) => ({
-          phrase: k.phrase,
-          searchVolume: k.searchVolume,
-          intent: cluster.intents[i],
-        })),
-        serpTitles: cluster.serpTitles,
-        signalSources: [
-          ...new Set(
-            cluster.evidence.signals.flatMap((s) =>
-              s.source ? [s.source] : [],
-            ),
-          ),
-        ],
-      });
-      const parsed = analysisSchema.safeParse(raw);
-      if (parsed.success) analysis = parsed.data;
-      else analysisError = "AI_INVALID_OUTPUT";
+      // Without AI budget the score still stands; the analysis says why it is missing.
+      const charged = await budget.charge(
+        {
+          projectId,
+          runId,
+          kind: "ai",
+          provider: analyst.name,
+          operation: "analyze",
+          maxCostMicros: analyst.maxCostMicros,
+        },
+        () =>
+          analyst.analyze({
+            cluster: cluster.name,
+            keywords: cluster.evidence.keywords.map((k, i) => ({
+              phrase: k.phrase,
+              searchVolume: k.searchVolume,
+              intent: cluster.intents[i],
+            })),
+            serpTitles: cluster.serpTitles,
+            signalSources: [
+              ...new Set(
+                cluster.evidence.signals.flatMap((s) =>
+                  s.source ? [s.source] : [],
+                ),
+              ),
+            ],
+          }),
+      );
+      if (!charged) {
+        budgetExhausted = true;
+        analysisError = "BUDGET_EXHAUSTED";
+      } else {
+        const parsed = analysisSchema.safeParse(charged.value);
+        if (parsed.success) analysis = parsed.data;
+        else analysisError = "AI_INVALID_OUTPUT";
+      }
     } catch (error) {
       analysisError = "AI_ERROR";
       logger.warn("research.analysis_failed", { runId, error });
@@ -210,5 +230,5 @@ export async function evaluateOpportunities(deps: {
       });
     });
   }
-  return scored.length;
+  return { evaluated: scored.length, budgetExhausted };
 }
