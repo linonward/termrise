@@ -22,6 +22,7 @@ export const RUN_STATUSES = [
   "completed",
   "partial",
   "failed",
+  "cancelled",
 ] as const;
 export const KEYWORD_SOURCES = ["seed", "expansion"] as const;
 export const KEYWORD_PROVIDERS = ["fake", "dataforseo"] as const;

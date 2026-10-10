@@ -533,7 +533,9 @@
     "EXECUTION_PROJECT_NOT_FOUND": "这个产品不存在。",
     "EXECUTION_NEEDS_GO": "先对机会做 Go 决策，再开始产品。",
     "EXECUTION_RECORD_NOT_FOUND": "这条记录不存在，或不能删除。",
-    "RADAR_ITEM_NOT_FOUND": "这个 Radar 条目不存在。"
+    "RADAR_ITEM_NOT_FOUND": "这个 Radar 条目不存在。",
+    "RESEARCH_RUN_NOT_FOUND": "这次运行不存在。",
+    "RESEARCH_RUN_FINISHED": "运行已经结束。"
   },
   "errorPage": {
     "title": "出错了",
@@ -860,7 +862,8 @@
       "running": "运行中",
       "completed": "已完成",
       "partial": "部分完成",
-      "failed": "失败"
+      "failed": "失败",
+      "cancelled": "已取消"
     },
     "runError": {
       "PROVIDER_ERROR": "关键词数据来源没有响应。",
@@ -889,7 +892,10 @@
     "runBudgetBody": "数据预算不够一次扩词。提高数据预算后再运行。",
     "budgetUsed": "已花费 {spent} · 预留 {held}",
     "budgetNote": "预算在取得任何数据之前用完。提高数据预算后再运行。",
-    "runQueuedNote": "运行在等待 Worker，几秒后开始。"
+    "runQueuedNote": "运行在等待 Worker，几秒后开始。",
+    "cancelRun": "取消运行",
+    "cancelling": "正在取消…",
+    "runCancelledBody": "上次运行已取消。可以再运行一次。"
   },
   "opportunities": {
     "metaTitle": "机会",

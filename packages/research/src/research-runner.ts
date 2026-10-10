@@ -34,7 +34,7 @@ export const STALE_RUN_MS = 30 * 60 * 1000;
 
 const runSchema = z.object({ requestId: z.uuid() });
 // Statuses a run may start from: a fresh draft, or a retry after a failure.
-const STARTABLE = ["draft", "failed", "budget_exhausted"] as const;
+const STARTABLE = ["draft", "failed", "budget_exhausted", "cancelled"] as const;
 
 // Runs a research project's stages (docs/architecture/data-model.md#research-runs-and-keywords):
 // expand the seeds with metrics, audit the SERP of the top keywords, then cluster, score
@@ -183,7 +183,48 @@ export function createRunQueue(deps: { database: Database; now?: () => Date }) {
     });
   }
 
-  return { queue, findRun, pendingRunIds, failStaleRuns };
+  /**
+   * Cancels a queued or running run and frees its project to run again. A running
+   * worker stops before its next paid call; a call already out still settles.
+   */
+  async function cancel(userId: string, projectId: string, runId: string) {
+    await ownedProject(userId, projectId);
+    if (!z.uuid().safeParse(runId).success) throw runNotFound();
+    return database.transaction(async (tx) => {
+      const [run] = await tx
+        .update(researchRuns)
+        .set({ status: "cancelled", finishedAt: now() })
+        .where(
+          and(
+            eq(researchRuns.id, runId),
+            eq(researchRuns.projectId, projectId),
+            inArray(researchRuns.status, ["pending", "running"]),
+          ),
+        )
+        .returning();
+      if (!run) {
+        const [existing] = await tx
+          .select({ id: researchRuns.id })
+          .from(researchRuns)
+          .where(
+            and(
+              eq(researchRuns.id, runId),
+              eq(researchRuns.projectId, projectId),
+            ),
+          );
+        throw existing
+          ? new AppError("RESEARCH_RUN_FINISHED", "Run already finished")
+          : runNotFound();
+      }
+      await tx
+        .update(researchProjects)
+        .set({ status: "cancelled", updatedAt: now() })
+        .where(eq(researchProjects.id, projectId));
+      return run;
+    });
+  }
+
+  return { queue, findRun, pendingRunIds, failStaleRuns, cancel };
 }
 
 export function createResearchRunner(deps: {
@@ -242,6 +283,15 @@ export function createResearchRunner(deps: {
     });
   }
 
+  // False once the run was cancelled or failed as stale: stop before the next paid call.
+  async function active(run: ResearchRun) {
+    const [current] = await database
+      .select({ status: researchRuns.status })
+      .from(researchRuns)
+      .where(eq(researchRuns.id, run.id));
+    return current?.status === "running";
+  }
+
   // Each paid call goes through the budget ledger first (budget.ts).
   const call = (
     run: ResearchRun,
@@ -264,6 +314,7 @@ export function createResearchRunner(deps: {
     const seen = new Set<string>();
     let budgetExhausted = false;
     for (const seed of seeds) {
+      if (!(await active(run))) break;
       const charged = await budget.charge(call(run, "expand"), () =>
         provider.expand(seed, market),
       );
@@ -373,6 +424,7 @@ export function createResearchRunner(deps: {
     let failures = 0;
     let budgetExhausted = false;
     for (const keyword of top) {
+      if (!(await active(run))) break;
       let items;
       try {
         const charged = await budget.charge(call(run, "serp"), () =>
@@ -447,10 +499,12 @@ export function createResearchRunner(deps: {
           "BUDGET_EXHAUSTED",
           "budget_exhausted",
         );
+      if (!(await active(run))) return run;
       const enriched = await addDifficulty(run, expanded.ideas, market);
       const saved = await saveKeywords(run, expanded.ideas);
       await setStage(run, "auditing");
       const audit = await auditSerps(run, saved, market);
+      if (!(await active(run))) return run;
       await setStage(run, "evaluating");
       const evaluation = await evaluateOpportunities({
         database,
@@ -459,6 +513,7 @@ export function createResearchRunner(deps: {
         now,
         projectId,
         runId: run.id,
+        isActive: () => active(run),
       });
       // A short budget ends a stage early: the run is partial, and says why.
       const budgetExhausted =
@@ -494,3 +549,5 @@ export function createResearchRunner(deps: {
 
 const notFound = () =>
   new AppError("RESEARCH_PROJECT_NOT_FOUND", "Research project not found");
+const runNotFound = () =>
+  new AppError("RESEARCH_RUN_NOT_FOUND", "Research run not found");

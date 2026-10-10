@@ -231,3 +231,20 @@ it("reports a project's budgets and paid calls", async () => {
   expect(costs.calls[0]).toMatchObject({ provider: "fake", status: "settled" });
   expect((await call(path, { headers: { cookie: owner } })).status).toBe(404);
 });
+
+it("cancels a queued run once, then answers 409", async () => {
+  const project = await (await create()).json();
+  const run = await (
+    await send("POST", `/api/research/projects/${project.id}/runs`, owner, {
+      requestId: crypto.randomUUID(),
+    })
+  ).json();
+  const path = `/api/research/projects/${project.id}/runs/${run.id}/cancel`;
+  const cancelled = await send("POST", path, owner);
+  expect(cancelled.status).toBe(200);
+  expect(await cancelled.json()).toMatchObject({ status: "cancelled" });
+  const again = await send("POST", path, owner);
+  expect(again.status).toBe(409);
+  expect((await again.json()).error.code).toBe("RESEARCH_RUN_FINISHED");
+  expect((await send("POST", path, other)).status).toBe(404);
+});

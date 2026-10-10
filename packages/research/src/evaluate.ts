@@ -136,6 +136,8 @@ export async function evaluateOpportunities(deps: {
   now: () => Date;
   projectId: string;
   runId: string;
+  /** False once the run was cancelled: no more paid analyses. */
+  isActive?: () => Promise<boolean>;
 }) {
   const { database, analyst, budget, now, projectId, runId } = deps;
   let budgetExhausted = false;
@@ -156,6 +158,7 @@ export async function evaluateOpportunities(deps: {
     .slice(0, TOP_OPPORTUNITIES);
 
   for (const [index, item] of scored.entries()) {
+    if (deps.isActive && !(await deps.isActive())) break;
     const { cluster } = item;
     let analysis: Record<string, unknown> | null = null;
     let analysisError: string | null = null;

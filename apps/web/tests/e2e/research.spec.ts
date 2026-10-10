@@ -233,3 +233,19 @@ test("shows the budget used and stops a run the budget cannot cover", async ({
     "Spent $0.00 · held $0.00",
   );
 });
+
+test("cancels a running run and offers to run it again", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  // The fake provider takes seconds on seeds with [slow].
+  await createProject(page, "Slow project", "notes [slow]");
+  await page.getByRole("button", { name: "Run research" }).click();
+  await page.getByRole("button", { name: "Cancel run" }).click();
+  await expect(page.getByTestId("last-run")).toContainText("Cancelled");
+  await expect(
+    page.getByText("The last run was cancelled. You can run it again."),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cancel run" })).toHaveCount(0);
+});
