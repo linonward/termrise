@@ -647,6 +647,17 @@ processed_at = now()
 
 ---
 
+## Product Brief
+
+`packages/research/src/brief.ts` 把机会详情（与 `GET /api/opportunities/:id` 相同的 DTO）生成 Markdown，不存表，每次请求重新生成。
+
+- 用英文（面向 Codex 等编码 Agent），只用已保存的数据，不调用 AI，不编造数字：缺失的指标写 `no data`，没有 AI 分析时写 Not analysed。
+- 章节：概要（项目、状态与最近的决策理由、分数与评分版本、可信度、needs review）、Evidence（前 10 个关键词的指标、六个维度）、User、Problem、Competitors（替代方案 + 第一个 SERP 的前 5 个结果）、Differentiation、MVP Features、Out of Scope、Pages、API、Data、Acceptance、Tests、Acquisition（渠道 + 目标关键词）、Pricing and Experiments（定价假设 + 实验与结果）、Risks、Decisions（有决策时）。
+- 数据无法填写的章节（Out of Scope、Pages、API、Data）写成未勾选的清单，由用户补全。
+- 分析或指标来自 `fake` 时，开头有 Test data 提示。
+
+---
+
 ## rate_limits
 
 ```sql

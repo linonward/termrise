@@ -915,6 +915,15 @@
     },
     "nextStatus": "New status",
     "resultNote": "Result",
-    "resultNoteHint": "What you observed. Needed for passed or failed."
+    "resultNoteHint": "What you observed. Needed for passed or failed.",
+    "briefTitle": "Product brief",
+    "briefBody": "Markdown for a coding agent such as Codex, built from the evidence, analysis, experiments and decisions above. Fill in the open checklist items before you build."
+  },
+  "brief": {
+    "download": "Download Markdown",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "The browser did not allow copying. Download the file instead.",
+    "preview": "Preview"
   }
 }

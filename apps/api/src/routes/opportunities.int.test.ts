@@ -141,3 +141,22 @@ it("records a decision and an experiment, and shows them in the detail", async (
   );
   expect(foreign.status).toBe(404);
 });
+
+it("exports the Product Brief as Markdown", async () => {
+  await runProject();
+  const { items } = await (await get("/api/opportunities")).json();
+  const response = await get(`/api/opportunities/${items[0].id}/brief.md`);
+  expect(response.status).toBe(200);
+  expect(response.headers.get("Content-Type")).toBe(
+    "text/markdown; charset=utf-8",
+  );
+  expect(response.headers.get("Content-Disposition")).toMatch(
+    /^attachment; filename="brief-[a-z0-9-]+\.md"$/,
+  );
+  const md = await response.text();
+  expect(md).toContain(`# Product Brief: ${items[0].cluster}`);
+  expect(md).toContain("**Test data.**");
+  expect(
+    (await get(`/api/opportunities/${items[0].id}/brief.md`, other)).status,
+  ).toBe(404);
+});
