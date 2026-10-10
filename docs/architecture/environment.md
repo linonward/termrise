@@ -77,6 +77,8 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `SCAN_INTERVAL_MS`                        | 扫描排队中的研究运行的间隔，默认 5000                                                                                   |
 | `HACKER_NEWS_ENABLED`                     | `1` 时每 `TREND_INTERVAL_MS` 采集一次 Hacker News 到 Radar（公开 API，不需要 Key）；不设置时不采集                      |
 | `TREND_INTERVAL_MS`                       | Radar 的采集间隔，默认 3600000（1 小时），最少 60000                                                                    |
+| `HEARTBEAT_INTERVAL_MS`                   | 写入心跳的间隔，默认 60000；E2E 用 500（Worker 在测试库 migration 之前启动）                                            |
+| `WORKER_ID`                               | 心跳中这个进程的名字（`worker_heartbeats`），默认主机名                                                                 |
 | `PORT`                                    | 健康检查端口（`GET /health`），默认 8080                                                                                |
 | `KEYWORD_PROVIDER`                        | 研究运行的关键词数据来源：`fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）或 `dataforseo`（付费调用，计入每个项目的数据预算）    |
 | `DATAFORSEO_LOGIN`、`DATAFORSEO_PASSWORD` | `KEYWORD_PROVIDER=dataforseo` 时必填（API access 页面的账号和密码）；只放在 Worker 的环境中                             |

@@ -11,3 +11,4 @@ export * from "./research";
 export * from "./signals";
 export * from "./tasks";
 export * from "./users";
+export * from "./workers";

@@ -45,6 +45,8 @@ export const e2eWorkerVars = {
   DATABASE_URL: E2E_DATABASE_URL,
   WORKER_QUEUE: "memory",
   SCAN_INTERVAL_MS: "300",
+  // The worker starts before globalSetup migrates the test database: beat again soon.
+  HEARTBEAT_INTERVAL_MS: "500",
   PORT: String(E2E_WORKER_PORT),
   KEYWORD_PROVIDER: "fake",
   ANALYST_PROVIDER: "fake",

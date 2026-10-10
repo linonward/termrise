@@ -41,6 +41,8 @@ GET /api/radar/items（Radar 条目，最多 100 个；?q= 按规范化的词搜
 
 GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
 
+GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
+
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
 
 GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals，以及 decisions（新的在前）和 experiments；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）

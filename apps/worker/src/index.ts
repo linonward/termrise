@@ -1,9 +1,11 @@
 import { createServer } from "node:http";
+import { hostname } from "node:os";
 
 import { createDb } from "@repo/db/client";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
+import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
 import { createResearchRunner } from "@repo/research/research-runner";
 
@@ -55,6 +57,25 @@ async function main() {
     }, env.SCAN_INTERVAL_MS);
     stops.push(async () => clearInterval(timer));
   }
+
+  // The API shows the services from this row (/settings/providers).
+  const status = createProviderStatus({ database });
+  const beat = () =>
+    status
+      .heartbeat({
+        workerId: env.WORKER_ID ?? hostname(),
+        keywordProvider: env.KEYWORD_PROVIDER,
+        analystProvider: env.ANALYST_PROVIDER,
+        analystModel:
+          env.ANALYST_PROVIDER === "deepseek" ? env.DEEPSEEK_MODEL! : null,
+        radarEnabled: Boolean(radar),
+      })
+      .catch((error: unknown) =>
+        logger.warn("worker.heartbeat_failed", { error }),
+      );
+  await beat();
+  const heartbeat = setInterval(beat, env.HEARTBEAT_INTERVAL_MS);
+  stops.push(async () => clearInterval(heartbeat));
 
   const server = createServer((req, res) => {
     const ok = req.url === "/health";

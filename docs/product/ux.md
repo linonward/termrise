@@ -41,6 +41,8 @@
 
 /projects/:id
 
+/settings/providers
+
 /billing
 ```
 
@@ -48,7 +50,7 @@
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard`、`/radar`、`/research`、`/opportunities`、`/projects` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/dashboard`、`/radar`、`/research`、`/opportunities`、`/projects`、`/settings` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -399,6 +401,24 @@ Open link（有链接时）、Discussion（HN 讨论页），新窗口打开，r
 - 状态徽章：not_started、archived 为 `surface-strong`；validating、building 为 `info-soft`；launched、measuring 为 `success-soft`。
 - 来源徽章：manual、imported 为 `surface-strong`；payment_verified 为 `success-soft`。手工数据不显示为已核实。
 - 不属于当前用户或不存在的产品返回 404 页面。
+
+---
+
+## Provider Settings
+
+`/settings/providers`（无设计稿；入口在账号菜单和移动端抽屉中）：
+
+```text
+标题 + 说明
+Services：Background worker（Online / Offline / Not started + 最近在线）、Keyword data、AI analysis（服务 · 模型）、Radar（开启时 Hacker News 每小时 + 条目数与最近采集时间）
+fake 服务旁说明「测试数据」
+说明：API Key 在 Worker 中设置，这里不显示也不能输入
+Spending by provider 表：服务、预算（Data / AI）、调用、失败、已花费、预留、最近调用（OK / Failed / Running + 时间）
+说明预留的含义；每个研究项目有自己的预算（链接到 Research）
+```
+
+- 没有付费调用时显示空状态。
+- 不提供「测试连接」按钮：状态来自最近一次真实调用，不为检查而付费调用。
 
 ---
 

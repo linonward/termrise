@@ -27,6 +27,8 @@ source_signals（热词的观测来源）
 
 radar_items、radar_observations（Radar：公开来源的故事与每次观测）
 
+worker_heartbeats（每个 Worker 进程运行的服务配置）
+
 research_runs、keywords、keyword_metric_snapshots、serp_snapshots、serp_results（研究运行的结果）
 ```
 
@@ -617,6 +619,16 @@ processed_at = now()
 - `radar_observations`：只追加。每次采集，故事在每个列表中出现一次就记一行：时间、列表（`top` / `show`）、排名（从 1 开始）、分数、评论数。
 - 某个故事读取失败时跳过它；全部失败时任务失败，由队列重试。读取列表失败时任务失败。
 - 分数和评论数是讨论热度，不是搜索量，页面会说明。研究项目可以从一个条目开始：种子词为规范化的词，按词边界截到 80 字符。
+
+---
+
+## Worker Heartbeats
+
+`worker_heartbeats`（`packages/db/src/schema/workers.ts`，`packages/research/src/provider-status.ts`）：每个 Worker 进程一行（`worker_id`，默认主机名，可用 `WORKER_ID` 设置），启动时和之后每分钟写入关键词数据来源、分析来源与模型、Radar 是否开启、启动时间和最近在线时间。不含 Key。API 不读取 Worker 的环境变量，`/settings/providers` 从这张表和账本读取服务状态：
+
+- Worker 3 分钟内写过为在线，否则为离线；没有行时为未启动。
+- 连接状态是该服务最近一次真实调用的结果（`api_usage` 的最近一行），不为检查连接额外调用服务。
+- 花费按服务和预算类型汇总当前用户的项目：调用数、失败数、已花费（settled 的费用）、预留（reserved 与 failed 的预留额）。
 
 ---
 
