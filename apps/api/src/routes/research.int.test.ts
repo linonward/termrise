@@ -201,3 +201,42 @@ it("runs a project with the fake provider and lists what it stored", async () =>
     ).status,
   ).toBe(404);
 });
+
+it("reports a project's budgets and paid calls", async () => {
+  const withProvider = createTestClient({
+    KEYWORD_PROVIDER: "fake",
+    ANALYST_PROVIDER: "fake",
+    ALLOW_FAKE_PROVIDERS: "1",
+  });
+  const cookie = await withProvider.signIn("costs@example.com");
+  const headers = {
+    cookie,
+    Origin: TEST_APP_URL,
+    "Content-Type": "application/json",
+  };
+  const project = await (
+    await withProvider.call("/api/research/projects", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ name: "Costs", seeds: ["meeting notes"] }),
+    })
+  ).json();
+  const path = `/api/research/projects/${project.id}/costs`;
+  expect(
+    await (await withProvider.call(path, { headers: { cookie } })).json(),
+  ).toMatchObject({
+    data: { budgetUsd: 20, spentUsd: 0, heldUsd: 0, remainingUsd: 20 },
+    calls: [],
+  });
+  await withProvider.call(`/api/research/projects/${project.id}/runs`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ requestId: crypto.randomUUID() }),
+  });
+  const costs = await (
+    await withProvider.call(path, { headers: { cookie } })
+  ).json();
+  expect(costs.data.spentUsd).toBeGreaterThan(0);
+  expect(costs.calls[0]).toMatchObject({ provider: "fake", status: "settled" });
+  expect((await call(path, { headers: { cookie: owner } })).status).toBe(404);
+});

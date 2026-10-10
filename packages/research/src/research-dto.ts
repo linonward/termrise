@@ -10,6 +10,7 @@ import type {
   serpSnapshots,
 } from "@repo/db/schema";
 
+import type { Budget } from "./budget";
 import type { Analysis } from "./opportunity-analyst";
 import { NEXT_DECISIONS, NEXT_EXPERIMENT_STATUSES } from "./opportunity-rules";
 import type { ResearchProject, SourceSignal } from "./research-service";
@@ -209,3 +210,30 @@ export function toOpportunityDetailDto(
 }
 
 export type OpportunityDetailDto = ReturnType<typeof toOpportunityDetailDto>;
+
+/** A project's budgets and paid calls, in USD (docs/architecture/data-model.md#budget-ledger). */
+export function toCostsDto(usage: Awaited<ReturnType<Budget["usage"]>>) {
+  const usd = (micros: number) => micros / 1_000_000;
+  const budget = (b: (typeof usage)["data"]) => ({
+    budgetUsd: usd(b.budget),
+    spentUsd: usd(b.spent),
+    heldUsd: usd(b.held),
+    remainingUsd: usd(b.remaining),
+  });
+  return {
+    data: budget(usage.data),
+    ai: budget(usage.ai),
+    calls: usage.calls.map((c) => ({
+      id: c.id,
+      kind: c.kind,
+      provider: c.provider,
+      operation: c.operation,
+      reservedUsd: usd(c.reservedMicros),
+      costUsd: c.costMicros === null ? null : usd(c.costMicros),
+      status: c.status,
+      createdAt: c.createdAt.toISOString(),
+    })),
+  };
+}
+
+export type CostsDto = ReturnType<typeof toCostsDto>;

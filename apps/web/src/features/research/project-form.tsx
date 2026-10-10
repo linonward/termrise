@@ -35,7 +35,11 @@ export function ProjectForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
   const [saved, setSaved] = useState(false);
-  const locked = project !== undefined && project.status !== "draft";
+  // A project whose budget ran out before any data can be fixed and run again.
+  const locked =
+    project !== undefined &&
+    project.status !== "draft" &&
+    project.status !== "budget_exhausted";
 
   async function submit(form: HTMLFormElement) {
     const data = new FormData(form);

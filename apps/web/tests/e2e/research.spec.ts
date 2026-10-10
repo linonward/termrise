@@ -199,3 +199,37 @@ test("shows a failed run and offers to run it again", async ({
     page.getByRole("button", { name: "Run research" }),
   ).toBeVisible();
 });
+
+test("shows the budget used and stops a run the budget cannot cover", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/research");
+  await page.getByLabel("Name").fill("Budget project");
+  await page.getByLabel("Seed terms").fill("meeting notes");
+  await page.getByLabel("Data budget (USD)").fill("0");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId("summaryDataBudget-used")).toHaveText(
+    "Spent $0.00 · held $0.00",
+  );
+
+  await page.getByRole("button", { name: "Run research" }).click();
+  await expect(page.getByTestId("last-run")).toContainText("Failed");
+  await expect(
+    page.getByText("The data budget did not cover one keyword expansion.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+
+  // Raise the budget, then the run goes through and its cost shows.
+  await page.getByLabel("Data budget (USD)").fill("5");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+  await page.getByRole("button", { name: "Run research" }).click();
+  await expect(page.getByTestId("last-run")).toContainText("Completed");
+  await expect(page.getByTestId("summaryDataBudget-used")).not.toHaveText(
+    "Spent $0.00 · held $0.00",
+  );
+});

@@ -572,14 +572,14 @@ processed_at = now()
 
 `research_projects`（`packages/db/src/schema/research.ts`）：一个研究项目是一个市场中的一组种子词，加上付费数据和 AI 调用的预算。
 
-| 列                                       | 说明                                                                                                                               |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `user_id`                                | 所有者，外键 `user.id`。只有所有者能读写；其他用户和格式错误的 id 一律返回 `RESEARCH_PROJECT_NOT_FOUND`                            |
-| `name`                                   | 1–100 字符（CHECK）                                                                                                                |
-| `location_code`、`language_code`         | DataForSEO 的地区和语言代码。现在固定为 2840 / `en`（美国、英语，`packages/research/src/research-rules.ts`）                       |
-| `seeds`                                  | `text[]`，1–50 个（CHECK）。存入前规范化：NFKC、去首尾空白、合并空白、小写、去重，保留顺序（`normalizeSeeds()`）；每个最多 80 字符 |
-| `data_budget_micros`、`ai_budget_micros` | 预算，整数微美元（1 USD = 1,000,000），≥ 0（CHECK）。API 以美元表示，精确到分，每项最多 1000 美元；默认 20 / 5 美元                |
-| `status`                                 | product.md 的研究状态（`draft` 到 `completed`，异常 `partial` / `failed` / `cancelled` / `budget_exhausted`），默认 `draft`        |
+| 列                                       | 说明                                                                                                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user_id`                                | 所有者，外键 `user.id`。只有所有者能读写；其他用户和格式错误的 id 一律返回 `RESEARCH_PROJECT_NOT_FOUND`                                                             |
+| `name`                                   | 1–100 字符（CHECK）                                                                                                                                                 |
+| `location_code`、`language_code`         | DataForSEO 的地区和语言代码。现在固定为 2840 / `en`（美国、英语，`packages/research/src/research-rules.ts`）                                                        |
+| `seeds`                                  | `text[]`，1–50 个（CHECK）。存入前规范化：NFKC、去首尾空白、合并空白、小写、去重，保留顺序（`normalizeSeeds()`）；每个最多 80 字符                                  |
+| `data_budget_micros`、`ai_budget_micros` | 预算，整数微美元（1 USD = 1,000,000），≥ 0（CHECK）。API 以美元表示，精确到分，每项最多 1000 美元；默认 20 / 5 美元                                                 |
+| `status`                                 | product.md 的研究状态（`draft` 到 `completed`，异常 `partial` / `failed` / `cancelled` / `budget_exhausted`），默认 `draft`；`draft` 和 `budget_exhausted` 可以修改 |
 
 - 只有 ResearchService（`packages/research/src/research-service.ts`）修改研究项目。只有 `draft` 可以修改和删除；修改和删除的条件包含 `status = 'draft'`，项目在此期间开始运行时返回 `RESEARCH_PROJECT_LOCKED`（409）。
 - 状态迁移（运行、暂停、重试）在后续 Slice 中由 ResearchService 和 Worker 实现。
@@ -610,13 +610,25 @@ processed_at = now()
 
 研究的运行（`packages/research/src/research-runner.ts`）现在在 API 请求中同步执行，各阶段是 packages 中的函数，接真实 Provider 时移到 `apps/worker`（roadmap 的 Confirmed Decisions）。
 
-- `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 只在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`）。
-- 开始运行时在一个事务中锁住项目行：只有 `draft` 或 `failed` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding` → `auditing` → `evaluating` → `completed` / `partial`；扩词失败为 `failed`。
+- `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`、`BUDGET_EXHAUSTED`）；预算不足使运行提前结束的 `partial` 也记录 `BUDGET_EXHAUSTED`。
+- 开始运行时在一个事务中锁住项目行：只有 `draft`、`failed` 或 `budget_exhausted` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding` → `auditing` → `evaluating` → `completed` / `partial`；扩词失败为 `failed`。
 - `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。
 - `keyword_metric_snapshots`：Provider 报告的指标，只追加。`search_volume`（月均搜索量）、`cpc_micros`（微美元）、`ads_competition`（Google Ads 竞争度 0–100）、`keyword_difficulty`（SEO 难度 0–100）各自独立，Provider 没有报告时为 null，不写 0（product.md 的 F03）。页面显示最新的一条。
 - `serp_snapshots` / `serp_results`：搜索量最高的 5 个关键词（搜索量为 null 或 0 的不审核）在桌面端的前 10 个自然结果，记录 Provider、设备、地区、语言和时间。某个关键词的 SERP 失败时跳过它，运行结束为 `partial`。
 - 每条指标和 SERP 都记录 `provider`。现在只有 `fake`（`packages/research/src/adapters/fake-keywords.ts`）：按词生成确定性的测试数据，SERP 链接到 `.invalid` 域名；只在 `ALLOW_FAKE_PROVIDERS=1` 时可用，页面在数据来自 `fake` 时显示「测试数据，不是真实的搜索数据」。真实 Provider（DataForSEO）实现同一个端口（`keyword-provider.ts`），按官方文档映射响应。
 - 删除项目时，运行、关键词、指标和 SERP 随之删除（`ON DELETE CASCADE`）。
+
+---
+
+## Budget Ledger
+
+每个付费调用都经过 `api_usage`（`packages/research/src/budget.ts`，product.md 的「外部服务与预算」）。
+
+- 调用前预留：在一个事务中锁住项目行，计算该预算（`data` 或 `ai`）已占用的金额：已结算的按实际费用，`reserved` 和 `failed` 按预留额。加上本次调用的上限（端口的 `maxCostMicros`）超过项目预算时，不调用，返回预算不足。并发预留排队进行，不会超出预算。
+- 调用后结算：成功时记录 Provider 报告的费用（`cost_micros`），状态为 `settled`。调用失败时状态为 `failed`，费用未知，预留额继续计入，不当作 0。
+- 记录项目、运行、预算类型、Provider、操作（`expand`、`serp`、`analyze`）、预留额、费用、状态和时间。删除项目时随之删除。
+- 运行中的预算不足：一个种子词都扩不了时，运行 `failed`（`BUDGET_EXHAUSTED`），项目状态为 `budget_exhausted`，可以修改预算后再运行；扩词、SERP 中途不足时停止该阶段；AI 预算不足时该机会不做分析（`analysis_error` 为 `BUDGET_EXHAUSTED`），分数照常。有阶段因预算提前结束时运行为 `partial`。
+- fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。
 
 ---
 

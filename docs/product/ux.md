@@ -301,7 +301,8 @@ Logout
 - 右侧在 draft 或 failed 时有「运行研究」面板（说明 + [Run research]；failed 时说明改为「上次运行失败，可以再运行一次」），下方显示最近一次运行的状态和时间，失败时显示原因，partial 时说明部分搜索结果没有取到。运行现在是同步的：按钮显示 Running… 直到完成。
 - Keywords 表：关键词（种子词带 `brand-soft` 的 Seed 标签）、搜索量、CPC、广告竞争、KD，数字右对齐；缺失的值显示「No data / 暂无数据」，不显示 0。数据来自测试 Provider 时，表格上方显示 `info-soft` 的提示「测试数据，不是真实的搜索数据」。
 - Top search results：每个已审核关键词一个可折叠的列表（第一个展开），列出排名、标题（链接）和域名。
-- 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除和导入。
+- 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除和导入。budget_exhausted 例外：表单可以修改，说明为「预算在取得任何数据之前用完，提高数据预算后再运行」，运行面板说明同义。
+- 摘要中的两项预算下方显示「已花费 · 预留」（来自 `/costs`）。最近一次运行因预算 failed 时显示「数据预算不够一次扩词」；因预算 partial 时说明结果只包含预算内完成的部分。
 - 不属于当前用户或不存在的项目返回 404 页面。
 - 状态徽章样式见 design-system.md 的 Status：draft 为 `surface-strong` + `pencil-line`；运行中各状态为 `info-soft` + `loader-circle`；completed 为 `success-soft`；failed、budget_exhausted 为 `destructive-soft`；cancelled、partial 为 `surface-strong`。
 - 最近一次运行为 completed 或 partial 时，运行面板下方有 View opportunities 链接，进入只显示该项目的 `/opportunities?project=<id>`。

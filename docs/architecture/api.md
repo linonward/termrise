@@ -19,7 +19,7 @@ POST /api/research/projects（{ name, seeds, dataBudgetUsd?, aiBudgetUsd? }，�
 
 GET /api/research/projects/:id（不属于当前用户或不存在时 404 RESEARCH_PROJECT_NOT_FOUND）
 
-PATCH /api/research/projects/:id（部分字段；不是 draft 时 409 RESEARCH_PROJECT_LOCKED）
+PATCH /api/research/projects/:id（部分字段；不是 draft 或 budget_exhausted 时 409 RESEARCH_PROJECT_LOCKED）
 
 DELETE /api/research/projects/:id（只删除 draft，成功返回 204）
 
@@ -27,13 +27,15 @@ POST /api/research/projects/:id/import（{ csv }：CSV 文本，最多 1,000,000
 
 GET /api/research/projects/:id/signals（项目的信号，观测时间新的在前，最多 200 条）
 
-POST /api/research/projects/:id/runs（{ requestId }：运行研究，现在同步执行，完成后返回 201 + 运行记录；同一个 requestId 返回同一次运行；没有配置关键词或分析 Provider 时 503 RESEARCH_PROVIDER_UNAVAILABLE；项目不是 draft / failed 时 409 RESEARCH_PROJECT_LOCKED）
+POST /api/research/projects/:id/runs（{ requestId }：运行研究，现在同步执行，完成后返回 201 + 运行记录；同一个 requestId 返回同一次运行；没有配置关键词或分析 Provider 时 503 RESEARCH_PROVIDER_UNAVAILABLE；项目不是 draft / failed / budget_exhausted 时 409 RESEARCH_PROJECT_LOCKED；预算不够一次扩词时运行为 failed，errorCode 为 BUDGET_EXHAUSTED）
 
 GET /api/research/projects/:id/runs（运行记录，新的在前）
 
 GET /api/research/projects/:id/keywords（关键词与最新指标，搜索量高的在前，没有数据的在后；指标缺失为 null）
 
 GET /api/research/projects/:id/serps（每个已审核关键词最新的前 10 个结果）
+
+GET /api/research/projects/:id/costs（{ data, ai }：每项 budgetUsd、spentUsd、heldUsd、remainingUsd；calls：最近 100 次付费调用；见 data-model.md 的 Budget Ledger）
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
 

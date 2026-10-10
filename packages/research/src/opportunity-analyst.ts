@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { Charged } from "./keyword-provider";
+
 // Port for the AI analysis of an opportunity (docs/product/product.md#ai-责任边界): who it
 // is for and what to build, as hypotheses tied to evidence. It never writes scores,
 // volumes or difficulty; those come from the data and the scoring rules.
@@ -28,6 +30,8 @@ export interface OpportunityAnalyst {
   name: "fake";
   /** Changes when the prompt or its output shape changes. */
   promptVersion: string;
+  /** The most one analysis can cost, reserved from the AI budget before it. */
+  maxCostMicros: number;
   /** Raw output; the caller validates it with analysisSchema. */
-  analyze(input: AnalysisInput): Promise<unknown>;
+  analyze(input: AnalysisInput): Promise<Charged<unknown>>;
 }

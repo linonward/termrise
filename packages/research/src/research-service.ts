@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
@@ -129,7 +129,8 @@ export function createResearchService(deps: {
         and(
           eq(researchProjects.id, id),
           eq(researchProjects.userId, userId),
-          eq(researchProjects.status, "draft"),
+          // A project whose budget ran out before any data can be fixed and run again.
+          inArray(researchProjects.status, ["draft", "budget_exhausted"]),
         ),
       )
       .returning();

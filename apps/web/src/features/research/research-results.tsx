@@ -26,12 +26,16 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
       {run.status === "failed" && run.errorCode && (
         <p className="text-muted-foreground">
           {t(
-            `runError.${run.errorCode === "PROVIDER_ERROR" ? "PROVIDER_ERROR" : "INTERNAL_ERROR"}`,
+            `runError.${run.errorCode === "PROVIDER_ERROR" || run.errorCode === "BUDGET_EXHAUSTED" ? run.errorCode : "INTERNAL_ERROR"}`,
           )}
         </p>
       )}
       {run.status === "partial" && (
-        <p className="text-muted-foreground">{t("runPartialNote")}</p>
+        <p className="text-muted-foreground">
+          {run.errorCode === "BUDGET_EXHAUSTED"
+            ? t("runPartialBudget")
+            : t("runPartialNote")}
+        </p>
       )}
     </div>
   );
