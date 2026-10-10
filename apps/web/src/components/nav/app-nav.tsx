@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState, useTransition } from "react";
 
+import { locales } from "@repo/config/locale";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
@@ -28,7 +29,6 @@ import {
 import { useLogout } from "@/components/auth/use-logout";
 import { LogoMark } from "@/components/logo-mark";
 import { setLocale } from "@/i18n/actions";
-import { locales } from "@/i18n/locale";
 
 import { NavLinks } from "./nav-links";
 

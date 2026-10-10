@@ -16,3 +16,15 @@ export function safeNext(value: unknown): string {
     ? `${url.pathname}${url.search}${url.hash}`
     : "/dashboard";
 }
+
+/**
+ * Better Auth callback URLs: a safe site-relative path, or (apps/api on its own origin)
+ * the same path as an absolute URL on the web app's origin.
+ */
+export function isSafeCallback(value: unknown, appOrigin?: string): boolean {
+  if (typeof value !== "string") return false;
+  if (value === safeNext(value)) return true;
+  if (!appOrigin || !value.startsWith(`${appOrigin}/`)) return false;
+  const path = value.slice(appOrigin.length);
+  return path === safeNext(path);
+}

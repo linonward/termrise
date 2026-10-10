@@ -3,12 +3,12 @@ import { randomUUID } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
 
 import { createAuth } from "@repo/auth/create-auth";
+import { createOnUserCreated } from "@repo/auth/on-user-created";
 import { createCreditService } from "@repo/credits/credit-service";
 import { testDb } from "@repo/db/testing/db";
 
 import { e2eEnv } from "./e2e-env";
 import product from "../../../../product.config";
-import { createOnUserCreated } from "../../src/server/auth/on-user-created";
 
 // Test-only magic link: Better Auth runs in the test process against the same
 // PostgreSQL and hands the link to us instead of an email provider.

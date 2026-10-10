@@ -19,7 +19,7 @@ const onUserCreated = createOnUserCreated({
     provider: analyticsProvider,
     productId: "acme",
   }),
-  // The web app reads NEXT_LOCALE; this stub keeps the test independent of it.
+  // The apps resolve the locale; this stub keeps the test independent of it.
   localeFromHeaders: (headers) =>
     /NEXT_LOCALE=zh/.test(headers.get("cookie") ?? "") ? "zh" : "en",
 });

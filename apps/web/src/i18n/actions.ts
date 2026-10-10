@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 
-import { isLocale, LOCALE_COOKIE } from "./locale";
+import { isLocale, LOCALE_COOKIE } from "@repo/config/locale";
 
 export async function setLocale(locale: string) {
   if (!isLocale(locale)) return;

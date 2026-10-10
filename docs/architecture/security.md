@@ -75,6 +75,17 @@ Webhook Route 必须读取原始 request body 做签名验证，再解析 JSON�
 
 ---
 
+## Auth on the API
+
+`apps/api` 也在 `/api/auth/*` 提供 Better Auth（`apps/api/src/routes/auth.ts`，迁移中，见 `docs/adr/012-api-modular-monolith.md`）。与 web 的不同：
+
+- `baseURL` 是 API 自己的地址（`BETTER_AUTH_URL`）；`APP_URL`（web）加入 `trustedOrigins`，也是唯一允许的 CORS origin（`credentials: true`）。
+- callback URL 可以是 web origin 上的绝对 URL（`isSafeCallback()`，路径部分仍经 `safeNext()` 校验）；其他 origin 返回 400。
+- 设置 `AUTH_COOKIE_DOMAIN`（例如 `termrise.com`）时，session cookie 带 `Domain`，web 与 API 的子域名共用。本地不设置：`localhost` 的 cookie 不区分端口。
+- Magic Link 的 IP 限流读 `cf-connecting-ip`；文案在 `apps/api/messages/*.json`，语言按 `NEXT_LOCALE` cookie → `Accept-Language` 选择（`packages/config/src/locale.ts`）。
+
+---
+
 ## Google One Tap
 
 未登录时，`/`、`/sign-in`、`/sign-up` 显示 Google One Tap 提示（`apps/web/src/components/auth/google-one-tap.tsx`），每次打开页面只提示一次，关闭后不重试。`/` 在访客第一次滚动、点击、触摸或按键后才加载 Google 脚本（约 100 KiB）和 Better Auth 的 One Tap 客户端（动态 `import()`），不与首屏争抢带宽（E2E：`landing.spec.ts`）；`/sign-in`、`/sign-up` 立即加载。已登录、脚本加载失败或用户关闭提示时，页面不变。
@@ -176,7 +187,7 @@ Magic Link 发送（`/api/auth/sign-in/magic-link`），发信前依次检查：
 
 ```text
 3 emails / 10 minutes / email（key 为小写 email 的 SHA-256，不存原文）
-10 emails / hour / IP（x-forwarded-for 第一项；没有该 header 时跳过）
+10 emails / hour / IP（web：x-forwarded-for 第一项；apps/api：cf-connecting-ip；没有该 header 时跳过）
 20 emails / day / IP（同上）
 90 emails / day / 全站（低于 Resend Free 的 100 封 / 天；升级 Resend 后调高）
 ```

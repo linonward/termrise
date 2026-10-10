@@ -40,8 +40,9 @@ Preview 按需手动部署，节省 Hobby 额度：
 1. 在 Neon 为 Hyperdrive 建一个 role（例如 `hyperdrive-user`），复制 `main` 分支的**直连**连接串（关闭 connection pooling，主机名不含 `-pooler`）。连接串是凭据，不写进仓库、日志和对话。
 2. 在 `apps/api` 中执行 `npx wrangler hyperdrive create termrise-api --connection-string="<连接串>"`。
 3. 把输出的 id 写入 `wrangler.jsonc` 的 `hyperdrive[0].id`（现在是占位值 `000…`），提交。
-4. 执行 `pnpm --filter api run deploy`。
-5. 请求 `https://<Worker 地址>/api/health`，确认返回 200 `{"status":"ok"}`。
+4. 用 `npx wrangler secret put <NAME>` 设置 [API Bindings](environment.md#api-bindings) 中的变量（`HYPERDRIVE` 与本地变量除外）。
+5. 执行 `pnpm --filter api run deploy`。
+6. 请求 `https://<Worker 地址>/api/health`，确认返回 200 `{"status":"ok"}`。
 
 自定义域名（与 web 同一主域名下的子域名，例如 `api.<domain>`）在迁移 Better Auth 的 Slice 中配置。
 

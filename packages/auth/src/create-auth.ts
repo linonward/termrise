@@ -7,7 +7,7 @@ import type { Database } from "@repo/db/client";
 import * as schema from "@repo/db/schema/auth";
 import { logger } from "@repo/observability/logger";
 
-import { safeNext } from "./auth-redirect";
+import { isSafeCallback } from "./auth-redirect";
 import {
   LAST_LOGIN_METHOD_COOKIE,
   resolveOneTapLoginMethod,
@@ -20,6 +20,13 @@ export type AuthConfig = {
   secret: string;
   googleClientId: string;
   googleClientSecret: string;
+  /**
+   * Origin of the web app when Better Auth runs on another origin (apps/api): trusted,
+   * and callback URLs may be absolute URLs on it.
+   */
+  appOrigin?: string;
+  /** Shares the session cookie with sibling subdomains (e.g. "termrise.com"). */
+  cookieDomain?: string;
 };
 export type MagicLinkDelivery = {
   email: string;
@@ -47,7 +54,15 @@ export function createAuth(
     baseURL: config.baseURL,
     secret: config.secret,
     database: drizzleAdapter(database, { provider: "pg", schema }),
-    trustedOrigins: [new URL(config.baseURL).origin],
+    trustedOrigins: [
+      new URL(config.baseURL).origin,
+      ...(config.appOrigin ? [config.appOrigin] : []),
+    ],
+    ...(config.cookieDomain && {
+      advanced: {
+        crossSubDomainCookies: { enabled: true, domain: config.cookieDomain },
+      },
+    }),
     // Provider diagnostics can contain email addresses or tokens.
     logger: { disabled: true },
     // Without this, better-call prints unhandled errors raw with console.error and
@@ -99,10 +114,7 @@ export function createAuth(
           "errorCallbackURL",
         ]) {
           const value = ctx.body?.[field];
-          if (
-            value !== undefined &&
-            (typeof value !== "string" || value !== safeNext(value))
-          ) {
+          if (value !== undefined && !isSafeCallback(value, config.appOrigin)) {
             throw new APIError("BAD_REQUEST", {
               message: "Invalid callback URL",
             });

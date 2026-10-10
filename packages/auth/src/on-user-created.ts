@@ -3,11 +3,12 @@ import {
   type AnalyticsService,
 } from "@repo/analytics/analytics-service";
 import { consentFromCookies } from "@repo/analytics/consent";
-import type { OnUserCreated } from "@repo/auth/create-auth";
 import type { createCreditService } from "@repo/credits/credit-service";
 
-// What a new account gets (Better Auth user.create.after). Imports only packages,
-// so the E2E sign-in helper creates users the same way as the app.
+import type { OnUserCreated } from "./create-auth";
+
+// What a new account gets (Better Auth user.create.after). apps/api, apps/web and the
+// E2E sign-in helper create users the same way.
 export function createOnUserCreated(deps: {
   credits: ReturnType<typeof createCreditService>;
   /** product.config.ts signupBonusCredits; 0 grants nothing. */

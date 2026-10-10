@@ -10,9 +10,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/analytics": "workspace:*",
+    "@repo/auth": "workspace:*",
+    "@repo/config": "workspace:*",
+    "@repo/credits": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/observability": "workspace:*",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

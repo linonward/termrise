@@ -2,7 +2,7 @@
   "name": "@repo/auth",
   "version": "0.0.0",
   "private": true,
-  "description": "Better Auth setup, guards, safe redirects, rate limits",
+  "description": "Better Auth setup, guards, safe redirects, rate limits, magic link email, new-user hook",
   "exports": {
     "./*": "./src/*.ts"
   },
@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@repo/analytics": "workspace:*",
+    "@repo/credits": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/observability": "workspace:*",
     "better-auth": "^1.7.7",

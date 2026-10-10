@@ -11,7 +11,14 @@ type RateLimitService = ReturnType<typeof createRateLimitService>;
 
 // Magic Link limits in Postgres, not Better Auth's per-instance memory:
 // docs/architecture/security.md#rate-limiting.
-export function createMagicLinkLimiter(rateLimit: RateLimitService) {
+export function createMagicLinkLimiter(
+  rateLimit: RateLimitService,
+  options: {
+    /** The client's IP. Default: the first x-forwarded-for entry (Vercel). */
+    clientIp?: (headers: Headers) => string | undefined;
+  } = {},
+) {
+  const clientIp = options.clientIp ?? forwardedFor;
   async function check(
     key: string,
     rule: { limit: number; windowSeconds: number },
@@ -39,8 +46,7 @@ export function createMagicLinkLimiter(rateLimit: RateLimitService) {
       MAGIC_LINK_LIMITS.magicLinkEmail,
       "RATE_LIMITED",
     );
-    // Vercel sets x-forwarded-for; the first entry is the client.
-    const ip = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const ip = clientIp(headers);
     if (ip) {
       const key = ipKey(ip);
       await check(
@@ -60,6 +66,11 @@ export function createMagicLinkLimiter(rateLimit: RateLimitService) {
       "MAGIC_LINK_DAILY_LIMIT",
     );
   };
+}
+
+// Vercel sets x-forwarded-for; the first entry is the client.
+function forwardedFor(headers: Headers) {
+  return headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
 }
 
 // One IPv6 /64 is usually one subscriber, who can use every address in it.
