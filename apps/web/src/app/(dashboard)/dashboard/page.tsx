@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import type { ResearchProjectDto } from "@repo/research/research-dto";
 import {
   TASK_CREDIT_COST,
   TASK_INPUT_MAX_LENGTH,
@@ -11,6 +12,7 @@ import type { TaskDto } from "@repo/tasks/task-dto";
 import { Button } from "@repo/ui/components/button";
 
 import { TrackView } from "@/components/analytics/track";
+import { ResearchStatus } from "@/features/research/research-status";
 import { TaskPanel } from "@/features/tasks/task-panel";
 import { apiGet, getBalance } from "@/server/api/api";
 import { getRequestSession } from "@/server/auth/auth";
@@ -23,9 +25,13 @@ export default async function DashboardPage() {
   const { name, email } = session.user;
   const title =
     name && name !== email ? t("welcome", { name }) : t("welcomeBack");
-  // Early access: no credits, so the example paid action is hidden until the research
-  // project replaces it (docs/product/ux.md#dashboard).
-  if (!product.billingEnabled)
+  // Early access: no credits, so the example paid action is hidden; the dashboard lists
+  // the newest research projects instead (docs/product/ux.md#dashboard).
+  if (!product.billingEnabled) {
+    const { items } = await apiGet<{ items: ResearchProjectDto[] }>(
+      "/api/research/projects",
+    );
+    const projects = items.slice(0, 5);
     return (
       <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:px-5 md:py-16">
         <TrackView event="dashboard_viewed" />
@@ -37,17 +43,54 @@ export default async function DashboardPage() {
             {t("earlyAccessSubtitle")}
           </p>
         </header>
-        <section
-          aria-labelledby="coming-title"
-          className="space-y-1 rounded-lg border border-border p-6"
-        >
-          <h2 id="coming-title" className="text-[15px] font-medium">
-            {t("comingTitle")}
-          </h2>
-          <p className="text-[15px] text-muted-foreground">{t("comingBody")}</p>
+        <section aria-labelledby="research-title" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2
+              id="research-title"
+              className="font-heading text-xl font-semibold tracking-tight md:text-2xl"
+            >
+              {t("researchTitle")}
+            </h2>
+            {projects.length > 0 && (
+              <Link
+                href="/research"
+                className="text-[15px] font-medium underline underline-offset-4"
+              >
+                {t("researchAll")}
+              </Link>
+            )}
+          </div>
+          {projects.length === 0 ? (
+            <div className="space-y-4 rounded-lg border border-border p-6">
+              <p className="text-[15px] text-muted-foreground">
+                {t("researchEmpty")}
+              </p>
+              <Button asChild className="h-10 px-4">
+                <Link href="/research">{t("researchCta")}</Link>
+              </Button>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {projects.map((project) => (
+                <li
+                  key={project.id}
+                  className="flex items-center justify-between gap-4 px-6 py-4"
+                >
+                  <Link
+                    href={`/research/${project.id}`}
+                    className="min-w-0 truncate text-[15px] font-medium hover:underline hover:underline-offset-4"
+                  >
+                    {project.name}
+                  </Link>
+                  <ResearchStatus status={project.status} />
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </main>
     );
+  }
   // getBalance refunds stale tasks first, so the list below shows them as failed.
   const balance = await getBalance();
   const { items: recent } = await apiGet<{ items: TaskDto[] }>(

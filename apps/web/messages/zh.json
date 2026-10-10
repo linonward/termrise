@@ -130,7 +130,8 @@
     "localeName": {
       "en": "English",
       "zh": "简体中文"
-    }
+    },
+    "research": "研究"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -141,9 +142,11 @@
     "estimate": "约可运行 {uses} 次",
     "refundNote": "运行失败会自动退还积分。",
     "buyCredits": "购买积分",
-    "earlyAccessSubtitle": "你的研究项目会显示在这里。",
-    "comingTitle": "研究项目即将上线",
-    "comingBody": "上线后，你可以在这里创建研究项目、收集上升热词，并查看它们带来的产品机会。"
+    "earlyAccessSubtitle": "继续一个研究项目，或新建一个。",
+    "researchTitle": "你的研究项目",
+    "researchEmpty": "你还没有研究项目。",
+    "researchCta": "前往研究",
+    "researchAll": "全部项目"
   },
   "status": {
     "PENDING": "运行中",
@@ -516,7 +519,9 @@
     "INTERNAL_ERROR": "服务器出错了，请重试。",
     "NETWORK_ERROR": "无法连接服务器，请检查网络后重试。",
     "TASK_NOT_FOUND": "这个任务不存在。",
-    "NOT_FOUND": "这个页面或记录不存在。"
+    "NOT_FOUND": "这个页面或记录不存在。",
+    "RESEARCH_PROJECT_NOT_FOUND": "这个研究项目不存在。",
+    "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。"
   },
   "errorPage": {
     "title": "出错了",
@@ -650,5 +655,60 @@
     "empty": "还没有运行记录。",
     "emptyHint": "输入一段文字，运行第一个任务。",
     "buyCredits": "购买积分"
+  },
+  "research": {
+    "metaTitle": "研究",
+    "title": "研究",
+    "subtitle": "每个项目从一个市场中的种子词开始。项目在运行之前都是草稿。",
+    "projects": "项目",
+    "column": {
+      "name": "名称",
+      "seeds": "种子词",
+      "status": "状态",
+      "created": "创建时间"
+    },
+    "emptyTitle": "还没有研究项目",
+    "emptyBody": "用几个你想探索的种子词创建一个项目。",
+    "newTitle": "新建研究项目",
+    "name": "名称",
+    "seeds": "种子词",
+    "seedsHint": "每行一个，最多 {max} 个。",
+    "market": "市场",
+    "marketValue": "美国 · 英语",
+    "dataBudget": "数据预算（美元）",
+    "aiBudget": "AI 预算（美元）",
+    "create": "创建项目",
+    "creating": "正在创建…",
+    "back": "研究",
+    "editTitle": "种子词和预算",
+    "editNote": "草稿可以修改。项目运行后，种子词和预算不能再改。",
+    "lockedNote": "这个项目正在运行，种子词和预算不能再改。",
+    "save": "保存修改",
+    "saving": "正在保存…",
+    "saved": "已保存。",
+    "summarySeeds": "种子词",
+    "summaryDataBudget": "数据预算",
+    "summaryAiBudget": "AI 预算",
+    "deleteHint": "删除草稿会同时删除它的种子词。",
+    "delete": "删除项目",
+    "deleteConfirm": "删除这个项目？",
+    "deleteYes": "确认删除",
+    "deleteKeep": "保留项目",
+    "deleting": "正在删除…",
+    "status": {
+      "draft": "草稿",
+      "collecting": "采集中",
+      "expanding": "扩词中",
+      "enriching": "补充指标中",
+      "clustering": "聚类中",
+      "auditing": "审核中",
+      "evaluating": "评估中",
+      "completed": "已完成",
+      "partial": "部分完成",
+      "failed": "失败",
+      "cancelled": "已取消",
+      "budget_exhausted": "预算用完"
+    },
+    "created": "创建于"
   }
 }

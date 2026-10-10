@@ -13,6 +13,16 @@ POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，
 
 POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横幅选择，成功返回 204，见 observability.md）
 
+GET /api/research/projects（当前用户的研究项目，新的在前，最多 50 个）
+
+POST /api/research/projects（{ name, seeds, dataBudgetUsd?, aiBudgetUsd? }，成功返回 201 + 项目，见 data-model.md 的 Research Projects）
+
+GET /api/research/projects/:id（不属于当前用户或不存在时 404 RESEARCH_PROJECT_NOT_FOUND）
+
+PATCH /api/research/projects/:id（部分字段；不是 draft 时 409 RESEARCH_PROJECT_LOCKED）
+
+DELETE /api/research/projects/:id（只删除 draft，成功返回 204）
+
 GET /api/credits/balance（先把超时的 PENDING Task 改为 FAILED 并退款，再返回 { balance }，见 tasks.md 的 Stale Tasks）
 
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）

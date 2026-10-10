@@ -4,6 +4,8 @@ export const API_RATE_LIMITS = {
   task: { limit: 10, windowSeconds: 60 },
   upload: { limit: 20, windowSeconds: 60 },
   checkout: { limit: 10, windowSeconds: 60 },
+  // Creating, editing and deleting research projects.
+  research: { limit: 30, windowSeconds: 60 },
 } as const;
 
 export type ApiRateLimitName = keyof typeof API_RATE_LIMITS;

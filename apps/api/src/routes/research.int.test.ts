@@ -1,0 +1,102 @@
+import { afterAll, beforeEach, expect, it } from "vitest";
+
+import { closeTestDb, resetDb } from "@repo/db/testing/db";
+
+import { createTestClient } from "../testing/client";
+import { TEST_APP_URL } from "../testing/worker";
+
+const { call, signIn } = createTestClient();
+
+let owner: string;
+let other: string;
+beforeEach(async () => {
+  await resetDb();
+  owner = await signIn("owner@example.com");
+  other = await signIn("other@example.com");
+});
+afterAll(closeTestDb);
+
+const send = (method: string, path: string, cookie: string, body?: unknown) =>
+  call(path, {
+    method,
+    headers: {
+      cookie,
+      Origin: TEST_APP_URL,
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+const create = (cookie = owner) =>
+  send("POST", "/api/research/projects", cookie, {
+    name: "AI meeting notes",
+    seeds: ["AI meeting notes", "sales call summary"],
+  });
+
+it("creates, lists, reads, updates and deletes a draft project", async () => {
+  const created = await create();
+  expect(created.status).toBe(201);
+  expect(created.headers.get("Access-Control-Allow-Origin")).toBe(TEST_APP_URL);
+  const project = await created.json();
+  expect(project).toMatchObject({
+    name: "AI meeting notes",
+    seeds: ["ai meeting notes", "sales call summary"],
+    dataBudgetUsd: 20,
+    aiBudgetUsd: 5,
+    status: "draft",
+  });
+  expect(project).not.toHaveProperty("userId");
+
+  const { items } = await (
+    await call("/api/research/projects", { headers: { cookie: owner } })
+  ).json();
+  expect(items.map((p: { id: string }) => p.id)).toEqual([project.id]);
+
+  const path = `/api/research/projects/${project.id}`;
+  const updated = await send("PATCH", path, owner, { dataBudgetUsd: 7.5 });
+  expect(await updated.json()).toMatchObject({ dataBudgetUsd: 7.5 });
+  expect((await call(path, { headers: { cookie: owner } })).status).toBe(200);
+
+  expect((await send("DELETE", path, owner)).status).toBe(204);
+  expect((await call(path, { headers: { cookie: owner } })).status).toBe(404);
+});
+
+it("keeps projects private to their owner", async () => {
+  const project = await (await create()).json();
+  const path = `/api/research/projects/${project.id}`;
+  for (const response of [
+    await call(path, { headers: { cookie: other } }),
+    await send("PATCH", path, other, { name: "mine" }),
+    await send("DELETE", path, other),
+  ]) {
+    expect(response.status).toBe(404);
+    expect((await response.json()).error.code).toBe(
+      "RESEARCH_PROJECT_NOT_FOUND",
+    );
+  }
+  const { items } = await (
+    await call("/api/research/projects", { headers: { cookie: other } })
+  ).json();
+  expect(items).toEqual([]);
+});
+
+it("rejects invalid input and needs a session", async () => {
+  const invalid = await send("POST", "/api/research/projects", owner, {
+    name: "x",
+    seeds: [],
+  });
+  expect(invalid.status).toBe(400);
+  expect((await invalid.json()).error.code).toBe("INVALID_INPUT");
+  expect((await call("/api/research/projects")).status).toBe(401);
+});
+
+it("allows 30 project writes a minute, then answers 429", async () => {
+  for (let i = 0; i < 30; i++)
+    expect((await create()).status, `write ${i + 1}`).toBe(201);
+  const limited = await create();
+  expect(limited.status).toBe(429);
+  // Reads are not limited.
+  expect(
+    (await call("/api/research/projects", { headers: { cookie: owner } }))
+      .status,
+  ).toBe(200);
+});

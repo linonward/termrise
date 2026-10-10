@@ -15,6 +15,7 @@ export const CLIENT_NAMESPACES = [
   "meta",
   "nav",
   "pricing",
+  "research",
   "status",
   "tasks",
 ] as const satisfies readonly (keyof Messages)[];

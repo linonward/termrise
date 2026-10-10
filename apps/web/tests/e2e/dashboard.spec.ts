@@ -28,8 +28,14 @@ test("an early access user sees the welcome without credits, and needs a session
     page.getByRole("heading", { level: 1, name: "Welcome back" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Research projects are on the way" }),
+    page.getByRole("heading", { name: "Your research projects" }),
   ).toBeVisible();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "Go to Research" })
+    .click();
+  await expect(page).toHaveURL(/\/research$/);
+  await page.goto("/dashboard");
   await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   await expect(page.getByLabel("Text")).toHaveCount(0);
   for (const path of ["/billing", "/pricing"])

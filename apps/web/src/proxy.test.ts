@@ -16,6 +16,13 @@ it("redirects a visitor without a session cookie to sign-in, keeping the target"
   );
 });
 
+it("protects research project pages the same way", async () => {
+  const response = await proxy(request("/research/abc"));
+  expect(response.headers.get("location")).toBe(
+    "http://localhost:3000/sign-in?next=%2Fresearch%2Fabc",
+  );
+});
+
 // Optimistic check only: no database here. The (dashboard) layout validates the
 // session; tests/e2e/dashboard.spec.ts covers a forged cookie end to end.
 it("lets a request with a session cookie through without reading the database", async () => {

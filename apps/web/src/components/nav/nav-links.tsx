@@ -9,6 +9,7 @@ import product from "@product";
 // No Billing link while the product does not charge (product.config.ts billingEnabled).
 const links = [
   { href: "/dashboard", key: "dashboard" },
+  { href: "/research", key: "research" },
   ...(product.billingEnabled
     ? [{ href: "/billing", key: "billing" } as const]
     : []),

@@ -130,7 +130,8 @@
     "localeName": {
       "en": "English",
       "zh": "简体中文"
-    }
+    },
+    "research": "Research"
   },
   "dashboard": {
     "welcome": "Welcome back, {name}",
@@ -141,9 +142,11 @@
     "estimate": "≈ {uses, plural, one {# run} other {# runs}}",
     "refundNote": "Failed runs are refunded automatically.",
     "buyCredits": "Buy credits",
-    "earlyAccessSubtitle": "Your research projects will appear here.",
-    "comingTitle": "Research projects are on the way",
-    "comingBody": "Soon you can create a research project here, collect rising terms and review the opportunities they lead to."
+    "earlyAccessSubtitle": "Continue a research project or start a new one.",
+    "researchTitle": "Your research projects",
+    "researchEmpty": "You have no research projects yet.",
+    "researchCta": "Go to Research",
+    "researchAll": "All projects"
   },
   "status": {
     "PENDING": "Running",
@@ -518,7 +521,9 @@
     "INTERNAL_ERROR": "Something went wrong on our side. Try again.",
     "NETWORK_ERROR": "Can't reach the server. Check your connection and try again.",
     "TASK_NOT_FOUND": "This task doesn't exist.",
-    "NOT_FOUND": "This page or record doesn't exist."
+    "NOT_FOUND": "This page or record doesn't exist.",
+    "RESEARCH_PROJECT_NOT_FOUND": "This research project doesn't exist.",
+    "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed."
   },
   "errorPage": {
     "title": "Something went wrong",
@@ -654,5 +659,60 @@
     "empty": "No runs yet.",
     "emptyHint": "Enter some text and run your first task.",
     "buyCredits": "Buy credits"
+  },
+  "research": {
+    "metaTitle": "Research",
+    "title": "Research",
+    "subtitle": "Each project starts from seed terms in one market. Projects stay drafts until you run them.",
+    "projects": "Projects",
+    "column": {
+      "name": "Name",
+      "seeds": "Seeds",
+      "status": "Status",
+      "created": "Created"
+    },
+    "emptyTitle": "No research projects yet",
+    "emptyBody": "Create one with a few seed terms you want to explore.",
+    "newTitle": "New research project",
+    "name": "Name",
+    "seeds": "Seed terms",
+    "seedsHint": "One per line, up to {max}.",
+    "market": "Market",
+    "marketValue": "United States · English",
+    "dataBudget": "Data budget (USD)",
+    "aiBudget": "AI budget (USD)",
+    "create": "Create project",
+    "creating": "Creating…",
+    "back": "Research",
+    "editTitle": "Seeds and budgets",
+    "editNote": "You can edit a draft. Seeds and budgets lock when the project runs.",
+    "lockedNote": "This project is running, so its seeds and budgets can no longer change.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Changes saved.",
+    "summarySeeds": "Seed terms",
+    "summaryDataBudget": "Data budget",
+    "summaryAiBudget": "AI budget",
+    "deleteHint": "Deleting a draft removes it and its seed terms.",
+    "delete": "Delete project",
+    "deleteConfirm": "Delete this project?",
+    "deleteYes": "Yes, delete",
+    "deleteKeep": "Keep project",
+    "deleting": "Deleting…",
+    "status": {
+      "draft": "Draft",
+      "collecting": "Collecting",
+      "expanding": "Expanding",
+      "enriching": "Enriching",
+      "clustering": "Clustering",
+      "auditing": "Auditing",
+      "evaluating": "Evaluating",
+      "completed": "Completed",
+      "partial": "Partial",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "budget_exhausted": "Budget used up"
+    },
+    "created": "Created"
   }
 }

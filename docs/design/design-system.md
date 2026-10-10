@@ -212,6 +212,8 @@ App Icon / favicon（`apps/web/src/app/icon.svg`、`apps/web/src/app/apple-icon.
 
 Dashboard：标题下是 `surface` 的 Credits 卡片（余额 36 / 700 `tabular-nums`，桌面端右侧 `Button/Secondary` 的 Buy credits），下方是 TaskPanel：`textarea`（`border-strong` 描边、`radius-md`，焦点环 `brand`）、`Button/Large`、`border` 描边的结果列表。
 
+Research（`/research`、`/research/:id`）：画板 `Research / Desktop`、`Research Project / Desktop`、`Research / Mobile · Empty`。列表与 Billing 的表格同一样式；新建表单为 `border` 描边、`radius-lg` 的面板（移动端去掉描边），输入框同 TaskPanel 的 textarea（高 44）；详情页右侧是 `surface` 摘要（12 / 600 大写标签 + 24 / 600 数值）。研究状态徽章沿用 Status 一节的样式。
+
 Billing（`/billing`）：标题下依次是 Checkout 提示、`surface` 余额面板、订阅面板（有订阅时）、Credit 明细表、购买记录表。订阅面板用 `border` 描边、`radius-lg`，无底色；左侧是 12 / 600 大写 `muted-foreground` 标签、方案名（24 / 600）+ 状态徽章（样式同购买记录的状态徽章：ACTIVE `success-soft`，PAST_DUE `warning-soft`，CANCELING `surface-strong`）、15 号 `muted-foreground` 的续费或结束日期；PAST_DUE 时改为说明文字 + 600 字重下划线链接；桌面端右侧是 `Button/Secondary` 的 Cancel subscription（只在订阅已激活、状态为 ACTIVE 或 PAST_DUE 时显示），确认时并排 `Button` destructive 和 `Button/Secondary`。表头 12 / 600 大写 `muted-foreground`，行间 `border` 分隔。Credit 明细四列：日期、内容、Credits、余额。Credits 列 600 字重；增加写作 `+n`，用 `success`；减少写作 `−n`（U+2212），用 `foreground`。表格下方居中放 `Button/Secondary` 的 Load more（无图标）。
 
 Admin：内部页面，只做桌面端。顶栏只有 Logo 和 `surface-strong` 的 `ADMIN` 标签，不用 `Top Nav`。用户详情页：`surface` 面板左侧是余额和对账结果，右侧是调整 Credits 表单；下方三张表（Credit 流水、Tasks、Purchases）与 Billing 的表格样式相同。

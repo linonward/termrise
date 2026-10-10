@@ -25,6 +25,10 @@
 
 /dashboard
 
+/research
+
+/research/:id
+
 /billing
 ```
 
@@ -32,7 +36,7 @@
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/dashboard`、`/research` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -209,7 +213,7 @@ Pack 下方每个订阅方案一张横向卡片：名称 + Subscription 标签�
 
 `/dashboard`
 
-`billingEnabled` 为 `false` 时（抢先体验）：标题 + 「研究项目会显示在这里」说明 + 「研究项目即将上线」空状态；不显示 Credits 卡片和 TaskPanel。Research Project Slice 用研究项目列表替换空状态。
+`billingEnabled` 为 `false` 时（抢先体验）：标题 + 说明 + 「你的研究项目」：最新 5 个项目（名称 → `/research/:id`、状态徽章）和 All projects 链接；没有项目时显示空状态和 [Go to Research]。不显示 Credits 卡片和 TaskPanel。
 
 `billingEnabled` 为 `true` 时：
 
@@ -241,7 +245,7 @@ Text（textarea，最多 500 字符）
 Dashboard 顶栏 `AppNav`：
 
 ```text
-Logo · Dashboard · Billing · Credits pill（→ /billing）· 用户菜单（Billing 与 Credits pill 只在 billingEnabled 时）
+Logo · Dashboard · Research · Billing · Credits pill（→ /billing）· 用户菜单（Billing 与 Credits pill 只在 billingEnabled 时）
 ```
 
 用户菜单：
@@ -257,6 +261,36 @@ Logout
 ```
 
 移动端：链接、Email、语言、主题和 Logout 收进菜单抽屉。
+
+---
+
+## Research
+
+`/research`（设计稿：`docs/design/exports/research-desktop.png`、`research-mobile-empty.png`）：
+
+```text
+标题 + 说明
+桌面端：左侧 Projects 表（名称 → 详情、种子词数、状态徽章、创建时间），右侧描边面板 New research project
+移动端：Projects 在上，表单在下（无描边面板）
+没有项目时：Projects 下显示空状态（No research projects yet）
+```
+
+- 表单：Name、Seed terms（textarea，每行一个，最多 50 个；提交前在浏览器按 API 的规则规范化）、Market（只读，United States · English）、Data budget / AI budget（美元，默认 20 / 5）、[Create project]。成功后进入详情页。
+- 错误按 API 错误码显示在表单下方（`errors.*`）。
+
+`/research/:id`（设计稿：`docs/design/exports/research-project-desktop.png`）：
+
+```text
+← Research
+项目名 + 状态徽章
+市场 · Created 时间
+左侧：Seeds and budgets 编辑面板（同一表单，[Save changes]，保存后显示 Changes saved.）
+右侧：surface 摘要（种子词数、两项预算）+ 删除（只在 draft 时：两次点击，第二次确认）
+```
+
+- 不是 draft 时表单只读，说明改为「项目正在运行，不能再改」，不显示删除。
+- 不属于当前用户或不存在的项目返回 404 页面。
+- 状态徽章样式见 design-system.md 的 Status：draft 为 `surface-strong` + `pencil-line`；运行中各状态为 `info-soft` + `loader-circle`；completed 为 `success-soft`；failed、budget_exhausted 为 `destructive-soft`；cancelled、partial 为 `surface-strong`。
 
 ---
 
