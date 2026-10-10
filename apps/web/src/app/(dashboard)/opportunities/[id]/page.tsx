@@ -14,6 +14,7 @@ import type {
 import { WEIGHTS } from "@repo/research/scoring";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { BriefPanel } from "@/features/opportunities/brief-panel";
 import { DecisionForm } from "@/features/opportunities/decision-form";
 import { ExperimentForm } from "@/features/opportunities/experiment-form";
 import { ExperimentProgress } from "@/features/opportunities/experiment-progress";
@@ -46,6 +47,20 @@ async function loadOpportunity(id: string) {
   return (await response.json()) as Detail;
 }
 
+async function loadBrief(id: string) {
+  const response = await apiRequest(
+    `/api/opportunities/${encodeURIComponent(id)}/brief.md`,
+  );
+  if (response.status === 404) notFound();
+  if (!response.ok)
+    throw new Error(`API /api/opportunities brief failed: ${response.status}`);
+  const fileName =
+    /filename="([^"]+)"/.exec(
+      response.headers.get("Content-Disposition") ?? "",
+    )?.[1] ?? "brief.md";
+  return { markdown: await response.text(), fileName };
+}
+
 export async function generateMetadata({
   params,
 }: PageProps<"/opportunities/[id]">) {
@@ -59,7 +74,8 @@ const dimensions = Object.keys(WEIGHTS) as (keyof typeof WEIGHTS)[];
 export default async function OpportunityPage({
   params,
 }: PageProps<"/opportunities/[id]">) {
-  const o = await loadOpportunity((await params).id);
+  const { id } = await params;
+  const [o, brief] = await Promise.all([loadOpportunity(id), loadBrief(id)]);
   const t = await getTranslations("opportunities");
   const td = await getTranslations("decisions");
   const format = await getFormatter();
@@ -360,6 +376,15 @@ export default async function OpportunityPage({
           )}
         </section>
       </div>
+      <section aria-labelledby="brief-title" className="space-y-4">
+        <div className="space-y-2">
+          <h2 id="brief-title" className="font-heading text-2xl font-semibold">
+            {td("briefTitle")}
+          </h2>
+          <p className="text-[15px] text-muted-foreground">{td("briefBody")}</p>
+        </div>
+        <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+      </section>
       <section aria-labelledby="keywords-title" className="space-y-4">
         <h2 id="keywords-title" className="font-heading text-2xl font-semibold">
           {t("keywordsTitle")}{" "}

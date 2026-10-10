@@ -104,4 +104,14 @@ test("decides with a reason after planning and running an experiment", async ({
   await expect(page.getByTestId("decision")).toHaveCount(2);
   await expect(page.getByTestId("decision").first()).toContainText("Go");
   await expect(page.getByLabel("Go: build it")).toHaveCount(0);
+
+  // The brief includes the decision and the experiment, and downloads as Markdown.
+  await page.getByText("Preview").click();
+  const preview = page.getByTestId("brief-preview");
+  await expect(preview).toContainText("# Product Brief: meeting notes");
+  await expect(preview).toContainText("4 pre-orders in a week");
+  await expect(preview).toContainText("Reps pay for summaries");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download Markdown" }).click();
+  expect((await download).suggestedFilename()).toBe("brief-meeting-notes.md");
 });

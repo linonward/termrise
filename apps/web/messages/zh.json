@@ -911,6 +911,15 @@
     },
     "nextStatus": "新状态",
     "resultNote": "结果",
-    "resultNoteHint": "你观察到的结果。通过或未通过时必填。"
+    "resultNoteHint": "你观察到的结果。通过或未通过时必填。",
+    "briefTitle": "产品 Brief",
+    "briefBody": "给 Codex 等编码 Agent 的 Markdown，由上面的证据、分析、实验和决策生成。开发前先补全未勾选的清单项。"
+  },
+  "brief": {
+    "download": "下载 Markdown",
+    "copy": "复制",
+    "copied": "已复制",
+    "copyFailed": "浏览器不允许复制。请下载文件。",
+    "preview": "预览"
   }
 }

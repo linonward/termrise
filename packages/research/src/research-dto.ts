@@ -187,3 +187,25 @@ export function toExperimentDto(e: typeof validationExperiments.$inferSelect) {
 }
 
 export type ExperimentDto = ReturnType<typeof toExperimentDto>;
+
+/** The detail page's data: the opportunity, its evidence, decisions and experiments. */
+export function toOpportunityDetailDto(
+  detail: Parameters<typeof toOpportunityDto>[0] & {
+    keywords: Parameters<typeof toKeywordDto>[0][];
+    serps: Parameters<typeof toSerpDto>[0][];
+    signals: SourceSignal[];
+    decisions: Parameters<typeof toDecisionDto>[0][];
+    experiments: (typeof validationExperiments.$inferSelect)[];
+  },
+) {
+  return {
+    ...toOpportunityDto(detail),
+    keywords: detail.keywords.map(toKeywordDto),
+    serps: detail.serps.map(toSerpDto),
+    signals: detail.signals.map(toSourceSignalDto),
+    decisions: detail.decisions.map(toDecisionDto),
+    experiments: detail.experiments.map(toExperimentDto),
+  };
+}
+
+export type OpportunityDetailDto = ReturnType<typeof toOpportunityDetailDto>;

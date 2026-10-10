@@ -39,6 +39,8 @@ GET /api/opportunities（当前用户的当前机会，分数高的在前；?pro
 
 GET /api/opportunities/:id（机会、当前评估与证据：keywords、serps、signals，以及 decisions（新的在前）和 experiments；不属于当前用户或不存在时 404 OPPORTUNITY_NOT_FOUND）
 
+GET /api/opportunities/:id/brief.md（Product Brief，`text/markdown; charset=utf-8`，`Content-Disposition: attachment; filename="brief-<组名>.md"`；见 data-model.md 的 Product Brief）
+
 POST /api/opportunities/:id/decisions（{ decision, reason }，成功返回 201；当前状态不允许时 409 OPPORTUNITY_DECISION_INVALID；见 data-model.md 的 Decisions and Experiments）
 
 POST /api/opportunities/:id/experiments（{ kind, hypothesis, channel, metric, budgetUsd, durationDays, successThreshold, stopCondition }，成功返回 201 + 实验）

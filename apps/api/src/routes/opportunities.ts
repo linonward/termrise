@@ -1,14 +1,12 @@
 import type { Context } from "hono";
 
+import { briefFileName, buildBrief } from "@repo/research/brief";
 import { createOpportunityDecisions } from "@repo/research/opportunity-decisions";
 import { createOpportunityResults } from "@repo/research/opportunity-results";
 import {
-  toDecisionDto,
   toExperimentDto,
-  toKeywordDto,
+  toOpportunityDetailDto,
   toOpportunityDto,
-  toSerpDto,
-  toSourceSignalDto,
 } from "@repo/research/research-dto";
 
 import type { AppEnv } from "../env";
@@ -31,15 +29,21 @@ export const opportunityRoutes = userRoutes()
     );
     return c.json({ items: items.map(toOpportunityDto) });
   })
-  .get("/:id", async (c) => {
-    const detail = await results(c).get(c.var.user.id, c.req.param("id"));
-    return c.json({
-      ...toOpportunityDto(detail),
-      keywords: detail.keywords.map(toKeywordDto),
-      serps: detail.serps.map(toSerpDto),
-      signals: detail.signals.map(toSourceSignalDto),
-      decisions: detail.decisions.map(toDecisionDto),
-      experiments: detail.experiments.map(toExperimentDto),
+  .get("/:id", async (c) =>
+    c.json(
+      toOpportunityDetailDto(
+        await results(c).get(c.var.user.id, c.req.param("id")),
+      ),
+    ),
+  )
+  // The Product Brief as a Markdown download (docs/architecture/api.md).
+  .get("/:id/brief.md", async (c) => {
+    const detail = toOpportunityDetailDto(
+      await results(c).get(c.var.user.id, c.req.param("id")),
+    );
+    return c.body(buildBrief(detail), 200, {
+      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${briefFileName(detail)}"`,
     });
   })
   .post("/:id/decisions", rateLimit("research"), async (c) => {
