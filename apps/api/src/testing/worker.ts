@@ -22,6 +22,9 @@ export function testBindings(
     R2_ACCESS_KEY_ID: "test-access-key",
     R2_SECRET_ACCESS_KEY: "test-secret-key",
     R2_BUCKET: "test-bucket",
+    PAYMENT_PROVIDER: "waffo",
+    WAFFO_MERCHANT_ID: "MER_2aUyqjCzEIiEcYMKj7TZtw",
+    WAFFO_PRIVATE_KEY: "test-private-key",
     ...overrides,
   };
 }

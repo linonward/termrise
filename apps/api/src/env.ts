@@ -36,6 +36,12 @@ const schema = z
     /** Local S3-compatible server (docker-compose.yml); never set in production. */
     R2_ENDPOINT: z.url().optional(),
     STORAGE_PROVIDER: z.enum(["r2", "fake"]).default("r2"),
+    // Credit Packs and subscriptions (docs/architecture/billing.md).
+    PAYMENT_PROVIDER: z.enum(["waffo", "fake"]),
+    WAFFO_MERCHANT_ID: z.string().min(1).optional(),
+    WAFFO_PRIVATE_KEY: z.string().min(1).optional(),
+    /** Must match the API key: prod only in Production. */
+    WAFFO_ENVIRONMENT: z.enum(["test", "prod"]).default("test"),
     /** Only E2E sets it. Workers have no NODE_ENV, so fake providers always need it. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })
@@ -48,8 +54,21 @@ const schema = z
             path: [key],
             message: "required when TASK_PROVIDER=deepseek",
           });
+    if (env.PAYMENT_PROVIDER === "waffo")
+      for (const key of ["WAFFO_MERCHANT_ID", "WAFFO_PRIVATE_KEY"] as const)
+        if (!env[key])
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "required when PAYMENT_PROVIDER=waffo",
+          });
+    // The fake payment webhook's signature is a public constant: anyone could fake a payment.
     if (!env.ALLOW_FAKE_PROVIDERS)
-      for (const key of ["TASK_PROVIDER", "STORAGE_PROVIDER"] as const)
+      for (const key of [
+        "TASK_PROVIDER",
+        "STORAGE_PROVIDER",
+        "PAYMENT_PROVIDER",
+      ] as const)
         if (env[key] === "fake")
           ctx.addIssue({
             code: "custom",
@@ -85,6 +104,6 @@ export type AppEnv = {
     /** Runs a task after the response, before the connection closes. */
     defer: (task: () => Promise<void>) => void;
     /** The signed-in user (middleware/session.ts). */
-    user: { id: string };
+    user: { id: string; email: string };
   };
 };

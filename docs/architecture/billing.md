@@ -260,9 +260,9 @@ normalize
 
 字段：`eventId` = `{eventType}:{eventId}`；`purchaseId` = `data.orderMerchantExternalId`（缺失时取 `data.orderMetadata.purchaseId`）；`providerOrderId` = `data.orderId`；`providerPaymentId` = `data.paymentId`。订阅事件用 `subscriptionId` 代替 `purchaseId`（`data.orderMerchantExternalId`，缺失时取 `data.orderMetadata.subscriptionId`）。
 
-环境：`VERCEL_ENV=production` 时为 `prod`（使用 prod API Key），其他环境为 `test`。`event.mode` 与当前环境不一致时，按签名无效处理（401）。所以 Preview 或本地使用 prod Key 时，所有 webhook 都返回 401。
+环境：`apps/api` 的 `WAFFO_ENVIRONMENT` binding，Production 为 `prod`（使用 prod API Key），其他环境为 `test`（默认）。web 的页面仍按 `VERCEL_ENV=production` 判断，直到页面改为调用 API。`event.mode` 与当前环境不一致时，按签名无效处理（401）。所以 Preview 或本地使用 prod Key 时，所有 webhook 都返回 401。
 
-Webhook 路由：`POST /api/webhooks/waffo`。当前 Provider 校验签名：测试环境用 Fake Provider，它只接受自己签名的事件。签名无效 401；与业务无关的事件 200；处理失败 500（Waffo 会重试）。`purchaseId` 不是 UUID、找不到，或属于其他 Provider 时，记录 `billing.unknown_purchase`（warn）并返回 200；订阅事件同样处理，记录 `billing.unknown_subscription`（warn）。
+Webhook 路由：`apps/api` 的 `POST /api/webhooks/waffo`（`apps/api/src/routes/webhooks.ts`）。`@waffo/pancake-ts` 用 `node:crypto` 的 RSA 签名，S08 在 `wrangler dev`（workerd）上验证过：请求签名可被商户公钥验证，平台签名的 webhook 通过，其他 key 签名的被拒绝。当前 Provider 校验签名：测试环境用 Fake Provider，它只接受自己签名的事件。签名无效 401；与业务无关的事件 200；处理失败 500（Waffo 会重试）。`purchaseId` 不是 UUID、找不到，或属于其他 Provider 时，记录 `billing.unknown_purchase`（warn）并返回 200；订阅事件同样处理，记录 `billing.unknown_subscription`（warn）。
 
 ---
 

@@ -5,13 +5,14 @@ import { createCreditService } from "@repo/credits/credit-service";
 import { creditTransactions, purchases, subscriptions } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import { E2E_API_URL } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
 // API-only; one browser project is enough. E2E runs with PAYMENT_PROVIDER=fake.
 test.skip(({ isMobile }) => isMobile);
 test.afterAll(closeTestDb);
 
-const URL = "/api/webhooks/waffo";
+const URL = `${E2E_API_URL}/api/webhooks/waffo`;
 const signed = { "x-fake-signature": "fake-payment-signature" };
 
 test("verified webhooks grant once and refunds reverse", async ({
@@ -19,7 +20,7 @@ test("verified webhooks grant once and refunds reverse", async ({
   request,
 }) => {
   const { userId } = await signIn(context);
-  const checkout = await context.request.post("/api/checkout", {
+  const checkout = await context.request.post(`${E2E_API_URL}/api/checkout`, {
     data: { packId: "starter" },
   });
   expect(checkout.status()).toBe(201);
@@ -77,7 +78,9 @@ test("a subscription grants each payment once and blocks a second subscription",
 }) => {
   const { userId } = await signIn(context);
   const checkout = () =>
-    context.request.post("/api/checkout", { data: { planId: "monthly" } });
+    context.request.post(`${E2E_API_URL}/api/checkout`, {
+      data: { planId: "monthly" },
+    });
   expect((await checkout()).status()).toBe(201);
   const [sub] = await testDb()
     .select()

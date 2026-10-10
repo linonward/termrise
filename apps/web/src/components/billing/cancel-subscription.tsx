@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 
 import { errorCodeOf } from "@/lib/api-error";
+import { apiFetch } from "@/lib/api-fetch";
 
 // Two clicks: the first asks for confirmation, the second cancels in Waffo.
 export function CancelSubscription() {
@@ -18,7 +19,7 @@ export function CancelSubscription() {
   async function cancel() {
     setPending(true);
     setError(undefined);
-    const response = await fetch("/api/billing/subscription/cancel", {
+    const response = await apiFetch("/api/billing/subscription/cancel", {
       method: "POST",
     }).catch(() => null);
     if (response?.ok) {

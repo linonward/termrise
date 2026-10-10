@@ -77,7 +77,7 @@ Termrise 的 `apps/worker` 运行在 Cloudflare Containers（需要 Workers Paid
 | 服务         | 配置                                                                                                                                         |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Google OAuth | Authorized redirect URI：`https://api.example.com/api/auth/callback/google`；Authorized JavaScript origins（One Tap）：`https://example.com` |
-| Waffo        | Webhook URL：`https://example.com/api/webhooks/waffo`                                                                                        |
+| Waffo        | Webhook URL：`https://api.example.com/api/webhooks/waffo`                                                                                    |
 | R2           | `infra/r2/cors-prod.json` 的 origins                                                                                                         |
 | Resend       | 发信域名的 SPF / DKIM 记录，与 `EMAIL_FROM` 一致                                                                                             |
 

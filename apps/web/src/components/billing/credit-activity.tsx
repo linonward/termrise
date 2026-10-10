@@ -8,6 +8,7 @@ import type { CreditActivityDto } from "@repo/credits/credit-activity";
 import { Button } from "@repo/ui/components/button";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { apiFetch } from "@/lib/api-fetch";
 
 export function CreditActivity({
   initial,
@@ -27,7 +28,7 @@ export function CreditActivity({
   async function loadMore() {
     setLoading(true);
     setError(false);
-    const response = await fetch(
+    const response = await apiFetch(
       `/api/billing/credit-activity?cursor=${encodeURIComponent(cursor!)}`,
     ).catch(() => null);
     const body = response?.ok ? await response.json() : null;

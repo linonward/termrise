@@ -11,6 +11,7 @@ import { Button } from "@repo/ui/components/button";
 
 import { RelativeTime } from "@/components/relative-time";
 import { errorCodeOf, type ApiErrorCode } from "@/lib/api-error";
+import { apiFetch } from "@/lib/api-fetch";
 
 // Example paid action (docs/architecture/tasks.md): replace the form and the
 // result list with the product's own feature.
@@ -34,16 +35,11 @@ export function TaskPanel({
     setPending(true);
     setError(undefined);
     track("task_started", { inputLength: input.length });
-    // apps/api runs tasks; NEXT_PUBLIC_API_URL is inlined at build time.
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ requestId: crypto.randomUUID(), input }),
-      },
-    ).catch(() => null);
+    const response = await apiFetch("/api/tasks", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ requestId: crypto.randomUUID(), input }),
+    }).catch(() => null);
     const body = await response?.json().catch(() => null);
     setPending(false);
     if (!response?.ok) {

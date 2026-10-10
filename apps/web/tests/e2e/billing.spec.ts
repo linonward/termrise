@@ -9,7 +9,7 @@ import { createBillingService } from "@repo/billing/billing-service";
 import { purchases, subscriptions } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
-import { e2eEnv } from "../setup/e2e-env";
+import { E2E_API_URL, e2eEnv } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
@@ -201,17 +201,19 @@ test("checkout API needs a session and a valid pack", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "API-only");
-  const anonymous = await request.post("/api/checkout", {
+  const anonymous = await request.post(`${E2E_API_URL}/api/checkout`, {
     data: { packId: "starter" },
   });
   expect(anonymous.status()).toBe(401);
   await signIn(context);
-  const tampered = await context.request.post("/api/checkout", {
+  const tampered = await context.request.post(`${E2E_API_URL}/api/checkout`, {
     data: { packId: "enterprise", credits: 10000 },
   });
   expect(tampered.status()).toBe(400);
   expect((await tampered.json()).error.code).toBe("INVALID_INPUT");
-  const list = await context.request.get("/api/billing/purchases");
+  const list = await context.request.get(
+    `${E2E_API_URL}/api/billing/purchases`,
+  );
   expect(await list.json()).toEqual({ purchases: [] });
 });
 
@@ -221,17 +223,21 @@ test("credit activity API needs a session and a valid cursor", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "API-only");
-  const anonymous = await request.get("/api/billing/credit-activity");
+  const anonymous = await request.get(
+    `${E2E_API_URL}/api/billing/credit-activity`,
+  );
   expect(anonymous.status()).toBe(401);
   await signIn(context);
-  const list = await context.request.get("/api/billing/credit-activity");
+  const list = await context.request.get(
+    `${E2E_API_URL}/api/billing/credit-activity`,
+  );
   const body = await list.json();
   expect(body.nextCursor).toBeNull();
   expect(body.transactions).toMatchObject([
     { type: "SIGNUP_BONUS", amount: 10, balanceAfter: 10 },
   ]);
   const bad = await context.request.get(
-    "/api/billing/credit-activity?cursor=nope",
+    `${E2E_API_URL}/api/billing/credit-activity?cursor=nope`,
   );
   expect(bad.status()).toBe(400);
 });
@@ -275,7 +281,7 @@ async function paidSubscription(
   // null: paid, but the activation event has not arrived yet.
   status: "ACTIVE" | "PAST_DUE" | null,
 ) {
-  const checkout = await context.request.post("/api/checkout", {
+  const checkout = await context.request.post(`${E2E_API_URL}/api/checkout`, {
     data: { planId: "monthly" },
   });
   expect(checkout.status()).toBe(201);
@@ -369,10 +375,12 @@ test("subscription cancel API needs a session and a subscription", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "API-only");
-  const url = "/api/billing/subscription/cancel";
-  expect((await request.post(url)).status()).toBe(401);
+  const url = `${E2E_API_URL}/api/billing/subscription/cancel`;
+  // As the browser sends it; a body-less post without an Origin fails the CSRF check.
+  const headers = { origin: e2eEnv.APP_URL };
+  expect((await request.post(url, { headers })).status()).toBe(401);
   await signIn(context);
-  const none = await context.request.post(url);
+  const none = await context.request.post(url, { headers });
   expect(none.status()).toBe(404);
   expect((await none.json()).error.code).toBe("SUBSCRIPTION_NOT_FOUND");
 });

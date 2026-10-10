@@ -11,6 +11,6 @@ export const session = createMiddleware<AppEnv>(async (c, next) => {
     headers: c.req.raw.headers,
   });
   if (!current) throw new AppError("UNAUTHORIZED", "Sign in required");
-  c.set("user", { id: current.user.id });
+  c.set("user", { id: current.user.id, email: current.user.email });
   await next();
 });

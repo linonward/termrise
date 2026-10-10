@@ -13,16 +13,6 @@ POST /api/uploads（{ contentType, size, extension }，返回签名上传 URL，
 
 POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横幅选择，成功返回 204，见 observability.md）
 
-GET /api/health（同 web 的 /api/health）
-
-/api/auth/*（Better Auth）
-```
-
-`apps/api` 的已登录路由从 `userRoutes()`（`apps/api/src/routes/user-routes.ts`）开始，按顺序使用这些 middleware（`apps/api/src/middleware/`），不手写这些步骤：`webCors`（只允许 `APP_URL`，带 cookie）→ `webCsrf`（form 与 `text/plain` 请求不经过 CORS preflight，只接受 `APP_URL` 的 Origin，否则 `403 FORBIDDEN`）→ `database`（每请求一个连接）→ `session`（`c.var.user`，未登录 `401 UNAUTHORIZED`）→ 可选的 `rateLimit("task")`（key 为 `task:{userId}`）。JSON body 用 `readJson(c)`（`apps/api/src/http.ts`）读取，不是 JSON 时返回 `400 INVALID_INPUT`。错误由 `onError` 的 `errorHandler` 转为 Error Contract。浏览器调用时用 `NEXT_PUBLIC_API_URL` 加路径，并设置 `credentials: "include"`。
-
-web 的路由（`apps/web/src/app/api/`），按 ADR-012 的迁移顺序逐步迁到 `apps/api`：
-
-```text
 POST /api/checkout（{ packId } 或 { planId }，成功返回 201 { checkoutUrl }；已有已付款订阅时 { planId } 返回 409 SUBSCRIPTION_EXISTS，见 billing.md 的 Subscriptions）
 
 GET /api/billing/purchases（先把超过 60 分钟的 PENDING 购买改为 FAILED，见 Pending Expiry，再返回当前用户的购买记录）
@@ -31,42 +21,22 @@ GET /api/billing/credit-activity?cursor=（Credit 明细，每页 20 条）
 
 POST /api/billing/subscription/cancel（取消当前订阅，返回 200 { status, currentPeriodEnd }；没有可取消的订阅返回 404 SUBSCRIPTION_NOT_FOUND，见 billing.md 的 Cancel Subscription）
 
-POST /api/webhooks/waffo
+POST /api/webhooks/waffo（Waffo 调用，见 billing.md）
 
-GET /api/health（公开，给 uptime 监控用；数据库可用时 200 { status: "ok" }，否则 503 { status: "error" }，不缓存，见 observability.md 的 Uptime Monitoring）
+GET /api/health（同 web 的 /api/health）
+
+/api/auth/*（Better Auth）
 ```
 
-Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the API），web 不再提供这个路径。web 的页面和路由经 `NEXT_PUBLIC_API_URL` 调用 `GET /api/auth/get-session` 读取 session。
+`apps/api` 的已登录路由从 `userRoutes()`（`apps/api/src/routes/user-routes.ts`）开始，按顺序使用这些 middleware（`apps/api/src/middleware/`），不手写这些步骤：`webCors`（只允许 `APP_URL`，带 cookie）→ `webCsrf`（form 与 `text/plain` 请求不经过 CORS preflight，只接受 `APP_URL` 的 Origin，否则 `403 FORBIDDEN`）→ `database`（每请求一个连接）→ `session`（`c.var.user`，未登录 `401 UNAUTHORIZED`）→ 可选的 `rateLimit(name, key?)`（key 默认为 name，计数 key 为 `{key}:{userId}`；取消订阅用 `rateLimit("checkout", "subscription-cancel")`，同样的限额、单独计数）。JSON body 用 `readJson(c)`（`apps/api/src/http.ts`）读取，不是 JSON 时返回 `400 INVALID_INPUT`。错误由 `onError` 的 `errorHandler` 转为 Error Contract。
+
+Better Auth 在 `apps/api` 的 `/api/auth/*`（见 security.md 的 Auth on the API）。web 的页面经 `NEXT_PUBLIC_API_URL` 调用 `GET /api/auth/get-session` 读取 session；浏览器代码用 `apiFetch()`（`apps/web/src/lib/api-fetch.ts`）调用 API，它带上 cookie。
+
+web 只保留 `GET /api/health`（`apps/web/src/app/api/health/`，公开，给 uptime 监控用；数据库可用时 200 `{ status: "ok" }`，否则 503 `{ status: "error" }`，不缓存，见 observability.md 的 Uptime Monitoring）。web 的页面仍在服务端直接读取数据，直到 ADR-012 第 5 步改为调用 API。
 
 不得因为“以后可能用”提前创建 API。
 
-除 webhook 和 `/api/health` 外，所有路由都要求登录（`requireUser()`，经 `apps/api` 读取 session），未登录返回 `401 UNAUTHORIZED`。
-
-web 中需要登录的路由用 `userRoute()`（`apps/web/src/server/http/user-route.ts`）包装，不手写下面的步骤：
-
-```text
-withRequestContext（日志带 requestId）
-↓
-requireUser() → 未登录 401
-↓
-rate limit（可选）：rateLimit: "task" 的 key 为 task:{userId}；{ limit, key } 用同一限额、不同 key
-↓
-handler({ request, user })
-↓
-任何错误 → errorResponse()（见 Error Contract）
-```
-
-```ts
-export const POST = userRoute(
-  { rateLimit: "upload" },
-  async ({ request, user }) =>
-    Response.json(
-      await getUploadService().createUpload(user.id, await readJson(request)),
-    ),
-);
-```
-
-Route Handler 不导入 `@repo/db/*` 和 `drizzle-orm`（ESLint 检查）。读写数据只经 `@/server/*` 或 `@/features/*` 提供的 `getXService()`；可以从 `@repo/*` 导入不访问数据库的 DTO 函数，例如 `toCreditActivityDto`。
+除 webhook 和 `/api/health` 外，所有路由都要求登录，未登录返回 `401 UNAUTHORIZED`。webhook 由 Provider 调用：不经过 `userRoutes()`，没有 CORS 和 session，只用 `database` middleware。
 
 不使用 Cron API。需要定期处理的状态在读取时处理，例如 [Pending Expiry](billing.md#pending-expiry)。
 

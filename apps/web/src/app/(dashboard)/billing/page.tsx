@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { CreditPackId } from "@repo/billing/credit-packs";
+import { toPurchaseDto } from "@repo/billing/purchase-dto";
 import type { SubscriptionPlanId } from "@repo/billing/subscription-plans";
 import { toCreditActivityDto } from "@repo/credits/credit-activity";
 import { Button } from "@repo/ui/components/button";
@@ -16,7 +17,7 @@ import { SubscriptionStatus } from "@/components/billing/subscription-status";
 import { LocalDateTime } from "@/components/local-date-time";
 import { formatUsd } from "@/lib/format-usd";
 import { getRequestSession } from "@/server/auth/auth";
-import { getBillingService, toPurchaseDto } from "@/server/billing/billing";
+import { getBillingService } from "@/server/billing/billing";
 import { balanceForUser, getCreditService } from "@/server/credits/credits";
 
 export default async function BillingPage({
