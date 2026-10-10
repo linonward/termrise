@@ -31,6 +31,11 @@ export interface KeywordProvider {
   name: "fake" | "dataforseo";
   /** The most one call can cost, reserved from the data budget before it (budget.ts). */
   maxCostMicros: { expand: number; serp: number; difficulty?: number };
+  /**
+   * How long an answer may be reused instead of paid again (provider-cache.ts), per
+   * operation. Without it nothing is cached.
+   */
+  cacheTtlMs?: { expand: number; serp: number; difficulty: number };
   /** Ideas for one seed, the seed itself included, with their metrics. */
   expand(seed: string, market: Market): Promise<Charged<KeywordIdea[]>>;
   /**

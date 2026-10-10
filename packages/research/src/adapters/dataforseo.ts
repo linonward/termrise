@@ -22,6 +22,14 @@ export const DATAFORSEO_MAX_COST = {
   serp: 10_000,
   difficulty: 50_000,
 } as const;
+const DAY_MS = 24 * 60 * 60 * 1000;
+// Google Ads volumes are monthly figures and KD moves slowly: reuse for 30 days. Search
+// results change faster: 7 days.
+export const DATAFORSEO_CACHE_TTL_MS = {
+  expand: 30 * DAY_MS,
+  difficulty: 30 * DAY_MS,
+  serp: 7 * DAY_MS,
+} as const;
 /** Keywords per bulk difficulty call; the API takes up to 1000. */
 export const DIFFICULTY_BATCH = 200;
 /** Google Ads Live endpoints take 12 requests a minute per account. */
@@ -136,6 +144,7 @@ export function createDataForSeoProvider(deps: {
   return {
     name: "dataforseo",
     maxCostMicros: DATAFORSEO_MAX_COST,
+    cacheTtlMs: DATAFORSEO_CACHE_TTL_MS,
     async expand(seed, market) {
       await googleAdsTurn();
       const charged = await post(

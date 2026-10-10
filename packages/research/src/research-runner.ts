@@ -16,8 +16,14 @@ import { logger } from "@repo/observability/logger";
 
 import { createBudget } from "./budget";
 import { evaluateOpportunities } from "./evaluate";
-import type { KeywordIdea, KeywordProvider } from "./keyword-provider";
+import type {
+  Charged,
+  KeywordIdea,
+  KeywordProvider,
+  Market,
+} from "./keyword-provider";
 import type { OpportunityAnalyst } from "./opportunity-analyst";
+import { cacheKey, createProviderCache } from "./provider-cache";
 import { normalizeSeeds } from "./research-rules";
 
 export type ResearchRun = typeof researchRuns.$inferSelect;
@@ -237,6 +243,7 @@ export function createResearchRunner(deps: {
   const now = deps.now ?? (() => new Date());
   const budget = createBudget({ database, now });
   const runs = createRunQueue({ database, now });
+  const cache = createProviderCache({ database, now });
 
   async function setStage(
     run: ResearchRun,
@@ -305,28 +312,60 @@ export function createResearchRunner(deps: {
     maxCostMicros: provider.maxCostMicros[operation] ?? 0,
   });
 
+  /**
+   * A paid call through the cache: a fresh answer is reused for free; otherwise the call
+   * goes through the budget and its answer is kept. null when the budget is short.
+   */
+  async function cached<T>(
+    run: ResearchRun,
+    operation: "expand" | "serp",
+    market: Market,
+    params: unknown,
+    paid: () => Promise<Charged<T>>,
+  ): Promise<{ value: T; fetchedAt: Date } | null> {
+    const ttl = provider.cacheTtlMs?.[operation];
+    const request = { provider: provider.name, operation, market, params };
+    if (ttl) {
+      const hit = await cache.get<T>(request);
+      if (hit) {
+        logger.info("research.cache_hit", { runId: run.id, operation });
+        return hit;
+      }
+    }
+    const charged = await budget.charge(call(run, operation), paid);
+    if (!charged) return null;
+    if (ttl) await cache.set(request, charged.value, ttl);
+    return { value: charged.value, fetchedAt: now() };
+  }
+
   async function expand(
     run: ResearchRun,
     seeds: string[],
     market: { locationCode: number; languageCode: string },
   ) {
-    const ideas: { phrase: string; seed: string; idea: KeywordIdea }[] = [];
+    const ideas: {
+      phrase: string;
+      seed: string;
+      idea: KeywordIdea;
+      /** When the provider answered: now, or earlier for a cached answer. */
+      fetchedAt: Date;
+    }[] = [];
     const seen = new Set<string>();
     let budgetExhausted = false;
     for (const seed of seeds) {
       if (!(await active(run))) break;
-      const charged = await budget.charge(call(run, "expand"), () =>
+      const answer = await cached(run, "expand", market, seed, () =>
         provider.expand(seed, market),
       );
-      if (!charged) {
+      if (!answer) {
         budgetExhausted = true;
         break;
       }
-      for (const idea of charged.value) {
+      for (const idea of answer.value) {
         const [phrase] = normalizeSeeds([idea.phrase]);
         if (!phrase || seen.has(phrase)) continue;
         seen.add(phrase);
-        ideas.push({ phrase, seed, idea });
+        ideas.push({ phrase, seed, idea, fetchedAt: answer.fetchedAt });
       }
     }
     // Seeds always stay; expansions fill the rest up to the cap.
@@ -353,19 +392,53 @@ export function createResearchRunner(deps: {
       .map((i) => i.phrase);
     if (!difficulty || missing.length === 0)
       return { failed: false, budgetExhausted: false };
-    try {
-      const charged = await budget.charge(call(run, "difficulty"), () =>
-        difficulty(missing, market),
+    // Cached per phrase as { kd }; kd null is cached too: the provider has no data.
+    const ttl = provider.cacheTtlMs?.difficulty;
+    const request = (phrase: string) => ({
+      provider: provider.name,
+      operation: "difficulty",
+      market,
+      params: phrase,
+    });
+    const known = new Map<string, number | null>();
+    if (ttl) {
+      const hits = await cache.getMany<{ kd: number | null }>(
+        missing.map(request),
       );
-      if (!charged) return { failed: false, budgetExhausted: true };
+      for (const phrase of missing) {
+        const hit = hits.get(cacheKey(request(phrase)));
+        if (hit) known.set(phrase, hit.value.kd);
+      }
+    }
+    const merge = () => {
       for (const i of ideas) {
-        const kd = charged.value.get(i.phrase);
-        if (kd !== undefined && i.idea.metrics.keywordDifficulty === null)
+        const kd = known.get(i.phrase);
+        if (kd != null && i.idea.metrics.keywordDifficulty === null)
           i.idea = {
             ...i.idea,
             metrics: { ...i.idea.metrics, keywordDifficulty: kd },
           };
       }
+    };
+    const unknown = missing.filter((phrase) => !known.has(phrase));
+    if (unknown.length === 0) {
+      merge();
+      return { failed: false, budgetExhausted: false };
+    }
+    try {
+      const charged = await budget.charge(call(run, "difficulty"), () =>
+        difficulty(unknown, market),
+      );
+      if (!charged) {
+        merge();
+        return { failed: false, budgetExhausted: true };
+      }
+      for (const phrase of unknown) {
+        const kd = charged.value.get(phrase) ?? null;
+        known.set(phrase, kd);
+        if (ttl) await cache.set(request(phrase), { kd }, ttl);
+      }
+      merge();
       return { failed: false, budgetExhausted: false };
     } catch (error) {
       logger.warn("research.difficulty_failed", { runId: run.id, error });
@@ -398,10 +471,11 @@ export function createResearchRunner(deps: {
         .returning({ id: keywords.id, phrase: keywords.phrase });
       const idOf = new Map(rows.map((row) => [row.phrase, row.id]));
       await tx.insert(keywordMetricSnapshots).values(
-        ideas.map(({ phrase, idea }) => ({
+        ideas.map(({ phrase, idea, fetchedAt }) => ({
           keywordId: idOf.get(phrase)!,
           provider: provider.name,
           ...idea.metrics,
+          fetchedAt,
         })),
       );
       return ideas.map(({ phrase, idea }) => ({
@@ -426,15 +500,17 @@ export function createResearchRunner(deps: {
     for (const keyword of top) {
       if (!(await active(run))) break;
       let items;
+      let fetchedAt;
       try {
-        const charged = await budget.charge(call(run, "serp"), () =>
+        const answer = await cached(run, "serp", market, keyword.phrase, () =>
           provider.serp(keyword.phrase, market),
         );
-        if (!charged) {
+        if (!answer) {
           budgetExhausted = true;
           break;
         }
-        items = charged.value;
+        items = answer.value;
+        fetchedAt = answer.fetchedAt;
       } catch (error) {
         failures++;
         logger.warn("research.serp_failed", { keywordId: keyword.id, error });
@@ -448,6 +524,7 @@ export function createResearchRunner(deps: {
             provider: provider.name,
             device: "desktop",
             ...market,
+            fetchedAt,
           })
           .returning({ id: serpSnapshots.id });
         if (items.length > 0)
