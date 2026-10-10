@@ -17,6 +17,7 @@
     "@repo/credits": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/observability": "workspace:*",
+    "@repo/storage": "workspace:*",
     "@repo/tasks": "workspace:*",
     "hono": "^4.13.13",
     "zod": "^4.6.5"

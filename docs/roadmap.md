@@ -12,6 +12,7 @@
 | S04   | 迁移第 2 步（后端）：`apps/api` 提供 Better Auth（`/api/auth/*`）：CORS、跨子域名 cookie、web origin 上的绝对 callback、`cf-connecting-ip` 限流、登录邮件文案；`onUserCreated`、邮件发送、locale 移到 packages；web 不变                              | API 集成测试覆盖 preflight、Magic Link 登录、跳回 web、session；`wrangler dev` 上验证 link 校验、session 与注册奖励                                            | 已完成 |
 | S05   | 迁移第 2 步（切换）：web 的登录改用 `apps/api`：auth client 指向 `NEXT_PUBLIC_API_URL`、callback 为绝对 URL、登录邮件语言经 `Accept-Language`；服务端经 HTTP 读取 session；删除 web 的 `/api/auth`、邮件发送和不再使用的变量；E2E 同时启动 `apps/api` | 全部 E2E 在 web + `apps/api`（wrangler dev）上通过；web 不再引用 `createAuth`                                                                                  | 已完成 |
 | S06   | 迁移第 3 步（tasks）：TaskService 移到 `packages/tasks`；`apps/api` 提供 `GET` / `POST /api/tasks`（CORS、CSRF Origin 检查、session、限流 middleware）；TaskPanel 经 `NEXT_PUBLIC_API_URL` 调用；删除 web 的 `/api/tasks`。uploads、consent 留给 S07  | API 集成测试覆盖运行、列表、401、preflight、CSRF、非 JSON、429；全部 E2E 在 web + `apps/api` 上通过；`wrangler deploy --dry-run` 打包成功                      | 已完成 |
+| S07   | 迁移第 3 步（uploads、consent）：`apps/api` 提供 `POST /api/uploads`（R2 签名，`STORAGE_PROVIDER` binding）与 `POST /api/analytics/consent`；`uploadImage()`、`initAnalytics()` 接受 `apiUrl` 并带 cookie；删除 web 的两个路由                        | API 集成测试覆盖签名、校验、401、429、consent 写入；`wrangler dev` 上对 SeaweedFS 验证签名上传；全部 E2E 通过                                                  | 已完成 |
 
 ## Confirmed Decisions
 

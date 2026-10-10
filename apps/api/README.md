@@ -19,6 +19,10 @@ pnpm --filter api run deploy
 | `src/routes/health.ts`            | `GET /api/health`：连接一次数据库，失败返回 503                       |
 | `src/routes/auth.ts`              | Better Auth（`/api/auth/*`）：CORS、cookie                            |
 | `src/routes/tasks.ts`             | `GET` / `POST /api/tasks`：示例付费操作                               |
+| `src/routes/uploads.ts`           | `POST /api/uploads`：签名 R2 直传 URL                                 |
+| `src/routes/analytics.ts`         | `POST /api/analytics/consent`：登录用户的 Cookie 横幅选择             |
+| `src/routes/user-routes.ts`       | `userRoutes()`：已登录路由的 middleware 组合                          |
+| `src/storage.ts`、`src/http.ts`   | 按 binding 选择存储适配器；`readJson()`                               |
 | `src/auth.ts`、`src/analytics.ts` | 每个请求的 Better Auth（含登录邮件）与服务端 Analytics                |
 | `src/middleware/web-cors.ts`      | 只允许 web（`APP_URL`）跨域调用，带 cookie                            |
 | `src/middleware/web-csrf.ts`      | form 与 `text/plain` 请求只接受 web 的 Origin                         |

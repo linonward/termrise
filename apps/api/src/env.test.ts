@@ -36,6 +36,7 @@ it("accepts the fake provider only with ALLOW_FAKE_PROVIDERS", () => {
   const parse = (overrides: Partial<Bindings>) => () =>
     apiEnv(testBindings("postgresql://x", overrides));
   expect(parse({ TASK_PROVIDER: "fake" })).toThrow("ALLOW_FAKE_PROVIDERS");
+  expect(parse({ STORAGE_PROVIDER: "fake" })).toThrow("STORAGE_PROVIDER");
   expect(
     parse({ TASK_PROVIDER: "fake", ALLOW_FAKE_PROVIDERS: "1" }),
   ).not.toThrow();

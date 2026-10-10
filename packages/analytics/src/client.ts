@@ -24,16 +24,21 @@ const FORBIDDEN = new Set(["email", "prompt"]);
 let enabled = false;
 let posthogKey: string | undefined;
 let productId = "";
+let apiUrl = "";
 let client: Promise<PostHog> | undefined;
 // The signed-in user: identify() runs on mount, often before the visitor accepts and the
 // SDK loads, so accepting on the same page identifies again.
 let userId: string | undefined;
 
-/** `productId` goes on every event: products share one PostHog project. */
+/**
+ * `productId` goes on every event: products share one PostHog project. `apiUrl` is
+ * apps/api, where the banner choice of a signed-in user is stored.
+ */
 export function initAnalytics(
   key: string | undefined,
-  options: { productId: string },
+  options: { productId: string; apiUrl: string },
 ) {
+  apiUrl = options.apiUrl;
   if (!key) return;
   enabled = true;
   posthogKey = key;
@@ -114,8 +119,9 @@ function writeConsentCookie(value: "1" | "0" | null) {
 
 /** Stores the choice for server-side events; signed-out visitors get 401, which is ignored. */
 export function saveConsent(granted: boolean) {
-  void fetch("/api/analytics/consent", {
+  void fetch(new URL("/api/analytics/consent", apiUrl), {
     method: "POST",
+    credentials: "include",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ granted }),
   }).catch(() => {});

@@ -99,7 +99,7 @@ task_failed            TaskService：Provider 抛出错误后（带 taskId，不
 ```
 
 - 只发给 `analytics_consents.granted = true` 的用户（见 [data-model.md · analytics_consents](data-model.md#analytics_consents)）；webhook 请求没有浏览器 Cookie，所以同意状态存在数据库。
-- 写入：登录用户点 Accept / Decline → `POST /api/analytics/consent`；未登录时做的选择在下次进入 Dashboard 时同步。
+- 写入：登录用户点 Accept / Decline → `apps/api` 的 `POST /api/analytics/consent`（`initAnalytics()` 的 `apiUrl`，带 cookie）；未登录时做的选择在下次进入 Dashboard 时同步。
 - 发送失败只记 `analytics.capture_failed`（warn），不影响业务流程。
 - 未设置 `NEXT_PUBLIC_POSTHOG_KEY` 时，服务端使用空实现，丢弃事件（`apps/web/src/server/analytics/provider.ts`）。测试使用 Fake Provider，它在内存中保存事件。
 

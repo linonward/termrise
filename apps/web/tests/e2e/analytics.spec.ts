@@ -8,6 +8,7 @@ import { createCreditService } from "@repo/credits/credit-service";
 import { analyticsConsents } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
+import { E2E_API_URL } from "../setup/e2e-env";
 import { signIn } from "../setup/sign-in";
 
 // E2E builds set NEXT_PUBLIC_POSTHOG_KEY; /ingest is intercepted so nothing leaves the browser.
@@ -141,18 +142,24 @@ test("consent API needs a signed-in user and a boolean", async ({
   request,
   context,
 }) => {
-  const anonymous = await request.post("/api/analytics/consent", {
+  const anonymous = await request.post(`${E2E_API_URL}/api/analytics/consent`, {
     data: { granted: true },
   });
   expect(anonymous.status()).toBe(401);
   await signIn(context);
-  const invalid = await context.request.post("/api/analytics/consent", {
-    data: { granted: "yes" },
-  });
+  const invalid = await context.request.post(
+    `${E2E_API_URL}/api/analytics/consent`,
+    {
+      data: { granted: "yes" },
+    },
+  );
   expect(invalid.status()).toBe(400);
-  const ok = await context.request.post("/api/analytics/consent", {
-    data: { granted: false },
-  });
+  const ok = await context.request.post(
+    `${E2E_API_URL}/api/analytics/consent`,
+    {
+      data: { granted: false },
+    },
+  );
   expect(ok.status()).toBe(204);
 });
 

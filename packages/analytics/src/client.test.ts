@@ -23,7 +23,7 @@ vi.mock("posthog-js", () => ({
   },
 }));
 
-const PRODUCT = { productId: "acme" };
+const PRODUCT = { productId: "acme", apiUrl: "https://api.test" };
 
 const fetchMock = vi.fn(() => Promise.resolve(new Response()));
 
@@ -177,8 +177,11 @@ it("loads the SDK to store the choice and saves it for server events", async () 
     "cookie_consent=1; Path=/; Max-Age=31536000; SameSite=Lax",
   );
   expect(fetchMock).toHaveBeenCalledWith(
-    "/api/analytics/consent",
-    expect.objectContaining({ body: JSON.stringify({ granted: true }) }),
+    new URL("https://api.test/api/analytics/consent"),
+    expect.objectContaining({
+      credentials: "include",
+      body: JSON.stringify({ granted: true }),
+    }),
   );
 
   chooseConsent(false);

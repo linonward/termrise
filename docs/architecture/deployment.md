@@ -106,7 +106,7 @@ Route Handler 一律使用 Node.js runtime，不使用 Edge runtime（数据库�
 | 环境变量 | Vercel Production | Vercel Preview                                                             | `.env.local`       |
 
 - 环境变量在 Vercel 控制台按环境分别配置，变量清单见 [environment.md](environment.md)。
-- R2：每个环境使用自己的 bucket 和密钥（bucket 见 overview.md 的 Storage）。Vercel Production / Preview 各自配置四个 `R2_*` 变量，访问密钥使用 Secret 类型；本地开发默认用本地 SeaweedFS（`R2_ENDPOINT`，见 [Local Storage](storage.md#local-storage)）；使用 dev bucket 时，dev 密钥只放在 worktree 的 `.env.local`。
+- R2：每个环境使用自己的 bucket 和密钥（bucket 见 overview.md 的 Storage）。Vercel Production / Preview 各自配置四个 `R2_*` 变量，访问密钥使用 Secret 类型；`apps/api` 用 `wrangler secret put` 设置同样的四个变量（同一个 bucket），Production 不设置 `R2_ENDPOINT`；本地开发默认用本地 SeaweedFS（`R2_ENDPOINT`，见 [Local Storage](storage.md#local-storage)）；使用 dev bucket 时，dev 密钥只放在 worktree 的 `.env.local`。
 - 在 Neon 控制台用 Vercel 集成把 Neon 项目连接到 Vercel 项目。集成向 Vercel 注入 `DATABASE_URL` / `DATABASE_URL_UNPOOLED`：Production 指向 Neon `main`，Preview 部署时动态指向该 Preview 的分支，Vercel Development 环境指向集成自建的 `vercel-dev` 分支。这些变量不手动配置。
 - 本地开发不使用 `vercel-dev`。不要用 `vercel env pull` 覆盖 `.env.local`：它会把 `DATABASE_URL` 换成 `vercel-dev`，而不是当前 worktree 的 `dev/{topic}`。
 - Neon Free 每个项目最多 10 个分支：`main`、`vercel-dev`、每个进行中的 `dev/{topic}`、每个手动 Preview 的分支都计入。分支合并后立即删除 `dev/{topic}`；手动 Preview 用完后删除对应分支。

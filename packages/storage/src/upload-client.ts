@@ -32,24 +32,28 @@ export function fileExtension(name: string) {
   return name.includes(".") ? name.split(".").pop()!.toLowerCase() : "";
 }
 
-// Browser → POST /api/uploads → PUT the file straight to R2 (never through our server).
+// Browser → POST /api/uploads on apps/api → PUT the file straight to R2 (never through our server).
 export async function uploadImage(
   file: File,
   {
+    apiUrl,
     fetcher = fetch,
     put = xhrPut,
     onProgress = () => {},
   }: {
+    /** apps/api (NEXT_PUBLIC_API_URL in the web app). */
+    apiUrl: string;
     fetcher?: typeof fetch;
     put?: PutFile;
     onProgress?: (fraction: number) => void;
-  } = {},
+  },
 ): Promise<string> {
   const extension = fileExtension(file.name);
   if (!isAllowedUpload(file.type, extension, file.size))
     throw new UploadImageError("INVALID_INPUT");
-  const response = await fetcher("/api/uploads", {
+  const response = await fetcher(new URL("/api/uploads", apiUrl), {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contentType: file.type,

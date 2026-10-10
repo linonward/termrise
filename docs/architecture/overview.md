@@ -344,7 +344,7 @@ saas-starter/
 │   │   │   │   ├── (auth)/        sign-in · sign-up
 │   │   │   │   ├── (dashboard)/   dashboard · billing（需要登录）
 │   │   │   │   ├── admin/
-│   │   │   │   ├── api/           auth · tasks · uploads · checkout · billing/* · analytics/consent · webhooks/waffo
+│   │   │   │   ├── api/           health · checkout · billing/* · webhooks/waffo（其余在 apps/api）
 │   │   │   │   └── layout.tsx · sitemap.ts · robots.ts · opengraph-image.tsx · not-found.tsx
 │   │   │   ├── features/tasks/    示例付费操作（Service、页面组件）
 │   │   │   ├── components/        页面组件
