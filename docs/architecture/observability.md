@@ -201,7 +201,7 @@ source maps：build 时有 SENTRY_AUTH_TOKEN 才上传
 
 Sentry 只在请求出错时上报。站点完全无法访问时没有请求，也就没有报错，所以需要外部的 uptime 监控。Starter 不选定服务商：每个产品选一个支持 HTTP 检查和告警的服务。
 
-`GET /api/health`（`apps/web/src/app/api/health/route.ts`）：
+`GET /api/health`（`apps/web/src/app/api/health/route.ts`，检查在 `packages/db/src/health.ts`）：
 
 - 不需要登录，不限流，`Cache-Control: no-store`。
 - 在 3 秒内执行数据库 `select 1`：成功返回 200 `{ "status": "ok" }`，失败或超时返回 503 `{ "status": "error" }`。响应不包含失败原因，原因写在日志 `health.database_unavailable` 中。
@@ -217,4 +217,4 @@ Sentry 只在请求出错时上报。站点完全无法访问时没有请求，�
 | 告警条件 | 连续 2 次失败（避免冷启动或网络抖动误报）         |
 | 告警渠道 | 维护者的 email 和手机推送；不要只发到不常看的渠道 |
 
-上线前在 uptime 服务中触发一次测试告警，确认能收到。可选的 `apps/api` 部署后，同样监控它的 `/health`（不查数据库）。
+上线前在 uptime 服务中触发一次测试告警，确认能收到。`apps/api` 部署后，同样监控它的 `GET /api/health`（`apps/api/src/routes/health.ts`）：规则相同，数据库检查共用 `packages/db/src/health.ts`，连接超时为 5 秒。

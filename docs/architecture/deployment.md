@@ -6,7 +6,7 @@
 Vercel（GitHub 集成）
 ```
 
-Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 现在不部署。Termrise 决定把 `apps/api` 部署到 Cloudflare Workers（`docs/adr/012-api-modular-monolith.md`，部署方式在迁移 Slice 中补充），`apps/worker` 部署在 Cloudflare，见 [Worker](#worker)。
+Vercel 项目的 Root Directory 是 `apps/web`。Vercel 识别 pnpm workspace，在仓库根目录安装依赖，再构建 `apps/web`；`apps/api` 部署在 Cloudflare Workers，见 [API](#api)；`apps/worker` 部署在 Cloudflare，见 [Worker](#worker)。
 
 | Git      | Vercel 环境                        |
 | -------- | ---------------------------------- |
@@ -24,6 +24,26 @@ Preview 按需手动部署，节省 Hobby 额度：
 - Hobby 条款不允许商业用途；开始收费前升级 Pro。以 Vercel 当前条款为准。
 - Hobby 的函数执行时长上限较低。付费操作调用慢的 Provider（例如 AI 模型）时，先确认耗时在上限内，否则改为异步，见 [tasks.md](tasks.md)。
 - Pro 的月费计入产品的固定成本。
+
+---
+
+## API
+
+`apps/api`（Hono）运行在 Cloudflare Workers，配置在 `apps/api/wrangler.jsonc`，经 Hyperdrive 连接 Neon。决策见 `docs/adr/012-api-modular-monolith.md`。
+
+- 每个请求用 `connectDb()`（`packages/db/src/client.ts`）打开一个连接，响应后在 `waitUntil()` 中关闭。Hyperdrive 维护连接池（transaction 模式）；Worker 不在请求之间共享连接。
+- `nodejs_compat` 是 `node-postgres` 的前提（`pg` 需要高于 8.16.3）。
+- `pnpm --filter api build` 执行 `wrangler deploy --dry-run --outdir dist`：只打包，不上传，不需要登录。CI 的 `pnpm build` 也运行它，用来发现不能在 Workers 上打包的依赖。
+
+首次部署（维护者执行，需要 `wrangler login`）：
+
+1. 在 Neon 为 Hyperdrive 建一个 role（例如 `hyperdrive-user`），复制 `main` 分支的**直连**连接串（关闭 connection pooling，主机名不含 `-pooler`）。连接串是凭据，不写进仓库、日志和对话。
+2. 在 `apps/api` 中执行 `npx wrangler hyperdrive create termrise-api --connection-string="<连接串>"`。
+3. 把输出的 id 写入 `wrangler.jsonc` 的 `hyperdrive[0].id`（现在是占位值 `000…`），提交。
+4. 执行 `pnpm --filter api run deploy`。
+5. 请求 `https://<Worker 地址>/api/health`，确认返回 200 `{"status":"ok"}`。
+
+自定义域名（与 web 同一主域名下的子域名，例如 `api.<domain>`）在迁移 Better Auth 的 Slice 中配置。
 
 ---
 

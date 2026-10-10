@@ -1,9 +1,10 @@
 import { sql } from "drizzle-orm";
 
-import type { Database } from "@repo/db/client";
 import { logger } from "@repo/observability/logger";
 
-// Readiness for GET /api/health (docs/architecture/observability.md#uptime-monitoring).
+import type { Database } from "./client";
+
+// Readiness for GET /api/health in apps/web and apps/api (docs/architecture/observability.md#uptime-monitoring).
 // An uptime monitor needs an answer even when the database hangs, so the query has a time limit.
 const TIMEOUT_MS = 3000;
 

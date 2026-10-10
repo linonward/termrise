@@ -41,7 +41,6 @@
 | `SENTRY_ORG`               | build           | Sentry org slug（source maps 上传）                                                                                                                                                                                                                                                                                                      |
 | `SENTRY_PROJECT`           | build           | Sentry project slug（source maps 上传）                                                                                                                                                                                                                                                                                                  |
 | `NEXT_PUBLIC_POSTHOG_KEY`  | client + server | PostHog project key（客户端在 build 时内联；服务端未设置时不发送事件）                                                                                                                                                                                                                                                                   |
-| `PORT`                     | server          | 只用于 `apps/api`，默认 3001                                                                                                                                                                                                                                                                                                             |
 | `ADMIN_USER_IDS`           | server          | 可以进入 `/admin` 的 user id，逗号分隔；未设置时没有管理员，见 [Admin Access](security.md#admin-access)                                                                                                                                                                                                                                  |
 | `NEXT_PUBLIC_POSTHOG_HOST` | server          | 服务端事件的 PostHog 地址，默认 `https://us.i.posthog.com`；客户端经 `/ingest` 代理（`apps/web/next.config.ts`）                                                                                                                                                                                                                         |
 
@@ -54,3 +53,12 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 新增、删除或改名变量时，同时更新本文件的 [Environment Contract](#environment-contract)、`.env.example` 和 `packages/config/src/env.ts`。
 
 ---
+
+## API Bindings
+
+`apps/api` 运行在 Cloudflare Workers，没有 `process.env`：配置来自 `apps/api/wrangler.jsonc` 的 binding，在路由中经 `c.env` 读取，类型在 `apps/api/src/env.ts`。`packages/*` 不读取它们，由路由作为参数传入。
+
+| Binding / 变量                                             | 作用                                                                                                                        |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `HYPERDRIVE`                                               | Hyperdrive 配置，`connectionString` 指向 Neon（创建步骤见 deployment.md 的 API 一节）                                       |
+| `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` | 只用于本地 `pnpm dev:api`：wrangler dev 直接连接这个数据库（例如本 worktree 的 Neon `dev/{topic}` 分支），不经过 Hyperdrive |

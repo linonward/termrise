@@ -353,7 +353,7 @@ saas-starter/
 │   │   │   └── proxy.ts · instrumentation*.ts · sentry.*.config.ts
 │   │   ├── messages/ · public/ · scripts/ · tests/（e2e、setup）
 │   │   └── next.config.ts · vercel.json · .env.local（不提交）
-│   ├── api/                    可选：Hono 独立 API（骨架：/health 与错误契约）
+│   ├── api/                    Hono API，Cloudflare Workers（/api/health 与错误契约）
 │   └── worker/                 可选：后台任务 Worker（骨架：处理 @repo/jobs 的任务）
 ├── packages/
 │   ├── config/                 env 校验、产品 Manifest 类型
@@ -425,7 +425,7 @@ ESLint（`eslint.config.mjs`，规则测试在 `eslint-boundaries.test.ts`）检
 
 汇总导出和「同一业务规则只实现一次」不由 ESLint 检查，只靠 Review 保证。
 
-`apps/api` 与 `apps/worker` 是骨架：有接口和测试，没有部署配置。Termrise 把 `apps/worker` 部署到 Cloudflare Containers，见 [Worker](deployment.md#worker)。`pnpm dev:api` 在 3001 端口启动 API。Worker 需要一个持久化队列适配器才能运行，见 [jobs.md](jobs.md)。
+`apps/api` 是 Cloudflare Worker，见 [API](deployment.md#api)；`pnpm dev:api` 用 wrangler dev 在 3001 端口启动它。`apps/worker` 是骨架：有接口和测试，没有部署配置；Termrise 把它部署到 Cloudflare Containers，见 [Worker](deployment.md#worker)。Worker 需要一个持久化队列适配器才能运行，见 [jobs.md](jobs.md)。
 
 Turborepo 的配置和命令随版本变化。修改 `turbo.json` 前，先读安装包自带的文档：`node_modules/turbo/docs/`。`turbo.json` 设置了 `agentGuidance: false`，Turborepo 不再向 `AGENTS.md` 写入说明。
 
