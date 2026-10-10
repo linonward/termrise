@@ -75,6 +75,8 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `WORKER_QUEUE`         | `bullmq`（默认，需要 `REDIS_URL`）或 `memory`（任务在进程内存中，只用于 E2E）                                           |
 | `REDIS_URL`            | BullMQ 的 Redis。本地 `redis://localhost:63790/0`（`docker compose up -d redis`），Production 为 Upstash 的 `rediss://` |
 | `SCAN_INTERVAL_MS`     | 扫描排队中的研究运行的间隔，默认 5000                                                                                   |
+| `HACKER_NEWS_ENABLED`  | `1` 时每 `TREND_INTERVAL_MS` 采集一次 Hacker News 到 Radar（公开 API，不需要 Key）；不设置时不采集                      |
+| `TREND_INTERVAL_MS`    | Radar 的采集间隔，默认 3600000（1 小时），最少 60000                                                                    |
 | `PORT`                 | 健康检查端口（`GET /health`），默认 8080                                                                                |
 | `KEYWORD_PROVIDER`     | 研究运行的关键词数据来源；现在只有 `fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）                                              |
 | `ANALYST_PROVIDER`     | 机会分析的来源；现在只有 `fake`（需要 `ALLOW_FAKE_PROVIDERS=1`）                                                        |

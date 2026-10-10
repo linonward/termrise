@@ -17,8 +17,8 @@ import { researchProjects } from "./research";
 export const SIGNAL_PROVIDERS = ["csv"] as const;
 
 // Where a term was observed (docs/product/product.md#f01-热词发现). One row per observation;
-// re-importing the same row is a no-op. Scoped to a research project for now; global
-// signals (Hacker News, Google Trends) come with Radar.
+// re-importing the same row is a no-op. Scoped to a research project; global stories
+// from public sources are radar items (radar.ts).
 export const sourceSignals = pgTable(
   "source_signals",
   {

@@ -57,4 +57,23 @@ describe.skipIf(!url)("BullMQ queue", () => {
     await waitFor(() => scans >= 2);
     await queue.stop();
   });
+
+  it("passes the payload to a scheduled job and stops on unschedule", async () => {
+    const queue = createBullQueue(url!);
+    const providers: string[] = [];
+    await queue.start({
+      "trend.ingest": async (job) => {
+        providers.push(job.payload.provider);
+      },
+    });
+    await queue.schedule("trend.ingest", 200, { provider: "hacker_news" });
+    await waitFor(() => providers.length >= 1);
+    expect(providers[0]).toBe("hacker_news");
+    await queue.unschedule("trend.ingest");
+    await new Promise((r) => setTimeout(r, 300));
+    const seen = providers.length;
+    await new Promise((r) => setTimeout(r, 600));
+    expect(providers.length).toBe(seen);
+    await queue.stop();
+  });
 });

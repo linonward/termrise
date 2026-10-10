@@ -12,6 +12,7 @@ import { credits } from "./routes/credits";
 import { executionRoutes } from "./routes/execution";
 import { health } from "./routes/health";
 import { opportunityRoutes } from "./routes/opportunities";
+import { radarRoutes } from "./routes/radar";
 import { researchRoutes } from "./routes/research";
 import { tasks } from "./routes/tasks";
 import { uploads } from "./routes/uploads";
@@ -32,6 +33,7 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/credits", credits)
     .route("/research", researchRoutes)
     .route("/opportunities", opportunityRoutes)
+    .route("/radar", radarRoutes)
     .route("/execution", executionRoutes)
     .route("/webhooks", webhooks)
     .route("/admin", adminRoutes)
