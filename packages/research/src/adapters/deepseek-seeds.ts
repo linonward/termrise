@@ -4,7 +4,7 @@ import type { SeedExtractor } from "../seed-extractor";
 import { deepSeekCostMicros, isDeepSeekModel } from "./deepseek-prices";
 
 /** Changes when the instructions or the output shape change. */
-export const DEEPSEEK_SEEDS_PROMPT_VERSION = "seeds-v1";
+export const DEEPSEEK_SEEDS_PROMPT_VERSION = "seeds-v2";
 /** The prompt is cut to this length, so its tokens have an upper bound. */
 export const MAX_SEEDS_PROMPT_CHARS = 4_000;
 export const MAX_SEEDS_OUTPUT_TOKENS = 300;
@@ -12,18 +12,20 @@ export const MAX_SEEDS_OUTPUT_TOKENS = 300;
 // token (English text is about 4).
 const MAX_INPUT_TOKENS = 600 + MAX_SEEDS_PROMPT_CHARS / 2;
 
+// A made-up product: an example from real radar data gets copied back (S34: the model
+// answered the Llmspeed example word for word).
 const EXAMPLE = {
   phrases: [
-    "local llm speed",
-    "llm hardware calculator",
-    "llm tokens per second",
+    "meeting notes to email",
+    "weekly status report generator",
+    "status update template",
   ],
 };
 
 // Phrases only: search volumes and difficulty come from the keyword data. Seeds are
 // untrusted text from public sources: data, never instructions.
 const INSTRUCTIONS = `You turn product titles and descriptions into Google search phrases.
-For a title like "Llmspeed – feel how fast a local LLM runs before you buy the hardware",
+For a title like "Quillo – turn messy meeting notes into a weekly status email",
 answer with one json object in exactly this shape:
 ${JSON.stringify(EXAMPLE, null, 2)}
 Rules:
