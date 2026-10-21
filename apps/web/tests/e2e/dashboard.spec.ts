@@ -25,19 +25,16 @@ test("an early access user sees the welcome without credits, and needs a session
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/dashboard");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Welcome back" }),
+    page.getByRole("heading", { level: 1, name: "欢迎回来" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your research projects" }),
+    page.getByRole("heading", { name: "你的研究项目" }),
   ).toBeVisible();
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Go to Research" })
-    .click();
+  await page.getByRole("main").getByRole("link", { name: "前往研究" }).click();
   await expect(page).toHaveURL(/\/research$/);
   await page.goto("/dashboard");
   await expect(page.getByTestId("nav-credits")).toHaveCount(0);
-  await expect(page.getByLabel("Text")).toHaveCount(0);
+  await expect(page.getByLabel("文字")).toHaveCount(0);
   for (const path of ["/billing", "/pricing"])
     expect((await page.goto(path))?.status(), path).toBe(404);
   expect(errors).toEqual([]);
@@ -57,12 +54,10 @@ test("new user sees ten credits, live balance updates and needs a session", asyn
     if (m.type() === "error") errors.push(m.text());
   });
   await page.goto("/dashboard");
-  await expect(page).toHaveTitle(
-    "Termrise: Find rising search terms worth building for",
-  );
-  await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
+  await expect(page).toHaveTitle("Termrise：发现值得做产品的英文上升热词");
+  await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   await expect(page.getByTestId("credit-balance")).toHaveText("10");
-  await expect(page.getByText("No runs yet.")).toBeVisible();
+  await expect(page.getByText("还没有运行记录。")).toBeVisible();
   await createCreditService(testDb()).adminAdjust(
     userId,
     5,
@@ -70,11 +65,7 @@ test("new user sees ten credits, live balance updates and needs a session", asyn
     "E2E adjustment",
   );
   await page.reload();
-  await expect(page.getByTestId("nav-credits")).toHaveText("15 credits");
-  await context.addCookies([
-    { name: "NEXT_LOCALE", value: "zh", domain: "localhost", path: "/" },
-  ]);
-  await page.reload();
+  await expect(page.getByTestId("nav-credits")).toHaveText("15 积分");
   await expect(
     page.getByRole("heading", { level: 1, name: /^欢迎回来/ }),
   ).toBeVisible();
@@ -96,26 +87,24 @@ test("a task uses one credit, and a failed task refunds it", async ({
   test.skip(!product.billingEnabled, PAID);
   await signIn(context);
   await page.goto("/dashboard");
-  const input = page.getByLabel("Text");
-  const run = page.getByRole("button", { name: "Run · 1 credit" });
+  const input = page.getByLabel("文字");
+  const run = page.getByRole("button", { name: "运行 · 1 积分" });
 
   await input.fill("hello");
   await run.click();
   // The fake provider uppercases the input.
   await expect(page.getByText("HELLO", { exact: true })).toBeVisible();
-  await expect(page.getByTestId("nav-credits")).toHaveText("9 credits");
+  await expect(page.getByTestId("nav-credits")).toHaveText("9 积分");
   await expect(input).toHaveValue("");
 
   // Input with [fail] makes the fake provider fail.
   await input.fill("x [fail]");
   await run.click();
-  await expect(
-    page.getByText("This run failed. Its credit was refunded."),
-  ).toBeVisible();
-  await expect(page.getByTestId("nav-credits")).toHaveText("9 credits");
+  await expect(page.getByText("这次运行失败了，积分已退回。")).toBeVisible();
+  await expect(page.getByTestId("nav-credits")).toHaveText("9 积分");
 
   await page.goto("/billing");
-  await expect(page.getByText("Refund · failed task")).toBeVisible();
+  await expect(page.getByText("退回 · 任务失败")).toBeVisible();
 });
 
 test("a task without credits asks the user to buy more", async ({
@@ -131,11 +120,11 @@ test("a task without credits asks the user to buy more", async ({
     "E2E empty balance",
   );
   await page.goto("/dashboard");
-  await page.getByLabel("Text").fill("hello");
-  await page.getByRole("button", { name: "Run · 1 credit" }).click();
+  await page.getByLabel("文字").fill("hello");
+  await page.getByRole("button", { name: "运行 · 1 积分" }).click();
   const alert = page.getByRole("main").getByRole("alert");
-  await expect(alert).toContainText("You don't have enough credits.");
-  await alert.getByRole("link", { name: "Buy credits" }).click();
+  await expect(alert).toContainText("Credits 不足。");
+  await alert.getByRole("link", { name: "购买积分" }).click();
   await expect(page).toHaveURL(/\/billing$/);
 });
 
@@ -167,7 +156,7 @@ for (const path of ["/dashboard", "/billing"])
       idempotencyKey: `task:${task.id}:debit`,
     });
     await page.goto(path);
-    await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
+    await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   });
 
 // The proxy only checks that a session cookie exists; the layout validates it

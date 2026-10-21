@@ -2,11 +2,10 @@
 import { cn } from "cn";
 import { Coins, Menu } from "lucide-react";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
-import { locales } from "@repo/config/locale";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
@@ -28,33 +27,10 @@ import {
 
 import { useLogout } from "@/components/auth/use-logout";
 import { LogoMark } from "@/components/logo-mark";
-import { setLocale } from "@/i18n/actions";
 
 import { NavLinks } from "./nav-links";
 
 const themes = ["system", "light", "dark"] as const;
-
-function useLocaleSwitch() {
-  const [pending, startTransition] = useTransition();
-  return {
-    pending,
-    switchTo: (locale: string) => startTransition(() => setLocale(locale)),
-  };
-}
-
-export function LocaleItems() {
-  const t = useTranslations("nav");
-  const { pending, switchTo } = useLocaleSwitch();
-  return (
-    <DropdownMenuRadioGroup value={useLocale()} onValueChange={switchTo}>
-      {locales.map((locale) => (
-        <DropdownMenuRadioItem key={locale} value={locale} disabled={pending}>
-          {t(`localeName.${locale}`)}
-        </DropdownMenuRadioItem>
-      ))}
-    </DropdownMenuRadioGroup>
-  );
-}
 
 export function ThemeItems() {
   const t = useTranslations("nav");
@@ -136,8 +112,6 @@ function MobileMenu({
 }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
-  const locale = useLocale();
-  const { pending, switchTo } = useLocaleSwitch();
   const { theme, setTheme } = useTheme();
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -162,16 +136,6 @@ function MobileMenu({
           >
             {t("providers")}
           </Link>
-          <ChoiceGroup
-            label={t("language")}
-            value={locale}
-            disabled={pending}
-            onChange={switchTo}
-            options={locales.map((value) => ({
-              value,
-              label: t(`localeName.${value}`),
-            }))}
-          />
           <ChoiceGroup
             label={t("theme")}
             value={theme}
@@ -238,9 +202,6 @@ export function AppNav({
               <DropdownMenuItem asChild>
                 <Link href="/settings/providers">{t("providers")}</Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>{t("language")}</DropdownMenuLabel>
-              <LocaleItems />
               <DropdownMenuSeparator />
               <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
               <ThemeItems />

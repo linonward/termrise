@@ -18,7 +18,7 @@
 - 存储：R2 预签名上传与 `apps/api` 的 `/api/uploads`，测试用 FakeStorage，见 [storage.md](docs/architecture/storage.md)。
 - 管理台：`/admin` 搜索用户、调整 Credits，另有 `pnpm admin:adjust`，见 [runbook.md](docs/runbook.md)。
 - Analytics 与监控：PostHog（用户同意 Cookie 后）、服务端事件、Vercel Web Analytics、Speed Insights、Sentry、结构化日志，见 [observability.md](docs/architecture/observability.md)。
-- i18n：英文 + 中文（next-intl，Cookie `NEXT_LOCALE`），见 [ux.md](docs/product/ux.md)。
+- i18n：只有中文（next-intl），见 [ux.md](docs/product/ux.md)。
 - 安全：限流、Security Headers，见 [security.md](docs/architecture/security.md)。
 - 设计系统：token 与 shadcn 风格的 UI 组件，见 [design-system.md](docs/design/design-system.md)。
 - 营销页面：Landing、Terms / Privacy、Blog、sitemap、robots、`llms.txt`、结构化数据、OG 图片；Pricing 与 Refund Policy 在 `billingEnabled` 打开时显示。

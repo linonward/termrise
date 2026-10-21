@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 
 import { serverEnv } from "@repo/config/env";
 
@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: brand,
       title,
       description,
-      locale: (await getLocale()) === "zh" ? "zh_CN" : "en_US",
+      locale: "zh_CN",
     },
     twitter: { card: "summary_large_image" },
   };
@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
     <html
-      lang={await getLocale()}
+      lang="zh-CN"
       suppressHydrationWarning
       className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >

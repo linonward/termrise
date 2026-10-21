@@ -58,28 +58,9 @@
 
 ## Internationalization
 
-支持：
+界面只有简体中文（`zh`，`<html lang="zh-CN">`），没有语言切换，URL 不带 locale 前缀。Locale 是 `packages/config/src/locale.ts` 的常量 `LOCALE`。研究的市场语言（如英语关键词）是业务数据，与界面语言无关。
 
-```text
-en（默认）
-
-zh（简体中文）
-```
-
-规则：
-
-```text
-URL 不带 locale 前缀
-
-Locale 来源优先级：
-  NEXT_LOCALE cookie
-  → Accept-Language
-  → en
-
-已登录：用户菜单切换；未登录页面：Footer 切换
-```
-
-必须翻译：
+文案仍经 next-intl 读取，不写在组件中。以下内容都在 messages 中：
 
 ```text
 所有页面 UI 文案
@@ -95,7 +76,7 @@ Error Code 对应的用户提示
 Magic Link 邮件
 ```
 
-不翻译：
+不放在 messages 中：
 
 ```text
 API Error Response 中的 message（保持英文）
@@ -105,7 +86,7 @@ API Error Response 中的 message（保持英文）
 日志
 ```
 
-前端根据 `error.code` 显示本地化文案，不直接展示 API `message`。
+前端根据 `error.code` 显示 messages 中的提示，不直接展示 API `message`。
 
 错误提示规则：
 
@@ -119,9 +100,9 @@ messages 的 errors.* 为每个 Error Code 提供提示，外加 NETWORK_ERROR�
 页面渲染出错 → 兜底页（见 404 & Error Pages）
 ```
 
-所有文案必须来自 `apps/web/messages/*.json`，组件中不得硬编码用户可见字符串。品牌名来自 `meta.title`。`apps/api` 自己发送的文案（登录邮件）在 `apps/api/messages/*.json`，`apps/api/src/messages.test.ts` 检查两种语言的 key 一致。
+所有文案必须来自 `apps/web/messages/zh.json`，组件中不得硬编码用户可见字符串。品牌名来自 `meta.title`。`apps/api` 自己发送的文案（登录邮件）在 `apps/api/messages/zh.json`。
 
-测试（`apps/web/src/i18n/messages.test.ts`）检查 `en.json` 与 `zh.json` 的 key 集合一致。
+测试（`apps/web/src/i18n/messages.test.ts`）检查没有空文案和草稿标记。
 
 浏览器只收到客户端组件用到的命名空间：根 layout 把 `CLIENT_NAMESPACES`（`apps/web/src/i18n/client-messages.ts`）传给 `NextIntlClientProvider`。Server Component 用 `getTranslations()`，不受限制。客户端组件用一个新的命名空间时，把它加到 `CLIENT_NAMESPACES`；`client-messages.test.ts` 在漏加时失败。客户端组件只用 `useTranslations("namespace")` 读取文案。
 
@@ -173,7 +154,7 @@ Blog · Terms · Privacy · Refund Policy（只在 billingEnabled 时）· Cooki
 ```text
 Hero（Eyebrow、标题、说明、CTA、注释 + 右侧示例）
 How It Works（3 步：发现上升热词、检查证据、决定与上线）
-Features（4 项：真实数据优先、付费请求预算、给 AI 编程工具的简报、中英双语）
+Features（3 项：真实数据优先、付费请求预算、给 AI 编程工具的简报）
 Pricing（与 /pricing 共用 PricingPlans，只在 billingEnabled 时）
 FAQ（开始、数据来源、不保证排名或收入、价格）
 Final CTA
@@ -515,7 +496,7 @@ Analytics 启用时，用户还没有选择就在页面底部显示 Cookie Banne
 ```
 
 - 文案在 messages 的 `blog.posts.{key}`，en + zh。正文章节在 `sections` 下，按 JSON 中的顺序渲染（与法律页面相同）。
-- 文章列表、发布和更新日期、`target`、`related` 在 `apps/web/src/components/blog/posts.ts`。新增文章：在 `posts.ts` 加一项、在每个 locale 的 messages 加文案。列表和 sitemap 自动包含。
+- 文章列表、发布和更新日期、`target`、`related` 在 `apps/web/src/components/blog/posts.ts`。新增文章：在 `posts.ts` 加一项、在 messages 加文案。列表和 sitemap 自动包含。
 - 现在只有 `getting-started`（Termrise 入门）。新文章按 [Keyword Matrix](#keyword-matrix) 的 Brief 写。没有 `related` 时不显示 Keep reading。
 - 正文最多一个链接，指向这篇文章的转化页面（`posts.ts` 的 `target`）。链接写在 messages 的正文中，用 `<link>…</link>` 标出锚文字；锚文字用主题词或品牌名，不用 "click here"。标题和摘要不放链接。
 - Keep reading：每篇在 `related` 中手动指定其他文章，显示标题和摘要（移动端不显示摘要）。
@@ -528,9 +509,9 @@ Analytics 启用时，用户还没有选择就在页面底部显示 Cookie Banne
 ## SEO
 
 ```text
-title / description：按 locale（来自 messages 的 meta）。默认 title 用 meta.homeTitle；子页面 title 用模板 "{页面} · {meta.title}"
+title / description：来自 messages 的 meta。默认 title 用 meta.homeTitle；子页面 title 用模板 "{页面} · {meta.title}"
 
-Open Graph image：/opengraph-image，静态，使用 en 文案。页面设置自己的 openGraph 时，必须保留布局的 image、type 和 locale（Next.js 会整体替换 openGraph）
+Open Graph image：/opengraph-image，静态，只有 Logo 和品牌名（标题字体没有中文字形），中文说明放在 alt。页面设置自己的 openGraph 时，必须保留布局的 image、type 和 locale（Next.js 会整体替换 openGraph）
 
 canonical：每个公开页面指向自己的 URL（不带 query）
 
@@ -553,7 +534,7 @@ llms.txt：apps/web/public/llms.txt 静态英文产品摘要（llmstxt.org 格�
 
 除静态 `llms.txt` 外，绝对 URL 以 `APP_URL` 为根，请求时读取，不在 build 时固定。
 
-URL 不带 locale 前缀，搜索引擎只抓取 en 版本。
+URL 不带 locale 前缀，搜索引擎抓取的是中文页面。
 
 ---
 
@@ -574,4 +555,4 @@ seo/briefs/{id}.md        planned / published Cluster 的内容 Brief
 - 校验：`pnpm seo:validate`（`packages/seo/src/keyword-matrix.ts`），`pnpm test` 也运行。`published` 的 URL 必须是站点已有的页面（`/`、`/pricing`、Blog 文章）。
 - Starter 带的 Cluster 和 Brief 是示例，换成产品自己的数据。
 - Skill 的效果用 `.claude/skills/seo-keyword-matrix/evals/` 检查（3 个场景、脚本评分、可与不带 Skill 的对照组比较）。修改 Skill 后重新运行。
-- 关键词只做 en：搜索引擎只抓取 en 版本。页面文案仍按 [Internationalization](#internationalization) 写全部 locale。
+- 页面只有中文（见 [Internationalization](#internationalization)），英文关键词的页面不再适用。需要做公开页面时，先重新确认关键词的语言。

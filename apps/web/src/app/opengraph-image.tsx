@@ -6,8 +6,9 @@ import { ImageResponse } from "next/og";
 import { LOGO_DOT_PATH, LOGO_RISE_PATH } from "@/components/logo-mark";
 import { messages } from "@/i18n/messages";
 
-// Static share image; crawlers get the default locale (en).
-const { meta } = messages.en;
+// Static share image. The heading font has no Chinese glyphs, so the image shows
+// only the mark and the name; the Chinese description is its alt text.
+const { meta } = messages;
 
 export const alt = meta.description;
 export const size = { width: 1200, height: 630 };
@@ -32,23 +33,19 @@ export default async function OpengraphImage() {
         color: "#16140F",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <svg width={44} height={44} viewBox="0 0 240 240">
-          <path d={LOGO_RISE_PATH} fill="#D4401A" />
-          <path d={LOGO_DOT_PATH} fill="#16140F" />
-        </svg>
-        <div style={{ fontSize: 40, fontWeight: 600 }}>{meta.title}</div>
-      </div>
+      <svg width={96} height={96} viewBox="0 0 240 240">
+        <path d={LOGO_RISE_PATH} fill="#D4401A" />
+        <path d={LOGO_DOT_PATH} fill="#16140F" />
+      </svg>
       <div
         style={{
-          fontSize: 56,
+          fontSize: 120,
           fontWeight: 600,
-          lineHeight: 1.1,
-          letterSpacing: -1.6,
-          maxWidth: 900,
+          lineHeight: 1,
+          letterSpacing: -3,
         }}
       >
-        {meta.description}
+        {meta.title}
       </div>
     </div>,
     {

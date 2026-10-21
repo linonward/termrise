@@ -5,15 +5,9 @@ test("protects nested dashboard paths and preserves the return path", async ({
 }) => {
   await page.goto("/dashboard?ref=email");
   await expect(page).toHaveURL(/\/sign-in\?next=%2Fdashboard%3Fref%3Demail/);
-  await expect(
-    page.getByRole("heading", { name: "Welcome back" }),
-  ).toBeVisible();
-  await page
-    .getByRole("link", { name: "New to Termrise? Create an account" })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Create your account" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "欢迎回来" })).toBeVisible();
+  await page.getByRole("link", { name: "首次使用 Termrise？创建账号" }).click();
+  await expect(page.getByRole("heading", { name: "创建账号" })).toBeVisible();
 });
 
 test("requests a magic link using a safe return URL and displays delivery state", async ({
@@ -25,15 +19,12 @@ test("requests a magic link using a safe return URL and displays delivery state"
       callbackURL: "http://localhost:3100/dashboard",
       email: "test@example.com",
     });
-    expect(route.request().headers()["accept-language"]).toBe("en");
     await route.fulfill({ json: { status: true } });
   });
   await page.goto("/sign-in?next=https://evil.example");
-  await page.getByLabel("Email address").fill("test@example.com");
-  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Check your email" }),
-  ).toBeVisible();
+  await page.getByLabel("邮箱地址").fill("test@example.com");
+  await page.getByRole("button", { name: "发送登录链接" }).click();
+  await expect(page.getByRole("heading", { name: "请查看邮箱" })).toBeVisible();
 });
 
 test("suggests Google when email sign-in is used up for the day", async ({
@@ -46,20 +37,14 @@ test("suggests Google when email sign-in is used up for the day", async ({
     }),
   );
   await page.goto("/sign-in");
-  await page.getByLabel("Email address").fill("test@example.com");
-  await page.getByRole("button", { name: "Email me a sign-in link" }).click();
+  await page.getByLabel("邮箱地址").fill("test@example.com");
+  await page.getByRole("button", { name: "发送登录链接" }).click();
   await expect(page.getByRole("main").getByRole("alert")).toHaveText(
-    "Email sign-in is unavailable for the rest of today. Continue with Google instead.",
+    "今天的邮件登录已达上限，请使用 Google 登录。",
   );
 });
 
-test("shows a localized retry message without exposing API errors", async ({
-  page,
-  context,
-}) => {
-  await context.addCookies([
-    { name: "NEXT_LOCALE", value: "zh", domain: "localhost", path: "/" },
-  ]);
+test("shows a retry message without exposing API errors", async ({ page }) => {
   await page.route("**/api/auth/sign-in/magic-link", (route) =>
     route.fulfill({
       status: 429,
@@ -78,14 +63,12 @@ test("shows a localized retry message without exposing API errors", async ({
 test("shows an expired link as an alert under the title", async ({ page }) => {
   await page.goto("/sign-in?error=invalid_link");
   const alert = page.getByRole("main").getByRole("alert");
-  await expect(alert).toHaveText(
-    "This sign-in link is invalid or has expired. Request a new one.",
-  );
+  await expect(alert).toHaveText("登录链接无效或已过期，请获取新链接。");
   const title = await page
-    .getByRole("heading", { name: "Welcome back" })
+    .getByRole("heading", { name: "欢迎回来" })
     .boundingBox();
   const google = await page
-    .getByRole("button", { name: "Continue with Google" })
+    .getByRole("button", { name: "使用 Google 登录" })
     .boundingBox();
   const box = await alert.boundingBox();
   expect(box!.y).toBeGreaterThan(title!.y);
@@ -93,9 +76,7 @@ test("shows an expired link as an alert under the title", async ({ page }) => {
 });
 
 test("shows the early access note next to the form", async ({ page }) => {
-  const note = page
-    .getByText("Early access · No card required")
-    .filter({ visible: true });
+  const note = page.getByText("抢先体验 · 无需绑卡").filter({ visible: true });
   await page.goto("/sign-up");
   await expect(note).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -107,10 +88,10 @@ test("marks Google as the last used sign-in method", async ({
   context,
   baseURL,
 }) => {
-  const google = page.getByRole("button", { name: /Continue with Google/ });
+  const google = page.getByRole("button", { name: /使用 Google 登录/ });
   await page.goto("/sign-in");
   await expect(google).toBeVisible();
-  await expect(page.getByText("Last used")).toHaveCount(0);
+  await expect(page.getByText("上次使用")).toHaveCount(0);
 
   await context.addCookies([
     {
@@ -120,7 +101,7 @@ test("marks Google as the last used sign-in method", async ({
     },
   ]);
   await page.reload();
-  await expect(page.getByText("Last used")).toHaveCount(0);
+  await expect(page.getByText("上次使用")).toHaveCount(0);
 
   await context.addCookies([
     {
@@ -130,5 +111,5 @@ test("marks Google as the last used sign-in method", async ({
     },
   ]);
   await page.reload();
-  await expect(google).toHaveAccessibleName("Continue with Google (Last used)");
+  await expect(google).toHaveAccessibleName(/使用 Google 登录\s*\(上次使用\)/);
 });

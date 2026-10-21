@@ -53,6 +53,7 @@
 | S44   | 设计稿改为「研究笔记」风格（PR #46，标题误写为 S43）：Pen 变量（暖纸色底、墨黑、朱红品牌色 `#D4401A`、Source Serif 4 标题、JetBrains Mono 数字、圆角 4 / 6 / 10）；`Components / Product` 画板（表单字段、Badge 与 Tag、关键词表、分数、页面标题区、搜索结果组、空状态）；画布按 Foundation / Components / Pages 整理；`design-system.md` 与导出 PNG                                                                                                                                  | 无代码改动；对比度按 WCAG AA 计算（`subtle-foreground` 除外）                                                                                                                                                                                                    | 已完成 |
 | S45   | 代码同步 S44 的风格：`theme.css` 的颜色与圆角、`--font-heading`（Source Serif 4）与新的 `--font-mono`（JetBrains Mono）、`layout.tsx` 加载字体、标题字重改为 600、App Icon / favicon / apple-icon、OG 图的字体与颜色                                                                                                                                                                                                                                                                  | 单元测试检查 `theme.css` 与 `design-system.md` 的 Color、Radius 表一致                                                                                                                                                                                           | 已完成 |
 | S46   | 代码使用 S44 的业务组件：`@repo/ui` 的 `Badge` 与 `Tag`；全部状态徽章按 Status 一节加图标（`status-badges.ts`，处理中图标旋转）；最近一次运行显示运行状态徽章；关键词表的数字用等宽字体，Seed 为 `Tag/Brand`；跑题按钮（`Topic Toggle`）；维度的 5 格评分条；搜索结果组改为细线分隔并显示结果数；收藏按钮加描边；列表页与区块的空状态（`EmptyState`）；复选框与单选框用 `primary`                                                                                                     | 单元测试覆盖每个状态的色调与图标；E2E 覆盖跑题按钮的新文字                                                                                                                                                                                                       | 已完成 |
+| S47   | 界面只用中文：删除 `en.json`（web 与 api）和语言切换（用户菜单、移动端菜单、Footer）；`LOCALE = "zh"`，`<html lang="zh-CN">`；登录邮件只用中文；OG 图只显示 Logo 和品牌名；Landing 去掉「中文和英文」一项；E2E 改用中文文案                                                                                                                                                                                                                                                           | 单元测试覆盖固定的 locale 与文案完整性；E2E 覆盖没有语言菜单、页面为中文                                                                                                                                                                                         | 已完成 |
 
 ## Confirmed Decisions
 
@@ -97,6 +98,7 @@
 - 2026-10-21：Provider 拒绝凭据（401）的调用没有计费：S42 起释放它的预留额（状态 `released`），并用单独的错误码 `PROVIDER_AUTH_FAILED`。S42 之前已记为 `failed` 的调用不改。
 - 2026-10-21：S43 起有本服务的每月硬限额（全部项目合计，数据 10 美元、AI 2 美元，可用环境变量修改），在每个项目的预算之外。达到后到下个月 1 日（UTC）才能再做付费调用。
 - 2026-10-21：视觉风格改为「研究笔记」（S44、S45）：暖纸色底、墨黑文字、衬线标题、等宽数字、细线分隔；品牌色由紫罗兰 `#6D4AFF` 改为朱红 `#D4401A`（表示上升；白字 4.62:1，满足 AA）。标题字体用 Source Serif 4，不用 Instrument Serif 或 Newsreader（常见的默认选择）；正文仍用 Inter。朱红与 `destructive` 同属红色系，品牌色不用于表示错误。
+- 2026-10-21：产品只供维护者自己使用，界面只用中文（S47），不再支持英文界面。研究的市场语言（英语关键词）不变。
 
 ## Open Questions
 

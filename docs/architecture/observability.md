@@ -51,9 +51,9 @@ locale
 - 免费额度、Project 设置（autocapture、Session Replay、数据保留）由所有产品共享。
 - 各产品的用户 id 来自各自的数据库，同一个人在两个产品中是两个 PostHog 用户。
 
-客户端事件的 `locale` 由 `track` 从 `<html lang>` 读取（当前界面语言）。`identify` 时也把 `locale` 写入 PostHog 用户属性。
+客户端事件的 `locale` 由 `track` 从 `<html lang>` 读取（`zh-CN`）。`identify` 时也把 `locale` 写入 PostHog 用户属性。
 
-服务端事件：`signup_completed` 的 `locale` 从注册请求读取（`NEXT_LOCALE` Cookie → `Accept-Language`）。`purchase_completed` 来自 Webhook，`task_*` 不带 `locale`；分析时按用户属性 `locale` 拆分（值为该用户最近一次 `identify` 时的界面语言）。users 表不存语言：目前只有 Analytics 需要它。以后如果要在用户请求以外的场景按用户语言发送内容（例如邮件），再加字段。
+服务端事件：`signup_completed` 的 `locale` 是界面语言常量 `zh`。`purchase_completed` 来自 Webhook，`task_*` 不带 `locale`；分析时按用户属性 `locale` 拆分（值为该用户最近一次 `identify` 时的界面语言）。users 表不存语言：目前只有 Analytics 需要它。以后如果要在用户请求以外的场景按用户语言发送内容（例如邮件），再加字段。
 
 `task_started` 带 `inputLength`（输入长度），不带输入内容。`credits_exhausted` 在 `POST /api/tasks` 返回 `INSUFFICIENT_CREDITS` 时发送。
 

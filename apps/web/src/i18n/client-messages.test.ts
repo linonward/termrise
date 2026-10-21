@@ -29,10 +29,8 @@ it("lists every namespace that a client component translates", () => {
   expect([...used].sort()).toEqual([...CLIENT_NAMESPACES].sort());
 });
 
-it("sends only the client namespaces, in every locale", () => {
-  for (const all of Object.values(messages)) {
-    const picked = pickClientMessages(all);
-    expect(Object.keys(picked).sort()).toEqual([...CLIENT_NAMESPACES].sort());
-    expect(picked).not.toHaveProperty("legal");
-  }
+it("sends only the client namespaces", () => {
+  const picked = pickClientMessages(messages);
+  expect(Object.keys(picked).sort()).toEqual([...CLIENT_NAMESPACES].sort());
+  expect(picked).not.toHaveProperty("legal");
 });

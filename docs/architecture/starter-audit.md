@@ -52,7 +52,7 @@
 **已实现**
 
 - Next.js 16.3.8、React 19.2.8、next-intl 4。Route group：`(auth)`、`(dashboard)`（`/dashboard`、`/billing`）、`(marketing)`、`admin/`。
-- Locale 来自 `NEXT_LOCALE` cookie → Accept-Language → `en`，URL 没有 locale 前缀；文案在 `apps/web/messages/{en,zh}.json`。
+- 界面只有中文（`LOCALE = "zh"`），URL 没有 locale 前缀；文案在 `apps/web/messages/zh.json`。
 - `apps/web/src/server/http/route.ts`：`userRoute({ rateLimit }, handler)` 负责请求上下文、`requireUser`、按用户限流和 `errorResponse`。错误格式 `{ error: { code, message } }`，见 [api.md](api.md)。
 - 目录约定：可替换的产品功能放 `features/<name>/`，平台能力放 `server/<domain>/`。
 

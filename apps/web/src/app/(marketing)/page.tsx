@@ -1,4 +1,4 @@
-import { ArrowDown, FileText, Globe, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowDown, FileText, ShieldCheck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -29,7 +29,6 @@ const features = [
   { key: "evidence", icon: ShieldCheck },
   { key: "budget", icon: Wallet },
   { key: "brief", icon: FileText },
-  { key: "languages", icon: Globe },
 ] as const;
 
 const faqs = ["start", "sources", "guarantee", "price"] as const;

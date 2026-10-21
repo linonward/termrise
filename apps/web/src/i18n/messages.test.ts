@@ -9,25 +9,13 @@ function leaves(value: unknown, path = ""): [string, unknown][] {
   );
 }
 
-it("en.json and zh.json have the same keys", () => {
-  const keys = (locale: keyof typeof messages) =>
-    leaves(messages[locale])
-      .map(([key]) => key)
-      .sort();
-  expect(keys("zh")).toEqual(keys("en"));
-});
-
 it("has no empty messages", () => {
-  for (const locale of ["en", "zh"] as const)
-    for (const [key, value] of leaves(messages[locale]))
-      expect(value, `${locale}.${key}`).toEqual(expect.stringMatching(/\S/));
+  for (const [key, value] of leaves(messages))
+    expect(value, key).toEqual(expect.stringMatching(/\S/));
 });
 
 it("has no template placeholders or drafts", () => {
-  for (const locale of ["en", "zh"] as const)
-    for (const [key, value] of leaves(messages[locale]))
-      // "草稿" is also the research project status: only a bracketed marker is a draft.
-      expect(value, `${locale}.${key}`).not.toMatch(
-        /\[[A-Z_]{3,}\]|DRAFT|[（【[]草稿[）】\]]/,
-      );
+  for (const [key, value] of leaves(messages))
+    // "草稿" is also the research project status: only a bracketed marker is a draft.
+    expect(value, key).not.toMatch(/\[[A-Z_]{3,}\]|DRAFT|[（【[]草稿[）】\]]/);
 });

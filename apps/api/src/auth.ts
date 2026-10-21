@@ -5,7 +5,7 @@ import { sendMagicLinkEmail } from "@repo/auth/magic-link-email";
 import { createMagicLinkLimiter } from "@repo/auth/magic-link-limit";
 import { createOnUserCreated } from "@repo/auth/on-user-created";
 import { createRateLimitService } from "@repo/auth/rate-limit";
-import { localeFromHeaders } from "@repo/config/locale";
+import { LOCALE } from "@repo/config/locale";
 import { createCreditService } from "@repo/credits/credit-service";
 
 import { requestAnalytics } from "./analytics";
@@ -45,7 +45,7 @@ export function requestAuth(c: Context<AppEnv>, deps: AuthDeps = {}) {
         {
           apiKey: env.RESEND_API_KEY,
           from: env.EMAIL_FROM,
-          copy: messages[localeFromHeaders(headers)].auth,
+          copy: messages.auth,
         },
         deps.emailTransport,
       );
@@ -54,7 +54,7 @@ export function requestAuth(c: Context<AppEnv>, deps: AuthDeps = {}) {
       credits: createCreditService(db),
       signupBonusCredits: product.signupBonusCredits,
       analytics: requestAnalytics(c),
-      localeFromHeaders,
+      localeFromHeaders: () => LOCALE,
     }),
   );
 }

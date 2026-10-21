@@ -1,10 +1,10 @@
 import type { Locale } from "@repo/config/locale";
 
-import type en from "../../messages/en.json";
+import type zh from "../../messages/zh.json";
 
 declare module "next-intl" {
   interface AppConfig {
     Locale: Locale;
-    Messages: typeof en;
+    Messages: typeof zh;
   }
 }

@@ -23,39 +23,38 @@ test("signed-out visitors see the four packs and sign up before buying", async (
 }) => {
   await page.goto("/pricing");
   for (const [pack, price, perUse] of [
-    ["single", "$5.90", "$0.59 per run"],
-    ["starter", "$19.90", "$0.40 per run"],
-    ["creator", "$49.90", "$0.33 per run"],
-    ["pro", "$79.90", "$0.29 per run"],
+    ["single", "$5.90", "每次 $0.59"],
+    ["starter", "$19.90", "每次 $0.40"],
+    ["creator", "$49.90", "每次 $0.33"],
+    ["pro", "$79.90", "每次 $0.29"],
   ]) {
     await expect(page.getByTestId(`pack-${pack}`)).toContainText(price);
     await expect(page.getByTestId(`pack-${pack}`)).toContainText(perUse);
   }
   // The saving is rounded down from the real per-use price against Single.
-  await expect(page.getByTestId("pack-single")).not.toContainText("Save");
+  await expect(page.getByTestId("pack-single")).not.toContainText("保存");
   for (const [pack, saving] of [
-    ["starter", "Save 32%"],
-    ["creator", "Save 43%"],
-    ["pro", "Save 51%"],
+    ["starter", "省 32%"],
+    ["creator", "省 43%"],
+    ["pro", "省 51%"],
   ])
     await expect(page.getByTestId(`pack-${pack}`)).toContainText(saving);
   await expect(page.getByTestId("pack-creator")).toContainText("150 runs");
-  await expect(page.getByRole("link", { name: "Buy Starter" })).toHaveAttribute(
-    "href",
-    "/sign-up?next=%2Fpricing",
-  );
+  await expect(
+    page.getByRole("link", { name: "购买 Starter" }),
+  ).toHaveAttribute("href", "/sign-up?next=%2Fpricing");
   const plan = page.getByTestId("plan-monthly");
   for (const text of [
     "$9.90",
-    "per month",
+    "每月",
     "60 credits every month",
     "60 runs",
-    "$0.17 per run",
-    "Save 72%",
+    "每次 $0.17",
+    "省 72%",
   ])
     await expect(plan).toContainText(text);
   await expect(
-    page.getByRole("link", { name: "Subscribe Monthly" }),
+    page.getByRole("link", { name: "开始月度订阅" }),
   ).toHaveAttribute("href", "/sign-up?next=%2Fpricing");
 });
 
@@ -65,11 +64,9 @@ test("a subscription checkout grants the plan credits once paid, and blocks a se
 }) => {
   const { userId } = await signIn(context);
   await page.goto("/pricing");
-  await page.getByRole("button", { name: "Subscribe Monthly" }).click();
+  await page.getByRole("button", { name: "开始月度订阅" }).click();
   await expect(page).toHaveURL("/billing?checkout=subscription");
-  await expect(page.getByTestId("checkout-status")).toContainText(
-    "Payment received",
-  );
+  await expect(page.getByTestId("checkout-status")).toContainText("已收到付款");
   await expect(page.getByTestId("billing-balance")).toHaveText("10");
 
   const [sub] = await testDb()
@@ -91,18 +88,18 @@ test("a subscription checkout grants the plan credits once paid, and blocks a se
     payload: {},
   });
   await expect(page.getByTestId("checkout-status")).toContainText(
-    "Credits added",
+    "Credits 已到账",
   );
   await expect(page.getByTestId("billing-balance")).toHaveText("70");
   const activity = page.getByTestId("credit-activity-row");
-  await expect(activity.first()).toContainText("Monthly subscription");
+  await expect(activity.first()).toContainText("月度订阅");
   await expect(activity.first()).toContainText("+60");
 
   await page.goto("/pricing");
-  await page.getByRole("button", { name: "Subscribe Monthly" }).click();
+  await page.getByRole("button", { name: "开始月度订阅" }).click();
   await expect(
     page.getByTestId("plan-monthly").getByRole("alert"),
-  ).toContainText("You already have a subscription");
+  ).toContainText("你已经有订阅了");
   await expect(page).toHaveURL("/pricing");
 });
 
@@ -112,19 +109,17 @@ test("checkout redirect grants nothing; the webhook grants the pack", async ({
 }) => {
   const { userId } = await signIn(context);
   await page.goto("/pricing");
-  await page.getByRole("button", { name: "Buy Creator" }).click();
+  await page.getByRole("button", { name: "购买 Creator" }).click();
   await expect(page).toHaveURL("/billing?checkout=success");
-  await expect(page.getByTestId("checkout-status")).toContainText(
-    "Payment received",
-  );
+  await expect(page.getByTestId("checkout-status")).toContainText("已收到付款");
   await expect(page.getByTestId("billing-balance")).toHaveText("10");
   const activity = page.getByTestId("credit-activity-row");
   await expect(activity).toHaveCount(1);
-  await expect(activity.first()).toContainText("Welcome bonus");
+  await expect(activity.first()).toContainText("新用户赠送");
   const row = page.getByTestId("purchase-row");
   await expect(row).toContainText("Creator");
   await expect(row).toContainText("$49.90");
-  await expect(row).toContainText("Pending");
+  await expect(row).toContainText("待付款");
 
   const [purchase] = await testDb()
     .select()
@@ -144,18 +139,18 @@ test("checkout redirect grants nothing; the webhook grants the pack", async ({
     payload: {},
   });
   await expect(page.getByTestId("checkout-status")).toContainText(
-    "Credits added",
+    "Credits 已到账",
   );
   await expect(page.getByTestId("billing-balance")).toHaveText("160");
-  await expect(row).toContainText("Paid");
+  await expect(row).toContainText("已付款");
   await expect(activity).toHaveCount(2);
-  await expect(activity.first()).toContainText("Creator pack");
+  await expect(activity.first()).toContainText("Creator 套餐");
   await expect(activity.first()).toContainText("+150");
   await expect(activity.first()).toContainText("160");
   // A reload after the credits arrived does not show the banner again.
   await expect(page).toHaveURL("/billing");
   await page.reload();
-  await expect(row).toContainText("Paid");
+  await expect(row).toContainText("已付款");
   await expect(page.getByTestId("checkout-status")).toHaveCount(0);
 });
 
@@ -165,7 +160,7 @@ test("checkout status is hidden when the newest purchase was refunded", async ({
 }) => {
   const { userId } = await signIn(context);
   await page.goto("/pricing");
-  await page.getByRole("button", { name: "Buy Single" }).click();
+  await page.getByRole("button", { name: "购买 Single" }).click();
   await expect(page).toHaveURL("/billing?checkout=success");
   const [purchase] = await testDb()
     .select()
@@ -195,7 +190,7 @@ test("checkout status is hidden when the newest purchase was refunded", async ({
     rawEventType: "payment.refunded",
   });
   await page.goto("/billing?checkout=success");
-  await expect(page.getByTestId("purchase-row")).toContainText("Refunded");
+  await expect(page.getByTestId("purchase-row")).toContainText("已退款");
   await expect(page.getByTestId("checkout-status")).toHaveCount(0);
 });
 
@@ -252,10 +247,8 @@ test("checkout status stops refreshing in a hidden tab", async ({
 }) => {
   await signIn(context);
   await page.goto("/pricing");
-  await page.getByRole("button", { name: "Buy Creator" }).click();
-  await expect(page.getByTestId("checkout-status")).toContainText(
-    "Payment received",
-  );
+  await page.getByRole("button", { name: "购买 Creator" }).click();
+  await expect(page.getByTestId("checkout-status")).toContainText("已收到付款");
   const refreshes: string[] = [];
   page.on("request", (request) => {
     if (request.headers()["rsc"] && request.url().includes("/billing"))
@@ -331,16 +324,16 @@ test("shows the active subscription and cancels it at the period end", async ({
   await paidSubscription(context, userId, "ACTIVE");
   await page.goto("/billing");
   const section = page.getByTestId("subscription");
-  await expect(section).toContainText("Monthly");
-  await expect(section).toContainText("Active");
-  await expect(section).toContainText("Renews on Nov 5, 2026");
-  await section.getByRole("button", { name: "Cancel subscription" }).click();
-  await section.getByRole("button", { name: "Yes, cancel" }).click();
-  await expect(section).toContainText("Canceling");
-  await expect(section).toContainText("Ends on Nov 5, 2026");
-  await expect(
-    section.getByRole("button", { name: "Cancel subscription" }),
-  ).toHaveCount(0);
+  await expect(section).toContainText("月度");
+  await expect(section).toContainText("生效中");
+  await expect(section).toContainText("2026年11月5日 自动续费");
+  await section.getByRole("button", { name: "取消订阅" }).click();
+  await section.getByRole("button", { name: "确认取消" }).click();
+  await expect(section).toContainText("即将结束");
+  await expect(section).toContainText("2026年11月5日 结束");
+  await expect(section.getByRole("button", { name: "取消订阅" })).toHaveCount(
+    0,
+  );
 });
 
 test("a paid subscription waiting for activation shows no cancel button yet", async ({
@@ -351,12 +344,12 @@ test("a paid subscription waiting for activation shows no cancel button yet", as
   await paidSubscription(context, userId, null);
   await page.goto("/billing");
   const section = page.getByTestId("subscription");
-  await expect(section).toContainText("Monthly");
-  await expect(section).toContainText("Active");
+  await expect(section).toContainText("月度");
+  await expect(section).toContainText("生效中");
   // The cancel API accepts only activated subscriptions; Waffo activates in seconds.
-  await expect(
-    section.getByRole("button", { name: "Cancel subscription" }),
-  ).toHaveCount(0);
+  await expect(section.getByRole("button", { name: "取消订阅" })).toHaveCount(
+    0,
+  );
 });
 
 test("a past-due subscription links to the provider's customer portal to update the card", async ({
@@ -367,9 +360,9 @@ test("a past-due subscription links to the provider's customer portal to update 
   await paidSubscription(context, userId, "PAST_DUE");
   await page.goto("/billing");
   const section = page.getByTestId("subscription");
-  await expect(section).toContainText("Past due");
+  await expect(section).toContainText("付款失败");
   await expect(
-    section.getByRole("link", { name: "Update payment method" }),
+    section.getByRole("link", { name: "更新付款方式" }),
   ).toHaveAttribute("href", FAKE_CUSTOMER_PORTAL_URL);
 });
 
