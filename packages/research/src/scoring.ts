@@ -8,7 +8,9 @@ import type { SerpCompetition } from "./serp-competition";
 // keyword in its top results (serp-competition.ts).
 // v3: a cluster's competition uses its seed's own results when they were audited, not
 // those of an expansion with more searches that may mean something else (evaluate.ts).
-export const SCORING_VERSION = "v3";
+// v4: keywords the analysis marks off topic are left out of the evidence
+// (cluster-evidence.ts); a cluster mostly off topic needs review.
+export const SCORING_VERSION = "v4";
 
 export const WEIGHTS = {
   trend: 20,
@@ -156,7 +158,8 @@ export function totalScore(dimensions: Dimensions) {
 
 /**
  * Evidence Confidence, 0–100, independent of the score: complete metrics, an audited
- * SERP, fresh data and observed signals. A high score on weak evidence needs review.
+ * SERP, fresh data and observed signals. A high score on weak evidence needs review, and
+ * so does a cluster with more than half of its keywords off topic.
  */
 export function confidence(evidence: ClusterEvidence, now: Date) {
   const { keywords, signals } = evidence;
@@ -179,6 +182,9 @@ export function confidence(evidence: ClusterEvidence, now: Date) {
 
 export const NEEDS_REVIEW_SCORE = 60;
 export const NEEDS_REVIEW_CONFIDENCE = 50;
+/** Above this share of off-topic keywords, the analysis may have misread the cluster. */
+export const NEEDS_REVIEW_OFF_TOPIC_SHARE = 0.5;
 
-export const needsReview = (score: number, conf: number) =>
-  score >= NEEDS_REVIEW_SCORE && conf < NEEDS_REVIEW_CONFIDENCE;
+export const needsReview = (score: number, conf: number, offTopicShare = 0) =>
+  (score >= NEEDS_REVIEW_SCORE && conf < NEEDS_REVIEW_CONFIDENCE) ||
+  offTopicShare > NEEDS_REVIEW_OFF_TOPIC_SHARE;

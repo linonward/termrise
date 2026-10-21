@@ -198,4 +198,15 @@ it("counts a radar item's days and source for every seed of a project started fr
     );
   }
   expect(list.map((o) => o.cluster)).toContain("electronic signature app");
+  // Its keywords are all off topic: no demand or competition from them, and a review.
+  const offTopic = list.find((o) => o.cluster === "electronic signature app")!;
+  expect(offTopic).toMatchObject({
+    dimensions: { demand: 0, competition: 0, commercial: 0, mvp: 0 },
+    needsReview: true,
+    serpCompetition: null,
+    buildAdvice: { advice: "unknown" },
+  });
+  const scores = list.map((o) => o.score);
+  expect(scores).toEqual([...scores].sort((x, y) => y - x));
+  expect(list.map((o) => o.rank)).toEqual(list.map((_, i) => i + 1));
 });

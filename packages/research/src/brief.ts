@@ -56,7 +56,7 @@ export function buildBrief(o: OpportunityDetailDto): string {
     [
       `- Project: ${line(o.projectName)}`,
       `- Status: ${o.status}${latest ? ` (decided ${date(latest.createdAt)}: ${line(latest.reason)})` : ""}`,
-      `- Opportunity score: ${o.score}/100 (scoring ${o.scoringVersion}); confidence ${o.confidence}%${o.needsReview ? "; needs review: high score on thin evidence" : ""}`,
+      `- Opportunity score: ${o.score}/100 (scoring ${o.scoringVersion}); confidence ${o.confidence}%${o.needsReview ? "; needs review: check the evidence" : ""}`,
       `- Evaluated: ${date(o.evaluatedAt)}`,
       "- The score ranks opportunities. It is not a chance of success.",
     ].join("\n"),
