@@ -8,7 +8,7 @@ import {
 } from "./deepseek-prices";
 
 /** Changes when the instructions or the output shape change. */
-export const DEEPSEEK_PROMPT_VERSION = "analysis-v1";
+export const DEEPSEEK_PROMPT_VERSION = "analysis-v2";
 /** The prompt is cut to this length, so its tokens have an upper bound. */
 export const MAX_PROMPT_CHARS = 12_000;
 export const MAX_OUTPUT_TOKENS = 1_500;
@@ -25,6 +25,7 @@ const EXAMPLE = {
   channels: ["Search", "Designer communities"],
   mvpScope: ["Invoice editor", "PDF export", "Client list"],
   risks: ["Accounting suites add the same feature"],
+  offTopicKeywords: ["invoice factoring companies"],
 };
 
 // The model writes hypotheses only; scores and numbers come from data and rules
@@ -35,6 +36,9 @@ Answer with one json object in exactly this shape, in English:
 ${JSON.stringify(EXAMPLE, null, 2)}
 Rules:
 - alternatives, channels: at most 5 items. mvpScope: 1 to 7 items. risks: 1 to 5 items.
+- offTopicKeywords: keywords from the data whose meaning differs from the product in
+  sourceTitles, such as another sense of the same word. At most 30, copied exactly.
+  Empty when sourceTitles is empty or every keyword fits.
 - Each text is short: at most 300 characters (differentiation 500, list items 200).
 - Every statement is a hypothesis to check. Do not invent numbers: no search volumes,
   difficulty, revenue or market sizes.
@@ -51,6 +55,7 @@ function prompt(input: AnalysisInput) {
     })),
     topSearchResultTitles: input.serpTitles,
     signalSources: input.signalSources,
+    sourceTitles: input.sourceTitles,
   };
   // Drop keywords from the end until the data fits the cap.
   let text = JSON.stringify(data);

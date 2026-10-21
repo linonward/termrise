@@ -1,6 +1,12 @@
 import { expect, it } from "vitest";
 
-import { isDedicated, isHomepage, serpCompetition } from "./serp-competition";
+import {
+  clusterSerpKeyword,
+  isDedicated,
+  isHomepage,
+  serpAuditOrder,
+  serpCompetition,
+} from "./serp-competition";
 
 it("tells home pages from inner pages", () => {
   expect(isHomepage("https://www.read.ai/")).toBe(true);
@@ -53,4 +59,41 @@ it("counts the top 10 only", () => {
     innerPages: 9,
     dedicatedPages: 1,
   });
+});
+
+it("audits the seeds first, then the expansions with the most searches", () => {
+  const keywords = [
+    { id: "1", isSeed: false, searchVolume: 5400 },
+    { id: "2", isSeed: true, searchVolume: 1300 },
+    { id: "3", isSeed: false, searchVolume: 0 },
+    { id: "4", isSeed: true, searchVolume: null },
+    { id: "5", isSeed: true, searchVolume: 10 },
+    { id: "6", isSeed: false, searchVolume: 2400 },
+  ];
+  // Keywords without searches are not audited: they score nothing.
+  expect(serpAuditOrder(keywords, 3).map((k) => k.id)).toEqual(["2", "5", "1"]);
+  expect(serpAuditOrder(keywords, 10).map((k) => k.id)).toEqual([
+    "2",
+    "5",
+    "1",
+    "6",
+  ]);
+});
+
+it("lets the seed's own results stand for its cluster when they were audited", () => {
+  const members = [
+    { id: "e", phrase: "electronic signature platforms", searchVolume: 5400 },
+    { id: "s", phrase: "digital sign app", searchVolume: 1300 },
+    { id: "x", phrase: "digital sign apps", searchVolume: 1300 },
+  ];
+  expect(
+    clusterSerpKeyword("digital sign app", members, new Set(["e", "s"]))?.id,
+  ).toBe("s");
+  // Without the seed's results: the audited keyword with the most searches.
+  expect(
+    clusterSerpKeyword("digital sign app", members, new Set(["e", "x"]))?.id,
+  ).toBe("e");
+  expect(
+    clusterSerpKeyword("digital sign app", members, new Set()),
+  ).toBeUndefined();
 });

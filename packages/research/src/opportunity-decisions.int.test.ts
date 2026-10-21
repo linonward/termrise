@@ -16,6 +16,7 @@ import {
 } from "./research-dto";
 import { createResearchRunner } from "./research-runner";
 import { createResearchService } from "./research-service";
+import { SCORING_VERSION } from "./scoring";
 import { exportResearchData } from "./user-data";
 
 const db = testDb();
@@ -79,7 +80,7 @@ it("records decisions as an append-only history with the evidence version", asyn
       reason: "Pre-orders came in",
       deciderName: "Ada",
       evaluationId: detail.evaluation.id,
-      scoringVersion: "v2",
+      scoringVersion: SCORING_VERSION,
     },
     { decision: "needs_validation", reason: "Promising, test it" },
   ]);

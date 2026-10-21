@@ -43,6 +43,7 @@
 | S34   | 缩短种子词：`seed_suggestions` 与 migration；`SeedExtractor` 端口、DeepSeek（`seeds-v1`）与 fake 实现；`seed-suggestions.ts`（API 排队、Worker 领取，记入 AI 预算 `suggest_seeds`，规范化与上限，失败原因，10 分钟超时）；`research.scan` 入队 `seeds.suggest`；`POST .../seed-suggestions` 与 `GET .../latest`；项目页的「缩短种子词」面板                                                                                                                                           | 单元测试覆盖规范化、校验、长种子词判断、DeepSeek 请求与费用上限；集成测试覆盖排队、幂等、同时只有一条、预算不足、无效输出、服务错误、超时、归属与锁定；Worker 测试覆盖扫描；API 测试覆盖 201 / 400 / 404 / 409；E2E 覆盖 Radar → 项目 → 建议 → 修改 → 用作种子词 | 已完成 |
 | S35   | Radar 信号进入评分：`source_signals` 的来源增加 `hacker_news`、`google_trends` 与 migration；`radar-signals.ts`（条目的观测每个 UTC 日一条信号）；创建项目可带 `radarItemId`（同一事务写入信号，条目不存在时 404）；聚类时 Radar 信号属于全部种子词；Radar 的 Start research 链接带条目 id                                                                                                                                                                                            | 单元测试覆盖按日合并、来源名、没有观测；集成测试覆盖缩短后的种子词仍得到趋势与分发、条目不存在时不创建；API 测试覆盖信号与 404；E2E 覆盖从 Radar 创建后的信号                                                                                                    | 已完成 |
 | S36   | 种子词建议的 Prompt 示例改为虚构的产品（`seeds-v2`）：S34 的真实调用把 Llmspeed 示例原样返回                                                                                                                                                                                                                                                                                                                                                                                          | 单元测试覆盖版本号与示例中没有真实 Radar 标题                                                                                                                                                                                                                    | 已完成 |
+| S37   | 结果围绕原来的产品（S36 后的真实运行：「digital sign app」扩到电子签名，SERP 与 AI 报告跟着跑偏）：SERP 先审核种子词（`serpAuditOrder()`）；评分 `v3`，组的竞争用种子词自己的 SERP（`clusterSerpKeyword()`），AI 看到同一个快照的标题；AI 分析加入来源标题，输出 `offTopicKeywords`（`analysis-v2`，只标记不改分）；详情页的 Off-topic keywords                                                                                                                                       | 单元测试覆盖审核顺序、组的 SERP 选择、Prompt 版本与来源标题；集成测试覆盖跑题的种子词被标记、其他组为空、旧答案没有该项时为空；E2E 覆盖 Radar → 缩短 → 运行 → 详情页的跑题提示                                                                                   | 已完成 |
 
 ## Confirmed Decisions
 
@@ -81,6 +82,7 @@
 - 2026-10-10：参考 Web.Cafe 的新词发现，增加 SERP 竞争计数与建站建议。只用已保存的前 10 结果（F04 的范围，不增加费用），规则确定、有版本，不用 AI 判断。阈值（1000 搜索量、KD 40、3 个专门页面）是初版，观察真实数据后再调整。
 - 2026-10-21：Radar 的整句标题用 AI 缩短为搜索短语（S34），不用固定规则：258 个 HN 条目中，按「–」或「:」分开后，前半是没有搜索量的品牌名，后半仍是整句。建议由用户请求、在页面上修改后才替换种子词；费用记入项目的 AI 预算，跟随 `ANALYST_PROVIDER`，不新增变量。之后的顺序：S35 决定是否补用 Labs 扩词，S36 每月硬限额与 401 时释放预留额。
 - 2026-10-21：从 Radar 条目创建的项目，条目的观测写成项目的信号（每个 UTC 日一条），属于全部种子词（S35）。评分规则和版本（v2）不变，变化的是输入：之前这些机会的趋势和分发总是 0。信号只在创建时写入，之后的观测不追加。
+- 2026-10-21：Bigwords.page 的真实运行中，扩展词的意思与产品不同（sign → 电子签名），却得到最高分和高可信度。S37 起，SERP 先审核种子词，组的竞争用种子词自己的结果（评分 v3）；AI 标出与来源标题无关的关键词，只做标记，不从分数中去掉：去掉需要可靠的判断，先观察标记的准确度。
 
 ## Open Questions
 

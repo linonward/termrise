@@ -77,11 +77,12 @@ it("stores the analysis with its model and settles the token cost", async () => 
 
   const [evaluation] = await db.select().from(opportunityEvaluations);
   expect(evaluation).toMatchObject({
-    analysis,
+    // An answer without offTopicKeywords is stored with an empty list.
+    analysis: { ...analysis, offTopicKeywords: [] },
     analysisError: null,
     analystProvider: "deepseek",
     analystModel: "deepseek-flash",
-    analystPromptVersion: "analysis-v1",
+    analystPromptVersion: "analysis-v2",
   });
   const calls = await db.select().from(apiUsage);
   // 1000 × 0.3 + 500 × 1.2 micro-USD at the peak price.
