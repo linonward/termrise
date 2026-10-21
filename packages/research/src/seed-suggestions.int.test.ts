@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, expect, it } from "vitest";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import { apiUsage, researchProjects, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
@@ -185,4 +186,23 @@ it("accepts a request only for a project the user can still edit", async () => {
     queue.request("a", id, { requestId: randomUUID() }),
   ).rejects.toMatchObject({ code: "RESEARCH_PROJECT_LOCKED" });
   expect(await queue.latest("a", id)).toBeNull();
+});
+
+it("fails with an auth error, and releases the reservation, when the key is refused", async () => {
+  const refused: SeedExtractor = {
+    ...createFakeSeedExtractor(),
+    async extract() {
+      throw new ProviderAuthError("DeepSeek request failed: 401");
+    },
+  };
+  const { id } = await project();
+  const queued = await queue.request("a", id, { requestId: randomUUID() });
+  const failing = createSeedSuggester({ database: db, extractor: refused });
+  expect(await failing.execute(queued.id)).toMatchObject({
+    status: "failed",
+    errorCode: "PROVIDER_AUTH_FAILED",
+  });
+  expect(await db.select().from(apiUsage)).toMatchObject([
+    { status: "released", costMicros: 0 },
+  ]);
 });

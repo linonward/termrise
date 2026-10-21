@@ -200,6 +200,22 @@ test("shows a failed run and offers to run it again", async ({
   ).toBeVisible();
 });
 
+test("says when the data source refused the key, and that nothing was charged", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  // The fake provider refuses the key on seeds with [auth-fail].
+  await createProject(page, "Locked project", "locked [auth-fail]");
+  await page.getByRole("button", { name: "Run research" }).click();
+  await expect(page.getByTestId("last-run")).toContainText("Failed");
+  await expect(
+    page.getByText("The keyword data source refused the API key.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+});
+
 test("shows the budget used and stops a run the budget cannot cover", async ({
   page,
   context,

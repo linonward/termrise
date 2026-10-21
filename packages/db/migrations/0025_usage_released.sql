@@ -1,0 +1,2 @@
+ALTER TABLE "api_usage" DROP CONSTRAINT "api_usage_status_valid";--> statement-breakpoint
+ALTER TABLE "api_usage" ADD CONSTRAINT "api_usage_status_valid" CHECK ("api_usage"."status" in ('reserved', 'settled', 'failed', 'released'));

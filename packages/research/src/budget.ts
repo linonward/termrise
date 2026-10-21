@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
 import { apiUsage, BUDGET_KINDS, researchProjects } from "@repo/db/schema";
 
@@ -17,8 +18,9 @@ type Call = {
   maxCostMicros: number;
 };
 
-// Counted against the budget: the cost once settled, else the whole reservation.
-const committed = sql<number>`coalesce(sum(case when ${apiUsage.status} = 'settled' then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end), 0)::bigint`;
+// Counted against the budget: the cost once settled or released (0), else the whole
+// reservation.
+const committed = sql<number>`coalesce(sum(case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end), 0)::bigint`;
 
 // The budget ledger (docs/architecture/data-model.md#budget-ledger): every paid call is
 // reserved atomically before it starts and settled with the provider's cost after.
@@ -65,7 +67,7 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
 
   async function close(
     id: string,
-    status: "settled" | "failed",
+    status: "settled" | "failed" | "released",
     costMicros: number | null,
   ) {
     await database
@@ -77,6 +79,7 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
   /**
    * Reserves, makes the call and settles it. Returns null, without calling, when the
    * budget is short. A failed call keeps its reservation counted: its cost is unknown.
+   * A call refused as unauthorized is not billed: its reservation is released.
    */
   async function charge<T>(call: Call, run: () => Promise<Charged<T>>) {
     const id = await reserve(call);
@@ -85,7 +88,8 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
     try {
       result = await run();
     } catch (error) {
-      await close(id, "failed", null);
+      if (error instanceof ProviderAuthError) await close(id, "released", 0);
+      else await close(id, "failed", null);
       throw error;
     }
     await close(id, "settled", result.costMicros);

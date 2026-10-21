@@ -17,7 +17,13 @@ import { researchProjects } from "./research";
 export const BUDGET_KINDS = ["data", "ai"] as const;
 // reserved: the call is out; settled: the provider reported its cost; failed: the call
 // failed and its cost is unknown, so the reservation stays counted.
-export const USAGE_STATUSES = ["reserved", "settled", "failed"] as const;
+// released: the provider refused the credentials and billed nothing.
+export const USAGE_STATUSES = [
+  "reserved",
+  "settled",
+  "failed",
+  "released",
+] as const;
 
 // One paid provider call: reserved from a project's budget before, settled after.
 export const apiUsage = pgTable(

@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, expect, it } from "vitest";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import { apiUsage, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
@@ -82,4 +83,22 @@ it("lets only as many concurrent reservations through as the budget covers", asy
   );
   expect(results.filter(Boolean)).toHaveLength(3);
   expect((await budget.usage(id)).data.held).toBe(900_000);
+});
+
+it("releases the reservation of a call the provider refused as unauthorized", async () => {
+  const { id } = await project(1);
+  await expect(
+    budget.charge(call(id, 600_000), async () => {
+      throw new ProviderAuthError("DataForSEO serp returned 401");
+    }),
+  ).rejects.toBeInstanceOf(ProviderAuthError);
+  // An unauthorized call is not billed: nothing is spent or held.
+  expect((await budget.usage(id)).data).toMatchObject({
+    spent: 0,
+    held: 0,
+    remaining: 1_000_000,
+  });
+  const [row] = await db.select().from(apiUsage);
+  expect(row).toMatchObject({ status: "released", costMicros: 0 });
+  expect(await budget.reserve(call(id, 1_000_000))).not.toBeNull();
 });

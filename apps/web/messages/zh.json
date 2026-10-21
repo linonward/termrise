@@ -711,7 +711,8 @@
     "lastStatus": {
       "settled": "成功",
       "failed": "失败",
-      "reserved": "进行中"
+      "reserved": "进行中",
+      "released": "Key 被拒绝"
     },
     "provider": {
       "fake": "测试数据",
@@ -907,7 +908,8 @@
       "PROVIDER_ERROR": "关键词数据来源没有响应。",
       "INTERNAL_ERROR": "运行时出错了。",
       "BUDGET_EXHAUSTED": "数据预算不够一次扩词。",
-      "RUN_TIMED_OUT": "运行在完成前停止了。请再运行一次。"
+      "RUN_TIMED_OUT": "运行在完成前停止了。请再运行一次。",
+      "PROVIDER_AUTH_FAILED": "关键词数据源拒绝了 API Key。请检查 Worker 的 DataForSEO 登录名和密码，然后再运行。这次没有扣费。"
     },
     "runPartialNote": "部分搜索结果没有取到；关键词是完整的。",
     "keywordsTitle": "关键词",
@@ -948,7 +950,8 @@
       "BUDGET_EXHAUSTED": "AI 预算不够一次建议。请提高预算后再试。",
       "INVALID_AI_OUTPUT": "AI 的回答不能使用。请再试一次。",
       "SUGGESTION_TIMED_OUT": "建议在完成前停止了。请再试一次。",
-      "INTERNAL_ERROR": "出错了。请再试一次。"
+      "INTERNAL_ERROR": "出错了。请再试一次。",
+      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key。请检查 Worker 的 DeepSeek Key，然后再试。这次没有扣费。"
     },
     "topic": {
       "offTopic": "跑题",
@@ -1049,7 +1052,8 @@
     "analysisError": {
       "AI_INVALID_OUTPUT": "AI 的回答格式不符合要求，所以不显示。分数仍然有效。",
       "AI_ERROR": "AI 分析没有完成。分数仍然有效。",
-      "BUDGET_EXHAUSTED": "AI 预算已用完，所以没有做这次分析。分数仍然有效。"
+      "BUDGET_EXHAUSTED": "AI 预算已用完，所以没有做这次分析。分数仍然有效。",
+      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key，所以没有做这次分析。分数仍然有效。这次没有扣费。"
     },
     "analysisNote": "AI 根据下方证据写出这段文字。它不改变分数。",
     "analysisModel": "模型：{model}。",

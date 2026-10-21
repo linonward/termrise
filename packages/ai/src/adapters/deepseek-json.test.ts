@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 
 import { createDeepSeekJson } from "./deepseek-json";
+import { ProviderAuthError } from "../provider-errors";
 
 // A stub fetch with the chat completion shape of the DeepSeek API: no network call.
 function respond(status: number, body: unknown) {
@@ -85,4 +86,13 @@ it("fails on an answer that is not JSON", async () => {
     fetch: respond(200, completion("not json")),
   });
   await expect(client.generate(input)).rejects.toThrow("DeepSeek");
+});
+
+it("fails with an auth error when DeepSeek refuses the key", async () => {
+  const fetch = respond(401, { error: { message: "Authentication Fails" } });
+  const client = createDeepSeekJson({ apiKey: "sk-bad", model: "m", fetch });
+  const error = await client.generate(input).catch((e: unknown) => e);
+  expect(error).toBeInstanceOf(ProviderAuthError);
+  expect((error as Error).message).toBe("DeepSeek request failed: 401");
+  expect(fetch).toHaveBeenCalledTimes(1);
 });

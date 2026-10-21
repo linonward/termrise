@@ -64,9 +64,9 @@ export function createProviderStatus(deps: {
         provider: apiUsage.provider,
         kind: apiUsage.kind,
         calls: sql<number>`count(*)::int`,
-        failed: sql<number>`(count(*) filter (where ${apiUsage.status} = 'failed'))::int`,
+        failed: sql<number>`(count(*) filter (where ${apiUsage.status} in ('failed', 'released')))::int`,
         spentMicros: sql<number>`coalesce(sum(${apiUsage.costMicros}) filter (where ${apiUsage.status} = 'settled'), 0)::bigint`,
-        heldMicros: sql<number>`coalesce(sum(${apiUsage.reservedMicros}) filter (where ${apiUsage.status} <> 'settled'), 0)::bigint`,
+        heldMicros: sql<number>`coalesce(sum(${apiUsage.reservedMicros}) filter (where ${apiUsage.status} in ('reserved', 'failed')), 0)::bigint`,
         lastCallAt: sql<Date>`max(${apiUsage.createdAt})`,
         lastStatus: sql<string>`(array_agg(${apiUsage.status} order by ${apiUsage.createdAt} desc))[1]`,
       })
@@ -129,7 +129,8 @@ export function toProviderStatusDto(s: ProviderStatus) {
       spentUsd: usd(u.spentMicros),
       heldUsd: usd(u.heldMicros),
       lastCallAt: u.lastCallAt.toISOString(),
-      lastStatus: u.lastStatus as "reserved" | "settled" | "failed",
+      lastStatus: u.lastStatus as
+        "reserved" | "settled" | "failed" | "released",
     })),
   };
 }

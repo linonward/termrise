@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
+
 import type {
   Charged,
   KeywordIdea,
@@ -7,6 +9,8 @@ import type {
   Market,
   SerpItem,
 } from "../keyword-provider";
+
+const AUTH_FAILED = 40100;
 
 // DataForSEO v3 (https://docs.dataforseo.com/v3/): HTTP Basic auth, one task per Live
 // call, and every response reports what it cost in USD. Status 20000 is success, at the
@@ -115,9 +119,14 @@ export function createDataForSeoProvider(deps: {
       signal: AbortSignal.timeout(deps.timeoutMs ?? 60_000),
     });
     // The error never holds the credentials or the response body.
+    if (response.status === 401)
+      throw new ProviderAuthError(`DataForSEO ${path} returned 401`);
     if (!response.ok)
       throw new Error(`DataForSEO ${path} returned ${response.status}`);
     const parsed = task(result).parse(await response.json());
+    // 40100: the login or password was refused (seen in the S33 run).
+    if (parsed.status_code === AUTH_FAILED)
+      throw new ProviderAuthError(`DataForSEO ${path} failed: ${AUTH_FAILED}`);
     if (parsed.status_code !== 20000)
       throw new Error(`DataForSEO ${path} failed: ${parsed.status_code}`);
     const first = parsed.tasks?.[0];
