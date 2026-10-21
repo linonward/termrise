@@ -25,12 +25,13 @@ import type {
 import type { OpportunityAnalyst } from "./opportunity-analyst";
 import { cacheKey, createProviderCache } from "./provider-cache";
 import { normalizeSeeds } from "./research-rules";
+import { serpAuditOrder } from "./serp-competition";
 
 export type ResearchRun = typeof researchRuns.$inferSelect;
 
 /** Keywords kept per run: the seeds first, then expansions in order. */
 export const MAX_KEYWORDS = 200;
-/** Keywords whose SERP is audited: the highest search volume first. */
+/** Keywords whose SERP is audited: the seeds first, then by search volume. */
 export const SERP_AUDIT_COUNT = 5;
 /**
  * A run still running this long after its claim lost its worker (a crash or a stop
@@ -478,9 +479,10 @@ export function createResearchRunner(deps: {
           fetchedAt,
         })),
       );
-      return ideas.map(({ phrase, idea }) => ({
+      return ideas.map(({ phrase, seed, idea }) => ({
         id: idOf.get(phrase)!,
         phrase,
+        isSeed: phrase === seed,
         searchVolume: idea.metrics.searchVolume,
       }));
     });
@@ -488,13 +490,15 @@ export function createResearchRunner(deps: {
 
   async function auditSerps(
     run: ResearchRun,
-    saved: { id: string; phrase: string; searchVolume: number | null }[],
+    saved: {
+      id: string;
+      phrase: string;
+      isSeed: boolean;
+      searchVolume: number | null;
+    }[],
     market: { locationCode: number; languageCode: string },
   ) {
-    const top = saved
-      .filter((k) => (k.searchVolume ?? 0) > 0)
-      .sort((a, b) => (b.searchVolume ?? 0) - (a.searchVolume ?? 0))
-      .slice(0, SERP_AUDIT_COUNT);
+    const top = serpAuditOrder(saved, SERP_AUDIT_COUNT);
     let failures = 0;
     let budgetExhausted = false;
     for (const keyword of top) {

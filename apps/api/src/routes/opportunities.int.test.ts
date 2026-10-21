@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, expect, it } from "vitest";
 
 import { closeTestDb, resetDb } from "@repo/db/testing/db";
+import { SCORING_VERSION } from "@repo/research/scoring";
 
 import { createTestClient } from "../testing/client";
 import { runQueuedResearch } from "../testing/research-worker";
@@ -55,7 +56,7 @@ it("lists the ranked opportunities of a run and shows one with its evidence", as
     projectId,
     projectName: "Notes",
     status: "unreviewed",
-    scoringVersion: "v2",
+    scoringVersion: SCORING_VERSION,
     analystProvider: "fake",
     rank: 1,
   });

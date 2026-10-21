@@ -15,15 +15,21 @@ export const analysisSchema = z.object({
   channels: z.array(z.string().min(1).max(200)).max(5),
   mvpScope: z.array(z.string().min(1).max(200)).min(1).max(7),
   risks: z.array(z.string().min(1).max(300)).min(1).max(5),
+  // Keywords that mean something else than the product in the source titles. Marked
+  // only: they still count in the score. Absent in analyses before analysis-v2.
+  offTopicKeywords: z.array(z.string().min(1).max(200)).max(30).default([]),
 });
 
-export type Analysis = z.infer<typeof analysisSchema>;
+// As stored: analyses before analysis-v2 have no offTopicKeywords.
+export type Analysis = z.input<typeof analysisSchema>;
 
 export type AnalysisInput = {
   cluster: string;
   keywords: { phrase: string; searchVolume: number | null; intent: string }[];
   serpTitles: string[];
   signalSources: string[];
+  /** Titles of the stories the project started from, e.g. a Show HN post. */
+  sourceTitles: string[];
 };
 
 export interface OpportunityAnalyst {

@@ -172,7 +172,12 @@ it("counts a radar item's days and source for every seed of a project started fr
   // The seeds were shortened from the title: none of them is the item's term.
   const { id } = await service.create("a", {
     name: "Dovepass",
-    seeds: ["drone flight path checker", "drone airspace map"],
+    seeds: [
+      "drone flight path checker",
+      "drone airspace map",
+      // An expansion that means something else: the analysis marks it.
+      "electronic signature app",
+    ],
     radarItemId: item.id,
   });
   expect(await service.listSignals("a", id)).toMatchObject([
@@ -186,5 +191,11 @@ it("counts a radar item's days and source for every seed of a project started fr
     // Two days: trend 2. One source: distribution 1.
     expect(opportunity.dimensions).toMatchObject({ trend: 2, distribution: 1 });
     expect(opportunity.analysis?.channels).toContain("Hacker News");
+    expect(opportunity.analysis?.offTopicKeywords ?? []).toEqual(
+      opportunity.cluster === "electronic signature app"
+        ? expect.arrayContaining(["electronic signature app"])
+        : [],
+    );
   }
+  expect(list.map((o) => o.cluster)).toContain("electronic signature app");
 });

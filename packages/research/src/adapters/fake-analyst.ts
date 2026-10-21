@@ -39,5 +39,20 @@ function output(input: AnalysisInput): unknown {
         : ["Search"],
     mvpScope: top.slice(0, 3).map((k) => `Page for "${k.phrase}"`),
     risks: ["Test analysis: check the search results before building"],
+    offTopicKeywords: offTopic(input),
   };
+}
+
+// Off topic: keywords that share no word with any source title.
+function offTopic(input: AnalysisInput) {
+  const words = new Set(
+    input.sourceTitles.flatMap(
+      (t) => t.toLowerCase().match(/[a-z0-9]+/g) ?? [],
+    ),
+  );
+  if (words.size === 0) return [];
+  return input.keywords
+    .filter((k) => !k.phrase.split(" ").some((w) => words.has(w)))
+    .map((k) => k.phrase)
+    .slice(0, 30);
 }

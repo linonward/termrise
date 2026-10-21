@@ -57,3 +57,37 @@ export function serpCompetition(
     dedicatedPages: top.filter((r) => isDedicated(r.title, phrase)).length,
   };
 }
+
+/**
+ * The keywords whose SERP a run audits: the seeds first, then the expansions, each by
+ * search volume. The seeds are the phrases the user chose; an expansion with more
+ * searches can mean something else (S37: "digital sign app" expanded to e-signature).
+ */
+export function serpAuditOrder<
+  K extends { isSeed: boolean; searchVolume: number | null },
+>(keywords: readonly K[], count: number) {
+  return keywords
+    .filter((k) => (k.searchVolume ?? 0) > 0)
+    .sort(
+      (a, b) =>
+        Number(b.isSeed) - Number(a.isSeed) ||
+        (b.searchVolume ?? 0) - (a.searchVolume ?? 0),
+    )
+    .slice(0, count);
+}
+
+/**
+ * The keyword whose results stand for a cluster's competition: the seed's own when
+ * audited, else the audited keyword with the most searches.
+ */
+export function clusterSerpKeyword<
+  M extends { id: string; phrase: string; searchVolume: number | null },
+>(seed: string, members: readonly M[], audited: ReadonlySet<string>) {
+  const candidates = members.filter((m) => audited.has(m.id));
+  return (
+    candidates.find((m) => m.phrase === seed) ??
+    [...candidates].sort(
+      (a, b) => (b.searchVolume ?? -1) - (a.searchVolume ?? -1),
+    )[0]
+  );
+}

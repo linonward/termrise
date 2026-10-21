@@ -243,6 +243,27 @@ export default async function OpportunityPage({
                   <dd>{value}</dd>
                 </div>
               ))}
+              {(o.analysis.offTopicKeywords?.length ?? 0) > 0 && (
+                <div
+                  role="note"
+                  className="space-y-1 rounded-md bg-warning-soft p-4"
+                  data-testid="off-topic"
+                >
+                  <dt className="flex items-center gap-2 text-sm font-semibold">
+                    <CircleAlert
+                      aria-hidden="true"
+                      className="size-4.5 shrink-0 text-warning"
+                    />
+                    {t("analysis.offTopicKeywords")}
+                  </dt>
+                  <dd className="text-[13px]">
+                    {list(o.analysis.offTopicKeywords ?? [])}
+                  </dd>
+                  <dd className="text-[13px] text-muted-foreground">
+                    {t("offTopicNote")}
+                  </dd>
+                </div>
+              )}
             </dl>
           ) : (
             <div

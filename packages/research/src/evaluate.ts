@@ -24,8 +24,10 @@ import {
   totalScore,
   type ClusterEvidence,
 } from "./scoring";
-import { serpCompetition } from "./serp-competition";
+import { clusterSerpKeyword, serpCompetition } from "./serp-competition";
 
+/** Source titles the analysis sees per cluster. */
+const MAX_SOURCE_TITLES = 5;
 /** At most this many opportunities per run (docs/product/product.md#f05-产品机会). */
 export const TOP_OPPORTUNITIES = 5;
 
@@ -36,6 +38,7 @@ type Cluster = {
   serpSnapshotIds: string[];
   serpTitles: string[];
   signalIds: string[];
+  sourceTitles: string[];
   intents: string[];
 };
 
@@ -99,20 +102,22 @@ async function clusters(database: Database, projectId: string) {
       const snapshot = newestSerp.get(m.id);
       return snapshot ? [snapshot] : [];
     });
-    // The audited keyword with the most searches stands for the cluster's competition.
-    const strongestAudited = members
-      .filter((m) => newestSerp.has(m.id))
-      .sort(
-        (a, b) =>
-          (latest.get(b.id)?.searchVolume ?? -1) -
-          (latest.get(a.id)?.searchVolume ?? -1),
-      )[0];
-    const serp = strongestAudited
+    // The seed's own results stand for the cluster's competition when audited.
+    const representative = clusterSerpKeyword(
+      seed,
+      members.map((m) => ({
+        id: m.id,
+        phrase: m.phrase,
+        searchVolume: latest.get(m.id)?.searchVolume ?? null,
+      })),
+      new Set(members.filter((m) => newestSerp.has(m.id)).map((m) => m.id)),
+    );
+    const representativeSnapshot =
+      representative && newestSerp.get(representative.id)!;
+    const serp = representativeSnapshot
       ? serpCompetition(
-          strongestAudited.phrase,
-          titles.filter(
-            (t) => t.snapshotId === newestSerp.get(strongestAudited.id)!.id,
-          ),
+          representative.phrase,
+          titles.filter((t) => t.snapshotId === representativeSnapshot.id),
         )
       : null;
     return {
@@ -138,10 +143,18 @@ async function clusters(database: Database, projectId: string) {
         })),
       },
       serpSnapshotIds: audited.map((s) => s.id),
+      // The analysis sees the results the competition was scored on.
       serpTitles: titles
-        .filter((t) => audited.some((s) => s.id === t.snapshotId))
+        .filter((t) => t.snapshotId === representativeSnapshot?.id)
         .map((t) => t.title),
       signalIds: clusterSignals.map((s) => s.id),
+      sourceTitles: [
+        ...new Set(
+          clusterSignals
+            .filter((s) => s.provider !== "csv")
+            .map((s) => s.rawTitle),
+        ),
+      ].slice(0, MAX_SOURCE_TITLES),
       intents: members.map((m) => classifyIntent(m.phrase)),
     };
   });
@@ -212,6 +225,7 @@ export async function evaluateOpportunities(deps: {
                 ),
               ),
             ],
+            sourceTitles: cluster.sourceTitles,
           }),
       );
       if (!charged) {
@@ -219,7 +233,15 @@ export async function evaluateOpportunities(deps: {
         analysisError = "BUDGET_EXHAUSTED";
       } else {
         const parsed = analysisSchema.safeParse(charged.value);
-        if (parsed.success) analysis = parsed.data;
+        // Only the cluster's own keywords can be off topic.
+        const phrases = new Set(cluster.evidence.keywords.map((k) => k.phrase));
+        if (parsed.success)
+          analysis = {
+            ...parsed.data,
+            offTopicKeywords: parsed.data.offTopicKeywords.filter((p) =>
+              phrases.has(p.trim().toLowerCase()),
+            ),
+          };
         else analysisError = "AI_INVALID_OUTPUT";
       }
     } catch (error) {

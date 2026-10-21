@@ -6,7 +6,9 @@ import type { SerpCompetition } from "./serp-competition";
 // the same evidence gives the same score, and the version is stored with it.
 // v2: more tool-intent words for MVP fit; competition also counts the pages made for the
 // keyword in its top results (serp-competition.ts).
-export const SCORING_VERSION = "v2";
+// v3: a cluster's competition uses its seed's own results when they were audited, not
+// those of an expansion with more searches that may mean something else (evaluate.ts).
+export const SCORING_VERSION = "v3";
 
 export const WEIGHTS = {
   trend: 20,

@@ -106,13 +106,23 @@ test("turns a story title into short seeds before research", async ({
   const phrases = panel.getByLabel("Suggested phrases, one per line");
   await expect(phrases).toHaveValue("check a drone\nin the browser");
   await expect(panel).toContainText("Test data");
-  await phrases.fill("drone flight path\ndrone path checker");
+  await phrases.fill("drone flight path\nelectronic signature app");
   await panel.getByRole("button", { name: "Use as seeds" }).click();
 
   await expect(page.getByLabel("Seed terms")).toHaveValue(
-    "drone flight path\ndrone path checker",
+    "drone flight path\nelectronic signature app",
   );
   await expect(panel).toHaveCount(0);
+
+  // The run's analysis (fake analyst) marks the seed unrelated to the title.
+  await page.getByRole("button", { name: "Run research" }).click();
+  await page.getByRole("link", { name: "View opportunities" }).click();
+  await page
+    .getByRole("link", { name: "electronic signature app", exact: true })
+    .click();
+  await expect(page.getByTestId("off-topic")).toContainText(
+    "electronic signature app",
+  );
 });
 
 test("shows a Google Trends search with its approximate searches", async ({
