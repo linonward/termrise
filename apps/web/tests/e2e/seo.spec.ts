@@ -8,19 +8,16 @@ const billingPages = product.billingEnabled
   ? ["/pricing", "/refund-policy"]
   : [];
 
-test("pages have a localized title, description and Open Graph image", async ({
+test("pages have a title, description and Open Graph image", async ({
   page,
-  context,
 }) => {
   await page.goto("/terms");
-  await expect(page).toHaveTitle("Terms of Service · Termrise");
+  await expect(page).toHaveTitle("服务条款 · Termrise");
   await page.goto("/");
-  await expect(page).toHaveTitle(
-    "Termrise: Find rising search terms worth building for",
-  );
+  await expect(page).toHaveTitle("Termrise：发现值得做产品的英文上升热词");
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
-    "Termrise helps indie developers find rising English search terms, check demand with real data, decide what to build and track each launch to its first paying customer.",
+    "Termrise 帮独立开发者发现正在上升的英文搜索词，用真实数据检查需求，决定做什么，并跟踪每次上线直到第一个付费用户。",
   );
   const ogImage = page.locator('meta[property="og:image"]');
   await expect(ogImage).toHaveAttribute(
@@ -33,13 +30,6 @@ test("pages have a localized title, description and Open Graph image", async ({
   );
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
-
-  await context.addCookies([{ name: "NEXT_LOCALE", value: "zh", url: origin }]);
-  await page.reload();
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-    "content",
-    "Termrise 帮独立开发者发现正在上升的英文搜索词，用真实数据检查需求，决定做什么，并跟踪每次上线直到第一个付费用户。",
-  );
   await page.goto("/privacy");
   await expect(page).toHaveTitle("隐私政策 · Termrise");
 });
@@ -87,7 +77,7 @@ test("pricing page has its own description with live prices", async ({
   );
   await page.goto("/pricing");
   const description =
-    "Pay per use from $5.90 for the Single pack, as low as $0.29 per run in a pack, or subscribe for $9.90 a month. Credits never expire.";
+    "按次付费：Single 套餐 $5.90，套餐低至每次 $0.29；也可以订阅，每月 $9.90。积分永不过期。";
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     "content",
     description,

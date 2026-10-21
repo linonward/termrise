@@ -9,7 +9,7 @@ test.afterAll(closeTestDb);
 
 async function openMenu(page: Page, isMobile: boolean) {
   await page
-    .getByRole("button", { name: isMobile ? "Open menu" : "Account menu" })
+    .getByRole("button", { name: isMobile ? "打开菜单" : "账号菜单" })
     .click();
 }
 
@@ -22,15 +22,15 @@ test("navigation shows links, credits and the user menu", async ({
   await page.goto("/dashboard");
   // Credits and Billing only while the product charges (product.config.ts billingEnabled).
   if (product.billingEnabled)
-    await expect(page.getByTestId("nav-credits")).toHaveText("10 credits");
+    await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   else await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   if (isMobile) await openMenu(page, isMobile);
-  const nav = page.getByRole("navigation", { name: "Main navigation" });
-  await expect(nav.getByRole("link", { name: "Dashboard" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Billing" })).toHaveCount(
+  const nav = page.getByRole("navigation", { name: "主导航" });
+  await expect(nav.getByRole("link", { name: "控制台" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "账单" })).toHaveCount(
     product.billingEnabled ? 1 : 0,
   );
-  await expect(nav.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "控制台" })).toHaveAttribute(
     "aria-current",
     "page",
   );
@@ -38,30 +38,19 @@ test("navigation shows links, credits and the user menu", async ({
   await expect(page.getByText(email)).toBeVisible();
 });
 
-test("switches language and remembers it in a cookie", async ({
+// The UI is Chinese only: no language menu (docs/product/ux.md#internationalization).
+test("shows the app in Chinese without a language menu", async ({
   page,
   context,
   isMobile,
 }) => {
   await signIn(context);
   await page.goto("/dashboard");
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await openMenu(page, isMobile);
-  await page
-    .getByRole(isMobile ? "button" : "menuitemradio", { name: "简体中文" })
-    .click();
-  // The drawer is modal: close it so the page behind is exposed again.
-  if (isMobile) await page.keyboard.press("Escape");
+  await expect(page.getByText("语言")).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { level: 1, name: /^欢迎回来/ }),
-  ).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("lang", "zh");
-  if (product.billingEnabled)
-    await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
-  const cookies = await context.cookies();
-  expect(cookies.find((c) => c.name === "NEXT_LOCALE")?.value).toBe("zh");
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { level: 1, name: /^欢迎回来/ }),
+    page.getByRole(isMobile ? "button" : "menuitemradio", { name: "深色" }),
   ).toBeVisible();
 });
 
@@ -75,13 +64,13 @@ test("switches theme and logs out from the menu", async ({
   await page.goto("/dashboard");
   await openMenu(page, isMobile);
   await page
-    .getByRole(isMobile ? "button" : "menuitemradio", { name: "Dark" })
+    .getByRole(isMobile ? "button" : "menuitemradio", { name: "深色" })
     .click();
   await expect(page.locator("html")).toHaveClass(/dark/);
   if (isMobile) await page.keyboard.press("Escape");
   await openMenu(page, isMobile);
   await page
-    .getByRole(isMobile ? "button" : "menuitem", { name: "Log out" })
+    .getByRole(isMobile ? "button" : "menuitem", { name: "退出登录" })
     .click();
   await expect(page).toHaveURL(/\/sign-in/);
 });
@@ -99,16 +88,16 @@ test("navigates between dashboard pages", async ({
   await page.goto("/dashboard");
   if (isMobile) await openMenu(page, isMobile);
   await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Billing" })
+    .getByRole("navigation", { name: "主导航" })
+    .getByRole("link", { name: "账单" })
     .click();
   await expect(page).toHaveURL(/\/billing$/);
-  await expect(page.getByRole("heading", { name: "Billing" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "账单" })).toBeVisible();
   if (isMobile) await openMenu(page, isMobile);
   await expect(
     page
-      .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name: "Billing" }),
+      .getByRole("navigation", { name: "主导航" })
+      .getByRole("link", { name: "账单" }),
   ).toHaveAttribute("aria-current", "page");
 });
 
@@ -118,22 +107,22 @@ test("marketing nav links the blog, and pricing while the product charges", asyn
 }) => {
   test.skip(isMobile, "The marketing nav links are desktop only.");
   await page.goto("/blog");
-  const nav = page.getByRole("navigation", { name: "Site navigation" });
+  const nav = page.getByRole("navigation", { name: "网站导航" });
   const links = nav.getByRole("link");
   const expected = [
     ...(product.billingEnabled ? [["Pricing", "/pricing"]] : []),
-    ["Blog", "/blog"],
+    ["博客", "/blog"],
   ];
   await expect(links).toHaveCount(expected.length);
   for (const [index, [name, href]] of expected.entries()) {
     await expect(links.nth(index)).toHaveText(name);
     await expect(links.nth(index)).toHaveAttribute("href", href);
   }
-  await expect(nav.getByRole("link", { name: "Blog" })).toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "博客" })).toHaveAttribute(
     "aria-current",
     "page",
   );
   if (!product.billingEnabled) return;
-  await nav.getByRole("link", { name: "Pricing" }).click();
+  await nav.getByRole("link", { name: "定价" }).click();
   await expect(page).toHaveURL(/\/pricing$/);
 });

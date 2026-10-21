@@ -1,7 +1,7 @@
 "use client";
 import { ArrowLeft, CircleAlert, Globe, Mail } from "lucide-react";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { track } from "@repo/analytics/client";
@@ -21,7 +21,6 @@ export function AuthForm({
   googleLastUsed: boolean;
 }) {
   const t = useTranslations("auth");
-  const locale = useLocale();
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(invalidLink ? t("invalidLink") : "");
@@ -39,9 +38,6 @@ export function AuthForm({
             errorCallbackURL: siteUrl(
               `/sign-in?next=${encodeURIComponent(next)}&error=invalid_link`,
             ),
-            // apps/api writes the email in this language; the NEXT_LOCALE
-            // cookie of this site does not reach the API's subdomain.
-            fetchOptions: { headers: { "Accept-Language": locale } },
           })
         : await authClient.signIn.social({
             provider: "google",

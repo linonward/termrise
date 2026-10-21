@@ -39,21 +39,17 @@ describe("blog body links", () => {
         ? Object.values(value).flatMap(tags)
         : [];
 
-  it.each(BLOG_SLUGS)(
-    "%s links to its target exactly once in each locale",
-    (slug) => {
-      for (const locale of ["en", "zh"] as const)
-        expect(
-          tags(messages[locale].blog.posts[BLOG_POSTS[slug].key].sections),
-          locale,
-        ).toEqual(["<link>", "</link>"]);
-    },
-  );
+  it.each(BLOG_SLUGS)("%s links to its target exactly once", (slug) => {
+    expect(tags(messages.blog.posts[BLOG_POSTS[slug].key].sections)).toEqual([
+      "<link>",
+      "</link>",
+    ]);
+  });
 
   // Titles, summaries and figure captions render as plain text.
   it("uses link tags only in post sections", () => {
-    for (const locale of ["en", "zh"] as const) {
-      const { posts, ...rest } = messages[locale].blog;
+    {
+      const { posts, ...rest } = messages.blog;
       const outsideSections = [
         rest,
         ...Object.values(posts).map((post) =>
@@ -62,7 +58,7 @@ describe("blog body links", () => {
           ),
         ),
       ];
-      expect(tags(outsideSections), locale).toEqual([]);
+      expect(tags(outsideSections)).toEqual([]);
     }
   });
 });

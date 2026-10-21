@@ -19,7 +19,7 @@ test("checkout errors show a localized message for each failure kind", async ({
 }) => {
   await signIn(context);
   await page.goto("/pricing");
-  const buy = page.getByRole("button", { name: "Buy Starter" });
+  const buy = page.getByRole("button", { name: "购买 Starter" });
   const alert = page.getByTestId("pack-starter").getByRole("alert");
 
   await page.route(CHECKOUT, (route) =>
@@ -29,32 +29,17 @@ test("checkout errors show a localized message for each failure kind", async ({
     }),
   );
   await buy.click();
-  await expect(alert).toHaveText(
-    "Checkout is unavailable right now. Try again in a few minutes.",
-  );
+  await expect(alert).toHaveText("支付暂时不可用，请几分钟后重试。");
 
   await page.unroute(CHECKOUT);
   await page.route(CHECKOUT, (route) =>
     route.fulfill({ status: 500, body: "Internal Server Error" }),
   );
   await buy.click();
-  await expect(alert).toHaveText(
-    "Something went wrong on our side. Try again.",
-  );
+  await expect(alert).toHaveText("服务器出错了，请重试。");
 
   await page.unroute(CHECKOUT);
   await page.route(CHECKOUT, (route) => route.abort());
   await buy.click();
-  await expect(alert).toHaveText(
-    "Can't reach the server. Check your connection and try again.",
-  );
-
-  await context.addCookies([
-    { name: "NEXT_LOCALE", value: "zh", domain: "localhost", path: "/" },
-  ]);
-  await page.reload();
-  await page.getByRole("button", { name: "购买 Starter" }).click();
-  await expect(page.getByTestId("pack-starter").getByRole("alert")).toHaveText(
-    "无法连接服务器，请检查网络后重试。",
-  );
+  await expect(alert).toHaveText("无法连接服务器，请检查网络后重试。");
 });

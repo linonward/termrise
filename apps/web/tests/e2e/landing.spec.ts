@@ -4,20 +4,18 @@ import product from "../../../../product.config";
 
 test("landing shows every section and links to signup", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle(
-    "Termrise: Find rising search terms worth building for",
-  );
+  await expect(page).toHaveTitle("Termrise：发现值得做产品的英文上升热词");
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Find rising demand. Build what people search for.",
+      name: /^发现正在增长的需求，\s*做人们正在搜索的产品。$/,
     }),
   ).toBeVisible();
   for (const name of [
-    "From a rising term to a first order.",
-    "Evidence before effort.",
-    "Questions, answered.",
-    "Find your next product idea.",
+    "从上升热词到第一笔订单。",
+    "先有证据，再投入时间。",
+    "常见问题解答。",
+    "找到你的下一个产品点子。",
   ])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
   // Pricing only while the product charges (product.config.ts billingEnabled).
@@ -26,7 +24,7 @@ test("landing shows every section and links to signup", async ({ page }) => {
   );
 
   const ctas = page.getByRole("main").getByRole("link", {
-    name: "Get started free",
+    name: "免费开始",
     exact: true,
   });
   await expect(ctas).toHaveCount(2);
@@ -45,27 +43,11 @@ test("public pages no longer say there is no subscription", async ({
 
 test("FAQ answers expand on click", async ({ page }) => {
   await page.goto("/");
-  const question = page.getByText("Where does the data come from?");
-  const answer = page.getByText(/Termrise does not scrape sites/);
+  const question = page.getByText("数据来自哪里？");
+  const answer = page.getByText(/Termrise 不会未经授权抓取网站/);
   await expect(answer).toBeHidden();
   await question.click();
   await expect(answer).toBeVisible();
-});
-
-test("footer switches the landing page to Chinese", async ({ page }) => {
-  await page.goto("/");
-  await page
-    .getByRole("contentinfo")
-    .getByRole("button", { name: "Language" })
-    .click();
-  await page.getByRole("menuitemradio", { name: "简体中文" }).click();
-  await expect(
-    page.getByRole("heading", { level: 1, name: /发现正在增长的需求/ }),
-  ).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("lang", "zh");
-  await expect(
-    page.getByRole("main").getByRole("link", { name: "免费开始", exact: true }),
-  ).toHaveCount(2);
 });
 
 test("footer switches the theme", async ({ page }) => {
@@ -73,9 +55,9 @@ test("footer switches the theme", async ({ page }) => {
   await page.goto("/");
   await page
     .getByRole("contentinfo")
-    .getByRole("button", { name: "Theme" })
+    .getByRole("button", { name: "主题" })
     .click();
-  await page.getByRole("menuitemradio", { name: "Dark" }).click();
+  await page.getByRole("menuitemradio", { name: "深色" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 

@@ -1,6 +1,6 @@
 import type { messages } from "./messages";
 
-type Messages = (typeof messages)["en"];
+type Messages = typeof messages;
 
 // Namespaces that client components translate. NextIntlClientProvider serializes its
 // messages into every page, so the root layout sends only these

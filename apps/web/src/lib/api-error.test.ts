@@ -10,13 +10,12 @@ it("covers every server error code", () => {
   expect([...API_ERROR_CODES].sort()).toEqual(Object.keys(ERROR_STATUS).sort());
 });
 
-it("has an en and zh message for every code, including network errors", () => {
-  for (const locale of ["en", "zh"] as const)
-    for (const code of [...API_ERROR_CODES, "NETWORK_ERROR"])
-      expect(
-        (messages[locale].errors as Record<string, string>)[code],
-        `${locale}.errors.${code}`,
-      ).toEqual(expect.stringMatching(/\S/));
+it("has a message for every code, including network errors", () => {
+  for (const code of [...API_ERROR_CODES, "NETWORK_ERROR"])
+    expect(
+      (messages.errors as Record<string, string>)[code],
+      `errors.${code}`,
+    ).toEqual(expect.stringMatching(/\S/));
 });
 
 it("maps responses to error codes", () => {

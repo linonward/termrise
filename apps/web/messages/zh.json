@@ -46,10 +46,6 @@
       "brief": {
         "title": "给 AI 编程工具用的简报",
         "body": "导出 Markdown 产品简报：用户、问题、竞品、MVP 范围、页面、API 和测试。"
-      },
-      "languages": {
-        "title": "中文和英文",
-        "body": "整个应用都支持两种语言。"
       }
     },
     "faq": {
@@ -115,7 +111,6 @@
     "closeMenu": "关闭菜单",
     "menu": "菜单",
     "userMenu": "账号菜单",
-    "language": "语言",
     "theme": "主题",
     "system": "跟随系统",
     "light": "浅色",
@@ -123,14 +118,6 @@
     "logout": "退出登录",
     "loggingOut": "正在退出…",
     "logoutError": "无法退出登录，请重试。",
-    "localeShort": {
-      "en": "EN",
-      "zh": "中文"
-    },
-    "localeName": {
-      "en": "English",
-      "zh": "简体中文"
-    },
     "radar": "Radar",
     "research": "研究",
     "opportunities": "机会",
@@ -390,7 +377,7 @@
         "cookies": {
           "title": "Cookie 与本地存储",
           "body": [
-            "我们使用会话 Cookie 保持你的登录状态，使用一个 Cookie 记住你上次的登录方式（Google 或邮箱，保存 30 天），并使用 NEXT_LOCALE Cookie 记住你的语言。你选择的主题保存在浏览器的本地存储中。",
+            "我们使用会话 Cookie 保持你的登录状态，使用一个 Cookie 记住你上次的登录方式（Google 或邮箱，保存 30 天）。你选择的主题保存在浏览器的本地存储中。",
             "分析：只有在你同意 Cookie 横幅后，PostHog 才会设置分析 Cookie，并接收来自你浏览器的使用事件。如果你拒绝，我们不会设置分析 Cookie，也不会从你的浏览器发送事件。你可以随时通过页脚的“Cookie 设置”更改选择。",
             "页面统计：Vercel Web Analytics 统计页面访问量，并显示访客来自哪些网站和推广活动。它不设置 Cookie，也不识别你的身份。它记录去掉个人 ID 的页面地址、链接中的推广标签（utm_ 参数）、来源网站、国家、设备类型、浏览器和操作系统。Vercel 用根据请求临时生成的值区分访问，24 小时后丢弃。",
             "页面速度：Vercel Speed Insights 测量页面在你的浏览器中加载和响应的速度。它不设置 Cookie，也不识别你的身份。它记录去掉个人 ID 的页面地址、页面类型、加载速度测量值及其对应的页面元素、网络类型、国家、设备类型、浏览器和操作系统。",

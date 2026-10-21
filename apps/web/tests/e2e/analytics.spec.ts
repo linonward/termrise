@@ -55,7 +55,7 @@ async function interceptAnalytics(page: Page) {
 }
 
 const banner = (page: Page) =>
-  page.getByRole("region", { name: "Cookie preferences" });
+  page.getByRole("region", { name: "Cookie 偏好" });
 
 test("sends nothing and sets no cookie until the visitor accepts", async ({
   page,
@@ -64,7 +64,7 @@ test("sends nothing and sets no cookie until the visitor accepts", async ({
   const analytics = await interceptAnalytics(page);
   await page.goto("/");
   await expect(banner(page)).toBeVisible();
-  await page.getByRole("button", { name: "Decline" }).click();
+  await page.getByRole("button", { name: "拒绝" }).click();
   await expect(banner(page)).toBeHidden();
   await page.goto("/pricing");
   await expect(banner(page)).toBeHidden();
@@ -80,12 +80,12 @@ test("after consent, page events carry the locale and product id and settings re
 }) => {
   const analytics = await interceptAnalytics(page);
   await page.goto("/");
-  await page.getByRole("button", { name: "Accept" }).click();
+  await page.getByRole("button", { name: "同意" }).click();
   await page.reload();
   await expect.poll(analytics.names).toContain("landing_viewed");
   expect(
     analytics.events.find((e) => e.event === "landing_viewed")?.properties,
-  ).toMatchObject({ locale: "en", product_id: product.id });
+  ).toMatchObject({ locale: "zh-CN", product_id: product.id });
   const cookies = await context.cookies();
   expect(cookies.some((c) => c.name.startsWith("ph_"))).toBe(true);
 
@@ -93,7 +93,7 @@ test("after consent, page events carry the locale and product id and settings re
   await expect(banner(page)).toBeHidden();
   await page
     .getByRole("contentinfo")
-    .getByRole("button", { name: "Cookie settings" })
+    .getByRole("button", { name: "Cookie 设置" })
     .click();
   await expect(banner(page)).toBeVisible();
 });
@@ -105,7 +105,7 @@ test("identifies signed-in users by id and never sends their email", async ({
   const { userId, email } = await signIn(context);
   const analytics = await interceptAnalytics(page);
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Accept" }).click();
+  await page.getByRole("button", { name: "同意" }).click();
   await page.goto("/dashboard");
   await expect.poll(analytics.names).toContain("dashboard_viewed");
   const viewed = analytics.events.find((e) => e.event === "dashboard_viewed");
@@ -136,10 +136,10 @@ test("identifies events right after a signed-in user accepts on the same page", 
   const { userId } = await signIn(context);
   const analytics = await interceptAnalytics(page);
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Accept" }).click();
+  await page.getByRole("button", { name: "同意" }).click();
   // No reload: the user identified on mount, before the SDK loaded.
-  await page.getByLabel("Text").fill("hello");
-  await page.getByRole("button", { name: "Run · 1 credit" }).click();
+  await page.getByLabel("文字").fill("hello");
+  await page.getByRole("button", { name: "运行 · 1 积分" }).click();
   await expect.poll(analytics.names).toContain("task_started");
   const started = analytics.events.find((e) => e.event === "task_started");
   expect(started?.properties.distinct_id).toBe(userId);
@@ -189,9 +189,9 @@ test("reports task_started and credits_exhausted when the balance is too low", a
   );
   const analytics = await interceptAnalytics(page);
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Accept" }).click();
-  await page.getByLabel("Text").fill("hello");
-  await page.getByRole("button", { name: "Run · 1 credit" }).click();
+  await page.getByRole("button", { name: "同意" }).click();
+  await page.getByLabel("文字").fill("hello");
+  await page.getByRole("button", { name: "运行 · 1 积分" }).click();
   await expect.poll(analytics.names).toContain("credits_exhausted");
   const started = analytics.events.find((e) => e.event === "task_started");
   expect(started?.properties).toMatchObject({ inputLength: 5 });

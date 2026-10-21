@@ -40,20 +40,18 @@ test("starts research from a radar story", async ({ page, context }) => {
 
   await page.goto("/radar");
   await expect(page.getByTestId("discussion-notice")).toBeVisible();
-  await page.getByLabel("Search terms").fill(term);
-  await page.getByRole("button", { name: "Apply" }).click();
+  await page.getByLabel("搜索词").fill(term);
+  await page.getByRole("button", { name: "应用" }).click();
   await expect(page).toHaveURL(/q=radar\+term/);
   await expect(page.getByTestId("radar-row")).toHaveCount(1);
   // One collection is not enough to measure growth.
-  await expect(page.getByTestId("lifecycle")).toHaveText("Not enough data");
+  await expect(page.getByTestId("lifecycle")).toHaveText("数据不足");
   await page.getByRole("link", { name: `Show HN: Radar term ${id}` }).click();
 
   await expect(page).toHaveURL(/\/radar\/[0-9a-f-]{36}$/);
   await expect(page.getByTestId("observation-row")).toHaveCount(2);
-  await expect(page.getByTestId("lifecycle-help")).toContainText(
-    "Not enough observations",
-  );
-  await expect(page.getByRole("link", { name: "Discussion" })).toHaveAttribute(
+  await expect(page.getByTestId("lifecycle-help")).toContainText("观测不够");
+  await expect(page.getByRole("link", { name: "讨论" })).toHaveAttribute(
     "href",
     `https://news.ycombinator.com/item?id=${id}`,
   );
@@ -63,20 +61,20 @@ test("starts research from a radar story", async ({ page, context }) => {
     (r) => r.url().endsWith("/star") && r.request().method() === "PUT",
   );
   await page
-    .getByRole("button", { name: `Star Show HN: Radar term ${id}` })
+    .getByRole("button", { name: `收藏 Show HN: Radar term ${id}` })
     .click();
   expect((await saved).ok()).toBe(true);
   await page.goto("/radar?starred=1");
   await expect(page.getByTestId("radar-row")).toHaveCount(1);
   await page.getByRole("link", { name: `Show HN: Radar term ${id}` }).click();
-  await page.getByRole("link", { name: "Start research" }).click();
+  await page.getByRole("link", { name: "开始研究" }).click();
 
   await expect(page).toHaveURL(/\/research\?/);
-  await expect(page.getByLabel("Seed terms")).toHaveValue(term);
-  await expect(page.getByLabel("Name")).toHaveValue(
+  await expect(page.locator('textarea[name="seeds"]')).toHaveValue(term);
+  await expect(page.getByLabel("名称")).toHaveValue(
     `Show HN: Radar term ${id}`,
   );
-  await page.getByRole("button", { name: "Create project" }).click();
+  await page.getByRole("button", { name: "创建项目" }).click();
   await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
   // One collection on one day: one signal, from Hacker News.
   await expect(page.getByTestId("signal-row")).toHaveCount(1);
@@ -96,27 +94,27 @@ test("turns a story title into short seeds before research", async ({
 
   await page.goto(`/radar?q=dovepass${id}`);
   await page.getByTestId("radar-row").getByRole("link").first().click();
-  await page.getByRole("link", { name: "Start research" }).click();
-  await page.getByRole("button", { name: "Create project" }).click();
+  await page.getByRole("link", { name: "开始研究" }).click();
+  await page.getByRole("button", { name: "创建项目" }).click();
   await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
 
   // The worker (fake extractor) answers; the page polls until it has.
   const panel = page.getByTestId("seed-suggestions");
-  await panel.getByRole("button", { name: "Suggest short seeds" }).click();
-  const phrases = panel.getByLabel("Suggested phrases, one per line");
+  await panel.getByRole("button", { name: "建议短种子词" }).click();
+  const phrases = panel.getByLabel("建议的短语，每行一个");
   await expect(phrases).toHaveValue("check a drone\nin the browser");
-  await expect(panel).toContainText("Test data");
+  await expect(panel).toContainText("测试数据");
   await phrases.fill("drone flight path\nelectronic signature app");
-  await panel.getByRole("button", { name: "Use as seeds" }).click();
+  await panel.getByRole("button", { name: "用作种子词" }).click();
 
-  await expect(page.getByLabel("Seed terms")).toHaveValue(
+  await expect(page.locator('textarea[name="seeds"]')).toHaveValue(
     "drone flight path\nelectronic signature app",
   );
   await expect(panel).toHaveCount(0);
 
   // The run's analysis (fake analyst) marks the seed unrelated to the title.
-  await page.getByRole("button", { name: "Run research" }).click();
-  await page.getByRole("link", { name: "View opportunities" }).click();
+  await page.getByRole("button", { name: "运行研究" }).click();
+  await page.getByRole("link", { name: "查看机会" }).click();
   await page
     .getByRole("link", { name: "electronic signature app", exact: true })
     .click();
@@ -126,15 +124,15 @@ test("turns a story title into short seeds before research", async ({
 
   // The owner says the seed is on topic: the score is computed again.
   const toggle = page.getByRole("button", {
-    name: "Mark electronic signature app on topic",
+    name: "把 electronic signature app 标为相关",
   });
-  await expect(toggle).toHaveText(/Off topic\s*AI/);
+  await expect(toggle).toHaveText(/跑题\s*AI/);
   await toggle.click();
   await expect(
     page.getByRole("button", {
-      name: "Mark electronic signature app off topic",
+      name: "把 electronic signature app 标为跑题",
     }),
-  ).toHaveText(/On topic\s*You/);
+  ).toHaveText(/相关\s*你/);
 });
 
 test("shows a Google Trends search with its approximate searches", async ({
@@ -160,7 +158,7 @@ test("shows a Google Trends search with its approximate searches", async ({
   const row = page.getByTestId("radar-row");
   await expect(row).toHaveCount(1);
   await expect(row).toContainText("Google Trends");
-  await expect(row).toContainText("500+ searches");
+  await expect(row).toContainText("500+ 次搜索");
   await row.getByRole("link", { name: term }).click();
   await expect(
     page.getByRole("link", { name: "Google Trends" }),
@@ -176,7 +174,7 @@ test("shows no match for an unknown term and 404 for an unknown item", async ({
 }) => {
   await signIn(context);
   await page.goto("/radar?q=no-such-term-anywhere");
-  await expect(page.getByText("No matching stories")).toBeVisible();
+  await expect(page.getByText("没有匹配的故事")).toBeVisible();
   const response = await page.goto(
     "/radar/00000000-0000-4000-8000-000000000000",
   );
