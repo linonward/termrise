@@ -15,7 +15,7 @@ import {
 
 import { user } from "./auth";
 import { createdAt, inList } from "./columns";
-import { researchRuns } from "./keywords";
+import { keywords, researchRuns } from "./keywords";
 import { researchProjects } from "./research";
 
 // docs/product/product.md#评分与状态; the decision history is in opportunity_decisions.
@@ -154,6 +154,34 @@ export const opportunityDecisions = pgTable(
     check(
       "opportunity_decisions_decision_valid",
       sql`${t.decision} in (${inList(DECISIONS)})`,
+    ),
+  ],
+);
+
+// The owner's call on whether a keyword of an opportunity is off topic: it overrides the
+// analysis's mark, and the score is computed again without the off-topic keywords
+// (docs/architecture/data-model.md#opportunities). One row per keyword, last call wins.
+export const opportunityKeywordReviews = pgTable(
+  "opportunity_keyword_reviews",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    opportunityId: uuid()
+      .notNull()
+      .references(() => opportunities.id, { onDelete: "cascade" }),
+    keywordId: uuid()
+      .notNull()
+      .references(() => keywords.id, { onDelete: "cascade" }),
+    offTopic: boolean().notNull(),
+    reviewerId: text()
+      .notNull()
+      .references(() => user.id),
+    createdAt: createdAt(),
+    updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    unique("opportunity_keyword_reviews_unique").on(
+      t.opportunityId,
+      t.keywordId,
     ),
   ],
 );

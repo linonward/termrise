@@ -8,6 +8,7 @@ import {
   opportunities,
   opportunityDecisions,
   opportunityEvaluations,
+  opportunityKeywordReviews,
   researchProjects,
   serpResults,
   serpSnapshots,
@@ -181,6 +182,16 @@ export function createOpportunityResults(deps: { database: Database }) {
         desc(opportunityDecisions.createdAt),
         desc(opportunityDecisions.id),
       );
+    const reviews = await database
+      .select()
+      .from(opportunityKeywordReviews)
+      .where(eq(opportunityKeywordReviews.opportunityId, id));
+    const reviewed = new Map(reviews.map((r) => [r.keywordId, r.offTopic]));
+    const marked = new Set(
+      ((evaluation.analysis?.offTopicKeywords ?? []) as string[]).map((p) =>
+        p.trim().toLowerCase(),
+      ),
+    );
     const experiments = await database
       .select()
       .from(validationExperiments)
@@ -193,10 +204,21 @@ export function createOpportunityResults(deps: { database: Database }) {
       decisions,
       experiments,
       keywords: keywordRows
-        .map((keyword) => ({
-          keyword,
-          metrics: latest.get(keyword.id) ?? null,
-        }))
+        .map((keyword) => {
+          const review = reviewed.get(keyword.id);
+          return {
+            keyword,
+            metrics: latest.get(keyword.id) ?? null,
+            // The owner's review wins over the analysis's mark.
+            offTopic: review ?? marked.has(keyword.phrase),
+            offTopicBy:
+              review !== undefined
+                ? ("user" as const)
+                : marked.has(keyword.phrase)
+                  ? ("ai" as const)
+                  : null,
+          };
+        })
         .sort(
           (a, b) =>
             (b.metrics?.searchVolume ?? -1) - (a.metrics?.searchVolume ?? -1) ||

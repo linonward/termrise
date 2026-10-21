@@ -57,6 +57,8 @@ GET /api/opportunities/:id/brief.md（Product Brief，`text/markdown; charset=ut
 
 PUT / DELETE /api/opportunities/:id/star（收藏 / 取消收藏，返回 { starred }；`GET /api/opportunities?starred=1` 只列收藏；不属于当前用户时 404 OPPORTUNITY_NOT_FOUND）
 
+PUT /api/opportunities/:id/keywords/:keywordId/off-topic（{ offTopic: boolean }，用户判断一个关键词是否跑题，重新计算分数后返回机会；关键词不属于这个机会的当前评估时 404 KEYWORD_NOT_FOUND；见 data-model.md 的 opportunity_keyword_reviews）
+
 POST /api/opportunities/:id/decisions（{ decision, reason }，成功返回 201；当前状态不允许时 409 OPPORTUNITY_DECISION_INVALID；见 data-model.md 的 Decisions and Experiments）
 
 POST /api/opportunities/:id/experiments（{ kind, hypothesis, channel, metric, budgetUsd, durationDays, successThreshold, stopCondition }，成功返回 201 + 实验）

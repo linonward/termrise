@@ -197,3 +197,37 @@ it("stars an opportunity and lists the starred only", async () => {
     (await (await get("/api/opportunities?starred=1")).json()).items,
   ).toEqual([]);
 });
+
+it("marks a keyword off topic and returns the opportunity scored again", async () => {
+  await runProject();
+  const { items } = await (await get("/api/opportunities")).json();
+  const detail = await (await get(`/api/opportunities/${items[0].id}`)).json();
+  const [keyword] = detail.keywords;
+  expect(keyword).toMatchObject({ offTopic: false, offTopicBy: null });
+  const path = `/api/opportunities/${items[0].id}/keywords/${keyword.id}/off-topic`;
+
+  const marked = await post(path, { offTopic: true }, owner, "PUT");
+  expect(marked.status).toBe(200);
+  expect(await marked.json()).toMatchObject({
+    id: items[0].id,
+    scoringVersion: SCORING_VERSION,
+  });
+  const after = await (await get(`/api/opportunities/${items[0].id}`)).json();
+  expect(
+    after.keywords.find((k: { id: string }) => k.id === keyword.id),
+  ).toMatchObject({ offTopic: true, offTopicBy: "user" });
+
+  const invalid = await post(path, { offTopic: "yes" }, owner, "PUT");
+  expect(invalid.status).toBe(400);
+  const foreign = await post(path, { offTopic: false }, other, "PUT");
+  expect(foreign.status).toBe(404);
+  expect((await foreign.json()).error.code).toBe("OPPORTUNITY_NOT_FOUND");
+  const missing = await post(
+    `/api/opportunities/${items[0].id}/keywords/${crypto.randomUUID()}/off-topic`,
+    { offTopic: true },
+    owner,
+    "PUT",
+  );
+  expect(missing.status).toBe(404);
+  expect((await missing.json()).error.code).toBe("KEYWORD_NOT_FOUND");
+});

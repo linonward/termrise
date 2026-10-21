@@ -530,6 +530,7 @@
     "RESEARCH_PROJECT_LOCKED": "Only a draft research project can be changed.",
     "OPPORTUNITY_NOT_FOUND": "This opportunity doesn't exist.",
     "OPPORTUNITY_DECISION_INVALID": "This decision is not possible from the current status. Reload the page and try again.",
+    "KEYWORD_NOT_FOUND": "This keyword isn't part of this opportunity. Reload the page and try again.",
     "EXPERIMENT_NOT_FOUND": "This experiment doesn't exist.",
     "EXPERIMENT_FINISHED": "This experiment is finished and can no longer change.",
     "EXECUTION_PROJECT_NOT_FOUND": "This product doesn't exist.",
@@ -920,7 +921,8 @@
       "volume": "Volume",
       "cpc": "CPC",
       "ads": "Ads competition",
-      "kd": "KD"
+      "kd": "KD",
+      "topic": "Topic"
     },
     "seedBadge": "Seed",
     "noData": "No data",
@@ -951,6 +953,15 @@
       "INVALID_AI_OUTPUT": "The AI answer was not usable. Try again.",
       "SUGGESTION_TIMED_OUT": "The suggestion stopped before it finished. Try again.",
       "INTERNAL_ERROR": "Something went wrong. Try again."
+    },
+    "topic": {
+      "offTopic": "Off topic",
+      "onTopic": "On topic",
+      "byAi": "AI",
+      "byYou": "You",
+      "markOffTopic": "Mark {phrase} off topic",
+      "markOnTopic": "Mark {phrase} on topic",
+      "note": "Off-topic keywords do not count in the score. AI suggests the marks; select a mark to change it, and the score is computed again."
     }
   },
   "compare": {
@@ -1081,7 +1092,7 @@
       "serp": "Top {results} results for “{phrase}”: {homepages} home pages, {innerPages} inner pages, {dedicated} made for the keyword.",
       "note": "Rules {version}. A new site needs all three: the demand, a KD it can beat, and room in the top results. Check the results yourself before you build."
     },
-    "offTopicNote": "AI marked these keywords as a different product than the source title. From scoring v4, they do not count in the score. Check the search results before you decide."
+    "offTopicNote": "AI marked these keywords as a different product than the source title. They do not count in the score. Check the marks in the keyword table below and change the wrong ones."
   },
   "decisions": {
     "title": "Decision",

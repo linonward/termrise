@@ -8,6 +8,7 @@ import type {
 } from "@repo/research/research-dto";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { OffTopicToggle } from "@/features/opportunities/off-topic-toggle";
 
 // What the research runs stored (docs/product/ux.md#research). Server components.
 
@@ -62,7 +63,17 @@ export async function FixtureNotice() {
   );
 }
 
-export async function KeywordTable({ items }: { items: KeywordDto[] }) {
+export async function KeywordTable({
+  items,
+  opportunityId,
+}: {
+  items: (KeywordDto & {
+    offTopic?: boolean;
+    offTopicBy?: "ai" | "user" | null;
+  })[];
+  /** On an opportunity: each keyword can be marked off topic or on topic. */
+  opportunityId?: string;
+}) {
   const t = await getTranslations("research");
   const format = await getFormatter();
   const noData = <span className="text-subtle-foreground">{t("noData")}</span>;
@@ -85,6 +96,11 @@ export async function KeywordTable({ items }: { items: KeywordDto[] }) {
                 {t(`keywordColumn.${key}`)}
               </th>
             ))}
+            {opportunityId && (
+              <th className="pb-3 text-right font-semibold">
+                {t("keywordColumn.topic")}
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -119,6 +135,17 @@ export async function KeywordTable({ items }: { items: KeywordDto[] }) {
               <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
                 {number(keyword.keywordDifficulty)}
               </td>
+              {opportunityId && (
+                <td className="py-2 text-right">
+                  <OffTopicToggle
+                    opportunityId={opportunityId}
+                    keywordId={keyword.id}
+                    phrase={keyword.phrase}
+                    offTopic={keyword.offTopic ?? false}
+                    by={keyword.offTopicBy ?? null}
+                  />
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

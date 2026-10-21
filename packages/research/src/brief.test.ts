@@ -62,6 +62,8 @@ const base: OpportunityDetailDto = {
       adsCompetition: 40,
       keywordDifficulty: null,
       fetchedAt: "2026-10-10T00:00:00.000Z",
+      offTopic: false,
+      offTopicBy: null,
     },
   ],
   serps: [

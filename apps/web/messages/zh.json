@@ -528,6 +528,7 @@
     "RESEARCH_PROJECT_LOCKED": "只有草稿状态的研究项目可以修改。",
     "OPPORTUNITY_NOT_FOUND": "这个机会不存在。",
     "OPPORTUNITY_DECISION_INVALID": "当前状态不能做这个决策。请刷新页面后再试。",
+    "KEYWORD_NOT_FOUND": "这个关键词不属于这个机会。请刷新页面后再试。",
     "EXPERIMENT_NOT_FOUND": "这个实验不存在。",
     "EXPERIMENT_FINISHED": "这个实验已经结束，不能再修改。",
     "EXECUTION_PROJECT_NOT_FOUND": "这个产品不存在。",
@@ -916,7 +917,8 @@
       "volume": "搜索量",
       "cpc": "CPC",
       "ads": "广告竞争",
-      "kd": "KD"
+      "kd": "KD",
+      "topic": "主题"
     },
     "seedBadge": "种子词",
     "noData": "暂无数据",
@@ -947,6 +949,15 @@
       "INVALID_AI_OUTPUT": "AI 的回答不能使用。请再试一次。",
       "SUGGESTION_TIMED_OUT": "建议在完成前停止了。请再试一次。",
       "INTERNAL_ERROR": "出错了。请再试一次。"
+    },
+    "topic": {
+      "offTopic": "跑题",
+      "onTopic": "相关",
+      "byAi": "AI",
+      "byYou": "你",
+      "markOffTopic": "把 {phrase} 标为跑题",
+      "markOnTopic": "把 {phrase} 标为相关",
+      "note": "跑题的关键词不计入分数。标记由 AI 建议；点击标记可以修改，分数会重新计算。"
     }
   },
   "compare": {
@@ -1077,7 +1088,7 @@
       "serp": "“{phrase}”的前 {results} 个结果：首页 {homepages} 个，内页 {innerPages} 个，专门页面 {dedicated} 个。",
       "note": "规则 {version}。建新站要同时满足三点：有需求、KD 打得过、前排结果有空间。动手前请自己再看一眼搜索结果。"
     },
-    "offTopicNote": "AI 判断这些关键词与来源标题不是同一个产品。评分 v4 起，它们不计入分数。决策前请检查搜索结果。"
+    "offTopicNote": "AI 判断这些关键词与来源标题不是同一个产品。它们不计入分数。请在下面的关键词表中检查标记，并修改错误的标记。"
   },
   "decisions": {
     "title": "决策",

@@ -212,7 +212,10 @@ export type ExperimentDto = ReturnType<typeof toExperimentDto>;
 /** The detail page's data: the opportunity, its evidence, decisions and experiments. */
 export function toOpportunityDetailDto(
   detail: Parameters<typeof toOpportunityDto>[0] & {
-    keywords: Parameters<typeof toKeywordDto>[0][];
+    keywords: (Parameters<typeof toKeywordDto>[0] & {
+      offTopic: boolean;
+      offTopicBy: "ai" | "user" | null;
+    })[];
     serps: Parameters<typeof toSerpDto>[0][];
     signals: SourceSignal[];
     decisions: Parameters<typeof toDecisionDto>[0][];
@@ -221,7 +224,12 @@ export function toOpportunityDetailDto(
 ) {
   return {
     ...toOpportunityDto(detail),
-    keywords: detail.keywords.map(toKeywordDto),
+    keywords: detail.keywords.map((k) => ({
+      ...toKeywordDto(k),
+      /** Left out of the score; by the analysis's mark or the owner's review. */
+      offTopic: k.offTopic,
+      offTopicBy: k.offTopicBy,
+    })),
     serps: detail.serps.map(toSerpDto),
     signals: detail.signals.map(toSourceSignalDto),
     decisions: detail.decisions.map(toDecisionDto),

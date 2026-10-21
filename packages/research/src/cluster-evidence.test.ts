@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import {
   analysisKeywords,
   clusterEvidence,
+  offTopicMarks,
   offTopicShare,
   type ClusterMember,
 } from "./cluster-evidence";
@@ -112,4 +113,16 @@ it("counts the off-topic share among the keywords the analysis was asked about",
   // 40 of the 60 asked, not 40 of 100.
   expect(offTopicShare(marked, many)).toBeCloseTo(40 / 60);
   expect(offTopicShare(new Set(), [])).toBe(0);
+});
+
+it("lets the owner's reviews override the analysis's marks", () => {
+  expect(
+    offTopicMarks(
+      ["Adobe Sign ", "e sign app"],
+      [
+        { phrase: "e sign app", offTopic: false },
+        { phrase: "signage monitors", offTopic: true },
+      ],
+    ),
+  ).toEqual(new Set(["adobe sign", "signage monitors"]));
 });

@@ -371,8 +371,8 @@ Open link（有链接时；Google Trends 为它关联的第一条新闻）、来
 项目链接 · Evaluated 时间
 测试数据提示（分析或指标来自 fake 时）
 左侧：分数 /100、可信度，六个维度的评分（0–5）、说明与权重，评分版本说明
-右侧：surface 的 AI analysis（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险；有跑题的关键词时，下方是 warning-soft 的 Off-topic keywords 列表，说明评分 v4 起它们不计入分数，决策前检查搜索结果）；输出无效或失败时 warning-soft 提示「分数仍然有效」；下方说明 AI 不改变分数
-下方：证据关键词表（同 Research 的 Keywords 表）、Search results、Signals（词、来源、日期）
+右侧：surface 的 AI analysis（目标用户、任务、替代方案、差异化、定价、渠道、MVP 范围、风险；有跑题的关键词时，下方是 warning-soft 的 Off-topic keywords 列表，说明它们不计入分数，请在下面的关键词表中检查并修改错误的标记）；输出无效或失败时 warning-soft 提示「分数仍然有效」；下方说明 AI 不改变分数
+下方：证据关键词表（同 Research 的 Keywords 表，多一列 Topic：每个关键词一个 ghost 按钮，显示 Off topic / On topic 和标记来源 AI / You，跑题时为 warning-soft 背景；点击后修改标记并重新计算分数，页面刷新；表格上方说明跑题的词不计入分数、标记由 AI 建议）、Search results、Signals（词、来源、日期）
 ```
 
 - 详情页证据上方：左侧是 Validation experiments（每个实验：类型、状态徽章、假设、渠道、计数的事件、成功阈值、停止条件、预算、期限、结果；没有结束的实验下方可以改状态并填写结果），下面是可展开的 Plan an experiment 表单；右侧是描边的 Decision 面板（只列出当前可做的决策的单选、Reason、[Save decision]），下方是决策历史（决策、理由、决策人、时间、评分版本与分数）。

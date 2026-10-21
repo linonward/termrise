@@ -17,6 +17,7 @@ export const ERROR_STATUS = {
   RESEARCH_RUN_FINISHED: 409,
   OPPORTUNITY_NOT_FOUND: 404,
   OPPORTUNITY_DECISION_INVALID: 409,
+  KEYWORD_NOT_FOUND: 404,
   EXPERIMENT_NOT_FOUND: 404,
   EXPERIMENT_FINISHED: 409,
   EXECUTION_PROJECT_NOT_FOUND: 404,
@@ -62,6 +63,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   OPPORTUNITY_NOT_FOUND: "Opportunity not found.",
   OPPORTUNITY_DECISION_INVALID:
     "This decision is not possible from the opportunity's current status.",
+  KEYWORD_NOT_FOUND: "Keyword not found in this opportunity.",
   EXPERIMENT_NOT_FOUND: "Experiment not found.",
   EXPERIMENT_FINISHED: "A finished experiment can no longer change.",
   EXECUTION_PROJECT_NOT_FOUND: "Product not found.",

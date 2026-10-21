@@ -7,7 +7,7 @@ import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
 import type {
   DecisionDto,
   ExperimentDto,
-  KeywordDto,
+  OpportunityDetailDto,
   OpportunityDto,
   SerpDto,
   SourceSignalDto,
@@ -34,7 +34,7 @@ import {
 import { apiGet, apiRequest } from "@/server/api/api";
 
 type Detail = OpportunityDto & {
-  keywords: KeywordDto[];
+  keywords: OpportunityDetailDto["keywords"];
   serps: SerpDto[];
   signals: SourceSignalDto[];
   decisions: DecisionDto[];
@@ -91,6 +91,7 @@ export default async function OpportunityPage({
       : [];
   const t = await getTranslations("opportunities");
   const td = await getTranslations("decisions");
+  const tr = await getTranslations("research");
   const format = await getFormatter();
   const fixture =
     o.analystProvider === "fake" ||
@@ -454,7 +455,8 @@ export default async function OpportunityPage({
             {o.keywords.length}
           </span>
         </h2>
-        <KeywordTable items={o.keywords} />
+        <p className="text-[15px] text-muted-foreground">{tr("topic.note")}</p>
+        <KeywordTable items={o.keywords} opportunityId={o.id} />
       </section>
       {o.serps.length > 0 && (
         <section aria-labelledby="serp-title" className="space-y-4">
