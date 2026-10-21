@@ -60,3 +60,18 @@ export function offTopicShare(
   const asked = analysisKeywords(members).length;
   return asked === 0 ? 0 : offTopic.size / asked;
 }
+
+/**
+ * The keywords left out of the score: the analysis's marks, then the owner's reviews,
+ * which win. An owner who reviewed any keyword has checked the marks.
+ */
+export function offTopicMarks(
+  analysis: readonly string[],
+  reviews: readonly { phrase: string; offTopic: boolean }[],
+) {
+  const marks = new Set(analysis.map((p) => p.trim().toLowerCase()));
+  for (const review of reviews)
+    if (review.offTopic) marks.add(review.phrase);
+    else marks.delete(review.phrase);
+  return marks;
+}

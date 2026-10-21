@@ -123,6 +123,18 @@ test("turns a story title into short seeds before research", async ({
   await expect(page.getByTestId("off-topic")).toContainText(
     "electronic signature app",
   );
+
+  // The owner says the seed is on topic: the score is computed again.
+  const toggle = page.getByRole("button", {
+    name: "Mark electronic signature app on topic",
+  });
+  await expect(toggle).toHaveText(/Off topic\s*·\s*AI/);
+  await toggle.click();
+  await expect(
+    page.getByRole("button", {
+      name: "Mark electronic signature app off topic",
+    }),
+  ).toHaveText(/On topic\s*·\s*You/);
 });
 
 test("shows a Google Trends search with its approximate searches", async ({

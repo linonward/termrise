@@ -6,6 +6,7 @@ import {
   keywords,
   opportunities,
   opportunityEvaluations,
+  opportunityKeywordReviews,
   serpResults,
   serpSnapshots,
   sourceSignals,
@@ -17,6 +18,7 @@ import { buildAdvice } from "./build-advice";
 import {
   analysisKeywords,
   clusterEvidence,
+  offTopicMarks,
   offTopicShare,
   type ClusterMember,
 } from "./cluster-evidence";
@@ -34,6 +36,8 @@ import { clusterSerpKeyword, serpCompetition } from "./serp-competition";
 
 /** Source titles the analysis sees per cluster. */
 const MAX_SOURCE_TITLES = 5;
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
 /** At most this many opportunities per run (docs/product/product.md#f05-产品机会). */
 export const TOP_OPPORTUNITIES = 5;
 
@@ -50,7 +54,7 @@ type Cluster = {
 
 // Rule-based clustering v1: one cluster per seed, with the keywords expanded from it and
 // the signals observing any of its phrases (radar signals observe all of them).
-async function clusters(database: Database, projectId: string) {
+async function clusters(database: Database | Transaction, projectId: string) {
   const rows = await database
     .select()
     .from(keywords)
@@ -163,6 +167,8 @@ function evaluation(
   cluster: Cluster,
   offTopic: ReadonlySet<string>,
   now: Date,
+  /** The owner reviewed the marks: their share no longer asks for a review. */
+  reviewed = false,
 ) {
   const evidence = clusterEvidence(
     cluster.name,
@@ -180,7 +186,7 @@ function evaluation(
     needsReview: needsReview(
       score,
       conf,
-      offTopicShare(offTopic, cluster.members),
+      reviewed ? 0 : offTopicShare(offTopic, cluster.members),
     ),
     serpCompetition: evidence.serp ?? null,
     buildAdvice: buildAdvice(evidence),
@@ -218,6 +224,21 @@ export async function evaluateOpportunities(deps: {
     .map((c): Scored => ({ cluster: c, ...evaluation(c, new Set(), now()) }))
     .sort(best)
     .slice(0, TOP_OPPORTUNITIES);
+
+  // The owner's reviews from an earlier evaluation still win over the new analysis.
+  const reviews = await database
+    .select({
+      cluster: opportunities.cluster,
+      phrase: keywords.phrase,
+      offTopic: opportunityKeywordReviews.offTopic,
+    })
+    .from(opportunityKeywordReviews)
+    .innerJoin(
+      opportunities,
+      eq(opportunityKeywordReviews.opportunityId, opportunities.id),
+    )
+    .innerJoin(keywords, eq(opportunityKeywordReviews.keywordId, keywords.id))
+    .where(eq(opportunities.projectId, projectId));
 
   const analyzed: (Scored & {
     analysis: Record<string, unknown> | null;
@@ -275,9 +296,15 @@ export async function evaluateOpportunities(deps: {
       analysisError = "AI_ERROR";
       logger.warn("research.analysis_failed", { runId, error });
     }
+    const own = reviews.filter((r) => r.cluster === cluster.name);
     analyzed.push({
       cluster,
-      ...evaluation(cluster, offTopic, now()),
+      ...evaluation(
+        cluster,
+        offTopicMarks([...offTopic], own),
+        now(),
+        own.length > 0,
+      ),
       analysis,
       analysisError,
     });
@@ -319,4 +346,64 @@ export async function evaluateOpportunities(deps: {
     });
   }
   return { evaluated: analyzed.length, budgetExhausted };
+}
+
+/**
+ * Scores an opportunity again after the owner reviewed its off-topic keywords: a new
+ * evaluation of the same run, with the same analysis and rank. No paid call.
+ */
+export async function rescoreOpportunity(
+  database: Database | Transaction,
+  opportunityId: string,
+  now: Date,
+) {
+  const [opportunity] = await database
+    .select()
+    .from(opportunities)
+    .where(eq(opportunities.id, opportunityId));
+  const [current] = await database
+    .select()
+    .from(opportunityEvaluations)
+    .where(eq(opportunityEvaluations.opportunityId, opportunityId))
+    .orderBy(
+      desc(opportunityEvaluations.createdAt),
+      desc(opportunityEvaluations.id),
+    )
+    .limit(1);
+  const cluster = (await clusters(database, opportunity.projectId)).find(
+    (c) => c.name === opportunity.cluster,
+  );
+  if (!current || !cluster) throw new Error("No evaluation to score again");
+  const reviews = await database
+    .select({
+      phrase: keywords.phrase,
+      offTopic: opportunityKeywordReviews.offTopic,
+    })
+    .from(opportunityKeywordReviews)
+    .innerJoin(keywords, eq(opportunityKeywordReviews.keywordId, keywords.id))
+    .where(eq(opportunityKeywordReviews.opportunityId, opportunityId));
+  const marked = (current.analysis?.offTopicKeywords ?? []) as string[];
+  const next = evaluation(
+    cluster,
+    offTopicMarks(marked, reviews),
+    now,
+    reviews.length > 0,
+  );
+  const [row] = await database
+    .insert(opportunityEvaluations)
+    .values({
+      opportunityId,
+      runId: current.runId,
+      rank: current.rank,
+      analysis: current.analysis,
+      analysisError: current.analysisError,
+      analystProvider: current.analystProvider,
+      analystModel: current.analystModel,
+      analystPromptVersion: current.analystPromptVersion,
+      evidence: current.evidence,
+      scoringVersion: SCORING_VERSION,
+      ...next,
+    })
+    .returning();
+  return row;
 }

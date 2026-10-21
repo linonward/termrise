@@ -2,8 +2,10 @@ import { asc, eq } from "drizzle-orm";
 
 import type { Database } from "@repo/db/client";
 import {
+  keywords,
   opportunities,
   opportunityDecisions,
+  opportunityKeywordReviews,
   researchProjects,
   sourceSignals,
   validationExperiments,
@@ -103,6 +105,25 @@ export async function exportResearchData(database: Database, userId: string) {
     )
     .where(eq(researchProjects.userId, userId))
     .orderBy(asc(validationExperiments.createdAt));
+  const keywordReviews = await database
+    .select({
+      opportunityId: opportunityKeywordReviews.opportunityId,
+      phrase: keywords.phrase,
+      offTopic: opportunityKeywordReviews.offTopic,
+      updatedAt: opportunityKeywordReviews.updatedAt,
+    })
+    .from(opportunityKeywordReviews)
+    .innerJoin(keywords, eq(opportunityKeywordReviews.keywordId, keywords.id))
+    .innerJoin(
+      opportunities,
+      eq(opportunityKeywordReviews.opportunityId, opportunities.id),
+    )
+    .innerJoin(
+      researchProjects,
+      eq(opportunities.projectId, researchProjects.id),
+    )
+    .where(eq(researchProjects.userId, userId))
+    .orderBy(asc(opportunityKeywordReviews.updatedAt));
   const of =
     (opportunityId: string) =>
     <T extends { opportunityId: string }>(row: T) =>
@@ -119,6 +140,13 @@ export async function exportResearchData(database: Database, userId: string) {
         createdAt: o.createdAt,
         decisions: decisions.filter(of(o.id)),
         experiments: experiments.filter(of(o.id)),
+        keywordReviews: keywordReviews
+          .filter(of(o.id))
+          .map(({ phrase, offTopic, updatedAt }) => ({
+            phrase,
+            offTopic,
+            updatedAt,
+          })),
       })),
   }));
 }

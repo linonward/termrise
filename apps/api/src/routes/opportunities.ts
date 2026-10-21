@@ -2,6 +2,7 @@ import type { Context } from "hono";
 
 import { briefFileName, buildBrief } from "@repo/research/brief";
 import { createFavorites } from "@repo/research/favorites";
+import { createOffTopicReviews } from "@repo/research/off-topic-reviews";
 import { createOpportunityDecisions } from "@repo/research/opportunity-decisions";
 import { createOpportunityResults } from "@repo/research/opportunity-results";
 import {
@@ -19,6 +20,8 @@ const results = (c: Context<AppEnv>) =>
   createOpportunityResults({ database: c.var.db });
 const favorites = (c: Context<AppEnv>) =>
   createFavorites({ database: c.var.db });
+const reviews = (c: Context<AppEnv>) =>
+  createOffTopicReviews({ database: c.var.db });
 const decisions = (c: Context<AppEnv>) =>
   createOpportunityDecisions({ database: c.var.db });
 
@@ -68,6 +71,25 @@ export const opportunityRoutes = userRoutes()
         false,
       ),
     ),
+  )
+  // The owner's call on one keyword: off topic leaves it out of the score, which is
+  // computed again (no paid call). Returns the opportunity with the new evaluation.
+  .put(
+    "/:id/keywords/:keywordId/off-topic",
+    rateLimit("research"),
+    async (c) => {
+      await reviews(c).review(
+        c.var.user.id,
+        c.req.param("id"),
+        c.req.param("keywordId"),
+        await readJson(c),
+      );
+      return c.json(
+        toOpportunityDto(
+          await results(c).get(c.var.user.id, c.req.param("id")),
+        ),
+      );
+    },
   )
   .post("/:id/decisions", rateLimit("research"), async (c) => {
     const decision = await decisions(c).decide(

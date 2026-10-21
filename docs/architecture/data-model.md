@@ -727,6 +727,7 @@ processed_at = now()
 
 决策与实验只由用户写入（`packages/research/src/opportunity-decisions.ts`，规则在 `opportunity-rules.ts`）。
 
+- `opportunity_keyword_reviews`（S41）：用户对机会中一个关键词是否跑题的判断，每个机会的每个关键词一行（`off_topic`、`reviewer_id`、`updated_at`），后一次覆盖前一次。有效的跑题集合 = AI 分析的 `offTopicKeywords`，再用用户的判断覆盖（`offTopicMarks()`）。每次修改在同一个事务中锁住机会行，并追加一条新评估（`rescoreOpportunity()`）：同一次运行、同样的 AI 分析与名次，重新计算维度、可信度、`needs_review`、SERP 竞争和建站建议，不调用付费 API。用户判断过任何关键词后，跑题比例不再使 `needs_review` 为 true。同一个项目再次评估时，用户的判断仍覆盖新的 AI 标记。随机会删除；账号导出包含它。
 - `opportunity_decisions`：决策历史，只追加。`decision` 为 `needs_validation` / `go` / `no_go`，`reason` 必填（最多 1000 字符），`decider_id` 是做决策的用户，`evaluation_id` 是决策时的当前评估（证据版本：评分版本与分数）。写入决策时在同一个事务中锁住机会行并修改 `opportunities.status`，两个请求同时提交时只有一个成功。
 - 状态转换：`unreviewed` → `needs_validation` 或 `no_go`；`needs_validation` → `go` 或 `no_go`；`go`、`no_go` → `needs_validation`（重新打开）。Go 之前必须先验证。不允许的转换返回 `OPPORTUNITY_DECISION_INVALID`。DTO 的 `nextDecisions` 列出当前可做的决策，页面只显示这些。
 - `validation_experiments`：无访谈验证实验（product.md 的 F06）。`kind` 为 `review_analysis` / `free_tool` / `landing_smoke_test` / `sample_paid_upgrade` / `paid_pilot`；假设、渠道、计数的事件、预算（微美元）、期限（1–365 天）、成功阈值、停止条件都必填。一个机会最多 20 个实验。
