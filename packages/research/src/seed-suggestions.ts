@@ -7,7 +7,7 @@ import { apiUsage, researchProjects, seedSuggestions } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
-import { createBudget } from "./budget";
+import { type BudgetKind, createBudget } from "./budget";
 import {
   type SeedExtractor,
   seedPhrasesSchema,
@@ -119,10 +119,16 @@ export function createSeedSuggester(deps: {
   database: Database;
   extractor: SeedExtractor;
   now?: () => Date;
+  /** The service's monthly caps (budget.ts). */
+  monthlyCapMicros?: Record<BudgetKind, number>;
 }) {
   const { database, extractor } = deps;
   const now = deps.now ?? (() => new Date());
-  const budget = createBudget({ database, now });
+  const budget = createBudget({
+    database,
+    now,
+    monthlyCapMicros: deps.monthlyCapMicros,
+  });
 
   /** Suggestions waiting for the worker, oldest first. */
   async function pendingIds(limit = 20) {
@@ -193,7 +199,10 @@ export function createSeedSuggester(deps: {
       return finish(id, {
         ...source,
         status: "failed",
-        errorCode: "BUDGET_EXHAUSTED",
+        errorCode:
+          budget.refusal(claimed.projectId, "ai") === "monthly"
+            ? "MONTHLY_BUDGET_EXHAUSTED"
+            : "BUDGET_EXHAUSTED",
       });
     const parsed = seedPhrasesSchema.safeParse(charged.value);
     const phrases = parsed.success ? suggestedPhrases(parsed.data) : [];

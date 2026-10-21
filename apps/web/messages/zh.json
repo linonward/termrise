@@ -909,7 +909,8 @@
       "INTERNAL_ERROR": "运行时出错了。",
       "BUDGET_EXHAUSTED": "数据预算不够一次扩词。",
       "RUN_TIMED_OUT": "运行在完成前停止了。请再运行一次。",
-      "PROVIDER_AUTH_FAILED": "关键词数据源拒绝了 API Key。请检查 Worker 的 DataForSEO 登录名和密码，然后再运行。这次没有扣费。"
+      "PROVIDER_AUTH_FAILED": "关键词数据源拒绝了 API Key。请检查 Worker 的 DataForSEO 登录名和密码，然后再运行。这次没有扣费。",
+      "MONTHLY_BUDGET_EXHAUSTED": "本服务这个月的花费已达到上限。付费调用在下个月 1 日（UTC）恢复。运维人员可以提高 Worker 的 MONTHLY_DATA_BUDGET_USD 或 MONTHLY_AI_BUDGET_USD。"
     },
     "runPartialNote": "部分搜索结果没有取到；关键词是完整的。",
     "keywordsTitle": "关键词",
@@ -951,7 +952,8 @@
       "INVALID_AI_OUTPUT": "AI 的回答不能使用。请再试一次。",
       "SUGGESTION_TIMED_OUT": "建议在完成前停止了。请再试一次。",
       "INTERNAL_ERROR": "出错了。请再试一次。",
-      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key。请检查 Worker 的 DeepSeek Key，然后再试。这次没有扣费。"
+      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key。请检查 Worker 的 DeepSeek Key，然后再试。这次没有扣费。",
+      "MONTHLY_BUDGET_EXHAUSTED": "本服务这个月的 AI 花费已达到上限。请在下个月 1 日（UTC）后再试。"
     },
     "topic": {
       "offTopic": "跑题",
@@ -961,7 +963,8 @@
       "markOffTopic": "把 {phrase} 标为跑题",
       "markOnTopic": "把 {phrase} 标为相关",
       "note": "跑题的关键词不计入分数。标记由 AI 建议；点击标记可以修改，分数会重新计算。"
-    }
+    },
+    "runPartialMonthly": "每一步完成前，本服务已达到这个月的花费上限。下面的结果只用了达到上限前得到的数据。"
   },
   "compare": {
     "metaTitle": "比较机会",
@@ -1053,7 +1056,8 @@
       "AI_INVALID_OUTPUT": "AI 的回答格式不符合要求，所以不显示。分数仍然有效。",
       "AI_ERROR": "AI 分析没有完成。分数仍然有效。",
       "BUDGET_EXHAUSTED": "AI 预算已用完，所以没有做这次分析。分数仍然有效。",
-      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key，所以没有做这次分析。分数仍然有效。这次没有扣费。"
+      "PROVIDER_AUTH_FAILED": "AI 服务拒绝了 API Key，所以没有做这次分析。分数仍然有效。这次没有扣费。",
+      "MONTHLY_BUDGET_EXHAUSTED": "本服务这个月的 AI 花费已达到上限，所以没有做这次分析。分数仍然有效。"
     },
     "analysisNote": "AI 根据下方证据写出这段文字。它不改变分数。",
     "analysisModel": "模型：{model}。",

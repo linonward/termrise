@@ -280,7 +280,10 @@ export async function evaluateOpportunities(deps: {
       );
       if (!charged) {
         budgetExhausted = true;
-        analysisError = "BUDGET_EXHAUSTED";
+        analysisError =
+          budget.refusal(runId, "ai") === "monthly"
+            ? "MONTHLY_BUDGET_EXHAUSTED"
+            : "BUDGET_EXHAUSTED";
       } else {
         const parsed = analysisSchema.safeParse(charged.value);
         // Only the cluster's own keywords can be off topic.

@@ -27,7 +27,7 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
       {run.status === "failed" && run.errorCode && (
         <p className="text-muted-foreground">
           {t(
-            `runError.${run.errorCode === "PROVIDER_ERROR" || run.errorCode === "PROVIDER_AUTH_FAILED" || run.errorCode === "BUDGET_EXHAUSTED" || run.errorCode === "RUN_TIMED_OUT" ? run.errorCode : "INTERNAL_ERROR"}`,
+            `runError.${run.errorCode === "PROVIDER_ERROR" || run.errorCode === "PROVIDER_AUTH_FAILED" || run.errorCode === "BUDGET_EXHAUSTED" || run.errorCode === "MONTHLY_BUDGET_EXHAUSTED" || run.errorCode === "RUN_TIMED_OUT" ? run.errorCode : "INTERNAL_ERROR"}`,
           )}
         </p>
       )}
@@ -38,7 +38,9 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
         <p className="text-muted-foreground">
           {run.errorCode === "BUDGET_EXHAUSTED"
             ? t("runPartialBudget")
-            : t("runPartialNote")}
+            : run.errorCode === "MONTHLY_BUDGET_EXHAUSTED"
+              ? t("runPartialMonthly")
+              : t("runPartialNote")}
         </p>
       )}
     </div>

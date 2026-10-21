@@ -49,6 +49,7 @@
 | S40   | 跑题判断的输出更稳（S39 后的真实运行：142 个关键词的组输出无效，57 个关键词的组标了 56 个）：只把搜索量最大的 60 个关键词发给 AI（`analysisKeywords()`）；模型列出超过 60 个跑题词时保留前 60 个；needs_review 的跑题比例按发给 AI 的关键词计算；Prompt 版本 `analysis-v4`                                                                                                                                                                                                            | 单元测试覆盖发给 AI 的关键词、跑题比例的分母、超过 60 个时的截取、Prompt 版本                                                                                                                                                                                    | 已完成 |
 | S41   | 由用户确认跑题的关键词（S40 后的真实运行：AI 把第一组看成电子签名，第二组 57 个标了 56 个）：`opportunity_keyword_reviews` 与 migration；用户的判断覆盖 AI 的标记，追加新评估并重新计算分数（不调用付费 API）；`PUT /api/opportunities/:id/keywords/:keywordId/off-topic`、`KEYWORD_NOT_FOUND`；详情页关键词表的 Topic 列；账号导出包含判断                                                                                                                                           | 单元测试覆盖标记的覆盖规则；集成测试覆盖取消与加上标记后的分数、needs_review、后一次覆盖前一次、归属、其他机会的关键词、导出；API 测试覆盖修改、400、404；E2E 覆盖在详情页取消 AI 的标记                                                                         | 已完成 |
 | S42   | Key 被拒绝时（S33 的问题）：`ProviderAuthError`（DataForSEO 401 / 40100、DeepSeek 401）；预算账本增加 `released`（不计费，不占用预算）与 migration；运行、种子词建议和 AI 分析的错误码 `PROVIDER_AUTH_FAILED`，页面提示检查 Key；Provider 状态页的 Key 被拒绝                                                                                                                                                                                                                         | 单元测试覆盖两个 Provider 的认证错误；集成测试覆盖预留释放、运行失败的错误码、AI 分析与种子词建议的错误码、Provider 汇总；E2E 覆盖运行失败时的提示                                                                                                               | 已完成 |
+| S43   | 每月硬限额：Worker 的 `MONTHLY_DATA_BUDGET_USD`（默认 10）与 `MONTHLY_AI_BUDGET_USD`（默认 2），全部项目合计，按 UTC 自然月；预留时用 advisory lock 排队检查；错误码 `MONTHLY_BUDGET_EXHAUSTED`（运行、种子词建议、AI 分析），页面说明下个月恢复                                                                                                                                                                                                                                      | 集成测试覆盖跨项目的限额、AI 与数据分开、跨月、预留与释放的计入、运行与种子词建议的错误码；单元测试覆盖 Worker 环境变量                                                                                                                                          | 已完成 |
 
 ## Confirmed Decisions
 
@@ -91,6 +92,7 @@
 - 2026-10-21：S37 后再次运行，跑题的词仍给了组的需求和商业意图。S38 起（评分 v4），跑题的关键词不进入评分的证据，只保留在关键词表中；跑题超过组内一半时标为 needs_review，由用户核对 AI 的判断。前 5 个组仍按全部关键词的分数选出，因为跑题标记来自对这 5 个组的分析。
 - 2026-10-21：S38–S40 的真实运行说明 AI 逐个判断关键词是否跑题不可靠（标得太少、看反、标得太多）。S41 起，AI 的跑题标记只是建议，由用户在详情页确认或修改；分数按用户的判断重新计算，不调用付费 API。
 - 2026-10-21：Provider 拒绝凭据（401）的调用没有计费：S42 起释放它的预留额（状态 `released`），并用单独的错误码 `PROVIDER_AUTH_FAILED`。S42 之前已记为 `failed` 的调用不改。
+- 2026-10-21：S43 起有本服务的每月硬限额（全部项目合计，数据 10 美元、AI 2 美元，可用环境变量修改），在每个项目的预算之外。达到后到下个月 1 日（UTC）才能再做付费调用。
 
 ## Open Questions
 

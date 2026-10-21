@@ -51,4 +51,7 @@ export const e2eWorkerVars = {
   KEYWORD_PROVIDER: "fake",
   ANALYST_PROVIDER: "fake",
   ALLOW_FAKE_PROVIDERS: "1",
+  // Fake costs of every E2E run add up within one month: no cap in the way.
+  MONTHLY_DATA_BUDGET_USD: "1000",
+  MONTHLY_AI_BUDGET_USD: "1000",
 };

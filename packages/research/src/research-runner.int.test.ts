@@ -125,6 +125,21 @@ it("fails the run with an auth error when the provider refuses the key, and hold
   expect(rows.map((r) => r.status)).toEqual(["released"]);
 });
 
+it("stops a run the service's monthly cap cannot cover, with its own code", async () => {
+  const capped = createResearchRunner({
+    database: db,
+    provider: fake,
+    analyst,
+    monthlyCapMicros: { data: 0, ai: 0 },
+  });
+  const { id } = await project(["meeting notes"]);
+  expect(await capped.run("a", id, { requestId: randomUUID() })).toMatchObject({
+    status: "failed",
+    errorCode: "MONTHLY_BUDGET_EXHAUSTED",
+  });
+  expect(await db.select().from(apiUsage)).toEqual([]);
+});
+
 it("fails the run when expansion fails, and a retry can succeed", async () => {
   const { id } = await project([`broken ${FAKE_KEYWORDS_FAILURE}`]);
   const failed = await runner.run("a", id, { requestId: randomUUID() });

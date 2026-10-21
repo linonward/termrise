@@ -15,7 +15,7 @@ import {
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
-import { createBudget } from "./budget";
+import { type BudgetKind, createBudget } from "./budget";
 import { evaluateOpportunities } from "./evaluate";
 import type {
   Charged,
@@ -240,10 +240,22 @@ export function createResearchRunner(deps: {
   provider: KeywordProvider;
   analyst: OpportunityAnalyst;
   now?: () => Date;
+  /** The service's monthly caps (budget.ts); none in tests that do not set them. */
+  monthlyCapMicros?: Record<BudgetKind, number>;
 }) {
   const { database, provider, analyst } = deps;
   const now = deps.now ?? (() => new Date());
-  const budget = createBudget({ database, now });
+  const budget = createBudget({
+    database,
+    now,
+    monthlyCapMicros: deps.monthlyCapMicros,
+  });
+  // The project's budget asks the owner to raise it; the service's monthly cap does not.
+  const exhausted = (run: ResearchRun) =>
+    budget.refusal(run.id, "data") === "monthly" ||
+    budget.refusal(run.id, "ai") === "monthly"
+      ? "MONTHLY_BUDGET_EXHAUSTED"
+      : "BUDGET_EXHAUSTED";
   const runs = createRunQueue({ database, now });
   const cache = createProviderCache({ database, now });
 
@@ -580,13 +592,16 @@ export function createResearchRunner(deps: {
         );
       }
       // Not even one seed fits the data budget: nothing to evaluate. Raise it and retry.
-      if (expanded.ideas.length === 0 && expanded.budgetExhausted)
+      if (expanded.ideas.length === 0 && expanded.budgetExhausted) {
+        const code = exhausted(run);
+        // A raised project budget does not help past the monthly cap: plain failed.
         return await finish(
           run,
           "failed",
-          "BUDGET_EXHAUSTED",
-          "budget_exhausted",
+          code,
+          code === "BUDGET_EXHAUSTED" ? "budget_exhausted" : null,
         );
+      }
       if (!(await active(run))) return run;
       const enriched = await addDifficulty(run, expanded.ideas, market);
       const saved = await saveKeywords(run, expanded.ideas);
@@ -614,7 +629,7 @@ export function createResearchRunner(deps: {
         audit.failures > 0 || enriched.failed || budgetExhausted
           ? "partial"
           : "completed",
-        budgetExhausted ? "BUDGET_EXHAUSTED" : null,
+        budgetExhausted ? exhausted(run) : null,
       );
     } catch (error) {
       logger.error("research.run_failed", { runId: run.id, error });
