@@ -78,6 +78,9 @@ test("starts research from a radar story", async ({ page, context }) => {
   );
   await page.getByRole("button", { name: "Create project" }).click();
   await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  // One collection on one day: one signal, from Hacker News.
+  await expect(page.getByTestId("signal-row")).toHaveCount(1);
+  await expect(page.getByTestId("signal-row")).toContainText("Hacker News");
 });
 
 test("turns a story title into short seeds before research", async ({

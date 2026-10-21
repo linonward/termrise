@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { closeTestDb, resetDb } from "@repo/db/testing/db";
+import { radarItems, radarObservations } from "@repo/db/schema";
+import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
 import { expectRateLimited } from "../testing/rate-limit";
@@ -298,4 +299,45 @@ it("refuses a seed suggestion once the project has run", async () => {
   );
   expect(response.status).toBe(409);
   expect((await response.json()).error.code).toBe("RESEARCH_PROJECT_LOCKED");
+});
+
+it("starts a project from a radar item with its observations as signals", async () => {
+  const [item] = await testDb()
+    .insert(radarItems)
+    .values({
+      provider: "google_trends",
+      externalId: "us:2026-10-21:drone map",
+      title: "drone map",
+      normalizedTerm: "drone map",
+      firstSeenAt: new Date("2026-10-21T01:00:00Z"),
+      lastSeenAt: new Date("2026-10-21T01:00:00Z"),
+    })
+    .returning();
+  await testDb()
+    .insert(radarObservations)
+    .values({
+      itemId: item.id,
+      observedAt: new Date("2026-10-21T01:00:00Z"),
+      list: "trending",
+      rank: 1,
+    });
+  const created = await send("POST", "/api/research/projects", owner, {
+    name: "Drone map",
+    seeds: ["drone map"],
+    radarItemId: item.id,
+  });
+  expect(created.status).toBe(201);
+  const { id } = await created.json();
+  const signals = await call(`/api/research/projects/${id}/signals`, {
+    headers: { cookie: owner },
+  });
+  expect((await signals.json()).items).toMatchObject([
+    { provider: "google_trends", term: "drone map", source: "Google Trends" },
+  ]);
+  const missing = await send("POST", "/api/research/projects", owner, {
+    name: "P",
+    seeds: ["notes"],
+    radarItemId: crypto.randomUUID(),
+  });
+  expect(missing.status).toBe(404);
 });

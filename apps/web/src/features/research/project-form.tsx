@@ -29,7 +29,7 @@ export function ProjectForm({
 }: {
   project?: ResearchProjectDto;
   /** Prefilled values for a new project, e.g. from a radar item. */
-  initial?: { name: string; seeds: string[] };
+  initial?: { name: string; seeds: string[]; radarItemId?: string };
   showMarket?: boolean;
 }) {
   const t = useTranslations("research");
@@ -54,6 +54,9 @@ export function ProjectForm({
       seeds: seedsFromText(String(data.get("seeds") ?? "")),
       dataBudgetUsd: Number(data.get("dataBudgetUsd")),
       aiBudgetUsd: Number(data.get("aiBudgetUsd")),
+      ...(!project && initial?.radarItemId
+        ? { radarItemId: initial.radarItemId }
+        : {}),
     };
     const response = await apiFetch(
       project

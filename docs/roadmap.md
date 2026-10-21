@@ -41,6 +41,7 @@
 | S32   | 评分 v2 与建站建议（参考 Web.Cafe 新词发现）：`serp-competition.ts`（前 10 中的首页、内页、专门页面）；评分 `v2`（工具意图增加产品名词和单独的 ai；竞争加入专门页面）；`build-advice.ts`（`build-v1`：新站 / 内页 / 需求弱 / 数据不足，带理由）；`opportunity_evaluations.serp_competition`、`build_advice` 与 migration；详情页、列表、比较页与 Brief                                                                                                                                | 单元测试覆盖首页判断、专门页面、v2 的 MVP 与竞争、建站建议的各条规则；API 测试覆盖新字段；E2E 覆盖详情页的建议与 SERP 计数、比较页的新行                                                                                                                         | 已完成 |
 | S33   | 用真实数据运行一次（termrise.md M5-01，不改代码）：本地 Docker、DataForSEO + DeepSeek；A 用 Radar 的建议种子词（HN 整句标题），B 用两个手动缩短的种子词；记录结果与问题                                                                                                                                                                                                                                                                                                               | 两次运行 completed；指标、KD、SERP 前 10、机会与建站建议在页面上显示；DataForSEO 余额减少额等于 `api_usage` 结算合计；问题写入 Open Questions                                                                                                                    | 已完成 |
 | S34   | 缩短种子词：`seed_suggestions` 与 migration；`SeedExtractor` 端口、DeepSeek（`seeds-v1`）与 fake 实现；`seed-suggestions.ts`（API 排队、Worker 领取，记入 AI 预算 `suggest_seeds`，规范化与上限，失败原因，10 分钟超时）；`research.scan` 入队 `seeds.suggest`；`POST .../seed-suggestions` 与 `GET .../latest`；项目页的「缩短种子词」面板                                                                                                                                           | 单元测试覆盖规范化、校验、长种子词判断、DeepSeek 请求与费用上限；集成测试覆盖排队、幂等、同时只有一条、预算不足、无效输出、服务错误、超时、归属与锁定；Worker 测试覆盖扫描；API 测试覆盖 201 / 400 / 404 / 409；E2E 覆盖 Radar → 项目 → 建议 → 修改 → 用作种子词 | 已完成 |
+| S35   | Radar 信号进入评分：`source_signals` 的来源增加 `hacker_news`、`google_trends` 与 migration；`radar-signals.ts`（条目的观测每个 UTC 日一条信号）；创建项目可带 `radarItemId`（同一事务写入信号，条目不存在时 404）；聚类时 Radar 信号属于全部种子词；Radar 的 Start research 链接带条目 id                                                                                                                                                                                            | 单元测试覆盖按日合并、来源名、没有观测；集成测试覆盖缩短后的种子词仍得到趋势与分发、条目不存在时不创建；API 测试覆盖信号与 404；E2E 覆盖从 Radar 创建后的信号                                                                                                    | 已完成 |
 
 ## Confirmed Decisions
 
@@ -78,6 +79,7 @@
 - 2026-10-10：接入 Google Trends Trending Now 的 RSS：Trends 帮助页把它列为导出方式之一，公开、不需要 Key，robots.txt 不禁止。它没有字段说明，所以用保存的真实订阅测试，字段变化时任务失败。只采集美国市场；近似搜索次数是下限，不当作月搜索量。不使用网页内部接口（如 pytrends）。
 - 2026-10-10：参考 Web.Cafe 的新词发现，增加 SERP 竞争计数与建站建议。只用已保存的前 10 结果（F04 的范围，不增加费用），规则确定、有版本，不用 AI 判断。阈值（1000 搜索量、KD 40、3 个专门页面）是初版，观察真实数据后再调整。
 - 2026-10-21：Radar 的整句标题用 AI 缩短为搜索短语（S34），不用固定规则：258 个 HN 条目中，按「–」或「:」分开后，前半是没有搜索量的品牌名，后半仍是整句。建议由用户请求、在页面上修改后才替换种子词；费用记入项目的 AI 预算，跟随 `ANALYST_PROVIDER`，不新增变量。之后的顺序：S35 决定是否补用 Labs 扩词，S36 每月硬限额与 401 时释放预留额。
+- 2026-10-21：从 Radar 条目创建的项目，条目的观测写成项目的信号（每个 UTC 日一条），属于全部种子词（S35）。评分规则和版本（v2）不变，变化的是输入：之前这些机会的趋势和分发总是 0。信号只在创建时写入，之后的观测不追加。
 
 ## Open Questions
 

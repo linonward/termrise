@@ -1,0 +1,2 @@
+ALTER TABLE "source_signals" DROP CONSTRAINT "source_signals_provider_valid";--> statement-breakpoint
+ALTER TABLE "source_signals" ADD CONSTRAINT "source_signals_provider_valid" CHECK ("source_signals"."provider" in ('csv', 'hacker_news', 'google_trends'));

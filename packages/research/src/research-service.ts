@@ -2,9 +2,15 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
-import { researchProjects, sourceSignals } from "@repo/db/schema";
+import {
+  radarItems,
+  radarObservations,
+  researchProjects,
+  sourceSignals,
+} from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 
+import { radarSignalRows } from "./radar-signals";
 import {
   DEFAULT_AI_BUDGET_USD,
   DEFAULT_DATA_BUDGET_USD,
@@ -50,6 +56,8 @@ const createSchema = z.object({
   ...fields,
   dataBudgetUsd: usd.default(DEFAULT_DATA_BUDGET_USD).transform(toMicros),
   aiBudgetUsd: usd.default(DEFAULT_AI_BUDGET_USD).transform(toMicros),
+  /** The radar item the project starts from: its observations become signals. */
+  radarItemId: z.uuid().optional(),
 });
 const updateSchema = z.object(fields).partial();
 
@@ -74,19 +82,36 @@ export function createResearchService(deps: {
 
   async function create(userId: string, body: unknown) {
     const input = parse(createSchema, body);
-    const [project] = await database
-      .insert(researchProjects)
-      .values({
-        userId,
-        name: input.name,
-        seeds: input.seeds,
-        locationCode: DEFAULT_LOCATION_CODE,
-        languageCode: DEFAULT_LANGUAGE_CODE,
-        dataBudgetMicros: input.dataBudgetUsd,
-        aiBudgetMicros: input.aiBudgetUsd,
-      })
-      .returning();
-    return project;
+    return database.transaction(async (tx) => {
+      const [project] = await tx
+        .insert(researchProjects)
+        .values({
+          userId,
+          name: input.name,
+          seeds: input.seeds,
+          locationCode: DEFAULT_LOCATION_CODE,
+          languageCode: DEFAULT_LANGUAGE_CODE,
+          dataBudgetMicros: input.dataBudgetUsd,
+          aiBudgetMicros: input.aiBudgetUsd,
+        })
+        .returning();
+      if (input.radarItemId) {
+        // Radar items are global: any signed-in user may start from one.
+        const [item] = await tx
+          .select()
+          .from(radarItems)
+          .where(eq(radarItems.id, input.radarItemId));
+        if (!item)
+          throw new AppError("RADAR_ITEM_NOT_FOUND", "Radar item not found");
+        const observations = await tx
+          .select({ observedAt: radarObservations.observedAt })
+          .from(radarObservations)
+          .where(eq(radarObservations.itemId, item.id));
+        const rows = radarSignalRows(project.id, item, observations);
+        if (rows.length > 0) await tx.insert(sourceSignals).values(rows);
+      }
+      return project;
+    });
   }
 
   async function list(userId: string, limit = 50) {

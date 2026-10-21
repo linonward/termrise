@@ -597,7 +597,7 @@ processed_at = now()
 
 ## Source Signals
 
-`source_signals`（`packages/db/src/schema/signals.ts`）：某个词在某个来源被观测到一次（product.md 的 F01）。现在只有 CSV 导入（`provider = 'csv'`），属于一个研究项目。Hacker News 的全局数据在 [Radar](#radar) 中。
+`source_signals`（`packages/db/src/schema/signals.ts`）：某个词在某个来源被观测到一次（product.md 的 F01）。来源有两种，都属于一个研究项目：CSV 导入（`provider = 'csv'`），以及项目开始时的 Radar 条目（`hacker_news`、`google_trends`）。Radar 的全局数据在 [Radar](#radar) 中。
 
 | 列                        | 说明                                                                                                                                          |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -607,9 +607,11 @@ processed_at = now()
 | `normalized_term`         | 与种子词相同的规范化（`normalizeSeeds()`）                                                                                                    |
 | `observed_at`             | 来源观测到的时间；来源没有给出时为 null，不用导入时间代替                                                                                     |
 | `ingested_at`             | 导入时间                                                                                                                                      |
-| `metadata`                | CSV 的 `source`、`note`（各最多 500 字符）                                                                                                    |
+| `metadata`                | CSV 的 `source`、`note`（各最多 500 字符）；Radar 的 `source`（Hacker News 或 Google Trends）和 `radarItemId`                                 |
 
 - 导入（`ResearchService.importCsv()`）在一个事务中锁住项目行，只允许 draft；新词按出现顺序追加到种子词，最多 50 个，其余只保留为信号。并发导入同一个项目时种子词不会丢失（集成测试覆盖）。
+- 从 Radar 条目创建项目（`radarItemId`）时，在同一个事务中把条目的观测写成信号：每个 UTC 日一条，时间为当天第一次观测，`external_id` 为「条目的来源 id:日期」。条目不存在时 404 `RADAR_ITEM_NOT_FOUND`，不创建项目。之后的观测不再写入（信号是项目开始时的证据）。
+- 评分的聚类：CSV 的信号只属于词相同的种子词；Radar 的信号属于项目的全部种子词，因为种子词可能是从标题缩短的短语（[Seed Suggestions](#seed-suggestions)）。所以趋势计算观测日数，分发计算来源数（S33 中从 Radar 开始的机会，这两项都是 0）。
 - 账号导出包含每个项目的信号；删除账号时随项目一起删除。
 
 ---

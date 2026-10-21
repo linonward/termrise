@@ -46,6 +46,7 @@ export default async function RadarItemPage({
   const research = new URLSearchParams({
     name: item.title.slice(0, PROJECT_NAME_MAX_LENGTH),
     seed: item.suggestedSeed,
+    radar: item.id,
   });
   const facts = [
     ["posted", item.postedAt && <LocalDateTime iso={item.postedAt} />],

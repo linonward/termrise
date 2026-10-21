@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { opportunityEvaluations, user } from "@repo/db/schema";
+import {
+  opportunityEvaluations,
+  radarItems,
+  radarObservations,
+  user,
+} from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import {
@@ -137,4 +142,49 @@ it("exports opportunities with the account and deletes them with the project", a
   await eraseResearchData(db, "a");
   expect(await db.select().from(opportunityEvaluations)).toEqual([]);
   expect(await results.list("a")).toEqual([]);
+});
+
+it("counts a radar item's days and source for every seed of a project started from it", async () => {
+  const [item] = await db
+    .insert(radarItems)
+    .values({
+      provider: "hacker_news",
+      externalId: "4242",
+      url: "https://example.com/drone",
+      title: "Show HN: Dovepass – check a drone flight path",
+      normalizedTerm: "dovepass – check a drone flight path",
+      firstSeenAt: new Date("2026-10-19T08:00:00Z"),
+      lastSeenAt: new Date("2026-10-21T08:00:00Z"),
+    })
+    .returning();
+  await db.insert(radarObservations).values(
+    [
+      "2026-10-19T08:00:00Z",
+      "2026-10-19T09:00:00Z",
+      "2026-10-21T08:00:00Z",
+    ].map((iso, rank) => ({
+      itemId: item.id,
+      observedAt: new Date(iso),
+      list: "show" as const,
+      rank: rank + 1,
+    })),
+  );
+  // The seeds were shortened from the title: none of them is the item's term.
+  const { id } = await service.create("a", {
+    name: "Dovepass",
+    seeds: ["drone flight path checker", "drone airspace map"],
+    radarItemId: item.id,
+  });
+  expect(await service.listSignals("a", id)).toMatchObject([
+    { provider: "hacker_news", observedAt: new Date("2026-10-21T08:00:00Z") },
+    { provider: "hacker_news", observedAt: new Date("2026-10-19T08:00:00Z") },
+  ]);
+  await runner.run("a", id, { requestId: randomUUID() });
+  const list = (await results.list("a", id)).map(toOpportunityDto);
+  expect(list.length).toBeGreaterThan(0);
+  for (const opportunity of list) {
+    // Two days: trend 2. One source: distribution 1.
+    expect(opportunity.dimensions).toMatchObject({ trend: 2, distribution: 1 });
+    expect(opportunity.analysis?.channels).toContain("Hacker News");
+  }
 });
