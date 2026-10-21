@@ -82,14 +82,14 @@ it("stores the analysis with its model and settles the token cost", async () => 
     analysisError: null,
     analystProvider: "deepseek",
     analystModel: "deepseek-flash",
-    analystPromptVersion: "analysis-v2",
+    analystPromptVersion: "analysis-v3",
   });
   const calls = await db.select().from(apiUsage);
   // 1000 × 0.3 + 500 × 1.2 micro-USD at the peak price.
   expect(calls.find((c) => c.operation === "analyze")).toMatchObject({
     provider: "deepseek",
     status: "settled",
-    reservedMicros: 3900,
+    reservedMicros: 4500,
     costMicros: 900,
   });
   expect(fetch).toHaveBeenCalledTimes(1);
@@ -116,5 +116,5 @@ it("keeps the reservation counted when the call fails", async () => {
   const call = (await db.select().from(apiUsage)).find(
     (c) => c.operation === "analyze",
   );
-  expect(call).toMatchObject({ status: "failed", reservedMicros: 3900 });
+  expect(call).toMatchObject({ status: "failed", reservedMicros: 4500 });
 });

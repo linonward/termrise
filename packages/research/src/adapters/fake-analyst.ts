@@ -1,4 +1,8 @@
-import type { AnalysisInput, OpportunityAnalyst } from "../opportunity-analyst";
+import {
+  type AnalysisInput,
+  MAX_OFF_TOPIC_KEYWORDS,
+  type OpportunityAnalyst,
+} from "../opportunity-analyst";
 
 /** A cluster containing this marker makes the fake analyst return invalid output. */
 export const FAKE_ANALYST_INVALID = "[bad-ai]";
@@ -54,5 +58,5 @@ function offTopic(input: AnalysisInput) {
   return input.keywords
     .filter((k) => !k.phrase.split(" ").some((w) => words.has(w)))
     .map((k) => k.phrase)
-    .slice(0, 30);
+    .slice(0, MAX_OFF_TOPIC_KEYWORDS);
 }

@@ -6,6 +6,9 @@ import type { Charged } from "./keyword-provider";
 // is for and what to build, as hypotheses tied to evidence. It never writes scores,
 // volumes or difficulty; those come from the data and the scoring rules.
 
+/** Off-topic keywords one analysis can mark (60 from analysis-v3, 30 before). */
+export const MAX_OFF_TOPIC_KEYWORDS = 60;
+
 export const analysisSchema = z.object({
   targetUser: z.string().min(1).max(300),
   job: z.string().min(1).max(300),
@@ -17,7 +20,10 @@ export const analysisSchema = z.object({
   risks: z.array(z.string().min(1).max(300)).min(1).max(5),
   // Keywords that mean something else than the product in the source titles. From
   // scoring v4 they do not count in the score. Absent in analyses before analysis-v2.
-  offTopicKeywords: z.array(z.string().min(1).max(200)).max(30).default([]),
+  offTopicKeywords: z
+    .array(z.string().min(1).max(200))
+    .max(MAX_OFF_TOPIC_KEYWORDS)
+    .default([]),
 });
 
 // As stored: analyses before analysis-v2 have no offTopicKeywords.
