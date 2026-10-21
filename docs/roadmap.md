@@ -39,6 +39,7 @@
 | S30   | 机会比较：列表复选框与 [Compare selected]；`/opportunities/compare`（最多 4 个，分数、维度、关键词指标、SERP、AI 假设并排；其他用户的机会不显示；少于 2 个时说明）；没有新的 API                                                                                                                                                                                                                                                                                                      | E2E 覆盖选择两个机会后比较、其他用户打开同一链接时不显示                                                                                                                                                | 已完成 |
 | S31   | Google Trends（termrise.md M1-04）：Trending Now RSS 适配器（`fast-xml-parser`，用保存的真实订阅测试，字段变化时失败）；`collectGoogleTrends()`（每个搜索、市场、日期一个条目，近似搜索次数为下限）；Radar 来源与列表的 CHECK 与 migration；生命周期只为 HN 计算增长；Worker 的 `GOOGLE_TRENDS_ENABLED` 与每个来源一个 Job Scheduler；心跳的 `radar_sources`；Radar 页面的热度与来源链接                                                                                              | 单元测试覆盖解析、流量标签、实体、形状变化、HTTP 错误；集成测试覆盖保存、同日观测、隔日新条目与重复出现；Worker 测试覆盖两个来源；E2E 覆盖 Trends 条目的热度与链接                                      | 已完成 |
 | S32   | 评分 v2 与建站建议（参考 Web.Cafe 新词发现）：`serp-competition.ts`（前 10 中的首页、内页、专门页面）；评分 `v2`（工具意图增加产品名词和单独的 ai；竞争加入专门页面）；`build-advice.ts`（`build-v1`：新站 / 内页 / 需求弱 / 数据不足，带理由）；`opportunity_evaluations.serp_competition`、`build_advice` 与 migration；详情页、列表、比较页与 Brief                                                                                                                                | 单元测试覆盖首页判断、专门页面、v2 的 MVP 与竞争、建站建议的各条规则；API 测试覆盖新字段；E2E 覆盖详情页的建议与 SERP 计数、比较页的新行                                                                | 已完成 |
+| S33   | 用真实数据运行一次（termrise.md M5-01，不改代码）：本地 Docker、DataForSEO + DeepSeek；A 用 Radar 的建议种子词（HN 整句标题），B 用两个手动缩短的种子词；记录结果与问题                                                                                                                                                                                                                                                                                                               | 两次运行 completed；指标、KD、SERP 前 10、机会与建站建议在页面上显示；DataForSEO 余额减少额等于 `api_usage` 结算合计；问题写入 Open Questions                                                           | 已完成 |
 
 ## Confirmed Decisions
 
@@ -79,6 +80,12 @@
 ## Open Questions
 
 - Production 仍要求 `PAYMENT_PROVIDER=waffo` 和 Waffo Key（Fake 在 Production 被禁止）。部署 Production 前决定：配置 Waffo Key，还是让收费模块可以关闭。
+- S33（2026-10-21）真实运行的问题，在 S34 之前决定怎么处理：
+  - DataForSEO 返回 401（Key 失效）时，运行只记 `PROVIDER_ERROR`，页面看不出是认证问题。是否增加单独的错误码？
+  - 认证失败（401，服务不收费）的调用仍保留预留额：10-10 至 10-21 共 $0.50。加入每月硬限额后，这些预留额会占用限额。是否在 401 时释放预留额？
+  - HN 的建议种子词是整句标题：Llmspeed 的标题花费 $0.10，只返回标题本身和去掉破折号的一个变体，没有搜索量和 KD，没有 SERP 和机会。是否在开始研究前缩短种子词（规则或 AI）？
+  - 低搜索量的种子词，Google Ads `keywords_for_keywords` 只返回种子词本身（`local llm speed` 10、`llm hardware calculator` 30），每次 $0.09，没有扩词。是否补用 Labs 的 `keyword_suggestions` / `related_keywords`（2026-10-10 决定暂不使用）？
+  - Google Trends Trending Now 的条目大多是体育、人名、新闻（如 `michael jordan`、`ncis cast`），不是产品需求。是否在 Radar 中按类别过滤或降低排序？
 
 ### 暂缓
 
