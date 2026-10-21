@@ -15,8 +15,8 @@ export const analysisSchema = z.object({
   channels: z.array(z.string().min(1).max(200)).max(5),
   mvpScope: z.array(z.string().min(1).max(200)).min(1).max(7),
   risks: z.array(z.string().min(1).max(300)).min(1).max(5),
-  // Keywords that mean something else than the product in the source titles. Marked
-  // only: they still count in the score. Absent in analyses before analysis-v2.
+  // Keywords that mean something else than the product in the source titles. From
+  // scoring v4 they do not count in the score. Absent in analyses before analysis-v2.
   offTopicKeywords: z.array(z.string().min(1).max(200)).max(30).default([]),
 });
 

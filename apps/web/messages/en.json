@@ -1081,7 +1081,7 @@
       "serp": "Top {results} results for “{phrase}”: {homepages} home pages, {innerPages} inner pages, {dedicated} made for the keyword.",
       "note": "Rules {version}. A new site needs all three: the demand, a KD it can beat, and room in the top results. Check the results yourself before you build."
     },
-    "offTopicNote": "AI marked these keywords as a different product than the source title. They still count in the score: check the score and the search results before you decide."
+    "offTopicNote": "AI marked these keywords as a different product than the source title. From scoring v4, they do not count in the score. Check the search results before you decide."
   },
   "decisions": {
     "title": "Decision",

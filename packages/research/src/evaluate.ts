@@ -14,6 +14,7 @@ import { logger } from "@repo/observability/logger";
 
 import type { Budget } from "./budget";
 import { buildAdvice } from "./build-advice";
+import { clusterEvidence, type ClusterMember } from "./cluster-evidence";
 import { classifyIntent } from "./intent";
 import { analysisSchema, type OpportunityAnalyst } from "./opportunity-analyst";
 import {
@@ -34,7 +35,8 @@ export const TOP_OPPORTUNITIES = 5;
 type Cluster = {
   name: string;
   keywordIds: string[];
-  evidence: ClusterEvidence;
+  members: ClusterMember[];
+  signals: ClusterEvidence["signals"];
   serpSnapshotIds: string[];
   serpTitles: string[];
   signalIds: string[];
@@ -98,52 +100,45 @@ async function clusters(database: Database, projectId: string) {
     const clusterSignals = signals.filter(
       (s) => s.provider !== "csv" || phrases.has(s.normalizedTerm),
     );
+    const scored = members.map((m): ClusterMember => {
+      const metric = latest.get(m.id);
+      const snapshot = newestSerp.get(m.id);
+      return {
+        id: m.id,
+        phrase: m.phrase,
+        searchVolume: metric?.searchVolume ?? null,
+        cpcUsd: metric?.cpcMicros == null ? null : metric.cpcMicros / 1_000_000,
+        keywordDifficulty: metric?.keywordDifficulty ?? null,
+        fetchedAt: metric?.fetchedAt ?? null,
+        serp: snapshot
+          ? serpCompetition(
+              m.phrase,
+              titles.filter((t) => t.snapshotId === snapshot.id),
+            )
+          : null,
+      };
+    });
     const audited = members.flatMap((m) => {
       const snapshot = newestSerp.get(m.id);
       return snapshot ? [snapshot] : [];
     });
-    // The seed's own results stand for the cluster's competition when audited.
     const representative = clusterSerpKeyword(
       seed,
-      members.map((m) => ({
-        id: m.id,
-        phrase: m.phrase,
-        searchVolume: latest.get(m.id)?.searchVolume ?? null,
-      })),
-      new Set(members.filter((m) => newestSerp.has(m.id)).map((m) => m.id)),
+      scored,
+      new Set(scored.filter((m) => m.serp).map((m) => m.id)),
     );
     const representativeSnapshot =
       representative && newestSerp.get(representative.id)!;
-    const serp = representativeSnapshot
-      ? serpCompetition(
-          representative.phrase,
-          titles.filter((t) => t.snapshotId === representativeSnapshot.id),
-        )
-      : null;
     return {
       name: seed,
       keywordIds: members.map((m) => m.id),
-      evidence: {
-        keywords: members.map((m) => {
-          const metric = latest.get(m.id);
-          return {
-            phrase: m.phrase,
-            searchVolume: metric?.searchVolume ?? null,
-            cpcUsd:
-              metric?.cpcMicros == null ? null : metric.cpcMicros / 1_000_000,
-            keywordDifficulty: metric?.keywordDifficulty ?? null,
-            fetchedAt: metric?.fetchedAt ?? null,
-          };
-        }),
-        serpAudited: audited.length > 0,
-        serp,
-        signals: clusterSignals.map((s) => ({
-          observedAt: s.observedAt,
-          source: s.metadata.source ?? null,
-        })),
-      },
+      members: scored,
+      signals: clusterSignals.map((s) => ({
+        observedAt: s.observedAt,
+        source: s.metadata.source ?? null,
+      })),
       serpSnapshotIds: audited.map((s) => s.id),
-      // The analysis sees the results the competition was scored on.
+      // The analysis sees the results the first score's competition rests on.
       serpTitles: titles
         .filter((t) => t.snapshotId === representativeSnapshot?.id)
         .map((t) => t.title),
@@ -159,6 +154,42 @@ async function clusters(database: Database, projectId: string) {
     };
   });
 }
+
+/** Score, confidence and the rest of an evaluation, from the evidence left on topic. */
+function evaluation(
+  cluster: Cluster,
+  offTopic: ReadonlySet<string>,
+  now: Date,
+) {
+  const evidence = clusterEvidence(
+    cluster.name,
+    cluster.members,
+    cluster.signals,
+    offTopic,
+  );
+  const dimensions = scoreDimensions(evidence);
+  const score = totalScore(dimensions);
+  const conf = confidence(evidence, now);
+  return {
+    dimensions,
+    score,
+    confidence: conf,
+    needsReview: needsReview(
+      score,
+      conf,
+      offTopic.size / cluster.members.length,
+    ),
+    serpCompetition: evidence.serp ?? null,
+    buildAdvice: buildAdvice(evidence),
+  };
+}
+
+type Scored = { cluster: Cluster } & ReturnType<typeof evaluation>;
+
+const best = (a: Scored, b: Scored) =>
+  b.score - a.score ||
+  b.confidence - a.confidence ||
+  a.cluster.name.localeCompare(b.cluster.name);
 
 /**
  * Clusters, scores and ranks a project's keywords, keeps the top opportunities and asks
@@ -177,27 +208,23 @@ export async function evaluateOpportunities(deps: {
 }) {
   const { database, analyst, budget, now, projectId, runId } = deps;
   let budgetExhausted = false;
-  const scored = (await clusters(database, projectId))
-    .filter((c) => c.evidence.keywords.some((k) => k.searchVolume !== null))
-    .map((c) => {
-      const dimensions = scoreDimensions(c.evidence);
-      const score = totalScore(dimensions);
-      const conf = confidence(c.evidence, now());
-      return { cluster: c, dimensions, score, confidence: conf };
-    })
-    .sort(
-      (a, b) =>
-        b.score - a.score ||
-        b.confidence - a.confidence ||
-        a.cluster.name.localeCompare(b.cluster.name),
-    )
+  // The analysis marks the off-topic keywords, so the first score picks the top
+  // clusters and the score without those keywords ranks them.
+  const top = (await clusters(database, projectId))
+    .filter((c) => c.members.some((m) => m.searchVolume !== null))
+    .map((c): Scored => ({ cluster: c, ...evaluation(c, new Set(), now()) }))
+    .sort(best)
     .slice(0, TOP_OPPORTUNITIES);
 
-  for (const [index, item] of scored.entries()) {
+  const analyzed: (Scored & {
+    analysis: Record<string, unknown> | null;
+    analysisError: string | null;
+  })[] = [];
+  for (const { cluster } of top) {
     if (deps.isActive && !(await deps.isActive())) break;
-    const { cluster } = item;
     let analysis: Record<string, unknown> | null = null;
     let analysisError: string | null = null;
+    let offTopic = new Set<string>();
     try {
       // Without AI budget the score still stands; the analysis says why it is missing.
       const charged = await budget.charge(
@@ -212,7 +239,7 @@ export async function evaluateOpportunities(deps: {
         () =>
           analyst.analyze({
             cluster: cluster.name,
-            keywords: cluster.evidence.keywords.map((k, i) => ({
+            keywords: cluster.members.map((k, i) => ({
               phrase: k.phrase,
               searchVolume: k.searchVolume,
               intent: cluster.intents[i],
@@ -220,9 +247,7 @@ export async function evaluateOpportunities(deps: {
             serpTitles: cluster.serpTitles,
             signalSources: [
               ...new Set(
-                cluster.evidence.signals.flatMap((s) =>
-                  s.source ? [s.source] : [],
-                ),
+                cluster.signals.flatMap((s) => (s.source ? [s.source] : [])),
               ),
             ],
             sourceTitles: cluster.sourceTitles,
@@ -234,20 +259,29 @@ export async function evaluateOpportunities(deps: {
       } else {
         const parsed = analysisSchema.safeParse(charged.value);
         // Only the cluster's own keywords can be off topic.
-        const phrases = new Set(cluster.evidence.keywords.map((k) => k.phrase));
-        if (parsed.success)
-          analysis = {
-            ...parsed.data,
-            offTopicKeywords: parsed.data.offTopicKeywords.filter((p) =>
-              phrases.has(p.trim().toLowerCase()),
-            ),
-          };
-        else analysisError = "AI_INVALID_OUTPUT";
+        const phrases = new Set(cluster.members.map((k) => k.phrase));
+        if (parsed.success) {
+          const marked = parsed.data.offTopicKeywords.filter((p) =>
+            phrases.has(p.trim().toLowerCase()),
+          );
+          offTopic = new Set(marked.map((p) => p.trim().toLowerCase()));
+          analysis = { ...parsed.data, offTopicKeywords: marked };
+        } else analysisError = "AI_INVALID_OUTPUT";
       }
     } catch (error) {
       analysisError = "AI_ERROR";
       logger.warn("research.analysis_failed", { runId, error });
     }
+    analyzed.push({
+      cluster,
+      ...evaluation(cluster, offTopic, now()),
+      analysis,
+      analysisError,
+    });
+  }
+
+  for (const [index, item] of analyzed.sort(best).entries()) {
+    const { cluster } = item;
     await database.transaction(async (tx) => {
       const [opportunity] = await tx
         .insert(opportunities)
@@ -264,14 +298,14 @@ export async function evaluateOpportunities(deps: {
         score: item.score,
         dimensions: item.dimensions,
         confidence: item.confidence,
-        needsReview: needsReview(item.score, item.confidence),
+        needsReview: item.needsReview,
         rank: index + 1,
-        analysis,
-        analysisError,
+        analysis: item.analysis,
+        analysisError: item.analysisError,
         analystProvider: analyst.name,
         analystModel: analyst.model,
-        serpCompetition: cluster.evidence.serp ?? null,
-        buildAdvice: buildAdvice(cluster.evidence),
+        serpCompetition: item.serpCompetition,
+        buildAdvice: item.buildAdvice,
         analystPromptVersion: analyst.promptVersion,
         evidence: {
           keywordIds: cluster.keywordIds,
@@ -281,5 +315,5 @@ export async function evaluateOpportunities(deps: {
       });
     });
   }
-  return { evaluated: scored.length, budgetExhausted };
+  return { evaluated: analyzed.length, budgetExhausted };
 }

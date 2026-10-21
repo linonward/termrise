@@ -25,7 +25,7 @@ export function OpportunityStatus({
   return <span className={cn(badge, className)}>{t(status)}</span>;
 }
 
-/** A high score built on thin evidence: check it before trusting it. */
+/** A high score on thin evidence, or a cluster mostly off topic: check it first. */
 export function NeedsReview() {
   const t = useTranslations("opportunities");
   return (
