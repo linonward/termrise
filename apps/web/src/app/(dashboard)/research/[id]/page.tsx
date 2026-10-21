@@ -8,9 +8,11 @@ import type {
   KeywordDto,
   ResearchProjectDto,
   ResearchRunDto,
+  SeedSuggestionDto,
   SerpDto,
   SourceSignalDto,
 } from "@repo/research/research-dto";
+import { isLongSeed } from "@repo/research/seed-extractor";
 
 import { LocalDateTime } from "@/components/local-date-time";
 import { CancelRun } from "@/features/research/cancel-run";
@@ -26,6 +28,7 @@ import {
 import { ResearchStatus } from "@/features/research/research-status";
 import { RunPoller } from "@/features/research/run-poller";
 import { RunResearch } from "@/features/research/run-research";
+import { SeedSuggestions } from "@/features/research/seed-suggestions";
 import { apiGet, apiRequest } from "@/server/api/api";
 
 const RUNNING_STATUSES: readonly string[] = [
@@ -65,12 +68,16 @@ export default async function ResearchProjectPage({
     { items: keywords },
     { items: serps },
     costs,
+    { item: suggestion },
   ] = await Promise.all([
     apiGet<{ items: SourceSignalDto[] }>(`${base}/signals`),
     apiGet<{ items: ResearchRunDto[] }>(`${base}/runs`),
     apiGet<{ items: KeywordDto[] }>(`${base}/keywords`),
     apiGet<{ items: SerpDto[] }>(`${base}/serps`),
     apiGet<CostsDto>(`${base}/costs`),
+    apiGet<{ item: SeedSuggestionDto | null }>(
+      `${base}/seed-suggestions/latest`,
+    ),
   ]);
   const lastRun = runs[0];
   const canRun =
@@ -86,6 +93,17 @@ export default async function ResearchProjectPage({
   const usd = (value: number) =>
     format.number(value, { style: "currency", currency: "USD" });
   const draft = project.status === "draft";
+  // Seeds can change in a draft, or after the budget ran out before any data.
+  const editable = draft || project.status === "budget_exhausted";
+  // Shown for sentence-like seeds, and for new phrases until the project is saved.
+  const showSuggestions =
+    editable &&
+    (project.seeds.some(isLongSeed) ||
+      suggestion?.status === "pending" ||
+      suggestion?.status === "running" ||
+      (suggestion?.status === "completed" &&
+        suggestion.finishedAt !== null &&
+        project.updatedAt < suggestion.finishedAt));
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-10 md:py-16">
       <header className="space-y-4">
@@ -124,11 +142,17 @@ export default async function ResearchProjectPage({
                   : t("lockedNote")}
             </p>
           </div>
-          {/* An import that adds signals can add seeds behind this uncontrolled form:
-              remount it then. A save keeps it, so its "saved" message stays. */}
-          <ProjectForm key={signals.length} project={project} />
+          {/* An import or saved suggestions can change the seeds behind this
+              uncontrolled form: remount it then. */}
+          <ProjectForm
+            key={`${signals.length}:${project.seeds.join("\n")}`}
+            project={project}
+          />
         </section>
         <div className="space-y-6 md:w-90">
+          {showSuggestions && (
+            <SeedSuggestions projectId={project.id} suggestion={suggestion} />
+          )}
           {canRun && (
             <RunResearch
               projectId={project.id}

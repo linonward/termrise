@@ -936,7 +936,22 @@
     "runQueuedNote": "The run waits for the worker and starts in a few seconds.",
     "cancelRun": "Cancel run",
     "cancelling": "Cancelling…",
-    "runCancelledBody": "The last run was cancelled. You can run it again."
+    "runCancelledBody": "The last run was cancelled. You can run it again.",
+    "suggestTitle": "Short seeds",
+    "suggestBody": "A whole title gets no search data. AI suggests search phrases of 2–4 words. Check and edit them before you use them. The call is charged to the AI budget.",
+    "suggestButton": "Suggest short seeds",
+    "suggestAgain": "Suggest again",
+    "suggesting": "Suggesting phrases…",
+    "suggestPhrases": "Suggested phrases, one per line",
+    "suggestFake": "Test data: these phrases come from a template, not from AI.",
+    "suggestUse": "Use as seeds",
+    "suggestError": {
+      "PROVIDER_ERROR": "The AI service did not answer. Try again.",
+      "BUDGET_EXHAUSTED": "The AI budget does not cover one suggestion. Increase it and try again.",
+      "INVALID_AI_OUTPUT": "The AI answer was not usable. Try again.",
+      "SUGGESTION_TIMED_OUT": "The suggestion stopped before it finished. Try again.",
+      "INTERNAL_ERROR": "Something went wrong. Try again."
+    }
   },
   "compare": {
     "metaTitle": "Compare opportunities",

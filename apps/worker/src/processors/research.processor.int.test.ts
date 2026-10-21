@@ -7,8 +7,13 @@ import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
+import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 import { createResearchRunner } from "@repo/research/research-runner";
 import { createResearchService } from "@repo/research/research-service";
+import {
+  createSeedSuggester,
+  createSeedSuggestionQueue,
+} from "@repo/research/seed-suggestions";
 
 import { createHandlers, startWorker } from "../worker";
 
@@ -40,5 +45,35 @@ it("a scan picks up each queued run once and runs it to the end", async () => {
     "completed",
   );
   expect(await runner.pendingRunIds()).toEqual([]);
+  await stop();
+});
+
+it("a scan picks up each queued seed suggestion once and runs it", async () => {
+  const service = createResearchService({ database: db });
+  const { id } = await service.create("a", {
+    name: "P",
+    seeds: ["tool – check a drone flight path in the browser"],
+  });
+  const queued = await createSeedSuggestionQueue({ database: db }).request(
+    "a",
+    id,
+    { requestId: randomUUID() },
+  );
+  const suggester = createSeedSuggester({
+    database: db,
+    extractor: createFakeSeedExtractor(),
+  });
+  const queue = createMemoryQueue();
+  const stop = await startWorker(
+    queue,
+    createHandlers({ runner, suggester, queue }),
+  );
+  await queue.enqueue("research.scan", {});
+  await queue.enqueue("research.scan", {});
+  expect(await queue.drain()).toEqual([]);
+  expect(await suggester.pendingIds()).toEqual([]);
+  expect(
+    await createSeedSuggestionQueue({ database: db }).latest("a", id),
+  ).toMatchObject({ id: queued.id, status: "completed" });
   await stop();
 });

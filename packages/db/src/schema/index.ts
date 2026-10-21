@@ -9,6 +9,7 @@ export * from "./orders";
 export * from "./radar";
 export * from "./rate-limits";
 export * from "./research";
+export * from "./seed-suggestions";
 export * from "./signals";
 export * from "./tasks";
 export * from "./users";

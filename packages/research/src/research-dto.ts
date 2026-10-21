@@ -5,6 +5,7 @@ import type {
   opportunityDecisions,
   opportunityEvaluations,
   researchRuns,
+  seedSuggestions,
   validationExperiments,
   serpResults,
   serpSnapshots,
@@ -71,6 +72,20 @@ export function toResearchRunDto(r: RunRow) {
 }
 
 export type ResearchRunDto = ReturnType<typeof toResearchRunDto>;
+
+export function toSeedSuggestionDto(s: typeof seedSuggestions.$inferSelect) {
+  return {
+    id: s.id,
+    status: s.status,
+    phrases: s.phrases,
+    errorCode: s.errorCode,
+    provider: s.provider,
+    createdAt: s.createdAt.toISOString(),
+    finishedAt: s.finishedAt?.toISOString() ?? null,
+  };
+}
+
+export type SeedSuggestionDto = ReturnType<typeof toSeedSuggestionDto>;
 
 // Metrics in display units; null stays null ("no data").
 export function toKeywordDto(row: {

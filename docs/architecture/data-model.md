@@ -691,6 +691,17 @@ processed_at = now()
 
 ---
 
+## Seed Suggestions
+
+`seed_suggestions`（`packages/db/src/schema/seed-suggestions.ts`，`packages/research/src/seed-suggestions.ts`）：AI 为项目的种子词建议的 2–4 个词的搜索短语。从 Radar 开始的项目，种子词是整句标题，得不到搜索数据（S33）；固定规则只能分出品牌名和整句说明，所以用 AI。
+
+- API 只写一行 `pending`（`requestId` 在项目内唯一，同一次请求返回同一行）；项目有 `pending` 或 `running` 的建议时，新请求返回它，不新增。只有 draft 和 budget_exhausted 的项目可以请求（与能修改种子词的状态相同），否则 `RESEARCH_PROJECT_LOCKED`。`source_seeds` 保存请求时的种子词。
+- Worker 用条件更新从 `pending` 领取（`claimed_at`），调用 `SeedExtractor`（端口在 `seed-extractor.ts`；DeepSeek 与 fake 两个实现，跟随 `ANALYST_PROVIDER`，没有新的变量）。调用经 Budget Ledger 记入项目的 AI 预算：`operation = suggest_seeds`，`run_id` 为 null。
+- 输出经 Zod 校验，短语用 `normalizeSeeds()` 规范化，去掉超过 80 字符的，最多 10 个。结果：`completed`（`phrases`、`provider`、`model`、`prompt_version`）；或 `failed`，`error_code` 为 `BUDGET_EXHAUSTED`（不调用）、`PROVIDER_ERROR`（预留额继续计入）、`INVALID_AI_OUTPUT`（已结算）、`SUGGESTION_TIMED_OUT`（领取超过 10 分钟仍在运行，由 `research.scan` 标记，仍为 reserved 的调用改为 failed）。
+- 建议不修改项目：用户在页面上修改短语，再经 ResearchService 的更新保存为种子词。删除项目时一起删除（ON DELETE CASCADE）；账号导出不包含它（短语是 AI 输出，种子词已在导出中）。
+
+---
+
 ## Opportunities
 
 运行的最后一个阶段（`evaluating`，`packages/research/src/evaluate.ts`）把关键词按来源种子词分组，每组是一个机会候选，打分后保留前 5 个。

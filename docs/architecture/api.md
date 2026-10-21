@@ -32,6 +32,8 @@ POST /api/research/projects/:id/runs（{ requestId }：把运行放入队列，�
 POST /api/research/projects/:id/runs/:runId/cancel（取消 pending 或 running 的运行，返回 200 + 运行（status 为 cancelled），项目改为 cancelled，可以再运行；运行中的 Worker 在下一次付费调用前停止，已发出的调用照常结算；运行已结束时 409 RESEARCH_RUN_FINISHED，不存在时 404 RESEARCH_RUN_NOT_FOUND）
 
 GET /api/research/projects/:id/runs（运行记录，新的在前）
+POST /api/research/projects/:id/seed-suggestions（{ requestId }：把一次种子词建议放入队列，返回 201 + 建议（status 为 pending），由 Worker 调用 AI；同一个 requestId，或已有进行中的建议时，返回同一条；项目不是 draft / budget_exhausted 时 409 RESEARCH_PROJECT_LOCKED；见 data-model.md 的 Seed Suggestions）
+GET /api/research/projects/:id/seed-suggestions/latest（{ item }：最新的一条建议（id、status、phrases、errorCode、provider、createdAt、finishedAt），没有时 item 为 null）
 
 GET /api/research/projects/:id/keywords（关键词与最新指标，搜索量高的在前，没有数据的在后；指标缺失为 null）
 
