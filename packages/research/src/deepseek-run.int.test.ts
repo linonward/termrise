@@ -118,3 +118,22 @@ it("keeps the reservation counted when the call fails", async () => {
   );
   expect(call).toMatchObject({ status: "failed", reservedMicros: 4500 });
 });
+
+it("records an auth failure and releases the reservation when DeepSeek refuses the key", async () => {
+  const fetch = vi.fn<typeof globalThis.fetch>(
+    async () =>
+      new Response(JSON.stringify({ error: { message: "bad key" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      }),
+  );
+  const { id } = await service.create("a", { name: "P", seeds: ["notes"] });
+  await runner(fetch).run("a", id, { requestId: randomUUID() });
+  const [evaluation] = await db.select().from(opportunityEvaluations);
+  expect(evaluation.analysisError).toBe("PROVIDER_AUTH_FAILED");
+  expect(evaluation.score).toBeGreaterThan(0);
+  const call = (await db.select().from(apiUsage)).find(
+    (c) => c.operation === "analyze",
+  );
+  expect(call).toMatchObject({ status: "released", costMicros: 0 });
+});

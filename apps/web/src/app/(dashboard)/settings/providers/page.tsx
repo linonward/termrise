@@ -216,7 +216,8 @@ export default async function ProvidersPage() {
                           tone={
                             u.lastStatus === "settled"
                               ? "success"
-                              : u.lastStatus === "failed"
+                              : u.lastStatus === "failed" ||
+                                  u.lastStatus === "released"
                                 ? "destructive"
                                 : "info"
                           }

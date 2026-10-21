@@ -636,7 +636,7 @@ processed_at = now()
 
 - Worker 3 分钟内写过为在线，否则为离线；没有行时为未启动。
 - 连接状态是该服务最近一次真实调用的结果（`api_usage` 的最近一行），不为检查连接额外调用服务。
-- 花费按服务和预算类型汇总当前用户的项目：调用数、失败数、已花费（settled 的费用）、预留（reserved 与 failed 的预留额）。
+- 花费按服务和预算类型汇总当前用户的项目：调用数、失败数（`failed` 与 `released`）、已花费（settled 的费用）、预留（reserved 与 failed 的预留额）。
 
 ---
 
@@ -646,7 +646,7 @@ processed_at = now()
 
 - 取消：`pending` 或 `running` 的运行可以取消（`cancelled`），项目改为 `cancelled`，之后可以再运行。Runner 在每次付费调用前和每个阶段之间检查运行是否仍为 `running`，不是就停止；已发出的调用照常结算。
 - `claimed_at`：Worker 领取运行的时间，排队时为 null。领取超过 30 分钟仍在运行的，由下一次扫描改为 `failed`（`RUN_TIMED_OUT`），见 jobs.md 的 Termrise。
-- `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `pending`（排队中，`stage` 为 `queued`）/ `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 在失败时有值（`PROVIDER_ERROR`、`INTERNAL_ERROR`、`BUDGET_EXHAUSTED`）；预算不足使运行提前结束的 `partial` 也记录 `BUDGET_EXHAUSTED`。
+- `research_runs`：一次运行。`(project_id, request_id)` 唯一：重试同一个请求只开始一次运行，返回同一条记录。`status` 为 `pending`（排队中，`stage` 为 `queued`）/ `running` / `completed` / `partial` / `failed`，`stage` 是当前或最后到达的阶段，`error_code` 在失败时有值（`PROVIDER_ERROR`、`PROVIDER_AUTH_FAILED`、`INTERNAL_ERROR`、`BUDGET_EXHAUSTED`）；预算不足使运行提前结束的 `partial` 也记录 `BUDGET_EXHAUSTED`。
 - 开始运行时在一个事务中锁住项目行：只有 `draft`、`failed` 或 `budget_exhausted` 的项目能开始（失败后可以重试）。两个请求同时开始时，第二个返回 `RESEARCH_PROJECT_LOCKED`。项目状态依次为 `expanding`（排队时就进入，锁住项目）→ `auditing` → `evaluating` → `completed` / `partial`；扩词失败为 `failed`。运行与项目的状态在同一个事务中修改。
 - `keywords`：项目的关键词，`(project_id, phrase)` 唯一。`source` 为 `seed` 或 `expansion`，`seed` 记录它来自哪个种子词。每次运行最多 200 个（种子词全部保留，其余按扩词顺序）。失败后重试时沿用已有的关键词行。
 - `keyword_metric_snapshots`：Provider 报告的指标，只追加。`search_volume`（月均搜索量）、`cpc_micros`（微美元）、`ads_competition`（Google Ads 竞争度 0–100）、`keyword_difficulty`（SEO 难度 0–100）各自独立，Provider 没有报告时为 null，不写 0（product.md 的 F03）。页面显示最新的一条。
@@ -661,8 +661,8 @@ processed_at = now()
 
 每个付费调用都经过 `api_usage`（`packages/research/src/budget.ts`，product.md 的「外部服务与预算」）。
 
-- 调用前预留：在一个事务中锁住项目行，计算该预算（`data` 或 `ai`）已占用的金额：已结算的按实际费用，`reserved` 和 `failed` 按预留额。加上本次调用的上限（端口的 `maxCostMicros`）超过项目预算时，不调用，返回预算不足。并发预留排队进行，不会超出预算。
-- 调用后结算：成功时记录 Provider 报告的费用（`cost_micros`），状态为 `settled`。调用失败时状态为 `failed`，费用未知，预留额继续计入，不当作 0。
+- 调用前预留：在一个事务中锁住项目行，计算该预算（`data` 或 `ai`）已占用的金额：已结算的按实际费用，`released` 为 0，`reserved` 和 `failed` 按预留额。加上本次调用的上限（端口的 `maxCostMicros`）超过项目预算时，不调用，返回预算不足。并发预留排队进行，不会超出预算。
+- 调用后结算：成功时记录 Provider 报告的费用（`cost_micros`），状态为 `settled`。调用失败时状态为 `failed`，费用未知，预留额继续计入，不当作 0。Provider 拒绝凭据时（`ProviderAuthError`，`packages/ai/src/provider-errors.ts`：DataForSEO 的 HTTP 401 或状态码 40100，DeepSeek 的 HTTP 401），调用没有计费，状态为 `released`，费用为 0，不占用预算；运行、种子词建议的错误码和 AI 分析的 `analysis_error` 为 `PROVIDER_AUTH_FAILED`，页面提示检查 Worker 的 Key，并说明没有扣费。
 - 记录项目、运行、预算类型、Provider、操作（`expand`、`serp`、`analyze`）、预留额、费用、状态和时间。删除项目时随之删除。
 - 运行中的预算不足：一个种子词都扩不了时，运行 `failed`（`BUDGET_EXHAUSTED`），项目状态为 `budget_exhausted`，可以修改预算后再运行；扩词、SERP 中途不足时停止该阶段；AI 预算不足时该机会不做分析（`analysis_error` 为 `BUDGET_EXHAUSTED`），分数照常。有阶段因预算提前结束时运行为 `partial`。
 - fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。

@@ -14,6 +14,7 @@ import { RunPoller } from "./run-poller";
 
 const SUGGESTION_ERRORS = [
   "PROVIDER_ERROR",
+  "PROVIDER_AUTH_FAILED",
   "BUDGET_EXHAUSTED",
   "INVALID_AI_OUTPUT",
   "SUGGESTION_TIMED_OUT",

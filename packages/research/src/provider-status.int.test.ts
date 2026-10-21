@@ -59,7 +59,7 @@ it("sums a user's calls per provider, with the last result", async () => {
   const theirs = await service.create("b", { name: "Q", seeds: ["y"] });
   const row = (
     projectId: string,
-    status: "settled" | "failed" | "reserved",
+    status: "settled" | "failed" | "reserved" | "released",
     minute: number,
     cost: number | null = null,
   ) => ({
@@ -72,25 +72,25 @@ it("sums a user's calls per provider, with the last result", async () => {
     status,
     createdAt: new Date(`2026-10-10T08:0${minute}:00Z`),
   });
-  await db
-    .insert(apiUsage)
-    .values([
-      row(mine.id, "settled", 1, 75_000),
-      row(mine.id, "settled", 2, 75_000),
-      row(mine.id, "failed", 3),
-      row(theirs.id, "settled", 4, 75_000),
-    ]);
+  await db.insert(apiUsage).values([
+    row(mine.id, "settled", 1, 75_000),
+    row(mine.id, "settled", 2, 75_000),
+    row(mine.id, "failed", 3),
+    // Refused key: a failure that holds nothing.
+    row(mine.id, "released", 4, 0),
+    row(theirs.id, "settled", 5, 75_000),
+  ]);
   const { usage } = toProviderStatusDto(await status.forUser("a"));
   expect(usage).toEqual([
     {
       provider: "dataforseo",
       kind: "data",
-      calls: 3,
-      failed: 1,
+      calls: 4,
+      failed: 2,
       spentUsd: 0.15,
       heldUsd: 0.1,
-      lastCallAt: "2026-10-10T08:03:00.000Z",
-      lastStatus: "failed",
+      lastCallAt: "2026-10-10T08:04:00.000Z",
+      lastStatus: "released",
     },
   ]);
   expect((await status.forUser("b")).usage[0].calls).toBe(1);

@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, lt } from "drizzle-orm";
 import { z } from "zod";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
 import {
   apiUsage,
@@ -570,7 +571,13 @@ export function createResearchRunner(deps: {
         expanded = await expand(run, project.seeds, market);
       } catch (error) {
         logger.warn("research.expand_failed", { runId: run.id, error });
-        return await finish(run, "failed", "PROVIDER_ERROR");
+        return await finish(
+          run,
+          "failed",
+          error instanceof ProviderAuthError
+            ? "PROVIDER_AUTH_FAILED"
+            : "PROVIDER_ERROR",
+        );
       }
       // Not even one seed fits the data budget: nothing to evaluate. Raise it and retry.
       if (expanded.ideas.length === 0 && expanded.budgetExhausted)

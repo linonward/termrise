@@ -1,5 +1,6 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
 import {
   keywordMetricSnapshots,
@@ -293,7 +294,10 @@ export async function evaluateOpportunities(deps: {
         } else analysisError = "AI_INVALID_OUTPUT";
       }
     } catch (error) {
-      analysisError = "AI_ERROR";
+      analysisError =
+        error instanceof ProviderAuthError
+          ? "PROVIDER_AUTH_FAILED"
+          : "AI_ERROR";
       logger.warn("research.analysis_failed", { runId, error });
     }
     const own = reviews.filter((r) => r.cluster === cluster.name);

@@ -8,12 +8,14 @@ import {
   researchProjects,
   researchRuns,
   user,
+  apiUsage,
 } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createFakeAnalyst } from "./adapters/fake-analyst";
 import {
   createFakeKeywordProvider,
+  FAKE_KEYWORDS_AUTH_FAILURE,
   FAKE_KEYWORDS_FAILURE,
   FAKE_SERP_FAILURE,
 } from "./adapters/fake-keywords";
@@ -110,6 +112,17 @@ it("returns the same run for a retried request and starts only one at once", asy
       .from(researchRuns)
       .where(eq(researchRuns.projectId, other)),
   ).toHaveLength(1);
+});
+
+it("fails the run with an auth error when the provider refuses the key, and holds nothing", async () => {
+  const { id } = await project([`locked ${FAKE_KEYWORDS_AUTH_FAILURE}`]);
+  const failed = await runner.run("a", id, { requestId: randomUUID() });
+  expect(failed).toMatchObject({
+    status: "failed",
+    errorCode: "PROVIDER_AUTH_FAILED",
+  });
+  const rows = await db.select().from(apiUsage);
+  expect(rows.map((r) => r.status)).toEqual(["released"]);
 });
 
 it("fails the run when expansion fails, and a retry can succeed", async () => {

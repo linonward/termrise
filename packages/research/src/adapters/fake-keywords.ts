@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
+
 import type {
   KeywordIdea,
   KeywordMetrics,
@@ -9,6 +11,8 @@ import type {
 
 /** A seed containing this marker makes the fake provider fail, so tests can check it. */
 export const FAKE_KEYWORDS_FAILURE = "[fail]";
+/** A seed containing this marker makes the fake provider refuse the key (an auth failure). */
+export const FAKE_KEYWORDS_AUTH_FAILURE = "[auth-fail]";
 /** A seed containing this marker makes the fake expansion take seconds, so E2E can cancel. */
 export const FAKE_KEYWORDS_SLOW = "[slow]";
 /** A phrase containing this marker makes the fake SERP fail. */
@@ -59,6 +63,8 @@ export function createFakeKeywordProvider(): KeywordProvider {
       serp: FAKE_COSTS.serp.max,
     },
     async expand(seed) {
+      if (seed.includes(FAKE_KEYWORDS_AUTH_FAILURE))
+        throw new ProviderAuthError("fake keyword provider refused the key");
       if (seed.includes(FAKE_KEYWORDS_FAILURE))
         throw new Error("fake keyword provider failure");
       if (seed.includes(FAKE_KEYWORDS_SLOW))

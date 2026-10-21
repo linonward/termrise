@@ -1,5 +1,7 @@
 import { expect, it, vi } from "vitest";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
+
 import { createDataForSeoProvider, GOOGLE_ADS_INTERVAL_MS } from "./dataforseo";
 import { ADS, dataForSeoFetch, KD, SERP } from "../testing/dataforseo-fetch";
 
@@ -173,6 +175,10 @@ it("fails on an HTTP error or a failed status, without credentials", async () =>
       (e: Error) => e,
     );
     expect(error.message).toMatch(/DataForSEO .*(401|40100|40501)/);
+    // A rejected login is an auth failure: the run says so, and the call is not billed.
+    expect(error instanceof ProviderAuthError).toBe(
+      "status" in route || "statusCode" in route,
+    );
     expect(error.message).not.toContain("secret-password");
     expect(error.message).not.toContain("me@example.com");
   }

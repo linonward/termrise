@@ -176,6 +176,13 @@
       "when": 1792562929683,
       "tag": "0024_offtopic_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792564856334,
+      "tag": "0025_usage_released",
+      "breakpoints": true
     }
   ]
 }

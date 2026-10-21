@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, isNull, lt } from "drizzle-orm";
 import { z } from "zod";
 
+import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
 import { apiUsage, researchProjects, seedSuggestions } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
@@ -182,7 +183,10 @@ export function createSeedSuggester(deps: {
       return finish(id, {
         ...source,
         status: "failed",
-        errorCode: "PROVIDER_ERROR",
+        errorCode:
+          error instanceof ProviderAuthError
+            ? "PROVIDER_AUTH_FAILED"
+            : "PROVIDER_ERROR",
       });
     }
     if (!charged)

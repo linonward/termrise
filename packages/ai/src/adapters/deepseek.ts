@@ -2,6 +2,7 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { APICallError, generateText, RetryError } from "ai";
 
 import type { AiProvider } from "../provider";
+import { ProviderAuthError } from "../provider-errors";
 
 // AI SDK DeepSeek provider: https://ai-sdk.dev/providers/ai-sdk-providers/deepseek
 export function createDeepSeekProvider(options: {
@@ -46,6 +47,8 @@ export function createDeepSeekProvider(options: {
 // Sentry receives the thrown error: keep only the status, with no cause.
 export function safeError(error: unknown) {
   const last = RetryError.isInstance(error) ? error.lastError : error;
+  if (APICallError.isInstance(last) && last.statusCode === 401)
+    return new ProviderAuthError("DeepSeek request failed: 401");
   if (APICallError.isInstance(last))
     return new Error(
       `DeepSeek request failed: ${last.statusCode ?? "network"}`,
