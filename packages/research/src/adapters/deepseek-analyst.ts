@@ -1,6 +1,10 @@
 import type { DeepSeekJson } from "@repo/ai/adapters/deepseek-json";
 
-import type { AnalysisInput, OpportunityAnalyst } from "../opportunity-analyst";
+import {
+  type AnalysisInput,
+  MAX_OFF_TOPIC_KEYWORDS,
+  type OpportunityAnalyst,
+} from "../opportunity-analyst";
 import {
   type DeepSeekModel,
   deepSeekCostMicros,
@@ -8,10 +12,11 @@ import {
 } from "./deepseek-prices";
 
 /** Changes when the instructions or the output shape change. */
-export const DEEPSEEK_PROMPT_VERSION = "analysis-v2";
+// analysis-v3: keywords by search volume, up to 60 off-topic keywords.
+export const DEEPSEEK_PROMPT_VERSION = "analysis-v3";
 /** The prompt is cut to this length, so its tokens have an upper bound. */
 export const MAX_PROMPT_CHARS = 12_000;
-export const MAX_OUTPUT_TOKENS = 1_500;
+export const MAX_OUTPUT_TOKENS = 2_000;
 // Upper bound of the input tokens: the instructions and the prompt, at 2 characters per
 // token (English text is about 4).
 const MAX_INPUT_TOKENS = 1_000 + MAX_PROMPT_CHARS / 2;
@@ -37,7 +42,7 @@ ${JSON.stringify(EXAMPLE, null, 2)}
 Rules:
 - alternatives, channels: at most 5 items. mvpScope: 1 to 7 items. risks: 1 to 5 items.
 - offTopicKeywords: keywords from the data whose meaning differs from the product in
-  sourceTitles, such as another sense of the same word. At most 30, copied exactly.
+  sourceTitles, such as another sense of the same word. At most ${MAX_OFF_TOPIC_KEYWORDS}, copied exactly.
   Empty when sourceTitles is empty or every keyword fits.
 - Each text is short: at most 300 characters (differentiation 500, list items 200).
 - Every statement is a hypothesis to check. Do not invent numbers: no search volumes,
@@ -48,16 +53,20 @@ Rules:
 function prompt(input: AnalysisInput) {
   const data = {
     opportunity: input.cluster,
-    keywords: input.keywords.map((k) => ({
-      phrase: k.phrase,
-      monthlySearches: k.searchVolume,
-      intent: k.intent,
-    })),
+    // Most searches first: they move the score, so the off-topic cap and the prompt cap
+    // keep them.
+    keywords: [...input.keywords]
+      .sort((a, b) => (b.searchVolume ?? -1) - (a.searchVolume ?? -1))
+      .map((k) => ({
+        phrase: k.phrase,
+        monthlySearches: k.searchVolume,
+        intent: k.intent,
+      })),
     topSearchResultTitles: input.serpTitles,
     signalSources: input.signalSources,
     sourceTitles: input.sourceTitles,
   };
-  // Drop keywords from the end until the data fits the cap.
+  // Drop keywords from the end (the fewest searches) until the data fits the cap.
   let text = JSON.stringify(data);
   while (text.length > MAX_PROMPT_CHARS && data.keywords.length > 1) {
     data.keywords.pop();
