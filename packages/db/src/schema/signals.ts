@@ -14,7 +14,12 @@ import {
 import { inList } from "./columns";
 import { researchProjects } from "./research";
 
-export const SIGNAL_PROVIDERS = ["csv"] as const;
+// csv: imported rows; the others: a radar item the project was started from.
+export const SIGNAL_PROVIDERS = [
+  "csv",
+  "hacker_news",
+  "google_trends",
+] as const;
 
 // Where a term was observed (docs/product/product.md#f01-热词发现). One row per observation;
 // re-importing the same row is a no-op. Scoped to a research project; global stories

@@ -305,7 +305,7 @@ Open link（有链接时；Google Trends 为它关联的第一条新闻）、来
 右侧：事实（发布时间、首次发现、最近发现、分数、评论；缺失为「暂无数据」）+「研究这个词」面板 [Start research]
 ```
 
-- Start research 打开 `/research?name=<标题>&seed=<建议的种子词>`，新建项目表单预先填好，用户可以修改后再创建。
+- Start research 打开 `/research?name=<标题>&seed=<建议的种子词>&radar=<条目 id>`，新建项目表单预先填好，用户可以修改后再创建。创建后，项目的 Signals 表列出条目每个观测日的信号（来源为 Hacker News 或 Google Trends）。
 - 不存在的条目返回 404 页面。
 
 ---

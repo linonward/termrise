@@ -40,7 +40,7 @@ type Cluster = {
 };
 
 // Rule-based clustering v1: one cluster per seed, with the keywords expanded from it and
-// the signals observing any of its phrases.
+// the signals observing any of its phrases (radar signals observe all of them).
 async function clusters(database: Database, projectId: string) {
   const rows = await database
     .select()
@@ -90,7 +90,11 @@ async function clusters(database: Database, projectId: string) {
     bySeed.set(row.seed, [...(bySeed.get(row.seed) ?? []), row]);
   return [...bySeed.entries()].map(([seed, members]): Cluster => {
     const phrases = new Set(members.map((m) => m.phrase));
-    const clusterSignals = signals.filter((s) => phrases.has(s.normalizedTerm));
+    // A radar item the project started from observes every seed: the seeds may be
+    // phrases shortened from its title. Imported rows observe their own term.
+    const clusterSignals = signals.filter(
+      (s) => s.provider !== "csv" || phrases.has(s.normalizedTerm),
+    );
     const audited = members.flatMap((m) => {
       const snapshot = newestSerp.get(m.id);
       return snapshot ? [snapshot] : [];

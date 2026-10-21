@@ -18,13 +18,15 @@ export default async function ResearchPage({
   searchParams,
 }: PageProps<"/research">) {
   const t = await getTranslations("research");
-  // A radar item opens this page with ?name=&seed= to prefill a new project.
-  const { name, seed } = await searchParams;
+  // A radar item opens this page with ?name=&seed=&radar= to prefill a new project; the
+  // project then gets the item's observations as signals.
+  const { name, seed, radar } = await searchParams;
   const initial =
     typeof seed === "string" && seed
       ? {
           name: typeof name === "string" ? name : "",
           seeds: normalizeSeeds([seed]),
+          radarItemId: typeof radar === "string" ? radar : undefined,
         }
       : undefined;
   const { items } = await apiGet<{ items: ResearchProjectDto[] }>(

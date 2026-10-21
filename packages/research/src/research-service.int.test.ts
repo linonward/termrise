@@ -149,3 +149,17 @@ it("exports and erases a user's projects for account requests", async () => {
   expect(await service.list("a")).toEqual([]);
   expect(await service.list("b")).toHaveLength(1);
 });
+
+it("refuses a radar item that does not exist, and creates nothing", async () => {
+  await expect(
+    service.create("a", {
+      name: "P",
+      seeds: ["notes"],
+      radarItemId: "11111111-1111-4111-8111-111111111111",
+    }),
+  ).rejects.toMatchObject({ code: "RADAR_ITEM_NOT_FOUND" });
+  await expect(
+    service.create("a", { name: "P", seeds: ["notes"], radarItemId: "x" }),
+  ).rejects.toMatchObject({ code: "INVALID_INPUT" });
+  expect(await service.list("a")).toEqual([]);
+});

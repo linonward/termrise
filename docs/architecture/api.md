@@ -15,7 +15,7 @@ POST /api/analytics/consent（{ granted: boolean }，登录用户的 Cookie 横�
 
 GET /api/research/projects（当前用户的研究项目，新的在前，最多 50 个）
 
-POST /api/research/projects（{ name, seeds, dataBudgetUsd?, aiBudgetUsd? }，成功返回 201 + 项目，见 data-model.md 的 Research Projects）
+POST /api/research/projects（{ name, seeds, dataBudgetUsd?, aiBudgetUsd?, radarItemId? }，成功返回 201 + 项目，见 data-model.md 的 Research Projects；有 radarItemId 时条目的观测写成项目的信号，条目不存在时 404 RADAR_ITEM_NOT_FOUND，见 Source Signals）
 
 GET /api/research/projects/:id（不属于当前用户或不存在时 404 RESEARCH_PROJECT_NOT_FOUND）
 
