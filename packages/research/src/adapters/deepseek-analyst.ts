@@ -13,7 +13,8 @@ import {
 
 /** Changes when the instructions or the output shape change. */
 // analysis-v3: keywords by search volume, up to 60 off-topic keywords.
-export const DEEPSEEK_PROMPT_VERSION = "analysis-v3";
+// analysis-v4: only the 60 keywords with the most searches (evaluate.ts).
+export const DEEPSEEK_PROMPT_VERSION = "analysis-v4";
 /** The prompt is cut to this length, so its tokens have an upper bound. */
 export const MAX_PROMPT_CHARS = 12_000;
 export const MAX_OUTPUT_TOKENS = 2_000;
@@ -75,6 +76,22 @@ function prompt(input: AnalysisInput) {
   return text.slice(0, MAX_PROMPT_CHARS);
 }
 
+// A longer off-topic list than asked for keeps its first items: the rest of the answer
+// is still valid, and the call is already paid.
+function trimOffTopic(value: unknown) {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "offTopicKeywords" in value &&
+    Array.isArray(value.offTopicKeywords)
+  )
+    return {
+      ...value,
+      offTopicKeywords: value.offTopicKeywords.slice(0, MAX_OFF_TOPIC_KEYWORDS),
+    };
+  return value;
+}
+
 /** The most one analysis can cost on a model, at the peak price. */
 export function deepSeekMaxCostMicros(model: DeepSeekModel) {
   return deepSeekCostMicros(model, {
@@ -103,7 +120,10 @@ export function createDeepSeekAnalyst(
         prompt: prompt(input),
         maxOutputTokens: MAX_OUTPUT_TOKENS,
       });
-      return { value, costMicros: deepSeekCostMicros(model, usage) };
+      return {
+        value: trimOffTopic(value),
+        costMicros: deepSeekCostMicros(model, usage),
+      };
     },
   };
 }

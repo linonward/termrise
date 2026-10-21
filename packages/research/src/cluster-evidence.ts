@@ -1,3 +1,4 @@
+import { MAX_OFF_TOPIC_KEYWORDS } from "./opportunity-analyst";
 import type { ClusterEvidence } from "./scoring";
 import { clusterSerpKeyword, type SerpCompetition } from "./serp-competition";
 
@@ -37,4 +38,25 @@ export function clusterEvidence(
     serp: representative?.serp ?? null,
     signals,
   };
+}
+
+/**
+ * The keywords the analysis judges: the ones with the most searches, as many as it can
+ * mark off topic. A longer list made the answer too long to be valid (S40).
+ */
+export function analysisKeywords<M extends { searchVolume: number | null }>(
+  members: readonly M[],
+) {
+  return [...members]
+    .sort((a, b) => (b.searchVolume ?? -1) - (a.searchVolume ?? -1))
+    .slice(0, MAX_OFF_TOPIC_KEYWORDS);
+}
+
+/** Off-topic share among the keywords the analysis was asked about. */
+export function offTopicShare(
+  offTopic: ReadonlySet<string>,
+  members: readonly ClusterMember[],
+) {
+  const asked = analysisKeywords(members).length;
+  return asked === 0 ? 0 : offTopic.size / asked;
 }

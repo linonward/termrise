@@ -82,7 +82,7 @@ it("stores the analysis with its model and settles the token cost", async () => 
     analysisError: null,
     analystProvider: "deepseek",
     analystModel: "deepseek-flash",
-    analystPromptVersion: "analysis-v3",
+    analystPromptVersion: "analysis-v4",
   });
   const calls = await db.select().from(apiUsage);
   // 1000 × 0.3 + 500 × 1.2 micro-USD at the peak price.
