@@ -46,6 +46,7 @@
 | S37   | 结果围绕原来的产品（S36 后的真实运行：「digital sign app」扩到电子签名，SERP 与 AI 报告跟着跑偏）：SERP 先审核种子词（`serpAuditOrder()`）；评分 `v3`，组的竞争用种子词自己的 SERP（`clusterSerpKeyword()`），AI 看到同一个快照的标题；AI 分析加入来源标题，输出 `offTopicKeywords`（`analysis-v2`，只标记不改分）；详情页的 Off-topic keywords                                                                                                                                       | 单元测试覆盖审核顺序、组的 SERP 选择、Prompt 版本与来源标题；集成测试覆盖跑题的种子词被标记、其他组为空、旧答案没有该项时为空；E2E 覆盖 Radar → 缩短 → 运行 → 详情页的跑题提示                                                                                   | 已完成 |
 | S38   | 跑题的关键词不计入分数（S37 后的真实运行：跑题的词只被标记，分数仍是 58 / 48）：评分 `v4`，AI 分析后去掉 `offTopicKeywords` 重新计算维度、可信度、SERP 竞争和建站建议，再排名（`cluster-evidence.ts`）；跑题超过组内一半时 `needs_review`；详情页的说明与 Brief 的 needs review 文字                                                                                                                                                                                                  | 单元测试覆盖去掉跑题词后的证据、SERP 选择、没有可用 SERP、needs_review 的比例；集成测试覆盖全部跑题的组没有需求与竞争、需要核对、按新分数排名                                                                                                                    | 已完成 |
 | S39   | 跑题标记覆盖影响分数的词（S38 后的真实运行：AI 标满 30 个按字母排在前面的词，5400 搜索量的电子签名词没有被标出，分数仍是 58）：发给 AI 的关键词按搜索量从高到低排列，Prompt 太长时去掉搜索量最少的；跑题上限 60，输出上限 2000 token；Prompt 版本 `analysis-v3`                                                                                                                                                                                                                       | 单元测试覆盖关键词顺序、截断后留下搜索量最大的、上限 60、预留的最高费用；集成测试覆盖 Prompt 版本与预留金额                                                                                                                                                      | 已完成 |
+| S40   | 跑题判断的输出更稳（S39 后的真实运行：142 个关键词的组输出无效，57 个关键词的组标了 56 个）：只把搜索量最大的 60 个关键词发给 AI（`analysisKeywords()`）；模型列出超过 60 个跑题词时保留前 60 个；needs_review 的跑题比例按发给 AI 的关键词计算；Prompt 版本 `analysis-v4`                                                                                                                                                                                                            | 单元测试覆盖发给 AI 的关键词、跑题比例的分母、超过 60 个时的截取、Prompt 版本                                                                                                                                                                                    | 已完成 |
 
 ## Confirmed Decisions
 
@@ -90,6 +91,7 @@
 ## Open Questions
 
 - S38 后的真实运行（2026-10-21）：「screen to sign」组的 SERP 来自竞品的登录词 `screen cloud login`（导航类，1900），建站建议为 `new_site`。是否让导航类关键词不能代表组的 SERP 竞争，待决定。
+- S39 后的真实运行（2026-10-21）：AI 把「screen to sign」组 57 个关键词中的 56 个标为跑题，包括 `digital signage screens` 这类相关的词。下一步计划让用户在详情页确认或取消跑题标记，确认后不调用 AI 重新计算分数。
 - Production 仍要求 `PAYMENT_PROVIDER=waffo` 和 Waffo Key（Fake 在 Production 被禁止）。部署 Production 前决定：配置 Waffo Key，还是让收费模块可以关闭。
 - S33（2026-10-21）真实运行的问题，在 S34 之前决定怎么处理：
   - DataForSEO 返回 401（Key 失效）时，运行只记 `PROVIDER_ERROR`，页面看不出是认证问题。是否增加单独的错误码？

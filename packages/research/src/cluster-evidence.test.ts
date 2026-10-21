@@ -1,6 +1,12 @@
 import { expect, it } from "vitest";
 
-import { clusterEvidence, type ClusterMember } from "./cluster-evidence";
+import {
+  analysisKeywords,
+  clusterEvidence,
+  offTopicShare,
+  type ClusterMember,
+} from "./cluster-evidence";
+import { MAX_OFF_TOPIC_KEYWORDS } from "./opportunity-analyst";
 import { needsReview } from "./scoring";
 
 const competition = (phrase: string, dedicatedPages: number) => ({
@@ -79,4 +85,31 @@ it("asks for a review when more than half of the keywords are off topic", () => 
   expect(needsReview(40, 90, 0.5)).toBe(false);
   expect(needsReview(40, 90, 0.6)).toBe(true);
   expect(needsReview(40, 90)).toBe(false);
+});
+
+it("asks the analysis about the keywords with the most searches only", () => {
+  const many = Array.from({ length: 100 }, (_, i) =>
+    member(`keyword ${i}`, i === 0 ? null : i),
+  );
+  const asked = analysisKeywords(many);
+  expect(asked).toHaveLength(MAX_OFF_TOPIC_KEYWORDS);
+  expect(asked[0].phrase).toBe("keyword 99");
+  expect(asked.map((k) => k.phrase)).not.toContain("keyword 0");
+  expect(analysisKeywords(members).map((k) => k.phrase)).toEqual([
+    "electronic signature app",
+    "digital signage app",
+    "screen to sign",
+  ]);
+});
+
+it("counts the off-topic share among the keywords the analysis was asked about", () => {
+  const many = Array.from({ length: 100 }, (_, i) => member(`k ${i}`, i));
+  const marked = new Set(
+    analysisKeywords(many)
+      .slice(0, 40)
+      .map((k) => k.phrase),
+  );
+  // 40 of the 60 asked, not 40 of 100.
+  expect(offTopicShare(marked, many)).toBeCloseTo(40 / 60);
+  expect(offTopicShare(new Set(), [])).toBe(0);
 });

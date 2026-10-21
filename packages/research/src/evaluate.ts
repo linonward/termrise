@@ -14,7 +14,12 @@ import { logger } from "@repo/observability/logger";
 
 import type { Budget } from "./budget";
 import { buildAdvice } from "./build-advice";
-import { clusterEvidence, type ClusterMember } from "./cluster-evidence";
+import {
+  analysisKeywords,
+  clusterEvidence,
+  offTopicShare,
+  type ClusterMember,
+} from "./cluster-evidence";
 import { classifyIntent } from "./intent";
 import { analysisSchema, type OpportunityAnalyst } from "./opportunity-analyst";
 import {
@@ -41,7 +46,6 @@ type Cluster = {
   serpTitles: string[];
   signalIds: string[];
   sourceTitles: string[];
-  intents: string[];
 };
 
 // Rule-based clustering v1: one cluster per seed, with the keywords expanded from it and
@@ -150,7 +154,6 @@ async function clusters(database: Database, projectId: string) {
             .map((s) => s.rawTitle),
         ),
       ].slice(0, MAX_SOURCE_TITLES),
-      intents: members.map((m) => classifyIntent(m.phrase)),
     };
   });
 }
@@ -177,7 +180,7 @@ function evaluation(
     needsReview: needsReview(
       score,
       conf,
-      offTopic.size / cluster.members.length,
+      offTopicShare(offTopic, cluster.members),
     ),
     serpCompetition: evidence.serp ?? null,
     buildAdvice: buildAdvice(evidence),
@@ -239,10 +242,10 @@ export async function evaluateOpportunities(deps: {
         () =>
           analyst.analyze({
             cluster: cluster.name,
-            keywords: cluster.members.map((k, i) => ({
+            keywords: analysisKeywords(cluster.members).map((k) => ({
               phrase: k.phrase,
               searchVolume: k.searchVolume,
-              intent: cluster.intents[i],
+              intent: classifyIntent(k.phrase),
             })),
             serpTitles: cluster.serpTitles,
             signalSources: [
