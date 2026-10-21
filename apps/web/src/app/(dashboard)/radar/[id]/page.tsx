@@ -76,7 +76,7 @@ export default async function RadarItemPage({
             starred={item.starred}
             name={item.title}
           />
-          <h1 className="font-heading text-[28px] font-bold tracking-tight break-words md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight break-words md:text-4xl">
             {item.title}
           </h1>
           <SourceBadge provider={item.provider} />

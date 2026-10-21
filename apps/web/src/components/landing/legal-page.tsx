@@ -33,7 +33,7 @@ export async function LegalPage({ page }: { page: LegalPageId }) {
       <MarketingNav signedIn={Boolean(await getSession(await headers()))} />
       <main className="mx-auto w-full max-w-3xl flex-1 space-y-12 px-5 py-12 md:py-16">
         <header className="space-y-3">
-          <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
             {t(`${page}.title`)}
           </h1>
           <p className="text-[13px] text-muted-foreground">{t("updated")}</p>

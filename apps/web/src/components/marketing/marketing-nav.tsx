@@ -30,7 +30,7 @@ export async function MarketingNav({
       <div className="mx-auto flex h-16 max-w-360 items-center gap-8 px-5 md:h-18 md:px-30">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="size-5.5" />
-          <span className="font-heading text-xl font-bold tracking-tight">
+          <span className="font-heading text-xl font-semibold tracking-tight">
             {brand}
           </span>
         </Link>

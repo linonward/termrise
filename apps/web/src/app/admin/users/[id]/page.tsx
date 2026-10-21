@@ -67,7 +67,7 @@ export default async function AdminUserPage({
           {t("back")}
         </Link>
         <div className="space-y-2">
-          <h1 className="font-heading text-[28px] font-bold tracking-tight break-all md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight break-all md:text-4xl">
             {user.email}
           </h1>
           <p className="text-[15px] break-all text-muted-foreground">
@@ -84,7 +84,7 @@ export default async function AdminUserPage({
             </h2>
             <p
               data-testid="admin-balance"
-              className="font-heading text-4xl font-bold tabular-nums"
+              className="font-heading text-4xl font-semibold tabular-nums"
             >
               {user.creditBalance}
             </p>

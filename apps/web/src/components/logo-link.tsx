@@ -9,7 +9,7 @@ export function LogoLink() {
   return (
     <Link href="/" className="flex items-center gap-2">
       <LogoMark className="size-5.5" />
-      <span className="font-heading text-xl font-bold tracking-tight">
+      <span className="font-heading text-xl font-semibold tracking-tight">
         {t("title")}
       </span>
     </Link>

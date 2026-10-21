@@ -5,30 +5,30 @@
    Light in :root, dark in .dark (toggled by next-themes). brand, brand-foreground and
    overlay are identical in both themes. */
 :root {
-  --background: #ffffff;
-  --surface: #f7f6f3;
-  --surface-strong: #efede8;
-  --border: #e6e3dd;
-  --border-strong: #d4d0c8;
-  --foreground: #111318;
-  --muted-foreground: #5e626b;
-  --subtle-foreground: #8a8e96;
-  --primary: #111318;
-  --primary-hover: #2a2d35;
-  --primary-foreground: #ffffff;
-  --brand: #6d4aff;
-  --brand-soft: #efebff;
-  --brand-text: #5332e0;
+  --background: #faf8f3;
+  --surface: #f2eee5;
+  --surface-strong: #e8e3d7;
+  --border: #e3ddd0;
+  --border-strong: #cfc7b6;
+  --foreground: #16140f;
+  --muted-foreground: #5c574c;
+  --subtle-foreground: #8a8475;
+  --primary: #16140f;
+  --primary-hover: #2d2a22;
+  --primary-foreground: #faf8f3;
+  --brand: #d4401a;
+  --brand-soft: #fbe8df;
+  --brand-text: #b5360e;
   --brand-foreground: #ffffff;
-  --success: #15803d;
-  --success-soft: #e8f6ec;
-  --info: #2457d6;
-  --info-soft: #eaf0fd;
-  --warning: #a35a00;
-  --warning-soft: #fff4df;
-  --destructive: #c42b1c;
-  --destructive-soft: #fdecea;
-  --overlay: #111318cc;
+  --success: #1e7a3c;
+  --success-soft: #e5f1e3;
+  --info: #2752b8;
+  --info-soft: #e7edf8;
+  --warning: #8f5400;
+  --warning-soft: #f9edd3;
+  --destructive: #b42318;
+  --destructive-soft: #fae6e3;
+  --overlay: #16140fcc;
 
   /* shadcn/ui variables mapped onto the design tokens */
   --card: var(--background);
@@ -46,27 +46,27 @@
 }
 
 .dark {
-  --background: #111318;
-  --surface: #191b20;
-  --surface-strong: #23262d;
-  --border: #2a2d35;
-  --border-strong: #3a3e47;
-  --foreground: #f4f3ef;
-  --muted-foreground: #a3a7af;
-  --subtle-foreground: #80848d;
-  --primary: #f4f3ef;
-  --primary-hover: #dcdad4;
-  --primary-foreground: #111318;
-  --brand-soft: #221a45;
-  --brand-text: #a996ff;
-  --success: #4ade80;
-  --success-soft: #12291b;
-  --info: #7fa6ff;
-  --info-soft: #17223d;
-  --warning: #f5b544;
-  --warning-soft: #2e2210;
-  --destructive: #ff7a6b;
-  --destructive-soft: #36171a;
+  --background: #14130f;
+  --surface: #1d1c17;
+  --surface-strong: #2a2822;
+  --border: #2d2b24;
+  --border-strong: #3d3a31;
+  --foreground: #f2efe6;
+  --muted-foreground: #a9a395;
+  --subtle-foreground: #7f796c;
+  --primary: #f2efe6;
+  --primary-hover: #dad5c8;
+  --primary-foreground: #14130f;
+  --brand-soft: #3a1b10;
+  --brand-text: #ff8b66;
+  --success: #62cf8a;
+  --success-soft: #13291a;
+  --info: #8daeff;
+  --info-soft: #18213a;
+  --warning: #edb24b;
+  --warning-soft: #2e2410;
+  --destructive: #ff7d70;
+  --destructive-soft: #3a1715;
   color-scheme: dark;
 }
 
@@ -110,14 +110,13 @@
   --font-sans:
     var(--font-inter), "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
   --font-heading:
-    var(--font-bricolage), var(--font-inter), "Noto Sans SC", "PingFang SC",
-    sans-serif;
-  /* Pen renders Bricolage at its display cut; match it at every size. */
-  --font-heading--font-variation-settings: "opsz" 96;
+    var(--font-source-serif), "Noto Serif SC", "Songti SC", Georgia, serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 }
 
 @layer base {

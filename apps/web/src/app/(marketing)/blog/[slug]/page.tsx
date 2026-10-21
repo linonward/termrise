@@ -128,7 +128,7 @@ export default async function BlogPostPage({
                 </li>
               </ol>
             </nav>
-            <h1 className="font-heading text-[28px] leading-[1.15] font-bold tracking-tight md:text-4xl">
+            <h1 className="font-heading text-[28px] leading-[1.15] font-semibold tracking-tight md:text-4xl">
               {t("title")}
             </h1>
             <p className="text-[15px] text-muted-foreground md:text-lg">

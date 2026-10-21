@@ -119,7 +119,7 @@ export default async function OpportunityPage({
             starred={o.starred}
             name={o.cluster}
           />
-          <h1 className="font-heading text-[28px] font-bold tracking-tight break-words md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight break-words md:text-4xl">
             {o.cluster}
           </h1>
           <OpportunityStatus status={o.status} />
@@ -150,7 +150,7 @@ export default async function OpportunityPage({
                 {t("score")}
               </h2>
               <p
-                className="font-heading text-4xl font-bold tabular-nums"
+                className="font-heading text-4xl font-semibold tabular-nums"
                 data-testid="opportunity-score"
               >
                 {o.score}

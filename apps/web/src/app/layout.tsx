@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
@@ -20,11 +20,17 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-// opsz: headings use the display cut (globals.css --font-heading).
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+// opsz: the browser picks the optical size from the font size (theme.css --font-heading).
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin"],
   axes: ["opsz"],
+});
+
+// Numbers in tables (theme.css --font-mono).
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -54,7 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={await getLocale()}
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolage.variable} h-full antialiased`}
+      className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider messages={messages}>
