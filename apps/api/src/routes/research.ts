@@ -6,12 +6,14 @@ import {
   toKeywordDto,
   toResearchProjectDto,
   toResearchRunDto,
+  toSeedSuggestionDto,
   toSerpDto,
   toSourceSignalDto,
 } from "@repo/research/research-dto";
 import { createResearchResults } from "@repo/research/research-results";
 import { createRunQueue } from "@repo/research/research-runner";
 import { createResearchService } from "@repo/research/research-service";
+import { createSeedSuggestionQueue } from "@repo/research/seed-suggestions";
 
 import type { AppEnv } from "../env";
 import { readJson } from "../http";
@@ -23,6 +25,10 @@ const research = (c: Context<AppEnv>) =>
 
 // The API only queues a run; the worker executes it (docs/architecture/jobs.md).
 const runs = (c: Context<AppEnv>) => createRunQueue({ database: c.var.db });
+
+// Seed suggestions too: the worker makes the AI call.
+const suggestions = (c: Context<AppEnv>) =>
+  createSeedSuggestionQueue({ database: c.var.db });
 
 const reader = (c: Context<AppEnv>) =>
   createResearchResults({ database: c.var.db });
@@ -94,6 +100,22 @@ export const researchRoutes = userRoutes()
       ),
     ),
   )
+  .post("/projects/:id/seed-suggestions", rateLimit("research"), async (c) =>
+    c.json(
+      toSeedSuggestionDto(
+        await suggestions(c).request(
+          c.var.user.id,
+          c.req.param("id"),
+          await readJson(c),
+        ),
+      ),
+      201,
+    ),
+  )
+  .get("/projects/:id/seed-suggestions/latest", async (c) => {
+    const row = await suggestions(c).latest(c.var.user.id, c.req.param("id"));
+    return c.json({ item: row && toSeedSuggestionDto(row) });
+  })
   .get("/projects/:id/runs", async (c) => {
     const items = await reader(c).listRuns(c.var.user.id, c.req.param("id"));
     return c.json({ items: items.map(toResearchRunDto) });

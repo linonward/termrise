@@ -932,7 +932,22 @@
     "runQueuedNote": "运行在等待 Worker，几秒后开始。",
     "cancelRun": "取消运行",
     "cancelling": "正在取消…",
-    "runCancelledBody": "上次运行已取消。可以再运行一次。"
+    "runCancelledBody": "上次运行已取消。可以再运行一次。",
+    "suggestTitle": "缩短种子词",
+    "suggestBody": "整句标题得不到搜索数据。AI 会建议 2–4 个词的搜索短语，使用前请检查和修改。费用记入 AI 预算。",
+    "suggestButton": "建议短种子词",
+    "suggestAgain": "重新建议",
+    "suggesting": "正在生成建议…",
+    "suggestPhrases": "建议的短语，每行一个",
+    "suggestFake": "测试数据：这些短语来自模板，不是 AI 生成的。",
+    "suggestUse": "用作种子词",
+    "suggestError": {
+      "PROVIDER_ERROR": "AI 服务没有响应。请再试一次。",
+      "BUDGET_EXHAUSTED": "AI 预算不够一次建议。请提高预算后再试。",
+      "INVALID_AI_OUTPUT": "AI 的回答不能使用。请再试一次。",
+      "SUGGESTION_TIMED_OUT": "建议在完成前停止了。请再试一次。",
+      "INTERNAL_ERROR": "出错了。请再试一次。"
+    }
   },
   "compare": {
     "metaTitle": "比较机会",

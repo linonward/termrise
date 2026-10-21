@@ -8,6 +8,9 @@ import { signIn } from "../setup/sign-in";
 
 test.afterAll(closeTestDb);
 
+// Desktop and mobile run at once: a millisecond alone can repeat between them.
+const uniqueId = () => Date.now() * 1000 + Math.floor(Math.random() * 1000);
+
 // The worker's collection, with a fake source: E2E never calls Hacker News.
 async function collect(id: number, title: string) {
   await createRadar({
@@ -30,7 +33,7 @@ async function collect(id: number, title: string) {
 }
 
 test("starts research from a radar story", async ({ page, context }) => {
-  const id = Date.now();
+  const id = uniqueId();
   const term = `radar term ${id}`;
   await collect(id, `Show HN: Radar term ${id}`);
   await signIn(context);
@@ -77,11 +80,43 @@ test("starts research from a radar story", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
 });
 
+test("turns a story title into short seeds before research", async ({
+  page,
+  context,
+}) => {
+  const id = uniqueId();
+  await collect(
+    id,
+    `Show HN: Dovepass${id} – check a drone flight path in the browser`,
+  );
+  await signIn(context);
+
+  await page.goto(`/radar?q=dovepass${id}`);
+  await page.getByTestId("radar-row").getByRole("link").first().click();
+  await page.getByRole("link", { name: "Start research" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+
+  // The worker (fake extractor) answers; the page polls until it has.
+  const panel = page.getByTestId("seed-suggestions");
+  await panel.getByRole("button", { name: "Suggest short seeds" }).click();
+  const phrases = panel.getByLabel("Suggested phrases, one per line");
+  await expect(phrases).toHaveValue("check a drone\nin the browser");
+  await expect(panel).toContainText("Test data");
+  await phrases.fill("drone flight path\ndrone path checker");
+  await panel.getByRole("button", { name: "Use as seeds" }).click();
+
+  await expect(page.getByLabel("Seed terms")).toHaveValue(
+    "drone flight path\ndrone path checker",
+  );
+  await expect(panel).toHaveCount(0);
+});
+
 test("shows a Google Trends search with its approximate searches", async ({
   page,
   context,
 }) => {
-  const term = `trends term ${Date.now()}`;
+  const term = `trends term ${uniqueId()}`;
   await createRadar({
     database: testDb(),
     googleTrends: {

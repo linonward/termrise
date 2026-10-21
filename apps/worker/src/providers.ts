@@ -1,8 +1,10 @@
 import { createDeepSeekJson } from "@repo/ai/adapters/deepseek-json";
 import { createDataForSeoProvider } from "@repo/research/adapters/dataforseo";
 import { createDeepSeekAnalyst } from "@repo/research/adapters/deepseek-analyst";
+import { createDeepSeekSeedExtractor } from "@repo/research/adapters/deepseek-seeds";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
+import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 
 import type { WorkerEnv } from "./env";
 
@@ -26,4 +28,16 @@ export function createKeywordProvider(env: WorkerEnv) {
         password: env.DATAFORSEO_PASSWORD!,
       })
     : createFakeKeywordProvider();
+}
+
+// Seed suggestions use the analyst's provider and model: no variables of their own.
+export function createSeedExtractor(env: WorkerEnv) {
+  return env.ANALYST_PROVIDER === "deepseek"
+    ? createDeepSeekSeedExtractor(
+        createDeepSeekJson({
+          apiKey: env.DEEPSEEK_API_KEY!,
+          model: env.DEEPSEEK_MODEL!,
+        }),
+      )
+    : createFakeSeedExtractor();
 }

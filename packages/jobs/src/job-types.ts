@@ -3,10 +3,12 @@
 export interface JobPayloads {
   /** Example job used by the worker skeleton and its test. */
   "example.echo": { text: string };
-  /** Finds the queued research runs and enqueues one research.run each. Scheduled. */
+  /** Finds queued research runs and seed suggestions and enqueues a job each. Scheduled. */
   "research.scan": Record<string, never>;
   /** Executes one queued research run (packages/research research-runner.ts). */
   "research.run": { runId: string };
+  /** Runs one queued seed suggestion (packages/research seed-suggestions.ts). */
+  "seeds.suggest": { suggestionId: string };
   /** Collects one public source into the radar (packages/research radar.ts). Scheduled. */
   "trend.ingest": { provider: "hacker_news" | "google_trends" };
 }

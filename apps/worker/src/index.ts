@@ -9,10 +9,15 @@ import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
 import { createResearchRunner } from "@repo/research/research-runner";
+import { createSeedSuggester } from "@repo/research/seed-suggestions";
 
 import { createBullQueue } from "./bullmq";
 import { workerEnv } from "./env";
-import { createAnalyst, createKeywordProvider } from "./providers";
+import {
+  createAnalyst,
+  createKeywordProvider,
+  createSeedExtractor,
+} from "./providers";
 import { createHandlers, startWorker } from "./worker";
 
 // The worker process (docs/architecture/jobs.md): a scheduler finds queued research runs,
@@ -24,6 +29,10 @@ async function main() {
     database,
     provider: createKeywordProvider(env),
     analyst: createAnalyst(env),
+  });
+  const suggester = createSeedSuggester({
+    database,
+    extractor: createSeedExtractor(env),
   });
   const radarSources = [
     ...(env.HACKER_NEWS_ENABLED ? (["hacker_news"] as const) : []),
@@ -46,7 +55,10 @@ async function main() {
   if (env.WORKER_QUEUE === "bullmq") {
     const queue = createBullQueue(env.REDIS_URL!);
     stops.push(
-      await startWorker(queue, createHandlers({ runner, queue, radar })),
+      await startWorker(
+        queue,
+        createHandlers({ runner, suggester, queue, radar }),
+      ),
     );
     await queue.schedule("research.scan", env.SCAN_INTERVAL_MS);
     // One schedule per source; a source turned off loses its schedule. The schedule
@@ -66,7 +78,9 @@ async function main() {
   } else {
     // E2E: no radar collection; tests write radar items themselves.
     const queue = createMemoryQueue();
-    stops.push(await startWorker(queue, createHandlers({ runner, queue })));
+    stops.push(
+      await startWorker(queue, createHandlers({ runner, suggester, queue })),
+    );
     let busy = false;
     const timer = setInterval(async () => {
       if (busy) return;

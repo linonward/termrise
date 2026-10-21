@@ -4,7 +4,10 @@ import { closeTestDb, resetDb } from "@repo/db/testing/db";
 
 import { createTestClient } from "../testing/client";
 import { expectRateLimited } from "../testing/rate-limit";
-import { runQueuedResearch } from "../testing/research-worker";
+import {
+  runQueuedResearch,
+  runQueuedSeedSuggestions,
+} from "../testing/research-worker";
 import { TEST_APP_URL } from "../testing/worker";
 
 const { call, signIn } = createTestClient();
@@ -247,4 +250,52 @@ it("cancels a queued run once, then answers 409", async () => {
   expect(again.status).toBe(409);
   expect((await again.json()).error.code).toBe("RESEARCH_RUN_FINISHED");
   expect((await send("POST", path, other)).status).toBe(404);
+});
+
+it("queues a seed suggestion, then shows its phrases", async () => {
+  const project = await (
+    await send("POST", "/api/research/projects", owner, {
+      name: "Llmspeed",
+      seeds: ["Llmspeed – feel how fast a local LLM runs"],
+    })
+  ).json();
+  const path = `/api/research/projects/${project.id}/seed-suggestions`;
+  const empty = await call(`${path}/latest`, { headers: { cookie: owner } });
+  expect(await empty.json()).toEqual({ item: null });
+
+  const requestId = crypto.randomUUID();
+  const queued = await send("POST", path, owner, { requestId });
+  expect(queued.status).toBe(201);
+  const body = await queued.json();
+  expect(body).toMatchObject({ status: "pending", phrases: null });
+  expect(body).not.toHaveProperty("projectId");
+  await runQueuedSeedSuggestions();
+
+  const latest = await call(`${path}/latest`, { headers: { cookie: owner } });
+  expect((await latest.json()).item).toMatchObject({
+    id: body.id,
+    status: "completed",
+    phrases: ["feel how fast", "local llm runs"],
+    provider: "fake",
+  });
+  expect((await send("POST", path, owner, {})).status).toBe(400);
+  expect((await send("POST", path, other, { requestId })).status).toBe(404);
+  expect(
+    (await call(`${path}/latest`, { headers: { cookie: other } })).status,
+  ).toBe(404);
+});
+
+it("refuses a seed suggestion once the project has run", async () => {
+  const project = await (await create()).json();
+  await send("POST", `/api/research/projects/${project.id}/runs`, owner, {
+    requestId: crypto.randomUUID(),
+  });
+  const response = await send(
+    "POST",
+    `/api/research/projects/${project.id}/seed-suggestions`,
+    owner,
+    { requestId: crypto.randomUUID() },
+  );
+  expect(response.status).toBe(409);
+  expect((await response.json()).error.code).toBe("RESEARCH_PROJECT_LOCKED");
 });
