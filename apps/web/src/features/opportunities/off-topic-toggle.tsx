@@ -1,9 +1,9 @@
 "use client";
+import { CircleCheck, CircleSlash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/utils";
 
 import { errorCodeOf } from "@/lib/api-error";
@@ -52,29 +52,40 @@ export function OffTopicToggle({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="sm"
         aria-pressed={offTopic}
         aria-label={t(offTopic ? "markOnTopic" : "markOffTopic", { phrase })}
         disabled={pending}
         onClick={toggle}
         className={cn(
-          "whitespace-nowrap",
+          "inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-[13px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50",
           offTopic
-            ? "bg-warning-soft text-foreground"
-            : "text-muted-foreground",
+            ? "border-transparent bg-warning-soft text-warning"
+            : "border-border hover:bg-surface",
         )}
         data-testid="off-topic-toggle"
       >
+        {offTopic ? (
+          <CircleSlash aria-hidden="true" className="size-3.5 shrink-0" />
+        ) : (
+          <CircleCheck
+            aria-hidden="true"
+            className="size-3.5 shrink-0 text-muted-foreground"
+          />
+        )}
         {t(offTopic ? "offTopic" : "onTopic")}
         {by && (
-          <span className="text-xs text-muted-foreground">
-            · {t(by === "ai" ? "byAi" : "byYou")}
+          <span
+            className={cn(
+              "text-xs font-medium",
+              offTopic ? "text-warning" : "text-muted-foreground",
+            )}
+          >
+            {t(by === "ai" ? "byAi" : "byYou")}
           </span>
         )}
-      </Button>
+      </button>
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

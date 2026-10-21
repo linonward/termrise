@@ -1,3 +1,4 @@
+import { Radar, SearchX, Star } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -5,6 +6,7 @@ import type { RadarItemDto } from "@repo/research/radar-dto";
 import { RADAR_SORTS, type RadarSort } from "@repo/research/radar-rules";
 import { Button } from "@repo/ui/components/button";
 
+import { EmptyState } from "@/components/empty-state";
 import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
 import {
@@ -77,7 +79,7 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
             name="starred"
             value="1"
             defaultChecked={starred}
-            className="size-4 accent-brand"
+            className="size-4.5 accent-primary"
           />
           {t("starredOnly")}
         </label>
@@ -86,22 +88,15 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
         </Button>
       </form>
       {items.length === 0 ? (
-        <div className="space-y-1 rounded-lg border border-border p-6">
-          {starred && !q ? (
-            <p className="text-[15px] text-muted-foreground">
-              {t("starredEmpty")}
-            </p>
-          ) : (
-            <>
-              <p className="text-[15px] font-medium">
-                {q ? t("noMatchTitle") : t("emptyTitle")}
-              </p>
-              <p className="text-[15px] text-muted-foreground">
-                {q ? t("noMatchBody") : t("emptyBody")}
-              </p>
-            </>
-          )}
-        </div>
+        starred && !q ? (
+          <EmptyState icon={Star} body={t("starredEmpty")} />
+        ) : (
+          <EmptyState
+            icon={q ? SearchX : Radar}
+            title={q ? t("noMatchTitle") : t("emptyTitle")}
+            body={q ? t("noMatchBody") : t("emptyBody")}
+          />
+        )
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[15px]">
@@ -157,10 +152,10 @@ export default async function RadarPage({ searchParams }: PageProps<"/radar">) {
                   <td className="py-4 pr-4">
                     <SourceBadge provider={item.provider} />
                   </td>
-                  <td className="py-4 pr-4 text-right tabular-nums">
+                  <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                     <Activity provider={item.provider} score={item.score} />
                   </td>
-                  <td className="py-4 pr-4 text-right tabular-nums">
+                  <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                     {item.comments ?? "—"}
                   </td>
                   <td className="py-4 pr-4 whitespace-nowrap text-muted-foreground">

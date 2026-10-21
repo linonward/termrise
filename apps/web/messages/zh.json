@@ -924,6 +924,7 @@
       "topic": "主题"
     },
     "seedBadge": "种子词",
+    "serpResults": "{count} 条结果",
     "noData": "暂无数据",
     "fixtureTitle": "测试数据",
     "fixtureBody": "这些数字和结果来自测试数据来源，不是真实的搜索数据。",

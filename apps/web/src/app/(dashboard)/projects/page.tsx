@@ -1,8 +1,10 @@
+import { Rocket } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
 
+import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
 import { ProductStatus } from "@/features/products/product-status";
 import { apiGet } from "@/server/api/api";
@@ -26,18 +28,12 @@ export default async function ProductsPage() {
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
       {items.length === 0 ? (
-        <div className="space-y-1 rounded-lg border border-border p-6">
-          <p className="text-[15px] font-medium">{t("emptyTitle")}</p>
-          <p className="text-[15px] text-muted-foreground">
-            {t("emptyBody")}{" "}
-            <Link
-              href="/opportunities"
-              className="font-semibold text-foreground underline underline-offset-4"
-            >
-              {t("emptyLink")}
-            </Link>
-          </p>
-        </div>
+        <EmptyState
+          icon={Rocket}
+          title={t("emptyTitle")}
+          body={t("emptyBody")}
+          action={{ href: "/opportunities", label: t("emptyLink") }}
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[15px]">

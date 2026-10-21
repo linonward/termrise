@@ -1,51 +1,29 @@
 import { useTranslations } from "next-intl";
 
 import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
-import { cn } from "@repo/ui/utils";
+import { Tag } from "@repo/ui/components/badge";
 
-// Same badge styles as the research status (docs/design/design-system.md#status).
+import { StatusBadge } from "@/components/status-badge";
+import { productBadge, revenueSourceBadge } from "@/lib/status-badges";
+
 export function ProductStatus({
   status,
 }: {
   status: ExecutionProjectDto["status"];
 }) {
   const t = useTranslations("products.status");
-  const className =
-    status === "launched" || status === "measuring"
-      ? "bg-success-soft text-success"
-      : status === "validating" || status === "building"
-        ? "bg-info-soft text-info"
-        : "bg-surface-strong text-muted-foreground";
   return (
-    <span
-      data-testid="product-status"
-      className={cn(
-        "inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold tracking-[1px] uppercase",
-        className,
-      )}
-    >
+    <StatusBadge badge={productBadge(status)} data-testid="product-status">
       {t(status)}
-    </span>
+    </StatusBadge>
   );
 }
 
 /** Where a number came from; manual numbers are never shown as verified. */
 export function SourceBadge({ source }: { source: string }) {
   const t = useTranslations("products.source");
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center rounded-full px-2 text-xs font-semibold",
-        source === "payment_verified"
-          ? "bg-success-soft text-success"
-          : "bg-surface-strong text-muted-foreground",
-      )}
-    >
-      {t(
-        source === "payment_verified" || source === "imported"
-          ? source
-          : "manual",
-      )}
-    </span>
-  );
+  const verified = revenueSourceBadge(source);
+  if (verified)
+    return <StatusBadge badge={verified}>{t("payment_verified")}</StatusBadge>;
+  return <Tag>{t(source === "imported" ? "imported" : "manual")}</Tag>;
 }

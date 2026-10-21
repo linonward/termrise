@@ -928,6 +928,7 @@
       "topic": "Topic"
     },
     "seedBadge": "Seed",
+    "serpResults": "{count, plural, one {# result} other {# results}}",
     "noData": "No data",
     "fixtureTitle": "Fixture data",
     "fixtureBody": "These numbers and results come from the test data source. They are not real search data.",

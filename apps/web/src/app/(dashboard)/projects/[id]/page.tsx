@@ -143,22 +143,22 @@ export default async function ProductPage({
                       <td className="py-3.5 pr-4 font-semibold">
                         {r.currency}
                       </td>
-                      <td className="py-3.5 pr-4 text-right tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                         {r.orders}
                       </td>
-                      <td className="py-3.5 pr-4 text-right tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                         {r.verifiedOrders}
                       </td>
-                      <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                         {money(r.gross, r.currency)}
                       </td>
-                      <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                         {money(r.refund, r.currency)}
                       </td>
-                      <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                         {money(r.fees, r.currency)}
                       </td>
-                      <td className="py-3.5 pr-4 text-right font-semibold whitespace-nowrap tabular-nums">
+                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
                         {money(r.net, r.currency)}
                       </td>
                     </tr>
