@@ -14,6 +14,7 @@ import {
   SUBSCRIPTION_PLAN_IDS,
   SUBSCRIPTION_PLANS,
 } from "@repo/billing/subscription-plans";
+import { Tag as TagLabel } from "@repo/ui/components/badge";
 import { cn } from "@repo/ui/utils";
 
 import { BuyButton } from "@/components/billing/buy-button";
@@ -63,9 +64,7 @@ export async function PricingPlans({
                   {t(`pack.${packId}`)}
                 </Heading>
                 {featured && (
-                  <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-text">
-                    {t("mostPopular")}
-                  </span>
+                  <TagLabel tone="brand">{t("mostPopular")}</TagLabel>
                 )}
               </div>
               <p className="flex flex-wrap items-baseline gap-x-1.5">
@@ -140,9 +139,7 @@ export async function PricingPlans({
                   <Heading className="text-base font-semibold">
                     {t(`plan.${planId}`)}
                   </Heading>
-                  <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-text">
-                    {t("subscription")}
-                  </span>
+                  <TagLabel tone="brand">{t("subscription")}</TagLabel>
                 </div>
                 <p className="flex flex-wrap items-baseline gap-x-1.5">
                   <span className="font-heading text-[44px] font-semibold tabular-nums">

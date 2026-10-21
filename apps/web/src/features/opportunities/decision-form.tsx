@@ -77,7 +77,7 @@ export function DecisionForm({
               value={decision}
               required
               defaultChecked={index === 0}
-              className="size-4 accent-brand"
+              className="size-4.5 accent-primary"
             />
             {t(`action.${decision}`)}
           </label>

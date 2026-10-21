@@ -1,10 +1,13 @@
+import { CircleCheck, CircleDashed, CircleX, Hourglass } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
 import type { ProviderStatusDto } from "@repo/research/provider-status";
+import { Badge as UiBadge } from "@repo/ui/components/badge";
 import { cn } from "@repo/ui/utils";
 
+import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
 import { apiGet } from "@/server/api/api";
 
@@ -17,6 +20,7 @@ type Known = (typeof KNOWN)[number];
 const known = (provider: string): Known | undefined =>
   KNOWN.find((k) => k === provider);
 
+// Status badges (docs/design/design-system.md#status); destructive is Danger.
 function Badge({
   tone,
   children,
@@ -24,18 +28,22 @@ function Badge({
   tone: "success" | "destructive" | "info" | "neutral";
   children: ReactNode;
 }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold tracking-[1px] whitespace-nowrap uppercase",
-        tone === "success" && "bg-success-soft text-success",
-        tone === "destructive" && "bg-destructive-soft text-destructive",
-        tone === "info" && "bg-info-soft text-info",
-        tone === "neutral" && "bg-surface-strong text-muted-foreground",
-      )}
-    >
+  return tone === "success" ? (
+    <UiBadge tone="success" icon={CircleCheck}>
       {children}
-    </span>
+    </UiBadge>
+  ) : tone === "destructive" ? (
+    <UiBadge tone="danger" icon={CircleX}>
+      {children}
+    </UiBadge>
+  ) : tone === "info" ? (
+    <UiBadge tone="info" icon={Hourglass}>
+      {children}
+    </UiBadge>
+  ) : (
+    <UiBadge tone="neutral" icon={CircleDashed}>
+      {children}
+    </UiBadge>
   );
 }
 
@@ -151,11 +159,7 @@ export default async function ProvidersPage() {
           {t("usage")}
         </h2>
         {usage.length === 0 ? (
-          <div className="rounded-lg border border-border p-6">
-            <p className="text-[15px] text-muted-foreground">
-              {t("usageEmpty")}
-            </p>
-          </div>
+          <EmptyState body={t("usageEmpty")} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[15px]">
@@ -198,16 +202,16 @@ export default async function ProvidersPage() {
                     <td className="py-4 pr-4 text-muted-foreground">
                       {t(`kind.${u.kind}`)}
                     </td>
-                    <td className="py-4 pr-4 text-right tabular-nums">
+                    <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {u.calls}
                     </td>
-                    <td className="py-4 pr-4 text-right tabular-nums">
+                    <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {u.failed}
                     </td>
-                    <td className="py-4 pr-4 text-right tabular-nums">
+                    <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {money(u.spentUsd)}
                     </td>
-                    <td className="py-4 pr-4 text-right tabular-nums">
+                    <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {money(u.heldUsd)}
                     </td>
                     <td className="py-4 pr-4">

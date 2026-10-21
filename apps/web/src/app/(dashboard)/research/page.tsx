@@ -1,9 +1,11 @@
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { ResearchProjectDto } from "@repo/research/research-dto";
 import { normalizeSeeds } from "@repo/research/research-rules";
 
+import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
 import { ProjectForm } from "@/features/research/project-form";
 import { ResearchStatus } from "@/features/research/research-status";
@@ -52,12 +54,11 @@ export default async function ResearchPage({
             {t("projects")}
           </h2>
           {items.length === 0 ? (
-            <div className="space-y-1 rounded-lg border border-border p-6">
-              <p className="text-[15px] font-medium">{t("emptyTitle")}</p>
-              <p className="text-[15px] text-muted-foreground">
-                {t("emptyBody")}
-              </p>
-            </div>
+            <EmptyState
+              icon={Search}
+              title={t("emptyTitle")}
+              body={t("emptyBody")}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[15px]">

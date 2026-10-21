@@ -6,9 +6,12 @@ import type {
   ResearchRunDto,
   SerpDto,
 } from "@repo/research/research-dto";
+import { Tag } from "@repo/ui/components/badge";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { StatusBadge } from "@/components/status-badge";
 import { OffTopicToggle } from "@/features/opportunities/off-topic-toggle";
+import { runBadge } from "@/lib/status-badges";
 
 // What the research runs stored (docs/product/ux.md#research). Server components.
 
@@ -20,9 +23,16 @@ export async function LastRun({ run }: { run: ResearchRunDto }) {
       <p className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
         {t("lastRun")}
       </p>
-      <p className="font-medium" data-testid="last-run">
-        {t(`runStatus.${run.status}`)} ·{" "}
-        <LocalDateTime iso={run.finishedAt ?? run.startedAt} />
+      <p
+        className="flex flex-wrap items-center gap-2 font-medium"
+        data-testid="last-run"
+      >
+        <StatusBadge badge={runBadge(run.status)}>
+          {t(`runStatus.${run.status}`)}
+        </StatusBadge>
+        <span className="text-muted-foreground">
+          <LocalDateTime iso={run.finishedAt ?? run.startedAt} />
+        </span>
       </p>
       {run.status === "failed" && run.errorCode && (
         <p className="text-muted-foreground">
@@ -115,15 +125,15 @@ export async function KeywordTable({
               <td className="py-3.5 pr-4">
                 <span className="font-medium">{keyword.phrase}</span>
                 {keyword.source === "seed" && (
-                  <span className="ml-2 inline-flex h-5 items-center rounded-full bg-brand-soft px-2 text-xs font-semibold text-brand-text">
+                  <Tag tone="brand" className="ml-2">
                     {t("seedBadge")}
-                  </span>
+                  </Tag>
                 )}
               </td>
-              <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+              <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                 {number(keyword.searchVolume)}
               </td>
-              <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+              <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                 {keyword.cpcUsd === null
                   ? noData
                   : format.number(keyword.cpcUsd, {
@@ -131,14 +141,14 @@ export async function KeywordTable({
                       currency: "USD",
                     })}
               </td>
-              <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+              <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                 {number(keyword.adsCompetition)}
               </td>
-              <td className="py-3.5 pr-4 text-right whitespace-nowrap tabular-nums">
+              <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
                 {number(keyword.keywordDifficulty)}
               </td>
               {opportunityId && (
-                <td className="py-2 text-right">
+                <td className="py-2.5 text-right">
                   <OffTopicToggle
                     opportunityId={opportunityId}
                     keywordId={keyword.id}
@@ -156,10 +166,11 @@ export async function KeywordTable({
   );
 }
 
-export function SerpList({ items }: { items: SerpDto[] }) {
+export async function SerpList({ items }: { items: SerpDto[] }) {
+  const t = await getTranslations("research");
   // Collapsed per keyword: five lists of ten would push everything else away.
   return (
-    <div className="divide-y divide-border rounded-lg border border-border">
+    <div className="divide-y divide-border border-y border-border">
       {items.map((serp, index) => (
         <details
           key={serp.phrase}
@@ -167,17 +178,20 @@ export function SerpList({ items }: { items: SerpDto[] }) {
           className="group"
           data-testid="serp"
         >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-[15px] font-semibold">
-            {serp.phrase}
+          <summary className="flex cursor-pointer list-none items-center gap-2 py-4 text-[15px] font-semibold">
             <ChevronDown
               aria-hidden="true"
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+              className="size-4 shrink-0 -rotate-90 text-muted-foreground transition-transform group-open:rotate-0"
             />
+            <span className="min-w-0 flex-1 truncate">{serp.phrase}</span>
+            <span className="shrink-0 text-[13px] font-medium text-muted-foreground">
+              {t("serpResults", { count: serp.results.length })}
+            </span>
           </summary>
-          <ol className="divide-y divide-border border-t border-border">
+          <ol className="divide-y divide-border pb-2 pl-6">
             {serp.results.map((result) => (
-              <li key={result.rank} className="flex gap-4 px-6 py-3">
-                <span className="w-6 shrink-0 text-[13px] font-semibold text-muted-foreground tabular-nums">
+              <li key={result.rank} className="flex gap-4 py-3">
+                <span className="w-6 shrink-0 text-right font-mono text-[13px] font-medium text-muted-foreground tabular-nums">
                   {result.rank}
                 </span>
                 <span className="min-w-0 space-y-0.5">

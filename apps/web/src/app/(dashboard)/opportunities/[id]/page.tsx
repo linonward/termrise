@@ -14,8 +14,10 @@ import type {
 } from "@repo/research/research-dto";
 import { WEIGHTS } from "@repo/research/scoring";
 
+import { EmptyState } from "@/components/empty-state";
 import { StarButton } from "@/components/favorites/star-button";
 import { LocalDateTime } from "@/components/local-date-time";
+import { StatusBadge } from "@/components/status-badge";
 import { BriefPanel } from "@/features/opportunities/brief-panel";
 import { BuildAdvicePanel } from "@/features/opportunities/build-advice";
 import { DecisionForm } from "@/features/opportunities/decision-form";
@@ -31,6 +33,7 @@ import {
   KeywordTable,
   SerpList,
 } from "@/features/research/research-results";
+import { experimentBadge } from "@/lib/status-badges";
 import { apiGet, apiRequest } from "@/server/api/api";
 
 type Detail = OpportunityDto & {
@@ -72,6 +75,29 @@ export async function generateMetadata({
 }
 
 const dimensions = Object.keys(WEIGHTS) as (keyof typeof WEIGHTS)[];
+
+/** Dimension Row: five 8px cells, the scored ones in foreground, then n/5. */
+function Rating({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span aria-hidden="true" className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((cell) => (
+          <span
+            key={cell}
+            className={
+              cell <= value
+                ? "size-2 bg-foreground"
+                : "size-2 bg-surface-strong"
+            }
+          />
+        ))}
+      </span>
+      <span className="font-mono text-sm font-medium tabular-nums">
+        {value}/5
+      </span>
+    </span>
+  );
+}
 
 // One opportunity: the score, how it was built, the AI analysis and the evidence
 // (docs/product/ux.md#opportunities). AI never sets the score.
@@ -193,10 +219,10 @@ export default async function OpportunityPage({
                       {t(`dimensionHint.${key}`)}
                     </p>
                   </td>
-                  <td className="py-3 pr-4 text-right whitespace-nowrap tabular-nums">
-                    {o.dimensions[key]}/5
+                  <td className="py-3 pr-4 text-right whitespace-nowrap">
+                    <Rating value={o.dimensions[key]} />
                   </td>
-                  <td className="py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                  <td className="py-3 text-right font-mono text-sm font-medium whitespace-nowrap text-muted-foreground tabular-nums">
                     {WEIGHTS[key]}%
                   </td>
                 </tr>
@@ -317,9 +343,7 @@ export default async function OpportunityPage({
             </p>
           </div>
           {o.experiments.length === 0 ? (
-            <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
-              {td("experimentsEmpty")}
-            </div>
+            <EmptyState body={td("experimentsEmpty")} />
           ) : (
             <ul className="divide-y divide-border rounded-lg border border-border">
               {o.experiments.map((e) => (
@@ -330,12 +354,12 @@ export default async function OpportunityPage({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{td(`kind.${e.kind}`)}</p>
-                    <span
+                    <StatusBadge
+                      badge={experimentBadge(e.status)}
                       data-testid="experiment-status"
-                      className="inline-flex h-6 items-center rounded-full bg-surface-strong px-2 text-xs font-semibold tracking-[1px] text-muted-foreground uppercase"
                     >
                       {td(`experimentStatus.${e.status}`)}
-                    </span>
+                    </StatusBadge>
                   </div>
                   <p className="text-[15px]">{e.hypothesis}</p>
                   <dl className="grid gap-x-6 gap-y-2 text-[13px] md:grid-cols-2">
@@ -481,9 +505,7 @@ export default async function OpportunityPage({
           </span>
         </h2>
         {o.signals.length === 0 ? (
-          <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
-            {t("signalsEmpty")}
-          </div>
+          <EmptyState body={t("signalsEmpty")} />
         ) : (
           <ul className="divide-y divide-border rounded-lg border border-border">
             {o.signals.map((s) => (

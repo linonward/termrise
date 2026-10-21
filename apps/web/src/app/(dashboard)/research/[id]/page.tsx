@@ -14,6 +14,7 @@ import type {
 } from "@repo/research/research-dto";
 import { isLongSeed } from "@repo/research/seed-extractor";
 
+import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
 import { CancelRun } from "@/features/research/cancel-run";
 import { DeleteProject } from "@/features/research/delete-project";
@@ -232,9 +233,7 @@ export default async function ResearchProjectPage({
             </span>
           </h2>
           {signals.length === 0 ? (
-            <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
-              {t("signalsEmpty")}
-            </div>
+            <EmptyState body={t("signalsEmpty")} />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[15px]">
@@ -302,9 +301,7 @@ export default async function ResearchProjectPage({
         </h2>
         {fixture && <FixtureNotice />}
         {keywords.length === 0 ? (
-          <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
-            {t("keywordsEmpty")}
-          </div>
+          <EmptyState body={t("keywordsEmpty")} />
         ) : (
           <KeywordTable items={keywords} />
         )}

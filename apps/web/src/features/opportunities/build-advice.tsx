@@ -7,7 +7,9 @@ import {
   MIN_VOLUME,
 } from "@repo/research/build-advice";
 import type { OpportunityDetailDto } from "@repo/research/research-dto";
-import { cn } from "@repo/ui/utils";
+
+import { StatusBadge } from "@/components/status-badge";
+import { buildAdviceBadge } from "@/lib/status-badges";
 
 type Advice = NonNullable<OpportunityDetailDto["buildAdvice"]>["advice"];
 
@@ -15,19 +17,9 @@ type Advice = NonNullable<OpportunityDetailDto["buildAdvice"]>["advice"];
 export async function BuildAdviceBadge({ advice }: { advice: Advice }) {
   const t = await getTranslations("opportunities.build.advice");
   return (
-    <span
-      data-testid="build-advice"
-      className={cn(
-        "inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold tracking-[1px] whitespace-nowrap uppercase",
-        advice === "new_site"
-          ? "bg-success-soft text-success"
-          : advice === "inner_page"
-            ? "bg-info-soft text-info"
-            : "bg-surface-strong text-muted-foreground",
-      )}
-    >
+    <StatusBadge badge={buildAdviceBadge(advice)} data-testid="build-advice">
       {t(advice)}
-    </span>
+    </StatusBadge>
   );
 }
 

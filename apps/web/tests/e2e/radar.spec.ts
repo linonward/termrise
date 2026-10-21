@@ -128,13 +128,13 @@ test("turns a story title into short seeds before research", async ({
   const toggle = page.getByRole("button", {
     name: "Mark electronic signature app on topic",
   });
-  await expect(toggle).toHaveText(/Off topic\s*·\s*AI/);
+  await expect(toggle).toHaveText(/Off topic\s*AI/);
   await toggle.click();
   await expect(
     page.getByRole("button", {
       name: "Mark electronic signature app off topic",
     }),
-  ).toHaveText(/On topic\s*·\s*You/);
+  ).toHaveText(/On topic\s*You/);
 });
 
 test("shows a Google Trends search with its approximate searches", async ({

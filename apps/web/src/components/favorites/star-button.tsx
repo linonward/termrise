@@ -49,7 +49,8 @@ export function StarButton({
       // Inside the compare form of the opportunity list: not a submit button.
       type="button"
       variant="ghost"
-      size="icon-sm"
+      size="icon"
+      className="rounded-md border-border"
       aria-pressed={starred}
       aria-label={t(starred ? "unstar" : "star", { name })}
       title={failed ? t("failed") : undefined}

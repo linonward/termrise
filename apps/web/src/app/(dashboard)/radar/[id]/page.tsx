@@ -160,13 +160,13 @@ export default async function RadarItemPage({
                       <LocalDateTime iso={o.observedAt} />
                     </td>
                     <td className="py-3 pr-4">{t(`list.${o.list}`)}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="py-3 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {o.rank}
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="py-3 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       <Activity provider={item.provider} score={o.score} />
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="py-3 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {o.comments ?? "—"}
                     </td>
                   </tr>

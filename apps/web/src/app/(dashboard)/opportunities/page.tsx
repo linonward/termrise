@@ -1,3 +1,4 @@
+import { Star, Telescope } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -5,6 +6,7 @@ import { MAX_COMPARED } from "@repo/research/opportunity-rules";
 import type { OpportunityDto } from "@repo/research/research-dto";
 import { Button } from "@repo/ui/components/button";
 
+import { EmptyState } from "@/components/empty-state";
 import { StarButton } from "@/components/favorites/star-button";
 import { BuildAdviceBadge } from "@/features/opportunities/build-advice";
 import {
@@ -67,24 +69,14 @@ export default async function OpportunitiesPage({
       </Link>
       {items.some((o) => o.analystProvider === "fake") && <FixtureNotice />}
       {items.length === 0 && starred ? (
-        <div className="rounded-lg border border-border p-6">
-          <p className="text-[15px] text-muted-foreground">
-            {t("starredEmpty")}
-          </p>
-        </div>
+        <EmptyState icon={Star} body={t("starredEmpty")} />
       ) : items.length === 0 ? (
-        <div className="space-y-1 rounded-lg border border-border p-6">
-          <p className="text-[15px] font-medium">{t("emptyTitle")}</p>
-          <p className="text-[15px] text-muted-foreground">
-            {t("emptyBody")}{" "}
-            <Link
-              href="/research"
-              className="font-semibold underline underline-offset-4"
-            >
-              {t("emptyLink")}
-            </Link>
-          </p>
-        </div>
+        <EmptyState
+          icon={Telescope}
+          title={t("emptyTitle")}
+          body={t("emptyBody")}
+          action={{ href: "/research", label: t("emptyLink") }}
+        />
       ) : (
         <form action="/opportunities/compare" className="space-y-4">
           <div className="overflow-x-auto">
@@ -130,7 +122,7 @@ export default async function OpportunitiesPage({
                         name="id"
                         value={o.id}
                         aria-label={t("selectOne", { name: o.cluster })}
-                        className="size-4 accent-brand"
+                        className="size-4.5 accent-primary"
                       />
                     </td>
                     <td className="py-4 pr-4">
@@ -160,7 +152,7 @@ export default async function OpportunitiesPage({
                     <td className="py-4 pr-4 text-right font-heading text-xl font-semibold tabular-nums">
                       {o.score}
                     </td>
-                    <td className="py-4 pr-4 text-right tabular-nums">
+                    <td className="py-4 pr-4 text-right font-mono text-sm font-medium tabular-nums">
                       {o.confidence}%
                     </td>
                     <td className="py-4 pr-4">

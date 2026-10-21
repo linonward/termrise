@@ -155,7 +155,10 @@ test("runs research and shows keywords, metrics and search results", async ({
 
   await page.getByRole("button", { name: "Run research" }).click();
   await expect(
-    page.getByRole("main").getByText("Completed", { exact: true }),
+    page
+      .getByRole("main")
+      .locator("header")
+      .getByText("Completed", { exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("last-run")).toContainText("Completed");
   // Fixture data is labelled as such.
