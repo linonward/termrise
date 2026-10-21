@@ -33,6 +33,12 @@ const schema = z
     DEEPSEEK_API_KEY: z.string().min(1).optional(),
     /** A model in the price table (deepseek-prices.ts), e.g. deepseek-flash. */
     DEEPSEEK_MODEL: z.string().min(1).optional(),
+    /**
+     * The service's caps on paid calls per calendar month (UTC), all projects together:
+     * past them no project can make a paid call until the next month.
+     */
+    MONTHLY_DATA_BUDGET_USD: z.coerce.number().min(0).max(100_000).default(10),
+    MONTHLY_AI_BUDGET_USD: z.coerce.number().min(0).max(100_000).default(2),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })

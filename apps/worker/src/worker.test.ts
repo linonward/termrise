@@ -41,6 +41,21 @@ it("validates its own environment and never echoes values", () => {
   expect(
     workerEnv({ ...base, WORKER_QUEUE: "memory" }).HACKER_NEWS_ENABLED,
   ).toBeUndefined();
+  // The service's monthly caps on paid calls, in USD, for all projects together.
+  expect(workerEnv({ ...base, WORKER_QUEUE: "memory" })).toMatchObject({
+    MONTHLY_DATA_BUDGET_USD: 10,
+    MONTHLY_AI_BUDGET_USD: 2,
+  });
+  expect(
+    workerEnv({
+      ...base,
+      WORKER_QUEUE: "memory",
+      MONTHLY_DATA_BUDGET_USD: "25.5",
+    }).MONTHLY_DATA_BUDGET_USD,
+  ).toBe(25.5);
+  expect(() =>
+    workerEnv({ ...base, WORKER_QUEUE: "memory", MONTHLY_AI_BUDGET_USD: "-1" }),
+  ).toThrow("MONTHLY_AI_BUDGET_USD");
   expect(() =>
     workerEnv({ ...base, WORKER_QUEUE: "memory", TREND_INTERVAL_MS: "1000" }),
   ).toThrow("TREND_INTERVAL_MS");

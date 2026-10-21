@@ -913,7 +913,8 @@
       "INTERNAL_ERROR": "Something went wrong during the run.",
       "BUDGET_EXHAUSTED": "The data budget did not cover one keyword expansion.",
       "RUN_TIMED_OUT": "The run stopped before it finished. Run it again.",
-      "PROVIDER_AUTH_FAILED": "The keyword data source refused the API key. Check the DataForSEO login and password of the worker, then run again. Nothing was charged."
+      "PROVIDER_AUTH_FAILED": "The keyword data source refused the API key. Check the DataForSEO login and password of the worker, then run again. Nothing was charged.",
+      "MONTHLY_BUDGET_EXHAUSTED": "The service reached its spending cap for this month. Paid calls start again on the 1st (UTC). The operator can raise MONTHLY_DATA_BUDGET_USD or MONTHLY_AI_BUDGET_USD of the worker."
     },
     "runPartialNote": "Some search results could not be fetched; the keywords are complete.",
     "keywordsTitle": "Keywords",
@@ -955,7 +956,8 @@
       "INVALID_AI_OUTPUT": "The AI answer was not usable. Try again.",
       "SUGGESTION_TIMED_OUT": "The suggestion stopped before it finished. Try again.",
       "INTERNAL_ERROR": "Something went wrong. Try again.",
-      "PROVIDER_AUTH_FAILED": "The AI service refused the API key. Check the DeepSeek key of the worker, then try again. Nothing was charged."
+      "PROVIDER_AUTH_FAILED": "The AI service refused the API key. Check the DeepSeek key of the worker, then try again. Nothing was charged.",
+      "MONTHLY_BUDGET_EXHAUSTED": "The service reached its AI spending cap for this month. Try again after the 1st (UTC)."
     },
     "topic": {
       "offTopic": "Off topic",
@@ -965,7 +967,8 @@
       "markOffTopic": "Mark {phrase} off topic",
       "markOnTopic": "Mark {phrase} on topic",
       "note": "Off-topic keywords do not count in the score. AI suggests the marks; select a mark to change it, and the score is computed again."
-    }
+    },
+    "runPartialMonthly": "The service reached its spending cap for this month before every step finished. The results below use what fit before the cap."
   },
   "compare": {
     "metaTitle": "Compare opportunities",
@@ -1057,7 +1060,8 @@
       "AI_INVALID_OUTPUT": "The AI answer did not have the expected form, so it is not shown. The score is still valid.",
       "AI_ERROR": "The AI analysis did not complete. The score is still valid.",
       "BUDGET_EXHAUSTED": "The AI budget ran out, so this analysis was not made. The score is still valid.",
-      "PROVIDER_AUTH_FAILED": "The AI service refused the API key, so this analysis was not made. The score is still valid. Nothing was charged."
+      "PROVIDER_AUTH_FAILED": "The AI service refused the API key, so this analysis was not made. The score is still valid. Nothing was charged.",
+      "MONTHLY_BUDGET_EXHAUSTED": "The service reached its AI spending cap for this month, so this analysis was not made. The score is still valid."
     },
     "analysisNote": "AI writes this text from the evidence below. It does not change the score.",
     "analysisModel": "Model: {model}.",

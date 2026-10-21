@@ -206,3 +206,17 @@ it("fails with an auth error, and releases the reservation, when the key is refu
     { status: "released", costMicros: 0 },
   ]);
 });
+
+it("fails with its own code when the service's monthly AI cap is reached", async () => {
+  const { id } = await project();
+  const queued = await queue.request("a", id, { requestId: randomUUID() });
+  const capped = createSeedSuggester({
+    database: db,
+    extractor: createFakeSeedExtractor(),
+    monthlyCapMicros: { data: 0, ai: 0 },
+  });
+  expect(await capped.execute(queued.id)).toMatchObject({
+    status: "failed",
+    errorCode: "MONTHLY_BUDGET_EXHAUSTED",
+  });
+});

@@ -25,13 +25,19 @@ import { createHandlers, startWorker } from "./worker";
 async function main() {
   const env = workerEnv(process.env);
   const database = createDb(env.DATABASE_URL);
+  const monthlyCapMicros = {
+    data: Math.round(env.MONTHLY_DATA_BUDGET_USD * 1_000_000),
+    ai: Math.round(env.MONTHLY_AI_BUDGET_USD * 1_000_000),
+  };
   const runner = createResearchRunner({
     database,
+    monthlyCapMicros,
     provider: createKeywordProvider(env),
     analyst: createAnalyst(env),
   });
   const suggester = createSeedSuggester({
     database,
+    monthlyCapMicros,
     extractor: createSeedExtractor(env),
   });
   const radarSources = [

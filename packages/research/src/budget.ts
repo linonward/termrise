@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 
 import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
@@ -24,12 +24,32 @@ const committed = sql<number>`coalesce(sum(case when ${apiUsage.status} in ('set
 
 // The budget ledger (docs/architecture/data-model.md#budget-ledger): every paid call is
 // reserved atomically before it starts and settled with the provider's cost after.
-export function createBudget(deps: { database: Database; now?: () => Date }) {
-  const { database } = deps;
+export function createBudget(deps: {
+  database: Database;
+  now?: () => Date;
+  /**
+   * The service's cap per budget kind for one calendar month (UTC), all projects
+   * together: a hard limit on what the paid providers can cost. None when absent.
+   */
+  monthlyCapMicros?: Record<BudgetKind, number>;
+}) {
+  const { database, monthlyCapMicros } = deps;
   const now = deps.now ?? (() => new Date());
+  // Why the last call of a run (or of a project, without a run) was refused, per kind.
+  const refusals = new Map<string, "project" | "monthly">();
+  const refusalKey = (key: string, kind: BudgetKind) => `${key}:${kind}`;
 
-  /** Reserves the call's maximum; null when the project's budget cannot cover it. */
+  /** Why a call of this run (or project) and kind was refused; null when none was. */
+  function refusal(runOrProjectId: string, kind: BudgetKind) {
+    return refusals.get(refusalKey(runOrProjectId, kind)) ?? null;
+  }
+
+  /** Reserves the call's maximum; null when a budget cannot cover it (see refusal()). */
   async function reserve(call: Call) {
+    const refuse = (scope: "project" | "monthly") => {
+      refusals.set(refusalKey(call.runId ?? call.projectId, call.kind), scope);
+      return null;
+    };
     return database.transaction(async (tx) => {
       // The project row lock makes concurrent reservations take turns.
       const [project] = await tx
@@ -49,7 +69,30 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
             eq(apiUsage.kind, call.kind),
           ),
         );
-      if (Number(total) + call.maxCostMicros > project[call.kind]) return null;
+      if (Number(total) + call.maxCostMicros > project[call.kind])
+        return refuse("project");
+      if (monthlyCapMicros) {
+        // One lock per kind for the whole service: concurrent reservations of all
+        // projects take turns. Taken after the project lock, always in this order.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${`monthly-budget:${call.kind}`}))`,
+        );
+        const at = now();
+        const monthStart = new Date(
+          Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), 1),
+        );
+        const [{ total: month }] = await tx
+          .select({ total: committed })
+          .from(apiUsage)
+          .where(
+            and(
+              eq(apiUsage.kind, call.kind),
+              gte(apiUsage.createdAt, monthStart),
+            ),
+          );
+        if (Number(month) + call.maxCostMicros > monthlyCapMicros[call.kind])
+          return refuse("monthly");
+      }
       const [row] = await tx
         .insert(apiUsage)
         .values({
@@ -59,6 +102,7 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
           provider: call.provider,
           operation: call.operation,
           reservedMicros: call.maxCostMicros,
+          createdAt: now(),
         })
         .returning({ id: apiUsage.id });
       return row.id;
@@ -146,7 +190,7 @@ export function createBudget(deps: { database: Database; now?: () => Date }) {
     return { ...totals, calls };
   }
 
-  return { reserve, charge, usage };
+  return { reserve, charge, usage, refusal };
 }
 
 export type Budget = ReturnType<typeof createBudget>;
