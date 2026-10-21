@@ -208,7 +208,7 @@ export function AppNav({
       <div className="flex h-14 items-center gap-8 px-5 md:h-16 md:px-8">
         <Link href="/dashboard" className="flex items-center gap-2">
           <LogoMark className="size-6 md:size-5.5" />
-          <span className="font-heading text-xl font-bold tracking-tight max-md:sr-only">
+          <span className="font-heading text-xl font-semibold tracking-tight max-md:sr-only">
             {brand}
           </span>
         </Link>

@@ -57,7 +57,7 @@ export default async function Home() {
         <section className="mx-auto grid w-full max-w-310 items-center gap-12 px-5 py-12 md:grid-cols-2 md:py-16 lg:grid-cols-[7fr_5fr]">
           <div className="space-y-6">
             <Eyebrow>{t("hero.eyebrow")}</Eyebrow>
-            <h1 className="font-heading text-4xl font-bold tracking-tight md:text-[56px] md:leading-[1.1] md:tracking-[-1.6px]">
+            <h1 className="font-heading text-4xl font-semibold tracking-tight md:text-[56px] md:leading-[1.1] md:tracking-[-1.6px]">
               {t.rich("hero.title", {
                 line: (chunks) => <span className="block">{chunks}</span>,
               })}

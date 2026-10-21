@@ -53,7 +53,7 @@ export async function AuthPage({
       </div>
       <aside className="hidden p-4 lg:flex lg:w-1/2 xl:w-160">
         <div className="flex flex-1 flex-col items-center justify-center gap-6 rounded-lg bg-surface">
-          <p className="max-w-85 text-center font-heading text-2xl font-bold tracking-tight">
+          <p className="max-w-85 text-center font-heading text-2xl font-semibold tracking-tight">
             {t.rich("hero.title", {
               line: (chunks) => <span className="block">{chunks}</span>,
             })}

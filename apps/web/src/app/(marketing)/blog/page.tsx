@@ -44,7 +44,7 @@ export default async function BlogPage() {
         <div className="mx-auto w-full max-w-180 space-y-12 px-5 pt-8 pb-12 md:pt-16 md:pb-24">
           <header className="space-y-4">
             <Eyebrow>{t("index.eyebrow")}</Eyebrow>
-            <h1 className="font-heading text-[28px] leading-[1.15] font-bold tracking-tight md:text-4xl">
+            <h1 className="font-heading text-[28px] leading-[1.15] font-semibold tracking-tight md:text-4xl">
               {t("index.title")}
             </h1>
             <p className="text-[15px] text-muted-foreground md:text-lg">

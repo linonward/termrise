@@ -57,7 +57,7 @@ export default async function PricingPage() {
           <p className="text-xs font-bold tracking-[1px] text-brand-text uppercase">
             {t("eyebrow")}
           </p>
-          <h1 className="font-heading text-4xl font-bold tracking-tight md:text-[52px]">
+          <h1 className="font-heading text-4xl font-semibold tracking-tight md:text-[52px]">
             {t("title")}
           </h1>
           <p className="text-[17px] text-muted-foreground">{t("subtitle")}</p>

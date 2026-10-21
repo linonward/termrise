@@ -55,7 +55,7 @@ export default async function ProductPage({
           {t("back")}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-heading text-[28px] font-bold tracking-tight break-words md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight break-words md:text-4xl">
             {p.name}
           </h1>
           <ProductStatus status={p.status} />

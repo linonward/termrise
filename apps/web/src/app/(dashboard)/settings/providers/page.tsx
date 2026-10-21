@@ -116,7 +116,7 @@ export default async function ProvidersPage() {
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
       <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
           {t("title")}
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>

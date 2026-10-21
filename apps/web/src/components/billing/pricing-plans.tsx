@@ -69,7 +69,7 @@ export async function PricingPlans({
                 )}
               </div>
               <p className="flex flex-wrap items-baseline gap-x-1.5">
-                <span className="font-heading text-[44px] font-bold tabular-nums">
+                <span className="font-heading text-[44px] font-semibold tabular-nums">
                   {formatUsd(pack.priceUsd)}
                 </span>
                 <span className="text-sm whitespace-nowrap text-muted-foreground">
@@ -145,7 +145,7 @@ export async function PricingPlans({
                   </span>
                 </div>
                 <p className="flex flex-wrap items-baseline gap-x-1.5">
-                  <span className="font-heading text-[44px] font-bold tabular-nums">
+                  <span className="font-heading text-[44px] font-semibold tabular-nums">
                     {formatUsd(plan.priceUsd)}
                   </span>
                   <span className="text-sm whitespace-nowrap text-muted-foreground">

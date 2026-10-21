@@ -7,12 +7,12 @@ test("follows the system light theme by default", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await expect(page.locator("html")).not.toHaveClass(/dark/);
-  expect(await backgroundOf(page)).toBe("rgb(255, 255, 255)");
+  expect(await backgroundOf(page)).toBe("rgb(250, 248, 243)");
 });
 
 test("follows the system dark theme by default", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   await expect(page.locator("html")).toHaveClass(/dark/);
-  expect(await backgroundOf(page)).toBe("rgb(17, 19, 24)");
+  expect(await backgroundOf(page)).toBe("rgb(20, 19, 15)");
 });

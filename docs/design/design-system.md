@@ -2,8 +2,6 @@
 
 Termrise 的视觉规则：token、字体、组件和已有页面的布局。代码中的唯一实现是 `packages/ui/src/styles/theme.css`（token）和 `packages/ui/src/components/`（基础组件）。
 
-> 本文件和设计稿已改为「研究笔记」风格（暖纸色底、衬线标题、等宽数字、朱红品牌色）。`theme.css`、字体加载、App Icon 和 `LogoMark` 还没有同步，同步之前代码中仍是旧的紫色方案。
-
 设计稿用 [Pen](https://pen.dev) 画，见 [Design Tool](#design-tool)。设计文件的变量名与 CSS 变量名一一对应（设计文件 `foreground` → CSS `--foreground`）。
 
 ### Design Tool
@@ -104,11 +102,11 @@ token 或组件有变化时，同步更新本文件和 `packages/ui/src/styles/t
 | Caption | Inter          | 12 / 600，大写，letter-spacing 1               |
 | Data    | JetBrains Mono | 14 / 500，`tabular-nums`（表格中的数字、余额） |
 
-- 标题用衬线体，让页面读起来像一份报告；Source Serif 4 有 `opsz` 轴，Display 和 H1 用大光学尺寸，大字号不会松散。正文保留 Inter，适合密集的数据表。
+- 标题用衬线体，让页面读起来像一份报告；Source Serif 4 加载 `opsz` 轴，浏览器按字号自动选择光学尺寸（不固定），大字号用较紧的展示字形。正文保留 Inter，适合密集的数据表。
 - 中文回退字体：标题为 `Noto Serif SC`、`Songti SC`；正文为 `Noto Sans SC`、`PingFang SC`（三种拉丁字体都不含中文字形）。中文段落不加负的 letter-spacing。
 - 表格中的数字（搜索量、CPC、KD、维度分、Credits）用 `font-mono`，右对齐。大号的分数和价格仍用 `font-heading`，加 `tabular-nums`。
 - 缺失的数值显示「No data / 暂无数据」，用 `subtle-foreground`，不显示 0。
-- 字体通过 `next/font/google` 加载；标题用 `font-heading`，正文用默认的 `font-sans`，数字用 `font-mono`。
+- 字体通过 `next/font/google` 加载（`layout.tsx`）；标题用 `font-heading`，正文用默认的 `font-sans`，数字用 `font-mono`。
 
 ### Radius
 

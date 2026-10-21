@@ -30,7 +30,7 @@ export function SectionTitle({
   return (
     <h2
       id={id}
-      className="font-heading text-[28px] font-bold tracking-tight md:text-4xl"
+      className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl"
     >
       {children}
     </h2>

@@ -36,7 +36,7 @@ export default async function DashboardPage() {
       <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:px-5 md:py-16">
         <TrackView event="dashboard_viewed" />
         <header className="space-y-2">
-          <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
             {title}
           </h1>
           <p className="text-[15px] text-muted-foreground">
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:px-5 md:py-16">
       <TrackView event="dashboard_viewed" />
       <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
           {title}
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
@@ -119,7 +119,7 @@ export default async function DashboardPage() {
           </h2>
           <p className="flex items-baseline gap-2">
             <span
-              className="font-heading text-4xl font-bold tabular-nums"
+              className="font-heading text-4xl font-semibold tabular-nums"
               data-testid="credit-balance"
             >
               {balance}

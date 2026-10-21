@@ -71,7 +71,7 @@ export function AuthForm({
       <div className="space-y-3">
         <h1
           id="auth-title"
-          className="font-heading text-[28px] font-bold tracking-[-0.8px] md:text-4xl"
+          className="font-heading text-[28px] font-semibold tracking-[-0.8px] md:text-4xl"
         >
           {sent
             ? t("checkEmail")

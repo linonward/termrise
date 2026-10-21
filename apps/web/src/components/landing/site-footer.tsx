@@ -23,7 +23,7 @@ export async function SiteFooter() {
           <div className="flex flex-wrap items-center gap-4">
             <span className="flex items-center gap-2">
               <LogoMark className="size-5" />
-              <span className="font-heading text-[15px] font-bold tracking-tight">
+              <span className="font-heading text-[15px] font-semibold tracking-tight">
                 {t("meta.title")}
               </span>
             </span>

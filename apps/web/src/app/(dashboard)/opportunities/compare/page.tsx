@@ -150,7 +150,7 @@ export default async function ComparePage({
           <ArrowLeft aria-hidden="true" className="size-4" />
           {t("back")}
         </Link>
-        <h1 className="font-heading text-[28px] font-bold tracking-tight md:text-4xl">
+        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
           {t("title")}
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
