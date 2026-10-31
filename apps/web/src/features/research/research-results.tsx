@@ -204,7 +204,7 @@ export async function SerpList({ items }: { items: SerpDto[] }) {
                     {result.title}
                   </a>
                   <span className="block truncate text-[13px] text-muted-foreground">
-                    {new URL(result.url).hostname}
+                    {result.site ?? new URL(result.url).hostname}
                   </span>
                 </span>
               </li>

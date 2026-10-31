@@ -1,0 +1,1 @@
+ALTER TABLE "serp_results" ADD COLUMN "site" text;

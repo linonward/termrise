@@ -20,6 +20,8 @@ export type KeywordIdea = { phrase: string; metrics: KeywordMetrics };
 export type SerpItem = {
   rank: number;
   url: string;
+  /** The site behind the result: a host such as example.com, or a name such as Reddit. */
+  site: string;
   title: string;
   type: string;
 };

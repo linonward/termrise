@@ -80,10 +80,45 @@ const serpResult = z.object({
         rank_group: z.number().int().nullish(),
         title: z.string().nullish(),
         url: z.string().nullish(),
+        breadcrumb: z.string().nullish(),
+        website_name: z.string().nullish(),
       }),
     )
     .nullish(),
 });
+
+const host = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Google wraps many organic results in a google.com/goto redirect, and DataForSEO then
+ * reports url and domain as google.com. The breadcrumb still starts with the real
+ * address ("https://example.com › tools › x"); for some results (Reddit threads) it is
+ * only "9 comments", and the website name is the only clue. A home page gets its own
+ * address back. An inner page keeps the redirect, because the breadcrumb shortens the path.
+ */
+export function realSite(item: {
+  url: string;
+  breadcrumb?: string | null;
+  website_name?: string | null;
+}): { url: string; site: string } {
+  const own = host(item.url);
+  if (!/^https?:\/\/(www\.)?google\.com\/goto\b/.test(item.url))
+    return { url: item.url, site: own ?? item.url };
+  const crumb = item.breadcrumb?.trim() ?? "";
+  if (/^https?:\/\//.test(crumb)) {
+    const address = crumb.split("›")[0].trim();
+    const site = host(address);
+    if (site) return { url: crumb.includes("›") ? item.url : address, site };
+  }
+  const name = item.website_name?.split("·")[0].trim();
+  return { url: item.url, site: name || (own ?? item.url) };
+}
 
 const micros = (usd: number | null | undefined) =>
   Math.round((usd ?? 0) * 1_000_000);
@@ -200,7 +235,7 @@ export function createDataForSeoProvider(deps: {
           if (item.type === "organic" && item.url && item.rank_group)
             items.push({
               rank: item.rank_group,
-              url: item.url,
+              ...realSite({ ...item, url: item.url }),
               title: item.title ?? "",
               type: item.type,
             });

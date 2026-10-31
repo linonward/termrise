@@ -90,6 +90,7 @@ export function createFakeKeywordProvider(): KeywordProvider {
         return {
           rank: i + 1,
           url: `https://${site}.fixture.invalid/${encodeURIComponent(phrase)}`,
+          site: `${site}.fixture.invalid`,
           title: `${phrase} — fixture result ${i + 1}`,
           type: "organic",
         };

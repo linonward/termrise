@@ -41,6 +41,8 @@ DataForSEO Base URL：`https://api.dataforseo.com/v3/`。编码前核对 https:/
 | SERP             | `serp/google/organic/live/advanced`                   |
 | 竞品排名词（P1） | `dataforseo_labs/google/ranked_keywords/live`         |
 
+SERP 的自然结果常被 Google 包成 `google.com/goto` 跳转，DataForSEO 返回的 `url` 和 `domain` 都是 google.com。真实网站从 `breadcrumb`（或 `website_name`）取，存为 `serp_results.site`；SERP 竞争和 Brief 用它，不用 URL 的域名。
+
 默认 `location_code=2840`、`language_code=en`。Google Ads competition 与 SEO KD 不混用。优先复用扩词结果的有效指标。
 
 趋势：Google Trends Trending Now 仅使用当前合法、稳定的 RSS/CSV 等导出方式；不稳定则禁用并提供 CSV 导入。HN 使用 https://github.com/HackerNews/API ，保留故事 ID、标题、URL、时间、分数、评论等。讨论热度不能冒充搜索量。
