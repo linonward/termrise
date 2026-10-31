@@ -7,23 +7,31 @@ import { join } from "node:path";
 import { createDb } from "@repo/db/client";
 import { importKeywordLab } from "@repo/research/pool-import";
 
-const dir = process.argv[2];
-if (!dir || !process.env.DATABASE_URL) {
-  console.error(
-    "Usage: DATABASE_URL=<url> pnpm pool:import <keyword-lab directory>",
+// tsx runs scripts as CommonJS: no top-level await.
+async function main() {
+  const dir = process.argv[2];
+  if (!dir || !process.env.DATABASE_URL) {
+    console.error(
+      "Usage: DATABASE_URL=<url> pnpm pool:import <keyword-lab directory>",
+    );
+    process.exit(2);
+  }
+  const research = join(dir, "research");
+  const rounds = readdirSync(research)
+    .filter((f) => /^keyword-research-.*\.csv$/.test(f))
+    .map((f) => readFileSync(join(research, f), "utf8"));
+  const database = createDb(process.env.DATABASE_URL);
+  const result = await importKeywordLab(database, {
+    pool: readFileSync(join(research, "pool.csv"), "utf8"),
+    rounds,
+  });
+  console.log(
+    `imported ${result.imported}, skipped ${result.skipped} (already imported)`,
   );
-  process.exit(2);
+  process.exit(0);
 }
-const research = join(dir, "research");
-const rounds = readdirSync(research)
-  .filter((f) => /^keyword-research-.*\.csv$/.test(f))
-  .map((f) => readFileSync(join(research, f), "utf8"));
-const database = createDb(process.env.DATABASE_URL);
-const result = await importKeywordLab(database, {
-  pool: readFileSync(join(research, "pool.csv"), "utf8"),
-  rounds,
+
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
 });
-console.log(
-  `imported ${result.imported}, skipped ${result.skipped} (already imported)`,
-);
-process.exit(0);
