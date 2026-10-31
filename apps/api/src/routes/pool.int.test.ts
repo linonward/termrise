@@ -106,3 +106,56 @@ it("refuses a form-like write from another origin", async () => {
   });
   expect(res.status).toBe(403);
 });
+
+it("lists new words, shows one with its long tails, and hides it", async () => {
+  const { testDb } = await import("@repo/db/testing/db");
+  const { newWords, newWordRoots } = await import("@repo/db/schema");
+  const db = testDb();
+  const [word] = await db
+    .insert(newWords)
+    .values([
+      {
+        phrase: "ragdoll robot boxing",
+        verdict: "worth",
+        buildAs: "new_site",
+        ratio: 0.105,
+      },
+      {
+        phrase: "ragdoll robot boxing codes",
+        verdict: "try",
+        buildAs: "inner_page",
+      },
+    ])
+    .returning();
+  await db
+    .insert(newWordRoots)
+    .values({ wordId: word.id, root: "game", growth: 5000 });
+
+  const list = await (await send("GET", "/api/pool/new-words")).json();
+  expect(list.total).toBe(2);
+  const detail = await (
+    await send("GET", `/api/pool/new-words/${word.id}`)
+  ).json();
+  expect(detail).toMatchObject({
+    phrase: "ragdoll robot boxing",
+    innerCandidates: 1,
+    roots: [{ root: "game", growth: 5000 }],
+  });
+  expect(detail.children.map((c: { phrase: string }) => c.phrase)).toEqual([
+    "ragdoll robot boxing codes",
+  ]);
+  expect(
+    (await send("PUT", `/api/pool/new-words/${word.id}/hide`)).status,
+  ).toBe(200);
+  expect((await (await send("GET", "/api/pool/new-words")).json()).total).toBe(
+    1,
+  );
+  const missing = await send(
+    "GET",
+    "/api/pool/new-words/00000000-0000-4000-8000-000000000000",
+  );
+  expect((await missing.json()).error.code).toBe("NEW_WORD_NOT_FOUND");
+  expect((await send("POST", "/api/pool/new-words/rounds", {})).status).toBe(
+    201,
+  );
+});

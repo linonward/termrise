@@ -12,6 +12,8 @@ export type BudgetKind = (typeof BUDGET_KINDS)[number];
 type Call = {
   projectId: string | null;
   poolRoundId?: string | null;
+  /** Which daily budget a pool round draws on: evergreen rounds, or new words. */
+  poolBudget?: "evergreen" | "new_words";
   runId: string | null;
   kind: BudgetKind;
   provider: string;
@@ -39,6 +41,8 @@ export function createBudget(deps: {
    * together. Without it, pool rounds cannot make paid calls.
    */
   dailyPoolCapMicros?: number;
+  /** The daily caps of new-word rounds, per budget kind; none when absent. */
+  dailyNewWordCapMicros?: Record<BudgetKind, number>;
 }) {
   const { database, monthlyCapMicros } = deps;
   const now = deps.now ?? (() => new Date());
@@ -60,6 +64,7 @@ export function createBudget(deps: {
     };
     return database.transaction(async (tx) => {
       if (call.poolRoundId) {
+        const newWords = call.poolBudget === "new_words";
         // One lock for all pool rounds, taken before the monthly lock.
         await tx.execute(
           sql`select pg_advisory_xact_lock(hashtext('pool-daily-budget'))`,
@@ -74,11 +79,18 @@ export function createBudget(deps: {
           .where(
             and(
               isNotNull(apiUsage.poolRoundId),
+              newWords
+                ? sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind = 'new_words')`
+                : sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind <> 'new_words')`,
               eq(apiUsage.kind, call.kind),
               gte(apiUsage.createdAt, dayStart),
             ),
           );
-        const cap = call.kind === "data" ? (deps.dailyPoolCapMicros ?? 0) : 0;
+        const cap = newWords
+          ? (deps.dailyNewWordCapMicros?.[call.kind] ?? 0)
+          : call.kind === "data"
+            ? (deps.dailyPoolCapMicros ?? 0)
+            : 0;
         if (Number(day) + call.maxCostMicros > cap) return refuse("daily");
       } else {
         const projectId = call.projectId ?? "";

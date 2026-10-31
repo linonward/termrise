@@ -28,6 +28,12 @@ export type RankedKeyword = KeywordIdea & { rank: number; url: string };
 /** One week of a search-interest curve (0 to 100, relative to the curve's peak). */
 export type TrendPoint = { week: string; value: number };
 
+/** Search interest of several phrases on one scale (0 to 100), one point per hour or day. */
+export type TrendComparison = { at: string; values: number[] }[];
+
+/** A query rising under a root word in Google Trends; value is the growth in percent. */
+export type RisingQuery = { query: string; value: number };
+
 /** Which keywords to fetch: a search-volume band and how many at most. */
 export type VolumeBand = {
   minVolume: number;
@@ -58,6 +64,8 @@ export interface KeywordProvider {
     ranked?: number;
     traffic?: number;
     trend?: number;
+    compare?: number;
+    rising?: number;
   };
   /**
    * How long an answer may be reused instead of paid again (provider-cache.ts), per
@@ -71,6 +79,8 @@ export interface KeywordProvider {
     ranked?: number;
     traffic?: number;
     trend?: number;
+    compare?: number;
+    rising?: number;
   };
   /** Ideas for one seed, the seed itself included, with their metrics. */
   expand(seed: string, market: Market): Promise<Charged<KeywordIdea[]>>;
@@ -82,8 +92,12 @@ export interface KeywordProvider {
     phrases: string[],
     market: Market,
   ): Promise<Charged<Map<string, number>>>;
-  /** The top 10 organic results on desktop. */
-  serp(phrase: string, market: Market): Promise<Charged<SerpItem[]>>;
+  /** The top organic results on desktop: 10, or `depth` up to 20. */
+  serp(
+    phrase: string,
+    market: Market,
+    depth?: number,
+  ): Promise<Charged<SerpItem[]>>;
   /**
    * Keywords that contain the seed, in a search-volume band, biggest first, with
    * difficulty and monthly searches. The seed itself is included when it is in the band.
@@ -106,4 +120,12 @@ export interface KeywordProvider {
   ): Promise<Charged<Map<string, number>>>;
   /** Weekly search interest for the past 5 years, oldest first; weeks without data are left out. */
   searchTrend?(phrase: string, market: Market): Promise<Charged<TrendPoint[]>>;
+  /** Search interest of up to 5 phrases on one scale; points without data are left out. */
+  trendCompare?(
+    phrases: string[],
+    market: Market,
+    range: "past_7_days" | "past_30_days",
+  ): Promise<Charged<TrendComparison>>;
+  /** Queries rising under a root word in the past 7 days. */
+  risingQueries?(root: string, market: Market): Promise<Charged<RisingQuery[]>>;
 }

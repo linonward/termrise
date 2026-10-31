@@ -1,5 +1,7 @@
 import type { Context } from "hono";
 
+import { toNewWordDto } from "@repo/research/new-word-dto";
+import { createNewWords } from "@repo/research/new-words";
 import {
   toPoolCheckDto,
   toPoolKeywordDto,
@@ -13,6 +15,7 @@ import { userRoutes } from "./user-routes";
 import { rateLimit } from "../middleware/rate-limit";
 
 const pool = (c: Context<AppEnv>) => createKeywordPool({ database: c.var.db });
+const words = (c: Context<AppEnv>) => createNewWords({ database: c.var.db });
 
 // The keyword pool (docs/product/keyword-pool.md): the same pool for every signed-in
 // user. Rounds are queued here and run by the worker. Writes share the research limit.
@@ -61,4 +64,32 @@ export const poolRoutes = userRoutes()
   })
   .get("/rounds/:id", async (c) =>
     c.json(toPoolRoundDto(await pool(c).getRound(c.req.param("id")))),
-  );
+  )
+  .get("/new-words", async (c) => {
+    const result = await words(c).list(c.req.query());
+    return c.json({ ...result, items: result.items.map(toNewWordDto) });
+  })
+  .post("/new-words/rounds", rateLimit("research"), async (c) => {
+    const { round, created } = await words(c).requestRound(c.var.user.id);
+    return c.json(
+      toPoolRoundDto({ round, spentMicros: 0 }),
+      created ? 201 : 200,
+    );
+  })
+  .get("/new-words/:id", async (c) => {
+    const { children, ...row } = await words(c).get(c.req.param("id"));
+    return c.json({
+      ...toNewWordDto(row),
+      children: children.map((word) =>
+        toNewWordDto({ word, innerCandidates: 0, roots: [] }),
+      ),
+    });
+  })
+  .put("/new-words/:id/hide", rateLimit("research"), async (c) => {
+    await words(c).hide(c.req.param("id"), true);
+    return c.json({ hidden: true });
+  })
+  .delete("/new-words/:id/hide", rateLimit("research"), async (c) => {
+    await words(c).hide(c.req.param("id"), false);
+    return c.json({ hidden: false });
+  });

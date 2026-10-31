@@ -49,6 +49,34 @@ const schema = z
     POOL_DEEP_CHECKS: z.coerce.number().int().min(1).max(50).default(6),
     /** How often the worker looks for a pool round to run. */
     POOL_SCAN_INTERVAL_MS: z.coerce.number().int().min(1000).default(60_000),
+    /** 1: collect and judge new words every day (docs/product/keyword-pool.md#new-words). */
+    NEW_WORDS_ENABLED: z.literal("1").optional(),
+    NEW_WORDS_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(0),
+    /** What new-word rounds may spend per UTC day, apart from the evergreen rounds. */
+    NEW_WORDS_DAILY_DATA_BUDGET_USD: z.coerce
+      .number()
+      .min(0)
+      .max(1000)
+      .default(0.5),
+    NEW_WORDS_DAILY_AI_BUDGET_USD: z.coerce
+      .number()
+      .min(0)
+      .max(1000)
+      .default(0.05),
+    /** Words measured per day. */
+    NEW_WORDS_CHECKS: z.coerce.number().int().min(1).max(100).default(12),
+    /** Root words, comma separated; default new-words.ts DEFAULT_ROOTS. */
+    NEW_WORD_ROOTS: z
+      .string()
+      .optional()
+      .transform((v) =>
+        v
+          ? v
+              .split(",")
+              .map((r) => r.trim().toLowerCase())
+              .filter(Boolean)
+          : undefined,
+      ),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })

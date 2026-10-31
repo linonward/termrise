@@ -27,6 +27,7 @@ export const ERROR_STATUS = {
   POOL_KEYWORD_NOT_FOUND: 404,
   POOL_REVIEW_INVALID: 409,
   POOL_ROUND_NOT_FOUND: 404,
+  NEW_WORD_NOT_FOUND: 404,
   PROVIDER_ERROR: 502,
   PAYMENT_ERROR: 502,
   STORAGE_ERROR: 502,
@@ -77,6 +78,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   POOL_REVIEW_INVALID:
     "This review is not possible from the keyword's current status.",
   POOL_ROUND_NOT_FOUND: "Pool round not found.",
+  NEW_WORD_NOT_FOUND: "New word not found.",
   INSUFFICIENT_CREDITS: "You don't have enough credits.",
   PROVIDER_ERROR: "The task provider is unavailable.",
   STORAGE_ERROR: "Storage is unavailable.",

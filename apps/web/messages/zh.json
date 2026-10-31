@@ -526,6 +526,7 @@
     "POOL_KEYWORD_NOT_FOUND": "词库里没有这个词。",
     "POOL_REVIEW_INVALID": "这个词的当前状态不能做这个操作。",
     "POOL_ROUND_NOT_FOUND": "这一轮选词不存在。",
+    "NEW_WORD_NOT_FOUND": "这个新词不存在。",
     "RESEARCH_RUN_NOT_FOUND": "这次运行不存在。",
     "RESEARCH_RUN_FINISHED": "运行已经结束。"
   },
@@ -809,7 +810,8 @@
     "roundNoSource": "没有词源",
     "roundKind": {
       "daily": "每日",
-      "manual": "手动"
+      "manual": "手动",
+      "new_words": "新词"
     },
     "roundStatus": {
       "queued": "排队中",

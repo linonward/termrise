@@ -1,4 +1,5 @@
 import { logger } from "@repo/observability/logger";
+import type { createNewWords } from "@repo/research/new-words";
 import type { createPoolRounds } from "@repo/research/pool-round";
 
 type Rounds = Pick<
@@ -12,6 +13,12 @@ export function poolProcessors(deps: {
   rounds?: Rounds;
   /** The UTC hour from which today's daily round is queued; none when off. */
   dailyHourUtc?: number;
+  newWords?: Pick<
+    ReturnType<typeof createNewWords>,
+    "scheduleDaily" | "failStale" | "claim" | "run"
+  >;
+  /** The UTC hour from which today's new-words round is queued; none when off. */
+  newWordsHourUtc?: number;
 }) {
   return {
     async "pool.scan"() {
@@ -22,10 +29,22 @@ export function poolProcessors(deps: {
       if (deps.dailyHourUtc !== undefined)
         await deps.rounds.scheduleDaily(deps.dailyHourUtc);
       const round = await deps.rounds.claim();
-      if (!round) return;
-      const done = await deps.rounds.run(round);
-      logger.info("pool.round_executed", {
-        roundId: round.id,
+      if (round) {
+        const done = await deps.rounds.run(round);
+        logger.info("pool.round_executed", {
+          roundId: round.id,
+          status: done.status,
+        });
+      }
+      if (!deps.newWords) return;
+      await deps.newWords.failStale();
+      if (deps.newWordsHourUtc !== undefined)
+        await deps.newWords.scheduleDaily(deps.newWordsHourUtc);
+      const words = await deps.newWords.claim();
+      if (!words) return;
+      const done = await deps.newWords.run(words);
+      logger.info("newwords.round_executed", {
+        roundId: words.id,
         status: done.status,
       });
     },

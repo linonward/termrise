@@ -378,7 +378,12 @@ export function createKeywordPool(deps: {
     const [open] = await database
       .select()
       .from(poolRounds)
-      .where(inArray(poolRounds.status, ["queued", "running"]))
+      .where(
+        and(
+          inArray(poolRounds.status, ["queued", "running"]),
+          inArray(poolRounds.kind, ["daily", "manual"]),
+        ),
+      )
       .limit(1);
     if (open) return { round: open, created: false };
     const [round] = await database

@@ -24,3 +24,14 @@ it("queues the daily round only when enabled, then runs one claimed round", asyn
 it("fails the job when rounds are not set up, so a stale schedule shows", async () => {
   await expect(poolProcessors({})["pool.scan"]()).rejects.toThrow();
 });
+
+it("runs a new-words round after the evergreen one", async () => {
+  const words = rounds({ id: "w1" });
+  await poolProcessors({
+    rounds: rounds(null),
+    newWords: words,
+    newWordsHourUtc: 0,
+  })["pool.scan"]();
+  expect(words.scheduleDaily).toHaveBeenCalledWith(0);
+  expect(words.run).toHaveBeenCalledTimes(1);
+});

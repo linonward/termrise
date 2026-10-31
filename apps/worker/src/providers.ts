@@ -1,9 +1,11 @@
 import { createDeepSeekJson } from "@repo/ai/adapters/deepseek-json";
 import { createDataForSeoProvider } from "@repo/research/adapters/dataforseo";
 import { createDeepSeekAnalyst } from "@repo/research/adapters/deepseek-analyst";
+import { createDeepSeekNewWordAnalyst } from "@repo/research/adapters/deepseek-new-words";
 import { createDeepSeekSeedExtractor } from "@repo/research/adapters/deepseek-seeds";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
+import { createFakeNewWordAnalyst } from "@repo/research/adapters/fake-new-words";
 import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 
 import type { WorkerEnv } from "./env";
@@ -40,4 +42,16 @@ export function createSeedExtractor(env: WorkerEnv) {
         }),
       )
     : createFakeSeedExtractor();
+}
+
+// New-word explanations use the analyst's provider and model too.
+export function createNewWordAnalyst(env: WorkerEnv) {
+  return env.ANALYST_PROVIDER === "deepseek"
+    ? createDeepSeekNewWordAnalyst(
+        createDeepSeekJson({
+          apiKey: env.DEEPSEEK_API_KEY!,
+          model: env.DEEPSEEK_MODEL!,
+        }),
+      )
+    : createFakeNewWordAnalyst();
 }

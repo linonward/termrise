@@ -18,6 +18,8 @@ import labsSuggestions from "../testing/labs-suggestions-cipher.json";
 import labsTraffic from "../testing/labs-traffic.json";
 import serpCipherDecoder from "../testing/serp-cipher-decoder.json";
 import trendsCipherDecoder from "../testing/trends-cipher-decoder.json";
+import trendsRisingAi from "../testing/trends-rising-ai.json";
+import trendsVsGpts from "../testing/trends-vs-gpts.json";
 
 const market = { locationCode: 2840, languageCode: "en" };
 const noSleep = async () => {};
@@ -360,4 +362,49 @@ it("reads 5 years of weekly search interest and leaves out weeks without data", 
       type: "web",
     },
   ]);
+});
+
+it("compares search interest with a reference word, a null value as 0", async () => {
+  const { calls, provider: p } = provider({ [TREND]: trendsVsGpts });
+  const { value } = await p.trendCompare!(
+    ["ragdoll robot boxing", "gpts"],
+    market,
+    "past_7_days",
+  );
+  // 169 hours; the last one is partial and marked missing.
+  expect(value).toHaveLength(168);
+  expect(
+    value.find((p) => p.at === "2026-10-31T04:00:00.000Z")?.values,
+  ).toEqual([72, 50]);
+  expect(
+    value.find((p) => p.at === "2026-10-31T06:00:00.000Z")?.values,
+  ).toEqual([56, 0]);
+  expect(calls[0].body).toEqual([
+    {
+      keywords: ["ragdoll robot boxing", "gpts"],
+      location_code: 2840,
+      time_range: "past_7_days",
+      type: "web",
+    },
+  ]);
+});
+
+it("reads the queries rising under a root word", async () => {
+  const { calls, provider: p } = provider({ [TREND]: trendsRisingAi });
+  const { value } = await p.risingQueries!("ai", market);
+  expect(value[3]).toEqual({
+    query: "ai impacts theoretical computer science",
+    value: 13950,
+  });
+  expect(calls[0].body).toMatchObject([
+    { keywords: ["ai"], item_types: ["google_trends_queries_list"] },
+  ]);
+});
+
+it("asks for 20 results when told to", async () => {
+  const { calls, provider: p } = provider({
+    [SERP]: { result: [{ items: [] }] },
+  });
+  await p.serp("x", market, 20);
+  expect(calls[0].body).toMatchObject([{ depth: 20 }]);
 });

@@ -6,7 +6,9 @@ import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
 import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
+import { createRdapClient } from "@repo/research/adapters/rdap";
 import { createBudget } from "@repo/research/budget";
+import { createNewWords } from "@repo/research/new-words";
 import { createPoolRounds } from "@repo/research/pool-round";
 import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
@@ -18,6 +20,7 @@ import { workerEnv } from "./env";
 import {
   createAnalyst,
   createKeywordProvider,
+  createNewWordAnalyst,
   createSeedExtractor,
 } from "./providers";
 import { createHandlers, startWorker } from "./worker";
@@ -44,18 +47,33 @@ async function main() {
     extractor: createSeedExtractor(env),
   });
   // The keyword pool's rounds: manual ones always, the daily one when enabled.
+  const budget = createBudget({
+    database,
+    monthlyCapMicros,
+    dailyPoolCapMicros: Math.round(env.POOL_DAILY_DATA_BUDGET_USD * 1_000_000),
+    dailyNewWordCapMicros: {
+      data: Math.round(env.NEW_WORDS_DAILY_DATA_BUDGET_USD * 1_000_000),
+      ai: Math.round(env.NEW_WORDS_DAILY_AI_BUDGET_USD * 1_000_000),
+    },
+  });
   const rounds = createPoolRounds({
     database,
     provider: keywordProvider,
-    budget: createBudget({
-      database,
-      monthlyCapMicros,
-      dailyPoolCapMicros: Math.round(
-        env.POOL_DAILY_DATA_BUDGET_USD * 1_000_000,
-      ),
-    }),
+    budget,
     deepChecks: env.POOL_DEEP_CHECKS,
   });
+  const newWords = createNewWords({
+    database,
+    provider: keywordProvider,
+    analyst: createNewWordAnalyst(env),
+    rdap: createRdapClient(),
+    budget,
+    roots: env.NEW_WORD_ROOTS,
+    checksPerDay: env.NEW_WORDS_CHECKS,
+  });
+  const newWordsHourUtc = env.NEW_WORDS_ENABLED
+    ? env.NEW_WORDS_HOUR_UTC
+    : undefined;
   const dailyHourUtc = env.POOL_DAILY_ENABLED
     ? env.POOL_DAILY_HOUR_UTC
     : undefined;
@@ -89,6 +107,8 @@ async function main() {
           radar,
           rounds,
           dailyHourUtc,
+          newWords,
+          newWordsHourUtc,
         }),
       ),
     );

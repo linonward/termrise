@@ -8,7 +8,9 @@ import type {
   KeywordProvider,
   Market,
   RankedKeyword,
+  RisingQuery,
   SerpItem,
+  TrendComparison,
   TrendPoint,
   VolumeBand,
 } from "../keyword-provider";
@@ -34,6 +36,8 @@ export const DATAFORSEO_MAX_COST = {
   ranked: 200_000,
   traffic: 50_000,
   trend: 20_000,
+  compare: 20_000,
+  rising: 20_000,
 } as const;
 /** Most keywords one Labs call returns: the reservation above covers this many. */
 export const LABS_MAX_LIMIT = 1000;
@@ -50,6 +54,9 @@ export const DATAFORSEO_CACHE_TTL_MS = {
   ranked: 30 * DAY_MS,
   traffic: 30 * DAY_MS,
   trend: 7 * DAY_MS,
+  // New words move by the hour: a comparison or rising list is reused for a few hours.
+  compare: 6 * 60 * 60 * 1000,
+  rising: 6 * 60 * 60 * 1000,
 } as const;
 /** Keywords per bulk difficulty call; the API takes up to 1000. */
 export const DIFFICULTY_BATCH = 200;
@@ -196,6 +203,25 @@ const trafficResult = z.object({
           .nullish(),
       }),
     )
+    .nullish(),
+});
+
+const exploreResult = z.object({
+  items: z
+    .array(z.looseObject({ type: z.string(), data: z.unknown() }))
+    .nullish(),
+});
+const comparePoints = z.array(
+  z.object({
+    date_from: z.string(),
+    timestamp: z.number().nullish(),
+    missing_data: z.boolean().nullish(),
+    values: z.array(z.number().nullable()),
+  }),
+);
+const queriesList = z.object({
+  rising: z
+    .array(z.object({ query: z.string(), value: z.number().nullish() }))
     .nullish(),
 });
 
@@ -350,10 +376,10 @@ export function createDataForSeoProvider(deps: {
             value.set(item.keyword, item.keyword_difficulty);
       return { value, costMicros: charged.costMicros };
     },
-    async serp(phrase, market) {
+    async serp(phrase, market, depth = 10) {
       const charged = await post(
         "serp/google/organic/live/advanced",
-        { keyword: phrase, ...location(market), device: "desktop", depth: 10 },
+        { keyword: phrase, ...location(market), device: "desktop", depth },
         serpResult,
       );
       const items: SerpItem[] = [];
@@ -367,7 +393,7 @@ export function createDataForSeoProvider(deps: {
               type: item.type,
             });
       return {
-        value: items.sort((a, b) => a.rank - b.rank).slice(0, 10),
+        value: items.sort((a, b) => a.rank - b.rank).slice(0, depth),
         costMicros: charged.costMicros,
       };
     },
@@ -434,6 +460,55 @@ export function createDataForSeoProvider(deps: {
           const etv = item.metrics?.organic?.etv;
           if (etv != null) value.set(item.target, etv);
         }
+      return { value, costMicros: charged.costMicros };
+    },
+    async trendCompare(phrases, market, range) {
+      const charged = await post(
+        "keywords_data/google_trends/explore/live",
+        {
+          keywords: phrases.slice(0, 5),
+          location_code: market.locationCode,
+          time_range: range,
+          type: "web",
+        },
+        exploreResult,
+      );
+      const value: TrendComparison = [];
+      for (const result of charged.value)
+        for (const item of result.items ?? []) {
+          if (item.type !== "google_trends_graph") continue;
+          for (const p of comparePoints.parse(item.data ?? [])) {
+            // The current hour or day is partial and marked missing. A null value is
+            // "less than 1": counted as 0.
+            if (p.missing_data) continue;
+            value.push({
+              at: p.timestamp
+                ? new Date(p.timestamp * 1000).toISOString()
+                : p.date_from,
+              values: p.values.map((v) => v ?? 0),
+            });
+          }
+        }
+      return { value, costMicros: charged.costMicros };
+    },
+    async risingQueries(root, market) {
+      const charged = await post(
+        "keywords_data/google_trends/explore/live",
+        {
+          keywords: [root],
+          location_code: market.locationCode,
+          time_range: "past_7_days",
+          type: "web",
+          item_types: ["google_trends_queries_list"],
+        },
+        exploreResult,
+      );
+      const value: RisingQuery[] = [];
+      for (const result of charged.value)
+        for (const item of result.items ?? [])
+          if (item.type === "google_trends_queries_list")
+            for (const q of queriesList.parse(item.data ?? {}).rising ?? [])
+              value.push({ query: q.query, value: q.value ?? 0 });
       return { value, costMicros: charged.costMicros };
     },
     async searchTrend(phrase, market) {

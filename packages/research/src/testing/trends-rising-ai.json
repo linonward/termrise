@@ -1,0 +1,140 @@
+{
+  "note": "Real response from keywords_data/google_trends/explore/live, ai, US, past 7 days, graph and queries list (2026-10-31); graph points dropped.",
+  "cost": 0.011,
+  "result": [
+    {
+      "items": [
+        {
+          "type": "google_trends_queries_list",
+          "keywords": ["ai"],
+          "data": {
+            "top": [
+              {
+                "query": "what is ai",
+                "value": 100
+              },
+              {
+                "query": "ai google",
+                "value": 95
+              },
+              {
+                "query": "gemini ai",
+                "value": 76
+              },
+              {
+                "query": "free ai",
+                "value": 73
+              },
+              {
+                "query": "ai detector",
+                "value": 68
+              }
+            ],
+            "rising": [
+              {
+                "query": "ai bubble burst china",
+                "value": 29850
+              },
+              {
+                "query": "china ai bubble",
+                "value": 29800
+              },
+              {
+                "query": "google gmail ai privacy updates",
+                "value": 14350
+              },
+              {
+                "query": "ai impacts theoretical computer science",
+                "value": 13950
+              },
+              {
+                "query": "wired an ai breakthrough",
+                "value": 12500
+              },
+              {
+                "query": "elon musk ai odyssey",
+                "value": 9600
+              },
+              {
+                "query": "valve stance on ai games",
+                "value": 9250
+              },
+              {
+                "query": "aclu police ai traffic stops report",
+                "value": 8000
+              },
+              {
+                "query": "aclu report ai road surveillance",
+                "value": 7450
+              },
+              {
+                "query": "farmbot tech ai",
+                "value": 6750
+              },
+              {
+                "query": "elon musk grok ai odyssey",
+                "value": 4650
+              },
+              {
+                "query": "ai agents hidden communication cpu cache",
+                "value": 4150
+              },
+              {
+                "query": "chinese ai bubble burst",
+                "value": 3800
+              },
+              {
+                "query": "steam ai clone problems",
+                "value": 3650
+              },
+              {
+                "query": "nvidia rtx gpu ai throttle hack",
+                "value": 3150
+              },
+              {
+                "query": "nvidia ai software gpu licensing fee",
+                "value": 2750
+              },
+              {
+                "query": "autonomous ai agents banking risks",
+                "value": 2300
+              },
+              {
+                "query": "amazon ai token usage metrics",
+                "value": 2050
+              },
+              {
+                "query": "amazon ai software engineering memo",
+                "value": 1950
+              },
+              {
+                "query": "ai bubble burst",
+                "value": 1750
+              },
+              {
+                "query": "ai changing uk stem jobs",
+                "value": 1100
+              },
+              {
+                "query": "how to disable ai overview",
+                "value": 650
+              },
+              {
+                "query": "dessa ai",
+                "value": 500
+              },
+              {
+                "query": "ai bubble",
+                "value": 450
+              },
+              {
+                "query": "is the ai bubble bursting",
+                "value": 400
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

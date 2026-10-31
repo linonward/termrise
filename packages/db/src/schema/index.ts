@@ -4,6 +4,7 @@ export * from "./cache";
 export * from "./credits";
 export * from "./execution";
 export * from "./keywords";
+export * from "./new-words";
 export * from "./opportunities";
 export * from "./orders";
 export * from "./pool";

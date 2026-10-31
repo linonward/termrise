@@ -1,0 +1,572 @@
+// New words (docs/product/keyword-pool.md#new-words): once a day, collect the queries
+// rising under the root words, then measure and judge the newest and the due ones. Paid
+// calls go through the new words' own daily budgets (budget.ts).
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  sql,
+} from "drizzle-orm";
+import { z } from "zod";
+
+import type { Database } from "@repo/db/client";
+import { newWordRoots, newWords, poolRounds } from "@repo/db/schema";
+import { AppError } from "@repo/observability/errors";
+import { logger } from "@repo/observability/logger";
+
+import type { RdapClient } from "./adapters/rdap";
+import { registrableDomain } from "./adapters/rdap";
+import type { Budget } from "./budget";
+import type {
+  Charged,
+  KeywordIdea,
+  KeywordProvider,
+  Market,
+  SerpItem,
+  TrendComparison,
+} from "./keyword-provider";
+import { newWordAnalysisSchema, type NewWordAnalyst } from "./new-word-analyst";
+import {
+  curveFacts,
+  dedicatedPages,
+  NEW_SITE_DAYS,
+  NEW_WORD_RULES,
+  newWordVerdict,
+  REFERENCE_TERM,
+} from "./new-word-rules";
+import { normalizePhrase, type PoolRound } from "./pool-service";
+import { createProviderCache } from "./provider-cache";
+
+const US: Market = { locationCode: 2840, languageCode: "en" };
+/** Root words whose rising queries are collected; NEW_WORD_ROOTS overrides them. */
+export const DEFAULT_ROOTS = [
+  "ai",
+  "game",
+  "tool",
+  "generator",
+  "calculator",
+  "app",
+  "maker",
+  "checker",
+  "converter",
+  "template",
+];
+/** Rising queries below this growth (percent) are noise. */
+export const MIN_GROWTH = 200;
+/** A word is measured again daily for this many checks, then left alone. */
+export const MAX_CHECKS = 7;
+export const STALE_ROUND_MS = 30 * 60 * 1000;
+export const NEW_WORDS_PAGE_SIZE = 50;
+const SERP_DEPTH = 20;
+const DAY_MS = 86_400_000;
+const MAX_PHRASE = 100;
+
+export type NewWord = typeof newWords.$inferSelect;
+export type NewWordsReport = {
+  roots: { root: string; rising: number }[];
+  added: number;
+  checked: { phrase: string; verdict: string | null; ratio: number | null }[];
+  budgetStopped: boolean;
+  failures: string[];
+};
+
+class BudgetStop extends Error {}
+
+const listQuery = z.object({
+  verdict: z.enum(["worth", "try", "skip"]).optional().catch(undefined),
+  category: z.string().max(20).optional().catch(undefined),
+  hidden: z.literal("1").optional().catch(undefined),
+  page: z.coerce.number().int().min(1).max(1000).catch(1),
+});
+
+export function createNewWords(deps: {
+  database: Database;
+  /** Needed to run rounds; the API only reads and queues. */
+  provider?: KeywordProvider;
+  analyst?: NewWordAnalyst;
+  rdap?: RdapClient;
+  budget?: Budget;
+  roots?: string[];
+  /** Words measured per day. */
+  checksPerDay?: number;
+  now?: () => Date;
+}) {
+  const { database } = deps;
+  // Rounds run in the worker, which always passes a provider.
+  const providerOf = () => {
+    if (!deps.provider) throw new Error("New words need a keyword provider");
+    return deps.provider;
+  };
+  const now = deps.now ?? (() => new Date());
+  const cache = createProviderCache({ database, now });
+  const roots = deps.roots ?? DEFAULT_ROOTS;
+
+  async function scheduleDaily(hourUtc: number) {
+    const at = now();
+    if (at.getUTCHours() < hourUtc) return null;
+    const dayStart = new Date(
+      Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+    );
+    return database.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext('new-words-daily-round'))`,
+      );
+      const [today] = await tx
+        .select({ id: poolRounds.id })
+        .from(poolRounds)
+        .where(
+          and(
+            eq(poolRounds.kind, "new_words"),
+            sql`${poolRounds.createdAt} >= ${dayStart}`,
+          ),
+        )
+        .limit(1);
+      if (today) return null;
+      const [round] = await tx
+        .insert(poolRounds)
+        .values({ kind: "new_words", createdAt: at })
+        .returning();
+      return round;
+    });
+  }
+
+  async function failStale(olderThanMs = STALE_ROUND_MS) {
+    return database
+      .update(poolRounds)
+      .set({
+        status: "failed",
+        errorCode: "ROUND_TIMED_OUT",
+        finishedAt: now(),
+      })
+      .where(
+        and(
+          eq(poolRounds.status, "running"),
+          eq(poolRounds.kind, "new_words"),
+          lt(poolRounds.claimedAt, new Date(now().getTime() - olderThanMs)),
+        ),
+      )
+      .returning({ id: poolRounds.id });
+  }
+
+  async function claim() {
+    return database.transaction(async (tx) => {
+      const [next] = await tx
+        .select()
+        .from(poolRounds)
+        .where(
+          and(
+            eq(poolRounds.status, "queued"),
+            eq(poolRounds.kind, "new_words"),
+          ),
+        )
+        .orderBy(poolRounds.createdAt)
+        .limit(1)
+        .for("update", { skipLocked: true });
+      if (!next) return null;
+      const [claimed] = await tx
+        .update(poolRounds)
+        .set({ status: "running", claimedAt: now() })
+        .where(and(eq(poolRounds.id, next.id), eq(poolRounds.status, "queued")))
+        .returning();
+      return claimed ?? null;
+    });
+  }
+
+  async function paid<T>(
+    round: PoolRound,
+    operation: "rising" | "compare" | "serp" | "suggestions",
+    params: unknown,
+    call: () => Promise<Charged<T>>,
+  ): Promise<T> {
+    const provider = providerOf();
+    const ttl = provider.cacheTtlMs?.[operation];
+    const request = { provider: provider.name, operation, market: US, params };
+    if (ttl) {
+      const hit = await cache.get<T>(request);
+      if (hit) return hit.value;
+    }
+    if (!deps.budget) throw new BudgetStop();
+    const charged = await deps.budget.charge(
+      {
+        projectId: null,
+        poolRoundId: round.id,
+        poolBudget: "new_words",
+        runId: null,
+        kind: "data",
+        provider: provider.name,
+        operation,
+        maxCostMicros: provider.maxCostMicros[operation] ?? 0,
+      },
+      call,
+    );
+    if (!charged) throw new BudgetStop();
+    if (ttl) await cache.set(request, charged.value, ttl);
+    return charged.value;
+  }
+
+  async function discover(round: PoolRound, report: NewWordsReport) {
+    const provider = providerOf();
+    const rising = provider.risingQueries?.bind(provider);
+    if (!rising) return;
+    for (const root of roots) {
+      const queries = await paid(round, "rising", root, () => rising(root, US));
+      const kept = queries.filter((q) => q.value >= MIN_GROWTH);
+      report.roots.push({ root, rising: kept.length });
+      for (const q of kept) {
+        const phrase = normalizePhrase(q.query);
+        if (!phrase || phrase.length > MAX_PHRASE || phrase === root) continue;
+        const [word] = await database
+          .insert(newWords)
+          .values({
+            phrase,
+            firstSeenAt: now(),
+            lastSeenAt: now(),
+            nextCheckAt: now(),
+          })
+          .onConflictDoUpdate({
+            target: newWords.phrase,
+            set: { lastSeenAt: now() },
+          })
+          // xmax = 0: the row was inserted, not updated.
+          .returning({ id: newWords.id, inserted: sql<boolean>`(xmax = 0)` });
+        if (word.inserted) report.added++;
+        await database
+          .insert(newWordRoots)
+          .values({
+            wordId: word.id,
+            root,
+            growth: Math.round(q.value),
+            seenAt: now(),
+          })
+          .onConflictDoUpdate({
+            target: [newWordRoots.wordId, newWordRoots.root],
+            set: { growth: Math.round(q.value), seenAt: now() },
+          });
+      }
+    }
+  }
+
+  async function newSitesOf(serp: SerpItem[]) {
+    if (!deps.rdap) return null;
+    const domains = [
+      ...new Set(
+        serp
+          .slice(0, 10)
+          .map((r) => r.site)
+          .filter((s) => /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(s))
+          .map(registrableDomain),
+      ),
+    ];
+    const ages = await Promise.all(
+      domains.map((d) => deps.rdap!.registeredOn(d)),
+    );
+    const since = new Date(now().getTime() - NEW_SITE_DAYS * DAY_MS)
+      .toISOString()
+      .slice(0, 10);
+    return ages.filter((a) => a.registeredOn && a.registeredOn >= since);
+  }
+
+  async function analyse(
+    round: PoolRound,
+    word: NewWord,
+    serp: SerpItem[],
+    buildAs: "new_site" | "inner_page" | null,
+  ) {
+    const { analyst, budget } = deps;
+    if (!analyst || !budget) return null;
+    const wordRoots = (
+      await database
+        .select({ root: newWordRoots.root })
+        .from(newWordRoots)
+        .where(eq(newWordRoots.wordId, word.id))
+    ).map((r) => r.root);
+    const charged = await budget.charge(
+      {
+        projectId: null,
+        poolRoundId: round.id,
+        poolBudget: "new_words",
+        runId: null,
+        kind: "ai",
+        provider: analyst.name,
+        operation: "analyze",
+        maxCostMicros: analyst.maxCostMicros,
+      },
+      () =>
+        analyst.analyze({
+          phrase: word.phrase,
+          roots: wordRoots,
+          titles: serp.slice(0, 10).map((r) => r.title),
+          buildAs,
+        }),
+    );
+    if (!charged) return null;
+    const parsed = newWordAnalysisSchema.safeParse(charged.value);
+    return parsed.success ? parsed.data : null;
+  }
+
+  async function check(round: PoolRound, word: NewWord) {
+    const provider = providerOf();
+    const compare = provider.trendCompare?.bind(provider);
+    const comparison: TrendComparison = compare
+      ? await paid(
+          round,
+          "compare",
+          { phrases: [word.phrase, REFERENCE_TERM], range: "past_30_days" },
+          () => compare([word.phrase, REFERENCE_TERM], US, "past_30_days"),
+        )
+      : [];
+    const facts = curveFacts(comparison);
+    const serp = await paid(
+      round,
+      "serp",
+      { phrase: word.phrase, depth: SERP_DEPTH },
+      () => provider.serp(word.phrase, US, SERP_DEPTH),
+    );
+    const dedicated = dedicatedPages(word.phrase, serp);
+    const suggestions = provider.suggestions?.bind(provider);
+    const band = { minVolume: 0, limit: 1 };
+    const ideas: KeywordIdea[] = suggestions
+      ? await paid(round, "suggestions", { seed: word.phrase, ...band }, () =>
+          suggestions(word.phrase, US, band),
+        )
+      : [];
+    const metrics = ideas.find((i) => i.phrase === word.phrase)?.metrics;
+    const verdict = newWordVerdict({
+      ratio: facts.ratio,
+      dedicated,
+      rising: facts.rising,
+      isNew: facts.isNew,
+    });
+    const newSites = await newSitesOf(serp);
+    const analysis = word.about
+      ? null
+      : await analyse(round, word, serp, verdict.buildAs);
+    const checks = word.checks + 1;
+    const yes = (b: boolean) => (b ? "yes" : "no") as "yes" | "no";
+    await database
+      .update(newWords)
+      .set({
+        curve: facts.days,
+        burstDay: facts.burstDay,
+        peakDay: facts.peakDay,
+        isNew: yes(facts.isNew),
+        fromZero: yes(facts.fromZero),
+        rising: yes(facts.rising),
+        preBurstShare: facts.preBurstShare,
+        ratio: facts.ratio,
+        ratioDay: facts.ratioDay,
+        searchVolume: metrics?.searchVolume ?? null,
+        keywordDifficulty: metrics?.keywordDifficulty ?? null,
+        cpcMicros: metrics?.cpcMicros ?? null,
+        dedicatedPages: dedicated,
+        serp: serp.map(({ rank, site, url, title }) => ({
+          rank,
+          site,
+          url,
+          title,
+        })),
+        ...(newSites && { newSites }),
+        verdict: verdict.verdict,
+        buildAs: verdict.buildAs,
+        reasons: verdict.reasons,
+        rules: NEW_WORD_RULES,
+        ...(analysis && analysis),
+        checkedAt: now(),
+        checks,
+        // Measured daily for a week while it rises; a word that stopped is left alone.
+        nextCheckAt:
+          checks < MAX_CHECKS && facts.rising
+            ? new Date(now().getTime() + DAY_MS)
+            : null,
+      })
+      .where(eq(newWords.id, word.id));
+    return {
+      phrase: word.phrase,
+      verdict: verdict.verdict,
+      ratio: facts.ratio,
+    };
+  }
+
+  async function run(round: PoolRound) {
+    const report: NewWordsReport = {
+      roots: [],
+      added: 0,
+      checked: [],
+      budgetStopped: false,
+      failures: [],
+    };
+    try {
+      await discover(round, report);
+      const due = await database
+        .select()
+        .from(newWords)
+        .where(and(isNull(newWords.hiddenAt), lte(newWords.nextCheckAt, now())))
+        // Never checked first, newest first; then the rest by when they are due.
+        .orderBy(
+          sql`${newWords.checkedAt} is not null`,
+          desc(newWords.firstSeenAt),
+          asc(newWords.nextCheckAt),
+        )
+        .limit(deps.checksPerDay ?? 12);
+      for (const word of due) {
+        try {
+          report.checked.push(await check(round, word));
+        } catch (error) {
+          if (error instanceof BudgetStop) throw error;
+          logger.warn("newwords.check_failed", {
+            roundId: round.id,
+            phrase: word.phrase,
+            error,
+          });
+          report.failures.push(word.phrase);
+        }
+      }
+    } catch (error) {
+      if (!(error instanceof BudgetStop)) {
+        logger.error("newwords.round_failed", { roundId: round.id, error });
+        return finish(round, "failed", report, "ROUND_FAILED");
+      }
+      report.budgetStopped = true;
+    }
+    const nothing = report.roots.length === 0 && report.checked.length === 0;
+    const status =
+      report.budgetStopped && nothing
+        ? "budget_exhausted"
+        : report.budgetStopped || report.failures.length > 0
+          ? "partial"
+          : "completed";
+    return finish(
+      round,
+      status,
+      report,
+      report.budgetStopped ? "DAILY_BUDGET_EXHAUSTED" : null,
+    );
+  }
+
+  async function finish(
+    round: PoolRound,
+    status: PoolRound["status"],
+    report: NewWordsReport,
+    errorCode: string | null,
+  ) {
+    const [done] = await database
+      .update(poolRounds)
+      .set({ status, report, errorCode, finishedAt: now() })
+      .where(and(eq(poolRounds.id, round.id), eq(poolRounds.status, "running")))
+      .returning();
+    logger.info("newwords.round_finished", { roundId: round.id, status });
+    return done ?? round;
+  }
+
+  /** Asks the worker for a new-words round now; an unfinished one is returned instead. */
+  async function requestRound(userId: string) {
+    const [open] = await database
+      .select()
+      .from(poolRounds)
+      .where(
+        and(
+          eq(poolRounds.kind, "new_words"),
+          inArray(poolRounds.status, ["queued", "running"]),
+        ),
+      )
+      .limit(1);
+    if (open) return { round: open, created: false };
+    const [round] = await database
+      .insert(poolRounds)
+      .values({ kind: "new_words", requestedBy: userId, createdAt: now() })
+      .returning();
+    return { round, created: true };
+  }
+
+  // Long tails: other words that contain this one as whole words. The outer row is named
+  // in full: inside the subquery an unqualified column would be the inner one.
+  const innerCandidates = sql<number>`(select count(*)::int from new_words c where c.id <> "new_words"."id" and (' ' || c.phrase || ' ') like ('% ' || "new_words"."phrase" || ' %'))`;
+
+  async function list(query: Record<string, string | undefined>) {
+    const { verdict, category, hidden, page } = listQuery.parse(query);
+    const where = and(
+      hidden
+        ? sql`${newWords.hiddenAt} is not null`
+        : isNull(newWords.hiddenAt),
+      verdict ? eq(newWords.verdict, verdict) : undefined,
+      category ? sql`${newWords.category} = ${category}` : undefined,
+    );
+    const [rows, [{ total }]] = await Promise.all([
+      database
+        .select({ word: newWords, innerCandidates })
+        .from(newWords)
+        .where(where)
+        .orderBy(desc(newWords.firstSeenAt), desc(newWords.ratio))
+        .limit(NEW_WORDS_PAGE_SIZE)
+        .offset((page - 1) * NEW_WORDS_PAGE_SIZE),
+      database.select({ total: count() }).from(newWords).where(where),
+    ]);
+    const ids = rows.map((r) => r.word.id);
+    const rootRows = ids.length
+      ? await database
+          .select()
+          .from(newWordRoots)
+          .where(inArray(newWordRoots.wordId, ids))
+      : [];
+    return {
+      total,
+      page,
+      items: rows.map((r) => ({
+        ...r,
+        roots: rootRows.filter((x) => x.wordId === r.word.id),
+      })),
+    };
+  }
+
+  const notFound = () =>
+    new AppError("NEW_WORD_NOT_FOUND", "New word not found");
+
+  async function get(id: string) {
+    if (!z.uuid().safeParse(id).success) throw notFound();
+    const [row] = await database
+      .select({ word: newWords, innerCandidates })
+      .from(newWords)
+      .where(eq(newWords.id, id));
+    if (!row) throw notFound();
+    const [wordRoots, children] = await Promise.all([
+      database.select().from(newWordRoots).where(eq(newWordRoots.wordId, id)),
+      database
+        .select()
+        .from(newWords)
+        // Its long tails: words that contain it as whole words, each an inner page.
+        .where(
+          sql`${newWords.phrase} <> ${row.word.phrase} and (' ' || ${newWords.phrase} || ' ') like ('% ' || ${row.word.phrase} || ' %')`,
+        )
+        .orderBy(desc(newWords.rising), desc(newWords.ratio))
+        .limit(50),
+    ]);
+    return { ...row, roots: wordRoots, children };
+  }
+
+  async function hide(id: string, hidden: boolean) {
+    await get(id);
+    const [word] = await database
+      .update(newWords)
+      .set({ hiddenAt: hidden ? now() : null })
+      .where(eq(newWords.id, id))
+      .returning();
+    return word;
+  }
+
+  return {
+    scheduleDaily,
+    failStale,
+    claim,
+    run,
+    requestRound,
+    list,
+    get,
+    hide,
+  };
+}

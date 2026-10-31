@@ -206,6 +206,7 @@ export function createPoolRounds(deps: {
       .where(
         and(
           eq(poolRounds.status, "running"),
+          inArray(poolRounds.kind, ["daily", "manual"]),
           lt(poolRounds.claimedAt, new Date(now().getTime() - olderThanMs)),
         ),
       )
@@ -218,7 +219,12 @@ export function createPoolRounds(deps: {
       const [next] = await tx
         .select()
         .from(poolRounds)
-        .where(eq(poolRounds.status, "queued"))
+        .where(
+          and(
+            eq(poolRounds.status, "queued"),
+            inArray(poolRounds.kind, ["daily", "manual"]),
+          ),
+        )
         .orderBy(poolRounds.createdAt)
         .limit(1)
         .for("update", { skipLocked: true });
@@ -273,6 +279,7 @@ export function createPoolRounds(deps: {
       {
         projectId: null,
         poolRoundId: round.id,
+        poolBudget: "evergreen",
         runId: null,
         kind: "data",
         provider: provider.name,
