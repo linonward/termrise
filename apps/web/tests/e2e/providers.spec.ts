@@ -18,11 +18,11 @@ test("shows the worker's services and the spending of a run", async ({
   await expect(page.getByTestId("service-radar")).toContainText("关闭");
   await expect(page.getByText("你的项目还没有付费调用。")).toBeVisible();
 
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Spending project");
   await page.locator('textarea[name="seeds"]').fill("meeting notes");
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   await page.getByRole("button", { name: "运行研究" }).click();
   await expect(page.getByTestId("last-run")).toContainText("已完成");
 

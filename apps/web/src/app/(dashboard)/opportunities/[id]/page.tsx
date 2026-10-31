@@ -153,7 +153,7 @@ export default async function OpportunityPage({
         </div>
         <p className="text-[15px] text-muted-foreground">
           <Link
-            href={`/research/${o.projectId}`}
+            href={`/opportunities/research/${o.projectId}`}
             className="font-medium underline underline-offset-4"
           >
             {o.projectName}
@@ -429,7 +429,7 @@ export default async function OpportunityPage({
               <p className="text-[15px]">{tp("startBody")}</p>
               {product ? (
                 <Link
-                  href={`/projects/${product.id}`}
+                  href={`/products/${product.id}`}
                   className="inline-flex text-[15px] font-semibold underline underline-offset-4"
                 >
                   {tp("open")}

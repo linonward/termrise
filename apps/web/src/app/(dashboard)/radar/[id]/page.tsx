@@ -204,7 +204,9 @@ export default async function RadarItemPage({
               {t("researchBody", { seed: item.suggestedSeed })}
             </p>
             <Button asChild className="h-10 w-full px-4">
-              <Link href={`/research?${research}`}>{t("startResearch")}</Link>
+              <Link href={`/opportunities/research?${research}`}>
+                {t("startResearch")}
+              </Link>
             </Button>
           </section>
         </aside>

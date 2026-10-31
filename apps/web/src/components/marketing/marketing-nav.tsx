@@ -52,7 +52,7 @@ export async function MarketingNav({
         <div className="ml-auto flex items-center gap-5 md:ml-0">
           {signedIn ? (
             <Button asChild className="h-9 px-4 text-sm font-semibold">
-              <Link href="/dashboard">{t("dashboard")}</Link>
+              <Link href="/today">{t("dashboard")}</Link>
             </Button>
           ) : (
             <>

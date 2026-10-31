@@ -22,7 +22,7 @@ export default function Error({ reset }: { reset: () => void }) {
         {t("retry")}
       </Button>
       <Button asChild variant="outline" className="h-10 px-5">
-        <Link href="/dashboard">{t("home")}</Link>
+        <Link href="/today">{t("home")}</Link>
       </Button>
     </StatusPage>
   );

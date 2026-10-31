@@ -22,7 +22,9 @@ type SerpRow = {
   traffic: number | null;
 };
 
-export async function generateMetadata({ params }: PageProps<"/pool/[id]">) {
+export async function generateMetadata({
+  params,
+}: PageProps<"/keywords/[id]">) {
   const { id } = await params;
   const k = await apiGet<Detail>(`/api/pool/keywords/${id}`).catch(() => null);
   return { title: k?.phrase ?? (await getTranslations("pool"))("metaTitle") };
@@ -31,7 +33,7 @@ export async function generateMetadata({ params }: PageProps<"/pool/[id]">) {
 // One keyword with its data, its checks and the maintainer's actions.
 export default async function PoolKeywordPage({
   params,
-}: PageProps<"/pool/[id]">) {
+}: PageProps<"/keywords/[id]">) {
   const { id } = await params;
   const t = await getTranslations("pool");
   const k = await apiGet<Detail>(`/api/pool/keywords/${id}`);
@@ -74,7 +76,7 @@ export default async function PoolKeywordPage({
   return (
     <main className="mx-auto w-full max-w-310 space-y-10 px-5 py-8 md:py-16">
       <Link
-        href="/pool"
+        href="/keywords"
         className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:underline"
       >
         <ChevronLeft aria-hidden="true" className="size-4" />
@@ -237,7 +239,7 @@ export default async function PoolKeywordPage({
                 <PoolStatusBadge status={c.status} />
                 {c.roundId && (
                   <Link
-                    href={`/pool/rounds/${c.roundId}`}
+                    href={`/keywords/rounds/${c.roundId}`}
                     className="text-muted-foreground hover:underline"
                   >
                     {t("round")}

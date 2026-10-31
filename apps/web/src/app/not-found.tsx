@@ -23,7 +23,7 @@ export default async function NotFound() {
         </Link>
       </Button>
       <Button asChild variant="outline" className="h-10 px-5">
-        <Link href="/dashboard">{t("dashboard")}</Link>
+        <Link href="/today">{t("dashboard")}</Link>
       </Button>
     </StatusPage>
   );

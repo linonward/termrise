@@ -242,7 +242,7 @@ export default async function ProvidersPage() {
         <p className="text-[13px] text-muted-foreground">
           {t("budgetNote")}{" "}
           <Link
-            href="/research"
+            href="/opportunities/research"
             className="font-semibold text-foreground underline underline-offset-4"
           >
             {t("budgetLink")}

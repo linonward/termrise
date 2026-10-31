@@ -104,9 +104,9 @@ test("identifies signed-in users by id and never sends their email", async ({
 }) => {
   const { userId, email } = await signIn(context);
   const analytics = await interceptAnalytics(page);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await page.getByRole("button", { name: "同意" }).click();
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect.poll(analytics.names).toContain("dashboard_viewed");
   const viewed = analytics.events.find((e) => e.event === "dashboard_viewed");
   expect(viewed?.properties.distinct_id).toBe(userId);
@@ -135,7 +135,7 @@ test("identifies events right after a signed-in user accepts on the same page", 
   );
   const { userId } = await signIn(context);
   const analytics = await interceptAnalytics(page);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await page.getByRole("button", { name: "同意" }).click();
   // No reload: the user identified on mount, before the SDK loaded.
   await page.getByLabel("文字").fill("hello");
@@ -188,7 +188,7 @@ test("reports task_started and credits_exhausted when the balance is too low", a
     "e2e: empty balance",
   );
   const analytics = await interceptAnalytics(page);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await page.getByRole("button", { name: "同意" }).click();
   await page.getByLabel("文字").fill("hello");
   await page.getByRole("button", { name: "运行 · 1 积分" }).click();

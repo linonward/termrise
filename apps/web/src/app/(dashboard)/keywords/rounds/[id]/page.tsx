@@ -24,7 +24,7 @@ export async function generateMetadata() {
 // The report of one round: what it pulled, screened and checked (docs/product/keyword-pool.md#rounds).
 export default async function PoolRoundPage({
   params,
-}: PageProps<"/pool/rounds/[id]">) {
+}: PageProps<"/keywords/rounds/[id]">) {
   const { id } = await params;
   const t = await getTranslations("pool");
   const round = await apiGet<PoolRoundDto>(`/api/pool/rounds/${id}`);
@@ -33,7 +33,7 @@ export default async function PoolRoundPage({
   return (
     <main className="mx-auto w-full max-w-310 space-y-10 px-5 py-8 md:py-16">
       <Link
-        href="/pool"
+        href="/keywords"
         className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:underline"
       >
         <ChevronLeft aria-hidden="true" className="size-4" />

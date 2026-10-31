@@ -71,7 +71,7 @@ export default async function BlogPostPage({
   const sections = Object.entries(copy.sections);
   const signedIn = Boolean(await getSession(await headers()));
   // Signed-in readers go straight to the dashboard; others sign up first.
-  const createHref = signedIn ? "/dashboard" : "/sign-up";
+  const createHref = signedIn ? "/today" : "/sign-up";
 
   const base = serverEnv().APP_URL;
   const url = new URL(`/blog/${slug}`, base).href;

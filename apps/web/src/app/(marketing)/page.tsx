@@ -48,7 +48,7 @@ export default async function Home() {
       {!signedIn && (
         <GoogleOneTap
           clientId={env.GOOGLE_CLIENT_ID}
-          callbackURL="/dashboard"
+          callbackURL="/today"
           deferUntilInteraction
         />
       )}

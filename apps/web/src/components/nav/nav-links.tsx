@@ -8,19 +8,18 @@ import product from "@product";
 
 // No Billing link while the product does not charge (product.config.ts billingEnabled).
 const links = [
-  { href: "/dashboard", key: "dashboard" },
-  { href: "/radar", key: "radar" },
-  { href: "/pool", key: "pool" },
-  { href: "/research", key: "research" },
+  { href: "/today", key: "today" },
+  { href: "/discover", key: "discover" },
+  { href: "/keywords", key: "keywords" },
   { href: "/opportunities", key: "opportunities" },
-  { href: "/projects", key: "products" },
+  { href: "/products", key: "products" },
   ...(product.billingEnabled
     ? [{ href: "/billing", key: "billing" } as const]
     : []),
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === href;
+  if (href === "/today") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

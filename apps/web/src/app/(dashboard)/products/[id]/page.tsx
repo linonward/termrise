@@ -26,14 +26,14 @@ async function loadProduct(id: string) {
 
 export async function generateMetadata({
   params,
-}: PageProps<"/projects/[id]">) {
+}: PageProps<"/products/[id]">) {
   return { title: (await loadProduct((await params).id)).name };
 }
 
 // One product: status, launch, visitors and revenue as recorded (docs/product/ux.md#products).
 export default async function ProductPage({
   params,
-}: PageProps<"/projects/[id]">) {
+}: PageProps<"/products/[id]">) {
   const p = await loadProduct((await params).id);
   const t = await getTranslations("products");
   const format = await getFormatter();
@@ -48,7 +48,7 @@ export default async function ProductPage({
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-10 md:py-16">
       <header className="space-y-4">
         <Link
-          href="/projects"
+          href="/products"
           className="flex w-fit items-center gap-1 text-[15px] font-medium"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />

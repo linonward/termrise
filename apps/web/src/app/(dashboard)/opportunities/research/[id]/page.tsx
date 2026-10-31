@@ -53,14 +53,14 @@ async function loadProject(id: string) {
 
 export async function generateMetadata({
   params,
-}: PageProps<"/research/[id]">) {
+}: PageProps<"/opportunities/research/[id]">) {
   return { title: (await loadProject((await params).id)).name };
 }
 
 // One research project; a draft can be edited and deleted (docs/product/ux.md#research).
 export default async function ResearchProjectPage({
   params,
-}: PageProps<"/research/[id]">) {
+}: PageProps<"/opportunities/research/[id]">) {
   const project = await loadProject((await params).id);
   const base = `/api/research/projects/${project.id}`;
   const [
@@ -109,7 +109,7 @@ export default async function ResearchProjectPage({
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-10 md:py-16">
       <header className="space-y-4">
         <Link
-          href="/research"
+          href="/opportunities/research"
           className="flex w-fit items-center gap-1 text-[15px] font-medium"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />

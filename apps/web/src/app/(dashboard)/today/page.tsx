@@ -20,7 +20,7 @@ import product from "@product";
 
 export default async function DashboardPage() {
   const session = await getRequestSession();
-  if (!session) redirect("/sign-in?next=%2Fdashboard");
+  if (!session) redirect("/sign-in?next=%2Ftoday");
   const t = await getTranslations("dashboard");
   const { name, email } = session.user;
   const title =
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
             </h2>
             {projects.length > 0 && (
               <Link
-                href="/research"
+                href="/opportunities/research"
                 className="text-[15px] font-medium underline underline-offset-4"
               >
                 {t("researchAll")}
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
                 {t("researchEmpty")}
               </p>
               <Button asChild className="h-10 px-4">
-                <Link href="/research">{t("researchCta")}</Link>
+                <Link href="/opportunities/research">{t("researchCta")}</Link>
               </Button>
             </div>
           ) : (
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
                   className="flex items-center justify-between gap-4 px-6 py-4"
                 >
                   <Link
-                    href={`/research/${project.id}`}
+                    href={`/opportunities/research/${project.id}`}
                     className="min-w-0 truncate text-[15px] font-medium hover:underline hover:underline-offset-4"
                   >
                     {project.name}

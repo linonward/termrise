@@ -23,36 +23,52 @@
 
 /sign-up
 
-/dashboard
+/today
 
-/radar
+/discover
 
-/radar/:id
+/discover/:id
 
-/research
+/keywords
 
-/research/:id
+/keywords/:id
+
+/keywords/rounds/:id
 
 /opportunities
+
+/opportunities/research
+
+/opportunities/research/:id
 
 /opportunities/compare
 
 /opportunities/:id
 
-/projects
+/products
 
-/projects/:id
+/products/:id
+
+/radar
+
+/radar/:id
 
 /settings/providers
 
 /billing
 ```
 
+### Navigation
+
+登录后的导航按工作流排（S59，维护者 2026-10-31 定）：**今天**（`/today`，每天的入口）→ **发现**（`/discover`，新词）→ **选词**（`/keywords`，长青词库）→ **机会**（`/opportunities`，下有「研究项目」标签）→ **产品**（`/products`，选定之后的跟踪）。设置在用户菜单中。
+
+S59 之前的网址跳转到新网址（`next.config.ts` 的 `redirects`，临时跳转）：`/dashboard` → `/today`，`/pool/new` → `/discover`，`/pool` → `/keywords`，`/research` → `/opportunities/research`，`/projects` → `/products`，带 `:id` 的同样。这些页面都需要登录、不收录，改网址不影响搜索。
+
 没有 Account 页面。内部管理台为 `/admin`、`/admin/users/:id`，见 [Admin](#admin)。
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/dashboard`、`/radar`、`/research`、`/opportunities`、`/projects`、`/settings` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/today`、`/discover`、`/keywords`、`/opportunities`、`/products`、`/radar`、`/settings` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 

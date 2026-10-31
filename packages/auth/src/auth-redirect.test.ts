@@ -4,13 +4,13 @@ import { isSafeCallback, safeNext } from "./auth-redirect";
 
 describe("safeNext", () => {
   it("preserves an internal path and query", () => {
-    expect(safeNext("/dashboard/generations?filter=failed")).toBe(
-      "/dashboard/generations?filter=failed",
+    expect(safeNext("/today/generations?filter=failed")).toBe(
+      "/today/generations?filter=failed",
     );
   });
   // The login form's errorCallbackURL carries `next` percent-encoded in the query.
   it("keeps percent-encoded values inside the query", () => {
-    const target = `/sign-in?next=${encodeURIComponent("/dashboard/generations?filter=failed")}&error=invalid_link`;
+    const target = `/sign-in?next=${encodeURIComponent("/today/generations?filter=failed")}&error=invalid_link`;
     expect(safeNext(target)).toBe(target);
   });
   it.each([
@@ -21,7 +21,7 @@ describe("safeNext", () => {
     "/\\evil.example",
     "/%2fevil.example",
     "/%255cevil.example",
-    "/%2fevil.example?next=%2Fdashboard",
+    "/%2fevil.example?next=%2Ftoday",
     // Dot segments that normalize to a protocol-relative URL.
     "/.//evil.example",
     "/..//evil.example",
@@ -30,9 +30,9 @@ describe("safeNext", () => {
     "/%2e%2e//evil.example",
     "/\nevil.example",
     "javascript:alert(1)",
-    ["/dashboard"],
+    ["/today"],
   ])("rejects unsafe targets: %s", (value) => {
-    expect(safeNext(value)).toBe("/dashboard");
+    expect(safeNext(value)).toBe("/today");
   });
 });
 
@@ -40,11 +40,11 @@ describe("safeNext", () => {
 describe("isSafeCallback", () => {
   const app = "http://localhost:3000";
   it("accepts safe relative paths", () => {
-    expect(isSafeCallback("/dashboard?x=1")).toBe(true);
-    expect(isSafeCallback("/dashboard", app)).toBe(true);
+    expect(isSafeCallback("/today?x=1")).toBe(true);
+    expect(isSafeCallback("/today", app)).toBe(true);
   });
   it("accepts safe absolute URLs on the app origin", () => {
-    expect(isSafeCallback(`${app}/dashboard?x=1`, app)).toBe(true);
+    expect(isSafeCallback(`${app}/today?x=1`, app)).toBe(true);
   });
   it.each([
     "https://evil.example/dashboard",
@@ -59,6 +59,6 @@ describe("isSafeCallback", () => {
     expect(isSafeCallback(value, app)).toBe(false);
   });
   it("rejects absolute URLs when no app origin is set", () => {
-    expect(isSafeCallback(`${app}/dashboard`)).toBe(false);
+    expect(isSafeCallback(`${app}/today`)).toBe(false);
   });
 });

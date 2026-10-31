@@ -15,13 +15,13 @@ test("a research run ranks opportunities with their score and evidence", async (
   await page.goto("/opportunities");
   await expect(page.getByText("还没有机会")).toBeVisible();
 
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Opportunity project");
   await page
     .locator('textarea[name="seeds"]')
     .fill("meeting notes\ninvoice tool");
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   await page.getByRole("button", { name: "运行研究" }).click();
   await expect(page.getByTestId("last-run")).toContainText("已完成");
 
@@ -98,7 +98,7 @@ test("decides with a reason after planning and running an experiment", async ({
   context,
 }) => {
   await signIn(context);
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Decision project");
   await page.locator('textarea[name="seeds"]').fill("meeting notes");
   await page.getByRole("button", { name: "创建项目" }).click();
@@ -160,7 +160,7 @@ test("starts a product from a Go opportunity and records its results", async ({
   context,
 }) => {
   await signIn(context);
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Product project");
   await page.locator('textarea[name="seeds"]').fill("invoice tool");
   await page.getByRole("button", { name: "创建项目" }).click();
@@ -183,7 +183,7 @@ test("starts a product from a Go opportunity and records its results", async ({
   }
 
   await page.getByRole("button", { name: "开始产品" }).click();
-  await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/products\/[0-9a-f-]{36}$/);
   await expect(page.getByTestId("product-status")).toHaveText("未开始");
 
   // A launched product needs its launch date.
@@ -213,6 +213,6 @@ test("starts a product from a Go opportunity and records its results", async ({
   await expect(total).toContainText("未知");
   await expect(page.getByTestId("revenue-row")).toContainText("手工");
 
-  await page.goto("/projects");
+  await page.goto("/products");
   await expect(page.getByTestId("product-row")).toHaveCount(1);
 });

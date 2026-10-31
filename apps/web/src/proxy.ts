@@ -11,7 +11,7 @@ import {
 } from "@/server/http/csp";
 
 const PROTECTED =
-  /^\/(dashboard|billing|radar|research|opportunities|projects|settings)(\/|$)/;
+  /^\/(today|discover|keywords|opportunities|products|billing|radar|settings)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);

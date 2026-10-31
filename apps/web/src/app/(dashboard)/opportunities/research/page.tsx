@@ -7,6 +7,7 @@ import { normalizeSeeds } from "@repo/research/research-rules";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { OpportunityTabs } from "@/features/opportunities/opportunity-tabs";
 import { ProjectForm } from "@/features/research/project-form";
 import { ResearchStatus } from "@/features/research/research-status";
 import { apiGet } from "@/server/api/api";
@@ -18,7 +19,7 @@ export async function generateMetadata() {
 // Research projects (docs/product/ux.md#research). The (dashboard) layout checks the session.
 export default async function ResearchPage({
   searchParams,
-}: PageProps<"/research">) {
+}: PageProps<"/opportunities/research">) {
   const t = await getTranslations("research");
   // A radar item opens this page with ?name=&seed=&radar= to prefill a new project; the
   // project then gets the item's observations as signals.
@@ -42,6 +43,7 @@ export default async function ResearchPage({
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
+      <OpportunityTabs current="research" />
       <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
         <section
           aria-labelledby="projects-title"
@@ -82,7 +84,7 @@ export default async function ResearchPage({
                     >
                       <td className="py-4 pr-4 font-semibold">
                         <Link
-                          href={`/research/${project.id}`}
+                          href={`/opportunities/research/${project.id}`}
                           className="hover:underline hover:underline-offset-4"
                         >
                           {project.name}

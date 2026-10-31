@@ -20,7 +20,7 @@ type Detail = NewWordDto & { children: NewWordDto[] };
 
 export async function generateMetadata({
   params,
-}: PageProps<"/pool/new/[id]">) {
+}: PageProps<"/discover/[id]">) {
   const { id } = await params;
   const w = await apiGet<Detail>(`/api/pool/new-words/${id}`).catch(() => null);
   return {
@@ -33,7 +33,7 @@ const card = "rounded-lg border border-border bg-card p-6 md:p-8";
 // One new word, laid out like the maintainer's reference screens.
 export default async function NewWordPage({
   params,
-}: PageProps<"/pool/new/[id]">) {
+}: PageProps<"/discover/[id]">) {
   const { id } = await params;
   const t = await getTranslations("newWords");
   const w = await apiGet<Detail>(`/api/pool/new-words/${id}`);
@@ -75,11 +75,11 @@ export default async function NewWordPage({
         className="flex items-center gap-2 text-[13px] text-muted-foreground"
       >
         <House aria-hidden="true" className="size-4" />
-        <Link href="/dashboard" className="hover:underline">
+        <Link href="/today" className="hover:underline">
           {t("home")}
         </Link>
         <ChevronRight aria-hidden="true" className="size-3.5" />
-        <Link href="/pool/new" className="hover:underline">
+        <Link href="/discover" className="hover:underline">
           {t("title")}
         </Link>
         <ChevronRight aria-hidden="true" className="size-3.5" />
@@ -191,7 +191,7 @@ export default async function NewWordPage({
                   className="flex flex-wrap items-center gap-3 py-3"
                 >
                   <Link
-                    href={`/pool/new/${c.id}`}
+                    href={`/discover/${c.id}`}
                     className="font-medium hover:underline"
                   >
                     {c.phrase}

@@ -13,6 +13,7 @@ import {
   NeedsReview,
   OpportunityStatus,
 } from "@/features/opportunities/opportunity-badges";
+import { OpportunityTabs } from "@/features/opportunities/opportunity-tabs";
 import { FixtureNotice } from "@/features/research/research-results";
 import { apiGet } from "@/server/api/api";
 
@@ -49,6 +50,7 @@ export default async function OpportunitiesPage({
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
+      <OpportunityTabs current="opportunities" />
       {projectId && (
         <p className="text-[15px] text-muted-foreground">
           {t("projectFilter", { name: items[0]?.projectName ?? "—" })}{" "}
@@ -75,7 +77,7 @@ export default async function OpportunitiesPage({
           icon={Telescope}
           title={t("emptyTitle")}
           body={t("emptyBody")}
-          action={{ href: "/research", label: t("emptyLink") }}
+          action={{ href: "/opportunities/research", label: t("emptyLink") }}
         />
       ) : (
         <form action="/opportunities/compare" className="space-y-4">
@@ -143,7 +145,7 @@ export default async function OpportunitiesPage({
                     </td>
                     <td className="py-4 pr-4 text-muted-foreground">
                       <Link
-                        href={`/research/${o.projectId}`}
+                        href={`/opportunities/research/${o.projectId}`}
                         className="hover:underline hover:underline-offset-4"
                       >
                         {o.projectName}

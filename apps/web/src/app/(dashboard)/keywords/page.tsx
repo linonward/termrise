@@ -15,7 +15,6 @@ import {
   RoundStatusBadge,
 } from "@/features/pool/pool-badges";
 import { count, pct, usd } from "@/features/pool/pool-format";
-import { PoolTabs } from "@/features/pool/pool-tabs";
 import { StartRound } from "@/features/pool/start-round";
 import { apiGet } from "@/server/api/api";
 
@@ -37,7 +36,9 @@ export async function generateMetadata() {
 }
 
 // The keyword pool for new tool sites (docs/product/keyword-pool.md).
-export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
+export default async function PoolPage({
+  searchParams,
+}: PageProps<"/keywords">) {
   const params = await searchParams;
   const status = STATUSES.find((s) => s === params.status);
   const sort = SORTS.find((s) => s === params.sort) ?? "updated";
@@ -70,7 +71,7 @@ export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
       ...next,
     });
     for (const [k, v] of [...p.entries()]) if (!v) p.delete(k);
-    return `/pool?${p}`;
+    return `/keywords?${p}`;
   };
   const pages = Math.max(1, Math.ceil(list.total / 50));
 
@@ -82,8 +83,6 @@ export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
-
-      <PoolTabs current="evergreen" />
 
       <div className="grid gap-8 md:grid-cols-2">
         <section aria-labelledby="round-title" className="space-y-3">
@@ -100,7 +99,7 @@ export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
                 >
                   <RoundStatusBadge status={r.status} />
                   <Link
-                    href={`/pool/rounds/${r.id}`}
+                    href={`/keywords/rounds/${r.id}`}
                     className="font-medium hover:underline hover:underline-offset-4"
                   >
                     {r.source ?? t("roundNoSource")}
@@ -235,7 +234,7 @@ export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
                   >
                     <td className="py-4 pr-4">
                       <Link
-                        href={`/pool/${k.id}`}
+                        href={`/keywords/${k.id}`}
                         className="font-semibold break-words hover:underline hover:underline-offset-4"
                       >
                         {k.phrase}

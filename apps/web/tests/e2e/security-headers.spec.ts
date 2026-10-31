@@ -60,6 +60,6 @@ test("signed-in pages load without CSP violations", async ({
   context,
 }) => {
   await signIn(context);
-  expect(await violations(page, "/dashboard")).toEqual([]);
+  expect(await violations(page, "/today")).toEqual([]);
   expect(await violations(page, "/billing")).toEqual([]);
 });

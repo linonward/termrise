@@ -96,7 +96,7 @@ export default async function BlogPage() {
           title={landing("finalCta.title")}
           body={landing("finalCta.body")}
           cta={landing("hero.cta")}
-          href={signedIn ? "/dashboard" : "/sign-up"}
+          href={signedIn ? "/today" : "/sign-up"}
         />
       </main>
       <SiteFooter />

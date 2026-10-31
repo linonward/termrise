@@ -46,7 +46,7 @@ export function StartProduct({ opportunityId }: { opportunityId: string }) {
           const product = (await send("/api/execution/projects", "POST", {
             opportunityId,
           })) as ExecutionProjectDto | null;
-          if (product) router.push(`/projects/${product.id}`);
+          if (product) router.push(`/products/${product.id}`);
         }}
       >
         {pending ? t("starting") : t("start")}

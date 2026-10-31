@@ -68,10 +68,10 @@
    pnpm test
    ```
 
-7. 运行 E2E 测试。先构建，Playwright 用 `pnpm --filter web start --port 3100` 启动应用。构建时要设置 `NEXT_PUBLIC_POSTHOG_KEY`，否则 Cookie 横幅的测试失败：
+7. 运行 E2E 测试。先构建，Playwright 用 `pnpm --filter web start --port 3100` 启动应用。构建时要设置 `NEXT_PUBLIC_POSTHOG_KEY`（否则 Cookie 横幅的测试失败）和 `NEXT_PUBLIC_API_URL=http://localhost:3101`（E2E 的 API；它在构建时写入页面，`.env.local` 里本地服务的地址会让浏览器的请求发到别处）：
 
    ```bash
-   NEXT_PUBLIC_POSTHOG_KEY=phc_e2e_test pnpm build
+   NEXT_PUBLIC_API_URL=http://localhost:3101 NEXT_PUBLIC_POSTHOG_KEY=phc_e2e_test pnpm build
    pnpm test:e2e
    ```
 

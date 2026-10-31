@@ -102,7 +102,7 @@ test("signed-in readers go straight to the dashboard", async ({
     .getByRole("link", { name: "免费开始" })
     .last()
     .click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/today$/);
 });
 
 test("each blog post links to its conversion page from the body", async ({

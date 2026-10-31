@@ -51,7 +51,7 @@ const request = (path: string, body?: object, cookie?: string) =>
 async function login() {
   const sent = await request("/sign-in/magic-link", {
     email: "auth-test@example.com",
-    callbackURL: "/dashboard",
+    callbackURL: "/today",
   });
   expect(sent.status).toBe(200);
   const verified = await auth.handler(new Request(deliveries.at(-1)!));
@@ -72,7 +72,7 @@ afterAll(closeTestDb);
 describe("authentication against PostgreSQL", () => {
   it("creates a verified user, session and single-use hashed magic link", async () => {
     const { verified, cookie } = await login();
-    expect(verified.headers.get("location")).toBe(`${baseURL}/dashboard`);
+    expect(verified.headers.get("location")).toBe(`${baseURL}/today`);
     expect((await testDb().select().from(user))[0]).toMatchObject({
       emailVerified: true,
     });
@@ -99,7 +99,7 @@ describe("authentication against PostgreSQL", () => {
   it("passes the sign-up request, with its cookies, to onUserCreated", async () => {
     await request("/sign-in/magic-link", {
       email: "cookie@example.com",
-      callbackURL: "/dashboard",
+      callbackURL: "/today",
     });
     // The link is opened in the browser that made the cookie banner choice.
     await auth.handler(
@@ -133,7 +133,7 @@ describe("authentication against PostgreSQL", () => {
   it("rejects expired links and external callback redirects", async () => {
     await request("/sign-in/magic-link", {
       email: "auth-test@example.com",
-      callbackURL: "/dashboard",
+      callbackURL: "/today",
     });
     const token = new URL(deliveries[0]).searchParams.get("token")!;
     const stored = (await testDb().select().from(verification))[0];
@@ -152,7 +152,7 @@ describe("authentication against PostgreSQL", () => {
     expect(external.status).toBeGreaterThanOrEqual(400);
   });
   it("accepts the callback URLs the magic-link form sends", async () => {
-    const next = "/dashboard/generations?filter=failed";
+    const next = "/today/generations?filter=failed";
     const sent = await request("/sign-in/magic-link", {
       email: "auth-test@example.com",
       callbackURL: next,
@@ -165,7 +165,7 @@ describe("authentication against PostgreSQL", () => {
   it("creates a Google authorization URL with the configured callback", async () => {
     const response = await request("/sign-in/social", {
       provider: "google",
-      callbackURL: "/dashboard",
+      callbackURL: "/today",
       disableRedirect: true,
     });
     expect(response.status).toBe(200);
@@ -186,7 +186,7 @@ describe("authentication against PostgreSQL", () => {
     expect((await unsafe.json()).message).toBe("Invalid callback URL");
     const forged = await request("/one-tap/callback", {
       idToken: "not-a-token",
-      callbackURL: "/dashboard",
+      callbackURL: "/today",
     });
     expect(forged.status).toBe(400);
     expect(await testDb().select().from(user)).toHaveLength(0);
@@ -270,9 +270,9 @@ describe("on a separate API origin", () => {
     );
 
   it("redirects to the web app and shares the session cookie", async () => {
-    expect((await send(`${appOrigin}/dashboard`)).status).toBe(200);
+    expect((await send(`${appOrigin}/today`)).status).toBe(200);
     const verified = await api.handler(new Request(links.at(-1)!));
-    expect(verified.headers.get("location")).toBe(`${appOrigin}/dashboard`);
+    expect(verified.headers.get("location")).toBe(`${appOrigin}/today`);
     const sessionCookie = verified.headers
       .getSetCookie()
       .find((value) => value.startsWith("better-auth.session_token="))!;

@@ -104,7 +104,6 @@
   },
   "nav": {
     "primary": "主导航",
-    "dashboard": "控制台",
     "billing": "账单",
     "credits": "{count} 积分",
     "openMenu": "打开菜单",
@@ -118,12 +117,14 @@
     "logout": "退出登录",
     "loggingOut": "正在退出…",
     "logoutError": "无法退出登录，请重试。",
-    "radar": "Radar",
-    "research": "研究",
     "opportunities": "机会",
     "products": "产品",
     "providers": "服务",
-    "pool": "词库"
+    "today": "今天",
+    "discover": "发现",
+    "keywords": "选词",
+    "opportunityTabs": "机会分类",
+    "researchProjects": "研究项目"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -151,7 +152,7 @@
     "blog": "博客",
     "login": "登录",
     "cta": "开始使用",
-    "dashboard": "控制台"
+    "dashboard": "进入 Termrise"
   },
   "pricing": {
     "eyebrow": "价格",
@@ -532,16 +533,16 @@
   },
   "errorPage": {
     "title": "出错了",
-    "body": "这个页面无法加载。请重试，或返回控制台。",
+    "body": "这个页面无法加载。请重试，或回到「今天」。",
     "retry": "重试",
-    "home": "返回控制台"
+    "home": "回到今天"
   },
   "notFound": {
     "code": "错误 404",
     "title": "页面不存在",
     "body": "你访问的页面不存在或已移动。",
     "home": "返回首页",
-    "dashboard": "返回控制台"
+    "dashboard": "回到今天"
   },
   "admin": {
     "label": "管理",
@@ -797,8 +798,8 @@
     }
   },
   "pool": {
-    "metaTitle": "词库",
-    "title": "词库",
+    "metaTitle": "选词",
+    "title": "选词",
     "subtitle": "为新的工具站选一个长青主词：月搜索量够、新站能排上去、需求不在下滑。规则见 tool-site-v1。",
     "roundTitle": "一轮选词",
     "roundSource": "词源",
@@ -870,7 +871,7 @@
     "prev": "上一页",
     "next": "下一页",
     "pageOf": "第 {page} 页，共 {pages} 页",
-    "back": "词库",
+    "back": "选词",
     "innerPages": "前 10 内页",
     "firstSeen": "首次加入",
     "nextCheck": "下次检查",
@@ -991,11 +992,6 @@
     "deepTitle": "深查结果",
     "deepEmpty": "这一轮没有深查。",
     "recheck": "复查（之前：{from}）",
-    "tab": {
-      "evergreen": "长青词",
-      "new": "新词"
-    },
-    "tabs": "词库分类",
     "briefTitle": "选词简报",
     "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。"
   },
@@ -1117,7 +1113,7 @@
     "aiBudget": "AI 预算（美元）",
     "create": "创建项目",
     "creating": "正在创建…",
-    "back": "研究",
+    "back": "研究项目",
     "editTitle": "种子词和预算",
     "editNote": "草稿可以修改。项目运行后，种子词和预算不能再改。",
     "lockedNote": "这个项目正在运行，种子词和预算不能再改。",

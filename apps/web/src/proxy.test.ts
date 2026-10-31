@@ -17,9 +17,9 @@ it("redirects a visitor without a session cookie to sign-in, keeping the target"
 });
 
 it("protects research project pages the same way", async () => {
-  const response = await proxy(request("/research/abc"));
+  const response = await proxy(request("/opportunities/research/abc"));
   expect(response.headers.get("location")).toBe(
-    "http://localhost:3000/sign-in?next=%2Fresearch%2Fabc",
+    "http://localhost:3000/sign-in?next=%2Fopportunities%2Fresearch%2Fabc",
   );
 });
 
@@ -51,7 +51,7 @@ it("sends a report-only CSP with a new nonce on every page", async () => {
 });
 
 it("redirects a protected page without a session cookie", async () => {
-  const response = await proxy(request("/dashboard"));
+  const response = await proxy(request("/today"));
   expect(response.status).toBe(307);
 });
 

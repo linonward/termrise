@@ -20,7 +20,6 @@ import {
 } from "@/features/new-words/new-word-format";
 import { Sparkline } from "@/features/new-words/sparkline";
 import { StartNewWords } from "@/features/new-words/start-new-words";
-import { PoolTabs } from "@/features/pool/pool-tabs";
 import { apiGet } from "@/server/api/api";
 
 const VERDICTS = ["worth", "try", "skip"] as const;
@@ -32,7 +31,7 @@ export async function generateMetadata() {
 // New words: queries just rising on Google (docs/product/keyword-pool.md#new-words).
 export default async function NewWordsPage({
   searchParams,
-}: PageProps<"/pool/new">) {
+}: PageProps<"/discover">) {
   const params = await searchParams;
   const verdict = VERDICTS.find((v) => v === params.verdict);
   const hidden = params.hidden === "1";
@@ -60,7 +59,7 @@ export default async function NewWordsPage({
   ) => (
     <Link
       key={label}
-      href={`/pool/new?${new URLSearchParams({ ...(key ? { verdict: key } : {}), ...(extra ? { hidden: "1" } : {}) })}`}
+      href={`/discover?${new URLSearchParams({ ...(key ? { verdict: key } : {}), ...(extra ? { hidden: "1" } : {}) })}`}
       aria-current={active ? "page" : undefined}
       className={cn(
         "rounded-full border border-border px-3 py-1 text-[13px]",
@@ -79,7 +78,6 @@ export default async function NewWordsPage({
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
-      <PoolTabs current="new" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <nav aria-label={t("filter")} className="flex flex-wrap gap-2">
           {filter(undefined, t("all"), !verdict && !hidden)}
@@ -107,7 +105,7 @@ export default async function NewWordsPage({
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
-                    href={`/pool/new/${w.id}`}
+                    href={`/discover/${w.id}`}
                     className="text-lg font-semibold break-words hover:underline hover:underline-offset-4"
                   >
                     {w.phrase}

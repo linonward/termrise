@@ -149,7 +149,7 @@ test("robots.txt keeps crawlers out of the app and points to the sitemap", async
 }) => {
   const body = await (await request.get("/robots.txt")).text();
   expect(body).toContain("Allow: /");
-  expect(body).toContain("Disallow: /dashboard");
+  expect(body).toContain("Disallow: /today");
   expect(body).toContain("Disallow: /api");
   expect(body).toContain(`Sitemap: ${origin}/sitemap.xml`);
 });
@@ -165,7 +165,7 @@ test("sitemap.xml lists the public pages", async ({ request }) => {
     ...billingPages,
   ])
     expect(body).toContain(`<loc>${origin}${path}</loc>`);
-  expect(body).not.toContain("/dashboard");
+  expect(body).not.toContain("/today");
   if (!product.billingEnabled)
     for (const path of ["/pricing", "/refund-policy"])
       expect(body).not.toContain(`<loc>${origin}${path}</loc>`);
@@ -204,7 +204,7 @@ test("llms.txt summarizes the product with production links", async ({
   // llms.txt is static and written by hand (docs/product/ux.md#seo): add the pricing and
   // refund links to it when billing is turned on.
   expect(body).not.toContain(origin);
-  expect(body).not.toMatch(/<\/?\w+>|DRAFT|\/dashboard/);
+  expect(body).not.toMatch(/<\/?\w+>|DRAFT|\/today/);
 });
 
 test("pages link the favicon, SVG icon and Apple touch icon", async ({

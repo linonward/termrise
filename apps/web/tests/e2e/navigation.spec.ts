@@ -19,18 +19,18 @@ test("navigation shows links, credits and the user menu", async ({
   isMobile,
 }) => {
   const { email } = await signIn(context);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   // Credits and Billing only while the product charges (product.config.ts billingEnabled).
   if (product.billingEnabled)
     await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   else await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   if (isMobile) await openMenu(page, isMobile);
   const nav = page.getByRole("navigation", { name: "主导航" });
-  await expect(nav.getByRole("link", { name: "控制台" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "今天" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "账单" })).toHaveCount(
     product.billingEnabled ? 1 : 0,
   );
-  await expect(nav.getByRole("link", { name: "控制台" })).toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "今天" })).toHaveAttribute(
     "aria-current",
     "page",
   );
@@ -45,7 +45,7 @@ test("shows the app in Chinese without a language menu", async ({
   isMobile,
 }) => {
   await signIn(context);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await openMenu(page, isMobile);
   await expect(page.getByText("语言")).toHaveCount(0);
@@ -61,7 +61,7 @@ test("switches theme and logs out from the menu", async ({
 }) => {
   await signIn(context);
   await page.emulateMedia({ colorScheme: "light" });
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await openMenu(page, isMobile);
   await page
     .getByRole(isMobile ? "button" : "menuitemradio", { name: "深色" })
@@ -85,7 +85,7 @@ test("navigates between dashboard pages", async ({
     "billing is disabled in product.config.ts",
   );
   await signIn(context);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   if (isMobile) await openMenu(page, isMobile);
   await page
     .getByRole("navigation", { name: "主导航" })

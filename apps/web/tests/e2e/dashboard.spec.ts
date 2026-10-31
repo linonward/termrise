@@ -23,7 +23,7 @@ test("an early access user sees the welcome without credits, and needs a session
   await signIn(context);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect(
     page.getByRole("heading", { level: 1, name: "欢迎回来" }),
   ).toBeVisible();
@@ -31,15 +31,15 @@ test("an early access user sees the welcome without credits, and needs a session
     page.getByRole("heading", { name: "你的研究项目" }),
   ).toBeVisible();
   await page.getByRole("main").getByRole("link", { name: "前往研究" }).click();
-  await expect(page).toHaveURL(/\/research$/);
-  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/opportunities\/research$/);
+  await page.goto("/today");
   await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   await expect(page.getByLabel("文字")).toHaveCount(0);
   for (const path of ["/billing", "/pricing"])
     expect((await page.goto(path))?.status(), path).toBe(404);
   expect(errors).toEqual([]);
   await context.clearCookies();
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect(page).toHaveURL(/\/sign-in\?next=/);
 });
 test("new user sees ten credits, live balance updates and needs a session", async ({
@@ -53,7 +53,7 @@ test("new user sees ten credits, live balance updates and needs a session", asyn
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect(page).toHaveTitle("Termrise：发现值得做产品的英文上升热词");
   await expect(page.getByTestId("nav-credits")).toHaveText("10 积分");
   await expect(page.getByTestId("credit-balance")).toHaveText("10");
@@ -76,7 +76,7 @@ test("new user sees ten credits, live balance updates and needs a session", asyn
   ).toBe(true);
   expect(errors).toEqual([]);
   await context.clearCookies();
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await expect(page).toHaveURL(/\/sign-in\?next=/);
 });
 
@@ -86,7 +86,7 @@ test("a task uses one credit, and a failed task refunds it", async ({
 }) => {
   test.skip(!product.billingEnabled, PAID);
   await signIn(context);
-  await page.goto("/dashboard");
+  await page.goto("/today");
   const input = page.getByLabel("文字");
   const run = page.getByRole("button", { name: "运行 · 1 积分" });
 
@@ -119,7 +119,7 @@ test("a task without credits asks the user to buy more", async ({
     randomUUID(),
     "E2E empty balance",
   );
-  await page.goto("/dashboard");
+  await page.goto("/today");
   await page.getByLabel("文字").fill("hello");
   await page.getByRole("button", { name: "运行 · 1 积分" }).click();
   const alert = page.getByRole("main").getByRole("alert");
@@ -130,7 +130,7 @@ test("a task without credits asks the user to buy more", async ({
 
 // A task lost in a crash is refunded on the first load, and that same load shows the refund
 // (docs/architecture/tasks.md#stale-tasks).
-for (const path of ["/dashboard", "/billing"])
+for (const path of ["/today", "/billing"])
   test(`${path} shows the balance after a stale task is refunded`, async ({
     page,
     context,
@@ -161,7 +161,7 @@ for (const path of ["/dashboard", "/billing"])
 
 // The proxy only checks that a session cookie exists; the layout validates it
 // and returns the visitor to the same page after sign-in.
-for (const path of ["/dashboard", "/billing"])
+for (const path of ["/today", "/billing"])
   test(`${path} sends a forged session cookie to sign-in`, async ({
     page,
     context,

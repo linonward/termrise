@@ -69,13 +69,13 @@ test("starts research from a radar story", async ({ page, context }) => {
   await page.getByRole("link", { name: `Show HN: Radar term ${id}` }).click();
   await page.getByRole("link", { name: "开始研究" }).click();
 
-  await expect(page).toHaveURL(/\/research\?/);
+  await expect(page).toHaveURL(/\/opportunities\/research\?/);
   await expect(page.locator('textarea[name="seeds"]')).toHaveValue(term);
   await expect(page.getByLabel("名称")).toHaveValue(
     `Show HN: Radar term ${id}`,
   );
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   // One collection on one day: one signal, from Hacker News.
   await expect(page.getByTestId("signal-row")).toHaveCount(1);
   await expect(page.getByTestId("signal-row")).toContainText("Hacker News");
@@ -96,7 +96,7 @@ test("turns a story title into short seeds before research", async ({
   await page.getByTestId("radar-row").getByRole("link").first().click();
   await page.getByRole("link", { name: "开始研究" }).click();
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
 
   // The worker (fake extractor) answers; the page polls until it has.
   const panel = page.getByTestId("seed-suggestions");

@@ -13,7 +13,7 @@ test("creates, edits and deletes a draft research project", async ({
   await signIn(context);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await expect(page).toHaveTitle("研究 · Termrise");
   await expect(page.getByText("还没有研究项目")).toBeVisible();
   await expect(page.getByText("美国 · 英语")).toBeVisible();
@@ -24,7 +24,7 @@ test("creates, edits and deletes a draft research project", async ({
     .fill("AI Meeting Notes\nai meeting notes\n sales call summary ");
   await page.getByRole("button", { name: "创建项目" }).click();
 
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "AI meeting notes" }),
   ).toBeVisible();
@@ -42,20 +42,20 @@ test("creates, edits and deletes a draft research project", async ({
   await expect(page.getByRole("status")).toHaveText("已保存。");
   await expect(page.getByText("$7.50")).toBeVisible();
 
-  await page.getByRole("link", { name: "研究" }).first().click();
+  await page.getByRole("link", { name: "研究项目" }).first().click();
   await expect(page.getByTestId("research-project-row")).toHaveCount(1);
   await page.getByRole("link", { name: "AI meeting notes" }).click();
 
   await page.getByRole("button", { name: "删除项目" }).click();
   await page.getByRole("button", { name: "确认删除" }).click();
-  await expect(page).toHaveURL(/\/research$/);
+  await expect(page).toHaveURL(/\/opportunities\/research$/);
   await expect(page.getByText("还没有研究项目")).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test("shows a validation error from the API", async ({ page, context }) => {
   await signIn(context);
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Empty seeds");
   // Only blank lines: the browser accepts it, the API rejects it.
   await page.locator('textarea[name="seeds"]').fill(" \n ");
@@ -69,11 +69,13 @@ test("another user's project is not found", async ({ page, browser }) => {
   const owner = await browser.newContext();
   await signIn(owner);
   const ownerPage = await owner.newPage();
-  await ownerPage.goto("/research");
+  await ownerPage.goto("/opportunities/research");
   await ownerPage.getByLabel("名称").fill("Private project");
   await ownerPage.locator('textarea[name="seeds"]').fill("secret seed");
   await ownerPage.getByRole("button", { name: "创建项目" }).click();
-  await expect(ownerPage).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(ownerPage).toHaveURL(
+    /\/opportunities\/research\/[0-9a-f-]{36}$/,
+  );
   const url = ownerPage.url();
   await owner.close();
 
@@ -83,17 +85,17 @@ test("another user's project is not found", async ({ page, browser }) => {
 });
 
 test("research pages need a session", async ({ page }) => {
-  await page.goto("/research");
-  await expect(page).toHaveURL(/\/sign-in\?next=%2Fresearch$/);
+  await page.goto("/opportunities/research");
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fopportunities%2Fresearch$/);
 });
 
 test("imports terms from a CSV into a draft", async ({ page, context }) => {
   await signIn(context);
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Imported project");
   await page.locator('textarea[name="seeds"]').fill("first seed");
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   await expect(page.getByText("还没有信号。", { exact: false })).toBeVisible();
 
   const file = {
@@ -132,11 +134,11 @@ async function createProject(
   name: string,
   seeds: string,
 ) {
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill(name);
   await page.locator('textarea[name="seeds"]').fill(seeds);
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
 }
 
 test("runs research and shows keywords, metrics and search results", async ({
@@ -212,12 +214,12 @@ test("shows the budget used and stops a run the budget cannot cover", async ({
   context,
 }) => {
   await signIn(context);
-  await page.goto("/research");
+  await page.goto("/opportunities/research");
   await page.getByLabel("名称").fill("Budget project");
   await page.locator('textarea[name="seeds"]').fill("meeting notes");
   await page.getByLabel("数据预算（美元）").fill("0");
   await page.getByRole("button", { name: "创建项目" }).click();
-  await expect(page).toHaveURL(/\/research\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/opportunities\/research\/[0-9a-f-]{36}$/);
   await expect(page.getByTestId("summaryDataBudget-used")).toHaveText(
     "已花费 US$0.00 · 预留 US$0.00",
   );

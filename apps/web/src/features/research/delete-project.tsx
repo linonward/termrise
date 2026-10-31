@@ -23,7 +23,7 @@ export function DeleteProject({ projectId }: { projectId: string }) {
       method: "DELETE",
     }).catch(() => null);
     if (response?.ok) {
-      router.push("/research");
+      router.push("/opportunities/research");
       router.refresh();
       return;
     }

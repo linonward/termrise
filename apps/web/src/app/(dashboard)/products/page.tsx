@@ -57,7 +57,7 @@ export default async function ProductsPage() {
                 >
                   <td className="py-4 pr-4 font-semibold">
                     <Link
-                      href={`/projects/${p.id}`}
+                      href={`/products/${p.id}`}
                       className="hover:underline hover:underline-offset-4"
                     >
                       {p.name}

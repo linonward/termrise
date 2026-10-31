@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 test("protects nested dashboard paths and preserves the return path", async ({
   page,
 }) => {
-  await page.goto("/dashboard?ref=email");
-  await expect(page).toHaveURL(/\/sign-in\?next=%2Fdashboard%3Fref%3Demail/);
+  await page.goto("/today?ref=email");
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Ftoday%3Fref%3Demail/);
   await expect(page.getByRole("heading", { name: "欢迎回来" })).toBeVisible();
   await page.getByRole("link", { name: "首次使用 Termrise？创建账号" }).click();
   await expect(page.getByRole("heading", { name: "创建账号" })).toBeVisible();
@@ -16,7 +16,7 @@ test("requests a magic link using a safe return URL and displays delivery state"
   await page.route("**/api/auth/sign-in/magic-link", async (route) => {
     // Better Auth runs on apps/api: callbacks are absolute URLs on this site.
     expect(route.request().postDataJSON()).toMatchObject({
-      callbackURL: "http://localhost:3100/dashboard",
+      callbackURL: "http://localhost:3100/today",
       email: "test@example.com",
     });
     await route.fulfill({ json: { status: true } });

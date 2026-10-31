@@ -35,7 +35,7 @@ export async function magicLink(email: string) {
   );
   await auth.api.signInMagicLink({
     headers: new Headers({ origin: e2eEnv.APP_URL }),
-    body: { email, callbackURL: `${e2eEnv.APP_URL}/dashboard` },
+    body: { email, callbackURL: `${e2eEnv.APP_URL}/today` },
   });
   return { auth, link };
 }

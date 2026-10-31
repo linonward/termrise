@@ -19,6 +19,26 @@ const nextConfig: NextConfig = {
     "@repo/tasks",
     "@repo/ui",
   ],
+  // Pages moved in S59 (docs/product/ux.md#pages): old addresses keep working.
+  async redirects() {
+    const moved: [string, string][] = [
+      ["/dashboard", "/today"],
+      ["/pool/new", "/discover"],
+      ["/pool/new/:id", "/discover/:id"],
+      ["/pool/rounds/:id", "/keywords/rounds/:id"],
+      ["/pool/:id", "/keywords/:id"],
+      ["/pool", "/keywords"],
+      ["/research", "/opportunities/research"],
+      ["/research/:id", "/opportunities/research/:id"],
+      ["/projects", "/products"],
+      ["/projects/:id", "/products/:id"],
+    ];
+    return moved.map(([source, destination]) => ({
+      source,
+      destination,
+      permanent: false,
+    }));
+  },
   // Same-origin PostHog endpoint (US region) so tracking blockers do not drop events.
   async rewrites() {
     return [

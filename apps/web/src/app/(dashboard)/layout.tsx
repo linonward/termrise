@@ -10,7 +10,7 @@ import { getRequestSession } from "@/server/auth/auth";
 import { SIGN_IN_NEXT_HEADER } from "@/server/auth/sign-in-next";
 import product from "@product";
 
-// Signed-in pages (/dashboard, /billing). src/proxy.ts redirects visitors without a
+// Signed-in pages (/today, /billing). src/proxy.ts redirects visitors without a
 // session cookie; this check validates the session itself.
 export default async function DashboardLayout({
   children,

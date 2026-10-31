@@ -10,8 +10,8 @@ test("unknown URLs show the 404 page with links home and to the dashboard", asyn
     "href",
     "/",
   );
-  await expect(page.getByRole("link", { name: "返回控制台" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "回到今天" })).toHaveAttribute(
     "href",
-    "/dashboard",
+    "/today",
   );
 });

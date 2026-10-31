@@ -77,7 +77,8 @@ export function ProjectForm({
     if (project) {
       setSaved(true);
       router.refresh();
-    } else router.push(`/research/${(json as ResearchProjectDto).id}`);
+    } else
+      router.push(`/opportunities/research/${(json as ResearchProjectDto).id}`);
   }
 
   const disabled = pending || locked;
