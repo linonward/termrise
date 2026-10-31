@@ -47,15 +47,40 @@ Google 官方 Trends API 自 2025-07 起是白名单内测，2026 年仍是内�
 
 ## 还没接的免费来源
 
-| 来源                               | 地址                                                                                                       | 情况                                                |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| DuckDuckGo 建议                    | `duckduckgo.com/ac/?q=…&type=list`                                                                         | 200，可以和谷歌建议交叉验证                         |
-| Hugging Face Spaces、Datasets 热门 | `/api/spaces`、`/api/datasets?sort=trendingScore`                                                          | 200；Spaces 名字杂，要过滤                          |
-| Wikipedia 每日热门文章             | `wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/YYYY/MM/DD`、`top-per-country/US` | 200，晚一天；要设 User-Agent                        |
-| Wikipedia 新建词条（实时）         | `stream.wikimedia.org/v2/stream/page-create`（SSE）                                                        | 未核实                                              |
-| Roblox Explore                     | `apis.roblox.com/explore-api/v1/get-sorts`                                                                 | 200，未公开的接口，随时可能变                       |
-| Steam 最多人玩                     | `api.steampowered.com/ISteamChartsService/GetMostPlayedGames/v1/`                                          | 200，带上周排名，可以算涨幅                         |
-| Product Hunt                       | `producthunt.com/feed`                                                                                     | 200，RSS                                            |
-| GitHub Trending                    | `github.com/trending`                                                                                      | 只有 HTML，要解析                                   |
-| Reddit                             | `/subreddits/new.json` 等                                                                                  | 不登录 403，要 OAuth 应用（约 100 次/分钟，未核实） |
-| X、TikTok                          |                                                                                                            | 另查，见 roadmap                                    |
+| 来源                               | 地址                                                                                                       | 情况                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| DuckDuckGo 建议                    | `duckduckgo.com/ac/?q=…&type=list`                                                                         | 200，可以和谷歌建议交叉验证                                          |
+| Hugging Face Spaces、Datasets 热门 | `/api/spaces`、`/api/datasets?sort=trendingScore`                                                          | 200；Spaces 名字杂，要过滤                                           |
+| Wikipedia 每日热门文章             | `wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/YYYY/MM/DD`、`top-per-country/US` | 200，晚一天；要设 User-Agent                                         |
+| Wikipedia 新建词条（实时）         | `stream.wikimedia.org/v2/stream/page-create`（SSE）                                                        | 未核实                                                               |
+| Roblox Explore                     | `apis.roblox.com/explore-api/v1/get-sorts`                                                                 | 200，未公开的接口，随时可能变                                        |
+| Steam 最多人玩                     | `api.steampowered.com/ISteamChartsService/GetMostPlayedGames/v1/`                                          | 200，带上周排名，可以算涨幅                                          |
+| Product Hunt                       | `producthunt.com/feed`                                                                                     | 200，RSS                                                             |
+| GitHub Trending                    | `github.com/trending`                                                                                      | 只有 HTML，要解析                                                    |
+| Reddit                             | `/subreddits/new.json` 等                                                                                  | 不登录 403，要 OAuth 应用（约 100 次/分钟，未核实）                  |
+| YouTube 热门                       | YouTube Data API `videos.list?chart=mostPopular&regionCode=US`                                             | 每次 1 个配额单位，每天免费 10,000；官方；标题里常有游戏、梗和产品名 |
+
+## X 和 TikTok
+
+2026-11-01 调研，价格和接口变动快，接入前再核对一次。
+
+**X**：官方 API 现在按次付费（[价格页](https://docs.x.com/x-api/getting-started/pricing)，页面没有日期）：先充值，每次请求扣费。
+
+- 热门话题 `GET /2/trends/by/woeid/23424977`（美国，`max_trends` 最多 50）每次 0.01 美元，返回话题名和帖子数；每个应用每 15 分钟限 75 次。每 3 小时取一次，一个月约 **2.4 美元**。
+- 帖子数统计 Counts: Recent 每次 0.005 美元，可以给候选词看涨势，每天 20 个约每月 3 美元。
+- 不要用搜索拉帖子正文（100 条 0.5 美元），也不要用要你登录 X 或给 cookie 的工具（违反 X 条款，账号有风险）。第三方转售商（TwitterAPI.io 等）多半靠抓取，现在官方已经一样便宜，没必要。
+- 旧的 Free、Basic、Pro 档位据第三方文章已在 2026 年并入按次付费（未核实）。
+
+**TikTok**：没有适合个人商业开发者的官方趋势接口。
+
+- Research API 只给学术和非营利；Commercial Content API 只有欧盟广告；Display API 只能看登录用户自己的内容。
+- Creative Center 的趋势页要登录，旧的匿名 JSON 接口已返回 40101；不登录时每个分类只看到 3 个话题标签。据 Apify 上的一个抓取器说明，TikTok 在 2026-07-21 关掉了 Creative Center 的接口，换成 TikTok One 的趋势接口（未找到官方说明）。
+- 可用的是 Apify 上的抓取器，例如 [webdata_labs/tiktok-hashtag-trends-scraper](https://apify.com/webdata_labs/tiktok-hashtag-trends-scraper)：每 1,000 行 2 美元，不需要 TikTok 账号，给排名、播放量、帖子数、热度曲线。美国、7 天榜、约 18 个行业，每天跑一次约 54 行，每月约 **3 美元**。榜单按 7 天算，每 3 小时跑（约 26 美元/月）意义不大。
+- 风险：这是抓取未登录的公开页面，条款风险中等（主要由抓取器运营方承担），维护风险高（2026 年接口已改过多次），要对空结果报警。
+- 开源项目很弱：davidteather/TikTok-Api（约 6.7k★，2026-08）要浏览器和 msToken，拿的是普通推荐流，不是趋势；drawrowfly/tiktok-scraper 2023 年后没更新；Creative Center 相关仓库都只有 0 到 1 星。EnsembleData 一类的数据商每月 100 美元起。
+
+**建议**（每月 30 美元以内）：
+
+1. 先接 X 官方热门话题，每 3 小时一次，约 2.4 美元/月；候选词再用 Counts: Recent 看涨势，约 3 美元/月。正规、便宜、词干净。
+2. TikTok 话题标签用上面的 Apify 抓取器，每天一次，约 3 美元/月；只存话题标签，空结果时报警，当作附加来源。
+3. YouTube 热门（免费，官方），部分替代 TikTok 和 Shorts 的信号。
