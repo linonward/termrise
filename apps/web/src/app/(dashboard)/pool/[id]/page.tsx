@@ -7,10 +7,11 @@ import type { TrendCheck } from "@repo/research/pool-trend";
 import { Tag } from "@repo/ui/components/badge";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { BriefPanel } from "@/features/opportunities/brief-panel";
 import { PoolStatusBadge, Reasons } from "@/features/pool/pool-badges";
 import { count, trendSummary, usd } from "@/features/pool/pool-format";
 import { ReviewActions } from "@/features/pool/review-actions";
-import { apiGet } from "@/server/api/api";
+import { apiGet, apiRequest } from "@/server/api/api";
 
 type Detail = PoolKeywordDto & { checks: PoolCheckDto[] };
 type SerpRow = {
@@ -34,6 +35,19 @@ export default async function PoolKeywordPage({
   const { id } = await params;
   const t = await getTranslations("pool");
   const k = await apiGet<Detail>(`/api/pool/keywords/${id}`);
+  // The brief is for keywords worth handing to site-starter.
+  const brief =
+    k.status === "candidate" || k.status === "selected"
+      ? await apiRequest(
+          `/api/pool/keywords/${encodeURIComponent(id)}/brief.md`,
+        ).then(async (r) => ({
+          markdown: r.ok ? await r.text() : "",
+          fileName:
+            /filename="([^"]+)"/.exec(
+              r.headers.get("Content-Disposition") ?? "",
+            )?.[1] ?? "keyword-brief.md",
+        }))
+      : null;
   const trend = trendSummary(k.trend as TrendCheck | null);
   const deep = k.checks.find((c) => c.kind === "deep");
   const serp =
@@ -195,6 +209,20 @@ export default async function PoolKeywordPage({
       )}
 
       <ReviewActions keyword={k} />
+
+      {brief?.markdown && (
+        <section aria-labelledby="brief-title" className="space-y-4">
+          <div className="space-y-1">
+            <h2 id="brief-title" className="font-heading text-xl font-semibold">
+              {t("briefTitle")}
+            </h2>
+            <p className="text-[15px] text-muted-foreground">
+              {t("briefBody")}
+            </p>
+          </div>
+          <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+        </section>
+      )}
 
       <section aria-labelledby="checks-title" className="space-y-3">
         <h2 id="checks-title" className="font-heading text-xl font-semibold">

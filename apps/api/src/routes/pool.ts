@@ -3,6 +3,10 @@ import type { Context } from "hono";
 import { toNewWordDto } from "@repo/research/new-word-dto";
 import { createNewWords } from "@repo/research/new-words";
 import {
+  buildKeywordBrief,
+  keywordBriefFileName,
+} from "@repo/research/pool-brief";
+import {
   toPoolCheckDto,
   toPoolKeywordDto,
   toPoolRoundDto,
@@ -36,6 +40,18 @@ export const poolRoutes = userRoutes()
     return c.json({
       ...toPoolKeywordDto(keyword),
       checks: checks.map(toPoolCheckDto),
+    });
+  })
+  .get("/keywords/:id/brief.md", async (c) => {
+    const { keyword, checks } = await pool(c).get(c.req.param("id"));
+    const markdown = buildKeywordBrief(
+      keyword,
+      checks,
+      new Date().toISOString().slice(0, 10),
+    );
+    return c.body(markdown, 200, {
+      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${keywordBriefFileName(keyword)}"`,
     });
   })
   .post("/keywords/:id/review", rateLimit("research"), async (c) =>

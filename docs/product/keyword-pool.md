@@ -59,6 +59,10 @@
 
 Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的轮次改为失败；`POOL_DAILY_ENABLED=1` 时，UTC `POOL_DAILY_HOUR_UTC` 点（默认 0，上海 8 点）以后排队当天的一轮（每个 UTC 日一次）；然后领取一轮排队的轮次并运行。手动轮次由页面排队（`POST /api/pool/rounds`）。每日预算 `POOL_DAILY_DATA_BUDGET_USD` 默认 0.5 美元；每月硬限额 `MONTHLY_DATA_BUDGET_USD` 仍然有效，打开每日一轮时要相应提高（每天 0.5 美元约每月 15 美元）。
 
+## Brief
+
+候选词和选定的词，在详情页可以复制或下载**选词简报**（`GET /api/pool/keywords/:id/brief.md`，`pool-brief.ts`），存为 site-starter 新网站的 `docs/keyword-brief.md`。格式沿用 keyword-lab SOP 的附录 D：结论、数据（搜索量、KD、CPC、变种数、趋势和基线、强对手数、内页数）、合并的说法、联想词、合规和变现、前 10 名、AI 改造点、交给建站时要注意。简报只用已保存的数据：没查过的项写"—"或"待确认"，并列在"交给建站时要注意"里。
+
 ## New Words
 
 新词：刚开始在 Google 上冒头的查询，参考 Web.Cafe 的新词发现。规则版本 `newword-v1`（`packages/research/src/new-word-rules.ts`），阈值是初版，看过真实结果后再调。

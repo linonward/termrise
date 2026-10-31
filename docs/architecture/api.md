@@ -53,6 +53,8 @@ POST /api/pool/keywords（{ phrases, source? }：加入新词，状态 new，最
 
 GET /api/pool/keywords/:id（词与检查记录（新的在前，最多 100 条）；不存在时 404 POOL_KEYWORD_NOT_FOUND）
 
+GET /api/pool/keywords/:id/brief.md（选词简报，Markdown 附件 `keyword-brief-<词>.md`；见 keyword-pool.md 的 Brief）
+
 POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }（只有 candidate 可以选定）、{ action: "drop", note? }、{ action: "exclude", note? }、{ action: "restore" }（excluded、dropped、failed 改回 queued）、{ action: "answer", monetization?, compliance?, aiAngle? }（monetization、compliance 为 { ok, note }，ok 为 false 时词改为 failed）；状态不允许时 409 POOL_REVIEW_INVALID）
 
 GET /api/pool/rounds（最近 30 轮，含每轮的花费 spentMicros）
@@ -60,6 +62,14 @@ GET /api/pool/rounds（最近 30 轮，含每轮的花费 spentMicros）
 POST /api/pool/rounds（{ source? }：source 为 `suffix:<词>` 或 `ranked:<网站>`，省略时由这一轮选词源；排队一轮手动选词，201；已有一轮在排队或运行时返回它，200）
 
 GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 POOL_ROUND_NOT_FOUND）
+
+GET /api/pool/new-words（新词，每页 50 个，新的在前；?verdict=worth | try | skip，?category=，?hidden=1 只看隐藏的；每个词带根词和内页候选数）
+
+POST /api/pool/new-words/rounds（排队一轮新词，201；已有一轮在排队或运行时返回它，200）
+
+GET /api/pool/new-words/:id（新词与它的长尾 children；不存在时 404 NEW_WORD_NOT_FOUND）
+
+PUT / DELETE /api/pool/new-words/:id/hide（隐藏 / 重新显示）
 
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
 

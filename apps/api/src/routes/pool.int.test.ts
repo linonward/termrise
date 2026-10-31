@@ -159,3 +159,16 @@ it("lists new words, shows one with its long tails, and hides it", async () => {
     201,
   );
 });
+
+it("exports a keyword brief as Markdown", async () => {
+  const added = await send("POST", "/api/pool/keywords", {
+    phrases: ["cipher decoder"],
+  });
+  const [keyword] = (await added.json()).added;
+  const res = await send("GET", `/api/pool/keywords/${keyword.id}/brief.md`);
+  expect(res.status).toBe(200);
+  expect(res.headers.get("Content-Disposition")).toContain(
+    "keyword-brief-cipher-decoder.md",
+  );
+  expect(await res.text()).toContain("# 选词简报：cipher decoder");
+});

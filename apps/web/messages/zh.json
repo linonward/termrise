@@ -990,7 +990,9 @@
       "evergreen": "长青词",
       "new": "新词"
     },
-    "tabs": "词库分类"
+    "tabs": "词库分类",
+    "briefTitle": "选词简报",
+    "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。"
   },
   "newWords": {
     "metaTitle": "新词",
