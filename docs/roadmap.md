@@ -99,13 +99,23 @@
 - 2026-10-21：S43 起有本服务的每月硬限额（全部项目合计，数据 10 美元、AI 2 美元，可用环境变量修改），在每个项目的预算之外。达到后到下个月 1 日（UTC）才能再做付费调用。
 - 2026-10-21：视觉风格改为「研究笔记」（S44、S45）：暖纸色底、墨黑文字、衬线标题、等宽数字、细线分隔；品牌色由紫罗兰 `#6D4AFF` 改为朱红 `#D4401A`（表示上升；白字 4.62:1，满足 AA）。标题字体用 Source Serif 4，不用 Instrument Serif 或 Newsreader（常见的默认选择）；正文仍用 Inter。朱红与 `destructive` 同属红色系，品牌色不用于表示错误。
 - 2026-10-21：产品只供维护者自己使用，界面只用中文（S47），不再支持英文界面。研究的市场语言（英语关键词）不变。
+- 2026-10-31：keyword-lab（维护者的选词 SOP 和脚本，私有仓库 `linonward/keyword-lab`）合并进 Termrise。新增「词库」模块，和研究项目、机会评分并列：研究项目找产品机会，词库为新工具站选一个长青主词。词库的规则 `tool-site-v1` 用硬性门槛（月搜索量 ≥ 5,000、KD ≤ 29、CPC ≥ 0.1、前 10 中强对手 ≤ 3、趋势和种子词基线比），不改现有的 6 维评分。需要人判断的几项（确认自动排除的词、变现、合规、AI 改造点）由维护者在页面上确认，不用 AI。合并期间，keyword-lab 用本机 launchd 每天跑一轮（DataForSEO 每天 0.5 美元），S56 时导入。顺序：
+  - S48 SERP 的真实域名：Google 把自然结果包成 `google.com/goto` 跳转，DataForSEO 返回的 `url` 和 `domain` 都是 google.com，真实网站在 `breadcrumb` 中。
+  - S49 Labs 扩词：`keyword_suggestions` 支持搜索量区间（大种子词不加上限时，前 1,000 个全是头部大词）；数据完全相同的说法合并为一组（DataForSEO 给它们相同的搜索量、CPC 和趋势，只有 KD 不同）。
+  - S50 搜索趋势：DataForSEO 的 Google Trends（美国、5 年），和种子词基线比；F02 增加按搜索趋势的版本。
+  - S51 规则 `tool-site-v1`。
+  - S52 词库页 `/pool`：状态、淘汰原因、下次复查日期，每次检查追加一条记录。
+  - S53 词源：对手已有排名的词（`ranked_keywords`）、后缀词清单轮换。
+  - S54 每日出词：Worker 每天跑一轮，有每日数据预算，页面显示日报。
+  - S55 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
+  - S56 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
 
 ## Open Questions
 
 - S38 后的真实运行（2026-10-21）：「screen to sign」组的 SERP 来自竞品的登录词 `screen cloud login`（导航类，1900），建站建议为 `new_site`。是否让导航类关键词不能代表组的 SERP 竞争，待决定。
 - Production 仍要求 `PAYMENT_PROVIDER=waffo` 和 Waffo Key（Fake 在 Production 被禁止）。部署 Production 前决定：配置 Waffo Key，还是让收费模块可以关闭。
 - S33（2026-10-21）真实运行的问题，在 S34 之前决定怎么处理：
-  - 低搜索量的种子词，Google Ads `keywords_for_keywords` 只返回种子词本身（`local llm speed` 10、`llm hardware calculator` 30），每次 $0.09，没有扩词。是否补用 Labs 的 `keyword_suggestions` / `related_keywords`（2026-10-10 决定暂不使用）？
+  - ~~低搜索量的种子词，Google Ads `keywords_for_keywords` 只返回种子词本身，没有扩词。是否补用 Labs 的 `keyword_suggestions`？~~ 2026-10-31 决定在 S49 补用：keyword-lab 用它跑过两轮，按搜索量区间拉词有效。
   - Google Trends Trending Now 的条目大多是体育、人名、新闻（如 `michael jordan`、`ncis cast`），不是产品需求。是否在 Radar 中按类别过滤或降低排序？
 
 ### 暂缓
