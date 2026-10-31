@@ -136,6 +136,15 @@ it("queues one daily round per UTC day, from the set hour", async () => {
   expect(await r.scheduleDaily(1)).not.toBeNull();
 });
 
+it("queues the scheduled round once a week when told to", async () => {
+  const r = rounds(stub());
+  expect(await r.scheduleDaily(0, 7)).not.toBeNull();
+  clock = new Date("2026-11-07T08:00:00Z");
+  expect(await r.scheduleDaily(0, 7)).toBeNull();
+  clock = new Date("2026-11-08T08:00:00Z");
+  expect(await r.scheduleDaily(0, 7)).not.toBeNull();
+});
+
 it("takes the first unused suffix, then the next", async () => {
   const r = rounds(stub());
   expect(await r.nextSource()).toBe(`suffix:${POOL_SUFFIXES[0]}`);

@@ -12,7 +12,7 @@ const rounds = (claimed: { id: string } | null) => ({
 it("queues the daily round only when enabled, then runs one claimed round", async () => {
   const on = rounds({ id: "r1" });
   await poolProcessors({ rounds: on, dailyHourUtc: 0 })["pool.scan"]();
-  expect(on.scheduleDaily).toHaveBeenCalledWith(0);
+  expect(on.scheduleDaily).toHaveBeenCalledWith(0, 1);
   expect(on.run).toHaveBeenCalledTimes(1);
 
   const off = rounds(null);

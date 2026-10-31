@@ -57,7 +57,7 @@
 
 付费调用先查缓存（`provider_cache`），再经词库的每日预算。预算不够时停止这一轮：已做的保留，没查的词保持 `queued`，状态为 `partial`；一个付费调用都没做成时为 `budget_exhausted`。轮次运行超过 30 分钟视为 Worker 中断，改为 `failed`。
 
-Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的轮次改为失败；`POOL_DAILY_ENABLED=1` 时，UTC `POOL_DAILY_HOUR_UTC` 点（默认 0，上海 8 点）以后排队当天的一轮（每个 UTC 日一次）；然后领取一轮排队的轮次并运行。手动轮次由页面排队（`POST /api/pool/rounds`）。每日预算 `POOL_DAILY_DATA_BUDGET_USD` 默认 0.5 美元；每月硬限额 `MONTHLY_DATA_BUDGET_USD` 仍然有效，打开每日一轮时要相应提高（每天 0.5 美元约每月 15 美元）。
+Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的轮次改为失败；`POOL_DAILY_ENABLED=1` 时，UTC `POOL_DAILY_HOUR_UTC` 点（默认 0，上海 8 点）以后排队一轮：每 `POOL_ROUND_EVERY_DAYS` 个 UTC 日一次（默认 1；长青词变化慢，维护者 2026-10-31 定为 7，每周一次）；然后领取一轮排队的轮次并运行。手动轮次由页面排队（`POST /api/pool/rounds`）。每日预算 `POOL_DAILY_DATA_BUDGET_USD` 默认 0.5 美元；每月硬限额 `MONTHLY_DATA_BUDGET_USD` 仍然有效，打开每日一轮时要相应提高（每天 0.5 美元约每月 15 美元）。
 
 ## Brief
 

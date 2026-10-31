@@ -165,12 +165,19 @@ export function createPoolRounds(deps: {
   const pool = createKeywordPool({ database, now });
   const cache = createProviderCache({ database, now });
 
-  /** Queues today's daily round once (UTC day), at or after the given hour. */
-  async function scheduleDaily(hourUtc: number) {
+  /**
+   * Queues the scheduled round once every `everyDays` UTC days, at or after the given
+   * hour: 1 is daily, 7 weekly.
+   */
+  async function scheduleDaily(hourUtc: number, everyDays = 1) {
     const at = now();
     if (at.getUTCHours() < hourUtc) return null;
     const dayStart = new Date(
       Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+    );
+    // The window of this schedule: the last `everyDays` UTC days, today included.
+    const windowStart = new Date(
+      dayStart.getTime() - (everyDays - 1) * 86_400_000,
     );
     return database.transaction(async (tx) => {
       await tx.execute(
@@ -182,7 +189,7 @@ export function createPoolRounds(deps: {
         .where(
           and(
             eq(poolRounds.kind, "daily"),
-            sql`${poolRounds.createdAt} >= ${dayStart}`,
+            sql`${poolRounds.createdAt} >= ${windowStart}`,
           ),
         )
         .limit(1);

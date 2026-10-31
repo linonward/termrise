@@ -13,6 +13,8 @@ export function poolProcessors(deps: {
   rounds?: Rounds;
   /** The UTC hour from which today's daily round is queued; none when off. */
   dailyHourUtc?: number;
+  /** Days between scheduled evergreen rounds. */
+  everyDays?: number;
   newWords?: Pick<
     ReturnType<typeof createNewWords>,
     "scheduleDaily" | "failStale" | "claim" | "run"
@@ -27,7 +29,7 @@ export function poolProcessors(deps: {
       if (stale.length > 0)
         logger.warn("pool.stale_rounds_failed", { count: stale.length });
       if (deps.dailyHourUtc !== undefined)
-        await deps.rounds.scheduleDaily(deps.dailyHourUtc);
+        await deps.rounds.scheduleDaily(deps.dailyHourUtc, deps.everyDays ?? 1);
       const round = await deps.rounds.claim();
       if (round) {
         const done = await deps.rounds.run(round);

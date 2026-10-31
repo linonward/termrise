@@ -107,6 +107,7 @@ async function main() {
           radar,
           rounds,
           dailyHourUtc,
+          everyDays: env.POOL_ROUND_EVERY_DAYS,
           newWords,
           newWordsHourUtc,
         }),
