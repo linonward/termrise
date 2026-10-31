@@ -52,7 +52,7 @@ export function buildNewWordBrief(
     "",
     "| 项 | 值 |",
     "| --- | --- |",
-    `| 热度（GPTs 倍数） | ${w.ratio == null ? "—" : `×${w.ratio.toFixed(3)}`}（${w.ratioDay ?? "—"}） |`,
+    `| 热度（GPTs 倍数，近 7 天平均） | ${w.ratio == null ? "—" : `×${w.ratio.toFixed(3)}`}（截至 ${w.ratioDay ?? "—"}） |`,
     `| 发现于 | ${w.firstSeenAt.toISOString().slice(0, 10)} |`,
     `| 起量日 / 峰值日 | ${w.burstDay ?? "—"} / ${w.peakDay ?? "—"} |`,
     `| 月搜索量（美国） | ${num(w.searchVolume)} |`,

@@ -35,7 +35,6 @@ import type {
   KeywordProvider,
   Market,
   SerpItem,
-  TrendComparison,
 } from "./keyword-provider";
 import { newWordAnalysisSchema, type NewWordAnalyst } from "./new-word-analyst";
 import {
@@ -46,13 +45,17 @@ import {
   serpMix,
 } from "./new-word-origin";
 import {
+  type CurveFacts,
   curveFacts,
   dedicatedPages,
   NEW_SITE_DAYS,
   NEW_WORD_RULES,
   newWordVerdict,
+  passesScreen,
   REFERENCE_TERM,
+  splitComparison,
 } from "./new-word-rules";
+import { autoExclude } from "./pool-rules";
 import { normalizePhrase, type PoolRound } from "./pool-service";
 import { createProviderCache } from "./provider-cache";
 
@@ -81,6 +84,10 @@ const SERP_DEPTH = 20;
 export const ONE_KEYWORD_RESERVE = 20_000;
 const DAY_MS = 86_400_000;
 const MAX_PHRASE = 100;
+/** Words measured per Trends comparison: four and gpts, the most it takes. */
+export const SCREEN_BATCH = 4;
+/** Words screened per round by default: 10 comparisons, about $0.11. */
+export const DEFAULT_SCREENS = 40;
 /** Words whose origin is traced per round: worth and try ones, newest checks first. */
 export const ORIGINS_PER_ROUND = 8;
 
@@ -89,6 +96,9 @@ export type NewWordsReport = {
   roots: { root: string; rising: number }[];
   added: number;
   checked: { phrase: string; verdict: string | null; ratio: number | null }[];
+  /** Words measured on the curve (step 1) and checked in depth (step 2); absent before S68. */
+  screened?: number;
+  deep?: number;
   budgetStopped: boolean;
   failures: string[];
   /** Words whose origin was traced; absent in reports from before S67. */
@@ -118,7 +128,9 @@ export function createNewWords(deps: {
   rdap?: RdapClient;
   budget?: Budget;
   roots?: string[];
-  /** Words measured per day. */
+  /** Words screened per day (step 1, cheap). */
+  screensPerDay?: number;
+  /** Words deep-checked per day (step 2: search results and volume). */
   checksPerDay?: number;
   now?: () => Date;
 }) {
@@ -337,18 +349,95 @@ export function createNewWords(deps: {
     return parsed.success ? parsed.data : null;
   }
 
-  async function check(round: PoolRound, word: NewWord) {
+  const yes = (b: boolean) => (b ? "yes" : "no") as "yes" | "no";
+
+  // Step 1, the screen: one Trends comparison measures four words against gpts over 90
+  // days ($0.011 for four). A word that is too cold, falling or excluded stops here.
+  async function screen(round: PoolRound, words: NewWord[]) {
     const provider = providerOf();
     const compare = provider.trendCompare?.bind(provider);
-    const comparison: TrendComparison = compare
-      ? await paid(
-          round,
-          "compare",
-          { phrases: [word.phrase, REFERENCE_TERM], range: "past_30_days" },
-          () => compare([word.phrase, REFERENCE_TERM], US, "past_30_days"),
-        )
-      : [];
-    const facts = curveFacts(comparison);
+    const facts = new Map<string, CurveFacts>();
+    const measure = async (batch: NewWord[]) => {
+      const phrases = [...batch.map((w) => w.phrase), REFERENCE_TERM];
+      return compare
+        ? await paid(round, "compare", { phrases, range: "past_90_days" }, () =>
+            compare(phrases, US, "past_90_days"),
+          )
+        : [];
+    };
+    for (let i = 0; i < words.length; i += SCREEN_BATCH) {
+      const batch = words.slice(i, i + SCREEN_BATCH);
+      const comparison = await measure(batch);
+      const ref = batch.length;
+      const refPeak = Math.max(0, ...comparison.map((p) => p.values[ref] ?? 0));
+      batch.forEach((w, k) =>
+        facts.set(w.id, curveFacts(splitComparison(comparison, k, ref))),
+      );
+      // A word louder than gpts sets the scale and can round the others down to 0:
+      // measure those alone.
+      const loud = batch.some(
+        (_, k) =>
+          Math.max(0, ...comparison.map((p) => p.values[k] ?? 0)) > refPeak,
+      );
+      if (!loud || batch.length === 1) continue;
+      for (const w of batch.filter((w) => facts.get(w.id)!.peakDay === null))
+        facts.set(w.id, curveFacts(await measure([w])));
+    }
+    return facts;
+  }
+
+  /** Saves the curve facts of a screen; a word that does not pass is judged here. */
+  async function saveScreen(word: NewWord, facts: CurveFacts, passed: boolean) {
+    const checks = word.checks + 1;
+    const verdict = passed
+      ? null
+      : newWordVerdict({
+          phrase: word.phrase,
+          ratio: facts.ratio,
+          dedicated: null,
+          rising: facts.rising,
+          isNew: facts.isNew,
+          spike: facts.spike,
+        });
+    await database
+      .update(newWords)
+      .set({
+        curve: facts.days,
+        // Fixed at the first measurement: 10% of a still-growing peak moves later each day.
+        burstDay: word.burstDay ?? facts.burstDay,
+        peakDay: facts.peakDay,
+        firstDay: facts.firstDay,
+        growth7: facts.growth7,
+        spike: yes(facts.spike),
+        isNew: yes(facts.isNew),
+        fromZero: yes(facts.fromZero),
+        rising: yes(facts.rising),
+        preBurstShare: facts.preBurstShare,
+        ratio: facts.ratio,
+        ratioDay: facts.ratioDay,
+        ...(verdict && {
+          verdict: verdict.verdict,
+          buildAs: verdict.buildAs,
+          reasons: verdict.reasons,
+          rules: NEW_WORD_RULES,
+        }),
+        checkedAt: now(),
+        checks,
+        // Measured daily for a week while it rises; a word that stopped is left alone.
+        nextCheckAt:
+          checks < MAX_CHECKS && facts.rising
+            ? new Date(now().getTime() + DAY_MS)
+            : null,
+      })
+      .where(eq(newWords.id, word.id));
+    return verdict?.verdict ?? null;
+  }
+
+  // Step 2, the deep check of a word that passed the screen: the top 20, its search
+  // volume, new sites on page one and the explanation. Cached for days, so a recheck of
+  // the same word costs little.
+  async function deepCheck(round: PoolRound, word: NewWord, facts: CurveFacts) {
+    const provider = providerOf();
     const serp = await paid(
       round,
       "serp",
@@ -374,26 +463,15 @@ export function createNewWords(deps: {
       dedicated,
       rising: facts.rising,
       isNew: facts.isNew,
+      spike: facts.spike,
     });
     const newSites = await newSitesOf(serp);
     const analysis = word.about
       ? null
       : await analyse(round, word, serp, verdict.buildAs);
-    const checks = word.checks + 1;
-    const yes = (b: boolean) => (b ? "yes" : "no") as "yes" | "no";
     await database
       .update(newWords)
       .set({
-        curve: facts.days,
-        // Fixed at the first measurement: 10% of a still-growing peak moves later each day.
-        burstDay: word.burstDay ?? facts.burstDay,
-        peakDay: facts.peakDay,
-        isNew: yes(facts.isNew),
-        fromZero: yes(facts.fromZero),
-        rising: yes(facts.rising),
-        preBurstShare: facts.preBurstShare,
-        ratio: facts.ratio,
-        ratioDay: facts.ratioDay,
         searchVolume: metrics?.searchVolume ?? null,
         keywordDifficulty: metrics?.keywordDifficulty ?? null,
         cpcMicros: metrics?.cpcMicros ?? null,
@@ -410,20 +488,95 @@ export function createNewWords(deps: {
         reasons: verdict.reasons,
         rules: NEW_WORD_RULES,
         ...(analysis && analysis),
-        checkedAt: now(),
-        checks,
-        // Measured daily for a week while it rises; a word that stopped is left alone.
-        nextCheckAt:
-          checks < MAX_CHECKS && facts.rising
-            ? new Date(now().getTime() + DAY_MS)
-            : null,
       })
       .where(eq(newWords.id, word.id));
-    return {
-      phrase: word.phrase,
-      verdict: verdict.verdict,
-      ratio: facts.ratio,
-    };
+    return verdict.verdict;
+  }
+
+  /** Screens the due words, then deep-checks the warmest that passed. */
+  async function measure(round: PoolRound, report: NewWordsReport) {
+    const due = await database
+      .select()
+      .from(newWords)
+      .where(and(isNull(newWords.hiddenAt), lte(newWords.nextCheckAt, now())))
+      // Never measured first, newest first; then the rest by when they are due.
+      .orderBy(
+        sql`${newWords.checkedAt} is not null`,
+        desc(newWords.firstSeenAt),
+        asc(newWords.nextCheckAt),
+      )
+      .limit(deps.screensPerDay ?? DEFAULT_SCREENS);
+    // Excluded words (downloads, shopping, offline) need no data at all.
+    const excluded = due.filter((w) => autoExclude(w.phrase));
+    for (const word of excluded) {
+      const verdict = newWordVerdict({
+        phrase: word.phrase,
+        ratio: null,
+        dedicated: null,
+        rising: false,
+        isNew: false,
+      });
+      await database
+        .update(newWords)
+        .set({
+          verdict: verdict.verdict,
+          buildAs: null,
+          reasons: verdict.reasons,
+          rules: NEW_WORD_RULES,
+          checkedAt: now(),
+          checks: word.checks + 1,
+          nextCheckAt: null,
+        })
+        .where(eq(newWords.id, word.id));
+      report.checked.push({
+        phrase: word.phrase,
+        verdict: "skip",
+        ratio: null,
+      });
+    }
+    const toScreen = due.filter((w) => !autoExclude(w.phrase));
+    const facts = await screen(round, toScreen);
+    const passed: NewWord[] = [];
+    for (const word of toScreen) {
+      const f = facts.get(word.id)!;
+      const ok = passesScreen({
+        phrase: word.phrase,
+        ratio: f.ratio,
+        rising: f.rising,
+      });
+      const verdict = await saveScreen(word, f, ok);
+      report.screened = (report.screened ?? 0) + 1;
+      if (ok) passed.push(word);
+      else
+        report.checked.push({ phrase: word.phrase, verdict, ratio: f.ratio });
+    }
+    // The warmest first: the deep checks are the costly part.
+    passed.sort(
+      (a, b) => (facts.get(b.id)!.ratio ?? 0) - (facts.get(a.id)!.ratio ?? 0),
+    );
+    for (const word of passed.slice(0, deps.checksPerDay ?? 12)) {
+      const f = facts.get(word.id)!;
+      try {
+        const verdict = await deepCheck(round, word, f);
+        report.deep = (report.deep ?? 0) + 1;
+        report.checked.push({ phrase: word.phrase, verdict, ratio: f.ratio });
+      } catch (error) {
+        if (error instanceof BudgetStop) throw error;
+        logger.warn("newwords.check_failed", {
+          roundId: round.id,
+          phrase: word.phrase,
+          error,
+        });
+        report.failures.push(word.phrase);
+      }
+    }
+    // Passed but over today's deep checks: measured again tomorrow, deep-checked then.
+    const waiting = passed.slice(deps.checksPerDay ?? 12).map((w) => w.id);
+    if (waiting.length)
+      await database
+        .update(newWords)
+        .set({ nextCheckAt: new Date(now().getTime() + DAY_MS) })
+        .where(inArray(newWords.id, waiting));
   }
 
   // Why a worth or try word rose: search the free sources around its burst, then let the
@@ -512,34 +665,13 @@ export function createNewWords(deps: {
       checked: [],
       budgetStopped: false,
       failures: [],
+      screened: 0,
+      deep: 0,
       origins: 0,
     };
     try {
       await discover(round, report);
-      const due = await database
-        .select()
-        .from(newWords)
-        .where(and(isNull(newWords.hiddenAt), lte(newWords.nextCheckAt, now())))
-        // Never checked first, newest first; then the rest by when they are due.
-        .orderBy(
-          sql`${newWords.checkedAt} is not null`,
-          desc(newWords.firstSeenAt),
-          asc(newWords.nextCheckAt),
-        )
-        .limit(deps.checksPerDay ?? 12);
-      for (const word of due) {
-        try {
-          report.checked.push(await check(round, word));
-        } catch (error) {
-          if (error instanceof BudgetStop) throw error;
-          logger.warn("newwords.check_failed", {
-            roundId: round.id,
-            phrase: word.phrase,
-            error,
-          });
-          report.failures.push(word.phrase);
-        }
-      }
+      await measure(round, report);
       await traceOrigins(round, report);
     } catch (error) {
       if (!(error instanceof BudgetStop)) {

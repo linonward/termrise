@@ -24,7 +24,10 @@ export async function BudgetUsage({ status }: { status: ProviderStatusDto }) {
       name: t("newWords"),
       schedule: b
         ? b.newWords.enabled
-          ? t("newWordsOn", { checks: b.newWords.checks })
+          ? t("newWordsOn", {
+              screens: b.newWords.screens ?? b.newWords.checks,
+              checks: b.newWords.checks,
+            })
           : t("off")
         : "—",
       today: b

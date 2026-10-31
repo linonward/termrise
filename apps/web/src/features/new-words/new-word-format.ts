@@ -48,3 +48,7 @@ export function linePoints(values: number[], width: number, height: number) {
     Math.round((height - (v / peak) * height) * 10) / 10,
   ]);
 }
+
+/** The 7-day growth as a signed percent, e.g. 34.5 → "+3,450%". */
+export const growthPct = (growth: number) =>
+  `${growth >= 0 ? "+" : ""}${Math.round(growth * 100).toLocaleString("en-US")}%`;

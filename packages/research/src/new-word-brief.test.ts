@@ -28,7 +28,9 @@ it("writes a new word's brief from saved data", () => {
   const md = buildNewWordBrief(word, [{ root: "checker" } as never], []);
   expect(md).toContain("# 选词简报：store stock checker（新词）");
   expect(md).toContain("值得做，新站首页");
-  expect(md).toContain("| 热度（GPTs 倍数） | ×0.108（2026-10-30） |");
+  expect(md).toContain(
+    "| 热度（GPTs 倍数，近 7 天平均） | ×0.108（截至 2026-10-30） |",
+  );
   expect(md).toContain("- 用户想要什么：—");
   expect(md).toContain("1. Check availability（apple.com）");
   expect(newWordBriefFileName(word)).toBe(

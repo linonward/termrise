@@ -13,6 +13,7 @@ import {
 } from "@/features/new-words/new-word-badges";
 import {
   discoveryLag,
+  growthPct,
   lagMessage,
   times,
 } from "@/features/new-words/new-word-format";
@@ -59,21 +60,24 @@ export default async function NewWordPage({
       times(w.ratio),
       w.ratioDay ? t("measuredOn", { date: w.ratioDay }) : null,
     ],
-    [t("firstSeen"), w.firstSeenAt.slice(0, 10), lagText],
+    [t("firstDay"), w.firstDay ?? "—", null],
     [t("burstDay"), w.burstDay ?? "—", null],
+    [t("firstSeen"), w.firstSeenAt.slice(0, 10), lagText],
     [t("peakDay"), w.peakDay ?? "—", null],
     [
       t("last7"),
       w.fromZero
         ? t("fromZeroShort")
-        : w.rising
-          ? t("risingShort")
-          : t("flatShort"),
-      null,
+        : w.growth7 != null
+          ? growthPct(w.growth7)
+          : w.rising
+            ? t("risingShort")
+            : t("flatShort"),
+      w.spike ? t("spike") : w.rising ? t("risingShort") : t("flatShort"),
     ],
     [t("innerCandidates"), t("count", { n: w.innerCandidates }), null],
   ];
-  const trendsUrl = `https://trends.google.com/trends/explore?date=today%201-m&geo=US&q=${encodeURIComponent(w.phrase)},gpts`;
+  const trendsUrl = `https://trends.google.com/trends/explore?date=today%203-m&geo=US&q=${encodeURIComponent(w.phrase)},gpts`;
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-10 px-5 py-8 md:py-12">

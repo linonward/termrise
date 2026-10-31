@@ -731,7 +731,7 @@
       "newWords": "新词",
       "evergreen": "长青词",
       "research": "研究项目",
-      "newWordsOn": "每天一轮，复核 {checks} 个",
+      "newWordsOn": "每天一轮，初筛 {screens} 个，深查 {checks} 个",
       "platform": "平台站",
       "platformOn": "每天一轮，查 {batch} 个子站",
       "daily": "每天一轮",
@@ -1078,12 +1078,13 @@
       "rising": "上升中",
       "falling": "已经不再上升",
       "new_word": "起量前几乎没有搜索，按新词算",
-      "excluded": "不是网页工具或不合规（线下服务、购物或下载别人的内容），不做"
+      "excluded": "不是网页工具或不合规（线下服务、购物或下载别人的内容），不做",
+      "spike": "近 7 天的量集中在一天，是单日尖峰，最多做内页"
     },
     "breadcrumb": "位置",
     "home": "首页",
     "heatFull": "热度（GPTs 倍数）",
-    "measuredOn": "{date} 量的",
+    "measuredOn": "近 7 天平均，截至 {date}",
     "firstSeen": "发现于",
     "burstDay": "起量日",
     "peakDay": "峰值日",
@@ -1158,15 +1159,19 @@
     },
     "found": "{date} 发现",
     "lagShort": {
-      "late": "晚 {days} 天发现",
-      "same": "起量当天发现",
-      "early": "起量前 {days} 天发现"
+      "late": "晚 {days} 天",
+      "same": "起量当天",
+      "early": "早 {days} 天"
     },
     "lagFull": {
       "late": "比起量晚 {days} 天",
       "same": "起量当天",
       "early": "比起量早 {days} 天"
-    }
+    },
+    "appeared": "{date} 出现",
+    "firstDay": "第一次有量",
+    "growth": "自身近 7 天 {pct}",
+    "spike": "单日尖峰"
   },
   "research": {
     "metaTitle": "研究",

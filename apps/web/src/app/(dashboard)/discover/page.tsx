@@ -16,6 +16,7 @@ import {
 } from "@/features/new-words/new-word-badges";
 import {
   discoveryLag,
+  growthPct,
   lagMessage,
   monthDay,
   times,
@@ -147,16 +148,23 @@ export default async function NewWordsPage({
                   <WordTags word={w} />
                 </div>
                 <p className="text-[13px] text-muted-foreground">
-                  {t("found", { date: monthDay(w.firstSeenAt) })}
-                  {w.burstDay &&
-                    ` · ${t("burst", { date: monthDay(w.burstDay) })}`}
-                  {(() => {
-                    const lag = discoveryLag(w.firstSeenAt, w.burstDay);
-                    if (lag === null) return null;
-                    const m = lagMessage(lag);
-                    return `（${t(`lagShort.${m.key}`, { days: m.days })}）`;
-                  })()}
-                  {w.fromZero && ` · ${t("fromZero")}`}
+                  {[
+                    w.firstDay && t("appeared", { date: monthDay(w.firstDay) }),
+                    w.burstDay && t("burst", { date: monthDay(w.burstDay) }),
+                    `${t("found", { date: monthDay(w.firstSeenAt) })}${(() => {
+                      const lag = discoveryLag(w.firstSeenAt, w.burstDay);
+                      if (lag === null) return "";
+                      const m = lagMessage(lag);
+                      return `（${t(`lagShort.${m.key}`, { days: m.days })}）`;
+                    })()}`,
+                    w.fromZero
+                      ? t("fromZero")
+                      : w.growth7 != null &&
+                        t("growth", { pct: growthPct(w.growth7) }),
+                    w.spike && t("spike"),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
                 {w.about && <p className="text-[15px]">{w.about}</p>}
                 {w.origin?.summary && (

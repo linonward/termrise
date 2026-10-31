@@ -124,7 +124,7 @@ export interface KeywordProvider {
   trendCompare?(
     phrases: string[],
     market: Market,
-    range: "past_7_days" | "past_30_days",
+    range: "past_7_days" | "past_30_days" | "past_90_days",
   ): Promise<Charged<TrendComparison>>;
   /** Queries rising under a root word in the past 7 days. */
   risingQueries?(root: string, market: Market): Promise<Charged<RisingQuery[]>>;

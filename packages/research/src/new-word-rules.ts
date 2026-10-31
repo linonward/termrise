@@ -5,7 +5,8 @@ import type { TrendComparison } from "./keyword-provider";
 import { autoExclude } from "./pool-rules";
 import { isDedicated } from "./serp-competition";
 
-export const NEW_WORD_RULES = "newword-v1";
+// v2 (S68): heat is the last 7 days' average; a one-day spike is at most worth a try.
+export const NEW_WORD_RULES = "newword-v2";
 /** The reference term: a word's heat is its search interest as a multiple of this one's. */
 export const REFERENCE_TERM = "gpts";
 /** Heat at or above this, with at most WORTH_MAX_DEDICATED dedicated pages: worth a new site. */
@@ -18,6 +19,8 @@ export const TRY_MAX_DEDICATED = 5;
 export const NEW_SHARE = 0.01;
 /** The burst: the first day at this share of the peak. */
 export const BURST_SHARE = 0.1;
+/** A spike: one day holds more than this share of the last 7 days' interest. */
+export const SPIKE_SHARE = 0.6;
 /** A site registered this recently is a new site. */
 export const NEW_SITE_DAYS = 365;
 
@@ -36,6 +39,7 @@ export type VerdictReason = {
     | "rising"
     | "falling"
     | "new_word"
+    | "spike"
     | "excluded";
   value?: number;
 };
@@ -45,13 +49,18 @@ export type CurveFacts = {
   days: { day: string; value: number }[];
   peakDay: string | null;
   burstDay: string | null;
+  /** The first day with any interest in the curve (90 days): when it appeared. */
+  firstDay: string | null;
+  /** The last 7 days' interest over the 7 before, minus 1; null when those were 0. */
+  growth7: number | null;
+  spike: boolean;
   /** Mean before the burst over the peak; under NEW_SHARE the word is new. */
   preBurstShare: number | null;
   isNew: boolean;
   /** The last 7 days start from (almost) nothing. */
   fromZero: boolean;
   rising: boolean;
-  /** Interest over the reference's on the latest day the reference has data. */
+  /** Interest over the reference's, both summed over the last 7 days with reference data. */
   ratio: number | null;
   ratioDay: string | null;
 };
@@ -74,6 +83,9 @@ export function curveFacts(comparison: TrendComparison): CurveFacts {
     days,
     peakDay: null,
     burstDay: null,
+    firstDay: null,
+    growth7: null,
+    spike: false,
     preBurstShare: null,
     isNew: false,
     fromZero: false,
@@ -87,20 +99,54 @@ export function curveFacts(comparison: TrendComparison): CurveFacts {
   const preBurstShare =
     mean(days.slice(0, burstIndex).map((d) => d.value)) / peak;
   const last7 = days.slice(-7);
-  const latest = [...rows].reverse().find(([, [, r]]) => r > 0);
+  const sum = (xs: { value: number }[]) => xs.reduce((a, d) => a + d.value, 0);
+  const week = sum(last7);
+  const before = sum(days.slice(-14, -7));
+  const withRef = rows.filter(([, [, r]]) => r > 0).slice(-7);
+  const refWeek = withRef.reduce((a, [, [, r]]) => a + r, 0);
   return {
     ...empty,
     peakDay,
     burstDay: days[burstIndex].day,
+    firstDay: days.find((d) => d.value > 0)!.day,
+    growth7: before > 0 ? week / before - 1 : null,
+    spike:
+      week > 0 && Math.max(...last7.map((d) => d.value)) > week * SPIKE_SHARE,
     preBurstShare,
     isNew: burstIndex > 0 && preBurstShare < NEW_SHARE,
     fromZero: last7.length > 0 && last7[0].value <= peak * NEW_SHARE,
     rising:
       mean(days.slice(-3).map((d) => d.value)) >
       mean(days.slice(-6, -3).map((d) => d.value)),
-    ratio: latest ? latest[1][0] / latest[1][1] : null,
-    ratioDay: latest ? latest[0] : null,
+    ratio:
+      refWeek > 0 ? withRef.reduce((a, [, [w]]) => a + w, 0) / refWeek : null,
+    ratioDay: withRef.at(-1)?.[0] ?? null,
   };
+}
+
+/** One word's curve, as [word, reference], out of a comparison of up to five terms. */
+export function splitComparison(
+  comparison: TrendComparison,
+  index: number,
+  refIndex: number,
+): TrendComparison {
+  return comparison.map((p) => ({
+    at: p.at,
+    values: [p.values[index] ?? 0, p.values[refIndex] ?? 0],
+  }));
+}
+
+/** Whether a word is worth the paid search-result checks: warm enough, rising, allowed. */
+export function passesScreen(input: {
+  phrase: string;
+  ratio: number | null;
+  rising: boolean;
+}) {
+  return (
+    !autoExclude(input.phrase) &&
+    (input.ratio ?? 0) >= TRY_RATIO &&
+    input.rising
+  );
 }
 
 /** Pages in the results made for this phrase: its words in the title or the address. */
@@ -123,11 +169,13 @@ export function dedicatedPages(
 export function newWordVerdict(input: {
   phrase: string;
   ratio: number | null;
-  dedicated: number;
+  /** Null when the word did not pass the screen: its results were not checked. */
+  dedicated: number | null;
   rising: boolean;
   isNew: boolean;
+  spike?: boolean;
 }): { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] } {
-  const { ratio, dedicated, rising, isNew } = input;
+  const { ratio, dedicated, rising, isNew, spike } = input;
   // The evergreen exclusions hold here too: offline services, shopping, someone else's downloads.
   const excluded = autoExclude(input.phrase);
   if (excluded)
@@ -138,23 +186,34 @@ export function newWordVerdict(input: {
     };
   const heat = ratio ?? 0;
   const reasons: VerdictReason[] = [
-    {
-      code:
-        dedicated === 0
-          ? "no_dedicated"
-          : dedicated <= TRY_MAX_DEDICATED
-            ? "few_dedicated"
-            : "many_dedicated",
-      value: dedicated,
-    },
+    ...(dedicated === null
+      ? []
+      : [
+          {
+            code:
+              dedicated === 0
+                ? ("no_dedicated" as const)
+                : dedicated <= TRY_MAX_DEDICATED
+                  ? ("few_dedicated" as const)
+                  : ("many_dedicated" as const),
+            value: dedicated,
+          },
+        ]),
     {
       code: heat >= WORTH_RATIO ? "hot" : heat >= TRY_RATIO ? "warm" : "cold",
       value: Math.round(heat * 1000) / 1000,
     },
     { code: rising ? "rising" : "falling" },
     ...(isNew ? [{ code: "new_word" as const }] : []),
+    ...(spike ? [{ code: "spike" as const }] : []),
   ];
-  if (heat >= WORTH_RATIO && dedicated <= WORTH_MAX_DEDICATED && rising)
+  if (dedicated === null) return { verdict: "skip", buildAs: null, reasons };
+  if (
+    heat >= WORTH_RATIO &&
+    dedicated <= WORTH_MAX_DEDICATED &&
+    rising &&
+    !spike
+  )
     return { verdict: "worth", buildAs: "new_site", reasons };
   if (heat >= TRY_RATIO && dedicated <= TRY_MAX_DEDICATED && rising)
     return { verdict: "try", buildAs: "inner_page", reasons };

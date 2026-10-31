@@ -239,6 +239,13 @@
       "when": 1793455138159,
       "tag": "0033_new_word_origins",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793457892962,
+      "tag": "0034_new_word_screen",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 
 import {
   discoveryLag,
+  growthPct,
   lagMessage,
   linePoints,
   monthDay,
@@ -40,4 +41,10 @@ it("names a reason by its code", () => {
     key: "hot",
     values: { value: "0.554" },
   });
+});
+
+it("writes the 7-day growth as a percent", () => {
+  expect(growthPct(34.5)).toBe("+3,450%");
+  expect(growthPct(-0.25)).toBe("-25%");
+  expect(growthPct(0)).toBe("+0%");
 });

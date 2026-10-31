@@ -60,6 +60,9 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
       verdict: "worth",
       buildAs: "new_site",
       checkedAt: new Date(),
+      firstDay: "2026-10-12",
+      burstDay: "2026-10-14",
+      growth7: 34.5,
       originType: "model_release",
       originSummary: "2026-10-14 Hugging Face 上发布 Lumo-Edit，搜索随后起量。",
       originCapture: "做在线试用页。",
@@ -86,6 +89,8 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   await expect(page).toHaveURL(/origin=model_release/);
   const row = page.getByTestId("new-word-row").filter({ hasText: phrase });
   await expect(row).toContainText("起因：2026-10-14 Hugging Face 上发布");
+  await expect(row).toContainText("10/12 出现 · 10/14 起量");
+  await expect(row).toContainText("自身近 7 天 +3,450%");
   await page.goto(`/discover/${word.id}`);
   await expect(
     page.getByRole("heading", { level: 2, name: "起因" }),

@@ -59,6 +59,11 @@ export const newWords = pgTable(
     curve: jsonb(),
     burstDay: date(),
     peakDay: date(),
+    /** The first day with interest in the 90-day curve: when it appeared on Google. */
+    firstDay: date(),
+    /** The last 7 days' interest over the 7 before, minus 1; null from zero. */
+    growth7: real(),
+    spike: text({ enum: ["yes", "no"] }),
     isNew: text({ enum: ["yes", "no"] }),
     fromZero: text({ enum: ["yes", "no"] }),
     rising: text({ enum: ["yes", "no"] }),

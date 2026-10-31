@@ -17,11 +17,13 @@ const db = testDb();
 let clock = new Date("2026-10-31T02:00:00Z");
 const now = () => clock;
 
-// 30 days of [word, gpts]: flat zero, then a burst in the last days.
-const burst = (peak: number) =>
+// 30 days of [words..., gpts]: flat zero, then a burst in the last days.
+const curveOf = (peak: number) => (i: number) =>
+  i < 27 ? 0 : (peak * (i - 26)) / 3;
+const burst = (...peaks: number[]) =>
   Array.from({ length: 30 }, (_, i) => ({
     at: new Date(Date.UTC(2026, 9, 1 + i)).toISOString().slice(0, 10),
-    values: [i < 27 ? 0 : (peak * (i - 26)) / 3, 40],
+    values: [...peaks.map((p) => curveOf(p)(i)), 40],
   }));
 
 function stub(): KeywordProvider & { calls: string[] } {
@@ -58,7 +60,14 @@ function stub(): KeywordProvider & { calls: string[] } {
             ],
       ),
     trendCompare: (phrases) =>
-      charged("compare", burst(phrases[0].startsWith("ai") ? 22 : 4)),
+      charged(
+        "compare",
+        burst(
+          ...phrases
+            .filter((p) => p !== "gpts")
+            .map((p) => (p.startsWith("ai") ? 22 : 4)),
+        ),
+      ),
     serp: (phrase, _m, depth) =>
       charged(
         "serp",
@@ -158,7 +167,9 @@ it("collects rising queries, measures them against gpts and judges them", async 
     category: "ai",
     newSites: [{ domain: "site1.com", registeredOn: "2026-09-01" }],
   });
-  expect(ai.word.ratio).toBeCloseTo(22 / 40);
+  // The last 7 days' average: (22/3 + 44/3 + 22) against 7 × 40.
+  expect(ai.word.ratio).toBeCloseTo(44 / 280);
+  expect(ai.word).toMatchObject({ firstDay: "2026-10-28", growth7: null });
   expect(ai.roots.map((r) => [r.root, r.growth])).toEqual([["ai", 13950]]);
   const boxing = await w.get(
     items.find((i) => i.word.phrase === "ragdoll robot boxing")!.word.id,
@@ -317,4 +328,96 @@ it("keeps words untraced when the AI budget is out", async () => {
   });
   const { items } = await w.list({});
   expect(items.every((i) => i.word.originCheckedAt === null)).toBe(true);
+});
+
+it("screens up to four words per comparison and deep-checks only those that pass", async () => {
+  const provider = stub();
+  // ai… is warm; the ragdoll words are too cold to be worth the search results.
+  provider.trendCompare = async (phrases) => {
+    provider.calls.push(`compare:${phrases.length}`);
+    return {
+      value: burst(
+        ...phrases
+          .filter((p) => p !== "gpts")
+          .map((p) => (p.startsWith("ai") ? 22 : 0.01)),
+      ),
+      costMicros: 11_000,
+    };
+  };
+  const w = words(provider);
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ screened: 3, deep: 1 });
+  // One comparison for the three words; search results only for the warm one.
+  expect(provider.calls.filter((c) => c.startsWith("compare"))).toEqual([
+    "compare:4",
+  ]);
+  expect(provider.calls.filter((c) => c === "serp")).toHaveLength(1);
+  const cold = (await w.list({})).items.find(
+    (i) => i.word.phrase === "ragdoll robot boxing",
+  )!.word;
+  expect(cold).toMatchObject({
+    verdict: "skip",
+    dedicatedPages: null,
+    serp: null,
+    rules: "newword-v2",
+  });
+  expect(cold.reasons).toEqual(
+    expect.arrayContaining([expect.objectContaining({ code: "cold" })]),
+  );
+});
+
+it("measures a word alone when a louder one in its batch rounds it down to zero", async () => {
+  const provider = stub();
+  provider.trendCompare = async (phrases) => {
+    const words = phrases.filter((p) => p !== "gpts");
+    provider.calls.push(`compare:${words.join("|")}`);
+    // Together, the loud ai word (twice gpts) rounds the others to 0.
+    return {
+      value: burst(
+        ...words.map((p) =>
+          p.startsWith("ai") ? 80 : words.length === 1 ? 4 : 0,
+        ),
+      ),
+      costMicros: 11_000,
+    };
+  };
+  const w = words(provider);
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const compares = provider.calls.filter((c) => c.startsWith("compare"));
+  expect(compares).toHaveLength(3);
+  expect(compares.slice(1).sort()).toEqual([
+    "compare:ragdoll robot boxing",
+    "compare:ragdoll robot boxing codes",
+  ]);
+  const boxing = (await w.list({})).items.find(
+    (i) => i.word.phrase === "ragdoll robot boxing",
+  )!.word;
+  expect(boxing.ratio).toBeGreaterThan(0);
+});
+
+it("leaves words that passed beyond the day's deep checks for tomorrow", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 1,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ screened: 3, deep: 1 });
+  const { items } = await w.list({});
+  const waiting = items.filter((i) => i.word.verdict === null);
+  expect(waiting).toHaveLength(2);
+  for (const i of waiting)
+    expect(i.word.nextCheckAt).toEqual(new Date("2026-11-01T02:00:00Z"));
 });

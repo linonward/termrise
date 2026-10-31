@@ -83,6 +83,7 @@ async function main() {
     rdap: createRdapClient(),
     budget,
     roots: env.NEW_WORD_ROOTS,
+    screensPerDay: env.NEW_WORDS_SCREENS,
     checksPerDay: env.NEW_WORDS_CHECKS,
   });
   const launchSites = env.LAUNCH_SITES_ENABLED
@@ -210,6 +211,7 @@ async function main() {
             dailyData: env.NEW_WORDS_DAILY_DATA_BUDGET_USD,
             dailyAi: env.NEW_WORDS_DAILY_AI_BUDGET_USD,
             checks: env.NEW_WORDS_CHECKS,
+            screens: env.NEW_WORDS_SCREENS,
           },
           platform: {
             enabled: env.PLATFORM_SITES_ENABLED === "1",

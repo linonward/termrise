@@ -1,6 +1,12 @@
 import { expect, it } from "vitest";
 
-import { curveFacts, dedicatedPages, newWordVerdict } from "./new-word-rules";
+import {
+  curveFacts,
+  dedicatedPages,
+  newWordVerdict,
+  passesScreen,
+  splitComparison,
+} from "./new-word-rules";
 
 // 30 days of [word, gpts]: nothing for 26 days, then a burst.
 const days = (word: number[], ref = 40) =>
@@ -19,7 +25,8 @@ it("finds the burst, the peak and the heat against gpts", () => {
     rising: true,
     ratioDay: "2026-10-31",
   });
-  expect(facts.ratio).toBeCloseTo(22 / 40);
+  // The last 7 days: 0+0+0+0+5+30+22 against 7 × 40.
+  expect(facts.ratio).toBeCloseTo(57 / 280);
 });
 
 it("does not call a steady word new", () => {
@@ -116,4 +123,82 @@ it("skips what the evergreen rules exclude, such as someone else's downloads", (
     buildAs: null,
     reasons: [{ code: "excluded", value: undefined, kind: "downloads" }],
   });
+});
+
+it("measures heat as the last 7 days' average against gpts", () => {
+  // gpts moves; the word holds at 10 for the last week.
+  const curve = [...Array(23).fill(0), 10, 10, 10, 10, 10, 10, 10].map(
+    (v, i) => ({
+      at: `2026-10-${String(i + 2).padStart(2, "0")}`,
+      values: [v, i < 29 ? 20 : 80],
+    }),
+  );
+  const facts = curveFacts(curve);
+  expect(facts.ratio).toBeCloseTo(70 / (6 * 20 + 80));
+  expect(facts.ratioDay).toBe("2026-10-31");
+});
+
+it("finds the first day with interest, the 7-day growth and a one-day spike", () => {
+  const climbing = curveFacts(
+    days([...Array(16).fill(0), 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8]),
+  );
+  expect(climbing).toMatchObject({ firstDay: "2026-10-18", spike: false });
+  // Last 7 days 35 against the 7 before them, 7.
+  expect(climbing.growth7).toBeCloseTo(4);
+  const fromZero = curveFacts(days([...Array(27).fill(0), 2, 5, 9]));
+  expect(fromZero).toMatchObject({ growth7: null, firstDay: "2026-10-29" });
+  // One day holds most of the week: a spike, not a trend.
+  const spike = curveFacts(days([...Array(26).fill(0), 1, 30, 2, 1]));
+  expect(spike.spike).toBe(true);
+});
+
+it("takes one word's curve out of a comparison of several", () => {
+  const batch = [
+    { at: "2026-10-30", values: [1, 2, 3, 40] },
+    { at: "2026-10-31", values: [4, 5, 6, 50] },
+  ];
+  expect(splitComparison(batch, 1, 3)).toEqual([
+    { at: "2026-10-30", values: [2, 40] },
+    { at: "2026-10-31", values: [5, 50] },
+  ]);
+});
+
+it("screens a word in before the paid search-result checks", () => {
+  const base = { phrase: "x", ratio: 0.01, rising: true };
+  expect(passesScreen(base)).toBe(true);
+  expect(passesScreen({ ...base, ratio: 0.0005 })).toBe(false);
+  expect(passesScreen({ ...base, rising: false })).toBe(false);
+  expect(passesScreen({ ...base, phrase: "youtube to mp3 converter" })).toBe(
+    false,
+  );
+});
+
+it("judges a screened-out word without search results, and caps a spike at try", () => {
+  expect(
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.0005,
+      dedicated: null,
+      rising: true,
+      isNew: true,
+    }),
+  ).toEqual({
+    verdict: "skip",
+    buildAs: null,
+    reasons: [
+      { code: "cold", value: 0.001 },
+      { code: "rising" },
+      { code: "new_word" },
+    ],
+  });
+  expect(
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.5,
+      dedicated: 0,
+      rising: true,
+      isNew: true,
+      spike: true,
+    }),
+  ).toMatchObject({ verdict: "try", buildAs: "inner_page" });
 });
