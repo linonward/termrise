@@ -12,6 +12,10 @@ import { createFakeNewWordOriginAnalyst } from "@repo/research/adapters/fake-new
 import { createFakeNewWordAnalyst } from "@repo/research/adapters/fake-new-words";
 import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 import {
+  createHuggingFaceNames,
+  createItchNames,
+} from "@repo/research/adapters/name-sources";
+import {
   createGitHubOrigin,
   createHackerNewsOrigin,
   createHuggingFaceOrigin,
@@ -98,5 +102,12 @@ export function createOriginSources(env: WorkerEnv) {
         createHuggingFaceOrigin(),
         createGitHubOrigin({ token: env.GITHUB_TOKEN }),
       ]
+    : [];
+}
+
+// Free lists of new names for the new words; only with real keyword data.
+export function createNameSources(env: WorkerEnv) {
+  return env.KEYWORD_PROVIDER === "dataforseo"
+    ? [createHuggingFaceNames(), createItchNames()]
     : [];
 }

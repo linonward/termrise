@@ -73,8 +73,11 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 
 **每天一轮**（`new-words.ts`，`pool_rounds` 的 `new_words` 类型）：
 
-1. **发现**：对每个根词（默认 ai、game、tool、generator、calculator、app、maker、checker、converter、template，`NEW_WORD_ROOTS` 可改）取 Google Trends 美国近 7 天的飙升查询，增长 ≥ 200% 的记为新词，并记下它从哪个根词下面冒出来、增长多少。同一个词只有一行；再次出现时更新最近出现时间。
-2. **初筛**（第一步，便宜）：每天最多 `NEW_WORDS_SCREENS` 个（默认 40），从没测过的、最新的先测，再测到期的。
+1. **发现**（S69 起）：
+   - **根词**：约 110 个细分根词（`new-words.ts` 的 `DEFAULT_ROOTS`，`NEW_WORD_ROOTS` 可改），分 AI 模型和工具（model、image、video、voice、github、flux……）、游戏（codes、roblox、tycoon、tower defense、obby、idle game、mod……）、工具（download、maker、quiz、tier list、printable……）三类。宽泛的根词（如 ai）下面多是新闻，细分的根词才能找到产品名和游戏名。每轮取最久没扫过的 `NEW_WORD_ROOTS_PER_DAY` 个（默认 15，每个 0.011 美元），所以整张表大约一周轮一遍；飙升列表本身覆盖近 7 天，一周扫一次漏得很少。每个根词的扫描时间和留下的飙升词数记在 `new_word_root_scans`。DataForSEO 一次只能取一个根词的飙升词（2026-10-31 实测：放 5 个只返回曲线）。
+   - 对每个根词取 Google Trends 美国近 7 天的飙升查询，增长 ≥ 200% 的记为新词，并记下它从哪个根词下面冒出来、增长多少。同一个词只有一行；再次出现时更新最近出现时间。
+   - **名字来源**（免费）：Hugging Face 的热门模型（按 trendingScore，去掉参数量、量化格式等后缀，跳过别人转制的 GGUF、量化、去审查、LoRA 版本；名字太短时加上发布方，如 `liquid lfm3`），itch.io 的新游戏（new-and-popular RSS）。每个来源每轮最多 20 个名字，记在根词 `source:hugging_face`、`source:itch_io` 下面，没有增长数字，和飙升词一样进入初筛。某个来源出错时跳过，本轮报告记下。只有真实数据时才读这些来源。
+2. **初筛**（第一步，便宜）：每天最多 `NEW_WORDS_SCREENS` 个（默认 40，维护者本地 60），从没测过的、最新的先测，再测到期的。
    - **自动排除**：和长青词相同的线下服务、购物、下载别人内容的词，直接为**不建议**，不花钱。
    - Google Trends 近 90 天，4 个词和对照词 `gpts` 放在同一次请求里（同一刻度，约 0.011 美元，每个词约 0.003 美元）。同一批里有词比 gpts 还热时，它决定刻度，别的词可能被取整成 0：这些词单独和 gpts 再比一次。Trends 的数值是整数，gpts 占满 100 时，热度低于约 0.005 的词会显示为 0。
    - **GPTs 倍数** = 最近 7 个对照词有数据的日子里，这个词的热度之和 ÷ gpts 的热度之和（和竞品一样按 7 天平均，单日波动影响小）。
@@ -90,7 +93,7 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 
 查一个词的搜索量只预留 0.02 美元（Labs 一个关键词的价格加余量），不按 1,000 个关键词预留。
 
-付费调用有自己的每日预算（数据 `NEW_WORDS_DAILY_DATA_BUDGET_USD` 默认 0.5 美元，AI `NEW_WORDS_DAILY_AI_BUDGET_USD` 默认 0.05 美元），和长青选词的每日预算分开；每月硬限额仍然有效。一轮的花费：每个根词约 0.011 美元，每个初筛的词约 0.003 美元，每个第一次深查的词约 0.016 美元（搜索结果 0.004、搜索量约 0.012）。`NEW_WORDS_ENABLED=1` 时每天 UTC `NEW_WORDS_HOUR_UTC` 点以后排队一轮；页面也可以手动排队。
+付费调用有自己的每日预算（数据 `NEW_WORDS_DAILY_DATA_BUDGET_USD` 默认 0.5 美元，AI `NEW_WORDS_DAILY_AI_BUDGET_USD` 默认 0.05 美元），和长青选词的每日预算分开；每月硬限额仍然有效。一轮的花费：每个根词约 0.011 美元（每天 15 个约 0.165 美元），每个初筛的词约 0.003 美元，每个第一次深查的词约 0.016 美元（搜索结果 0.004、搜索量约 0.012）。`NEW_WORDS_ENABLED=1` 时每天 UTC `NEW_WORDS_HOUR_UTC` 点以后排队一轮；页面也可以手动排队。
 
 **页面**（S55）：
 

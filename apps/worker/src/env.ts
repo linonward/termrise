@@ -68,6 +68,8 @@ const schema = z
     /** Words measured per day. */
     NEW_WORDS_CHECKS: z.coerce.number().int().min(1).max(100).default(12),
     /** Words screened per day on the Trends curve, four per comparison ($0.011). */
+    /** Root words scanned per round, the longest unscanned first ($0.011 each). */
+    NEW_WORD_ROOTS_PER_DAY: z.coerce.number().int().min(1).max(200).default(15),
     NEW_WORDS_SCREENS: z.coerce.number().int().min(1).max(400).default(40),
     /** Root words, comma separated; default new-words.ts DEFAULT_ROOTS. */
     NEW_WORD_ROOTS: z

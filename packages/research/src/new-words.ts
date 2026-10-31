@@ -19,12 +19,14 @@ import type { Database } from "@repo/db/client";
 import {
   NEW_WORD_ORIGINS,
   newWordRoots,
+  newWordRootScans,
   newWords,
   poolRounds,
 } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import type { NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { RdapClient } from "./adapters/rdap";
 import { registrableDomain } from "./adapters/rdap";
@@ -60,19 +62,119 @@ import { normalizePhrase, type PoolRound } from "./pool-service";
 import { createProviderCache } from "./provider-cache";
 
 const US: Market = { locationCode: 2840, languageCode: "en" };
-/** Root words whose rising queries are collected; NEW_WORD_ROOTS overrides them. */
+/**
+ * Root words whose rising queries are collected (NEW_WORD_ROOTS overrides them). Narrow
+ * roots find product and game names; a broad one such as "ai" mostly finds news. A round
+ * scans the ones scanned longest ago (rootsPerDay), so the list turns over in about a week:
+ * a rising list covers 7 days, so a weekly scan misses little.
+ */
 export const DEFAULT_ROOTS = [
+  // AI models and tools
   "ai",
+  "model",
+  "llm",
+  "image",
+  "video",
+  "voice",
+  "tts",
+  "text to speech",
+  "image generator",
+  "video generator",
+  "ai video",
+  "ai image",
+  "ai voice",
+  "ai agent",
+  "agent",
+  "open source",
+  "github",
+  "api",
+  "prompt",
+  "chatbot",
+  "gpt",
+  "claude",
+  "gemini",
+  "deepseek",
+  "qwen",
+  "flux",
+  "lora",
+  "upscaler",
+  "background remover",
+  "face swap",
+  "ocr",
+  "transcribe",
+  "translator",
+  // Games
   "game",
+  "codes",
+  "roblox",
+  "roblox codes",
+  "script",
+  "tycoon",
+  "simulator",
+  "tower defense",
+  "obby",
+  "idle game",
+  "clicker",
+  "mod",
+  "update",
+  "tier list",
+  "wiki",
+  "walkthrough",
+  "steam",
+  "demo",
+  "unblocked",
+  "io game",
+  "puzzle",
+  "wordle",
+  "quiz",
+  "crossword",
+  "trello",
+  "minecraft",
+  "fortnite",
+  "pokemon",
+  // Tools
   "tool",
   "generator",
-  "calculator",
-  "app",
   "maker",
+  "calculator",
   "checker",
   "converter",
   "template",
+  "download",
+  "downloader",
+  "online",
+  "free",
+  "editor",
+  "tracker",
+  "finder",
+  "planner",
+  "test",
+  "counter",
+  "extension",
+  "app",
+  "website",
+  "extractor",
+  "compressor",
+  "viewer",
+  "randomizer",
+  "name generator",
+  "font",
+  "emoji",
+  "meme",
+  "filter",
+  "sticker",
+  "wallpaper",
+  "coloring page",
+  "printable",
+  "worksheet",
+  "pdf",
+  "svg",
+  "qr code",
 ];
+/** Roots scanned per round by default: $0.011 each. */
+export const DEFAULT_ROOTS_PER_DAY = 15;
+/** Names taken from each name source per round. */
+export const NAMES_PER_SOURCE = 20;
 /** Rising queries below this growth (percent) are noise. */
 export const MIN_GROWTH = 200;
 /** A word is measured again daily for this many checks, then left alone. */
@@ -103,6 +205,8 @@ export type NewWordsReport = {
   failures: string[];
   /** Words whose origin was traced; absent in reports from before S67. */
   origins?: number;
+  /** Names taken from each name source this round. */
+  names?: Record<string, number>;
   /** Sources that failed this round, e.g. github. */
   sourceFailures?: string[];
 };
@@ -128,6 +232,10 @@ export function createNewWords(deps: {
   rdap?: RdapClient;
   budget?: Budget;
   roots?: string[];
+  /** Roots scanned per round, the longest unscanned first. */
+  rootsPerDay?: number;
+  /** Free lists of new names (Hugging Face, itch.io). */
+  nameSources?: NameSource[];
   /** Words screened per day (step 1, cheap). */
   screensPerDay?: number;
   /** Words deep-checked per day (step 2: search results and volume). */
@@ -249,45 +357,97 @@ export function createNewWords(deps: {
     return charged.value;
   }
 
+  /** Adds a word, or marks it seen again, under a root or a name source. */
+  async function record(
+    phrase: string,
+    root: string,
+    growth: number | null,
+    report: NewWordsReport,
+  ) {
+    const [word] = await database
+      .insert(newWords)
+      .values({
+        phrase,
+        firstSeenAt: now(),
+        lastSeenAt: now(),
+        nextCheckAt: now(),
+      })
+      .onConflictDoUpdate({
+        target: newWords.phrase,
+        set: { lastSeenAt: now() },
+      })
+      // xmax = 0: the row was inserted, not updated.
+      .returning({ id: newWords.id, inserted: sql<boolean>`(xmax = 0)` });
+    if (word.inserted) report.added++;
+    await database
+      .insert(newWordRoots)
+      .values({ wordId: word.id, root, growth, seenAt: now() })
+      .onConflictDoUpdate({
+        target: [newWordRoots.wordId, newWordRoots.root],
+        set: { growth, seenAt: now() },
+      });
+  }
+
+  /** The roots scanned longest ago (never scanned first), in list order on a tie. */
+  async function rootsForToday() {
+    const scans = new Map(
+      (await database.select().from(newWordRootScans)).map((r) => [
+        r.root,
+        r.scannedAt.getTime(),
+      ]),
+    );
+    return roots
+      .map((root, i) => ({ root, i, at: scans.get(root) ?? -1 }))
+      .sort((a, b) => a.at - b.at || a.i - b.i)
+      .slice(0, deps.rootsPerDay ?? DEFAULT_ROOTS_PER_DAY)
+      .map((r) => r.root);
+  }
+
   async function discover(round: PoolRound, report: NewWordsReport) {
     const provider = providerOf();
     const rising = provider.risingQueries?.bind(provider);
-    if (!rising) return;
-    for (const root of roots) {
-      const queries = await paid(round, "rising", root, () => rising(root, US));
-      const kept = queries.filter((q) => q.value >= MIN_GROWTH);
-      report.roots.push({ root, rising: kept.length });
-      for (const q of kept) {
-        const phrase = normalizePhrase(q.query);
-        if (!phrase || phrase.length > MAX_PHRASE || phrase === root) continue;
-        const [word] = await database
-          .insert(newWords)
-          .values({
-            phrase,
-            firstSeenAt: now(),
-            lastSeenAt: now(),
-            nextCheckAt: now(),
-          })
-          .onConflictDoUpdate({
-            target: newWords.phrase,
-            set: { lastSeenAt: now() },
-          })
-          // xmax = 0: the row was inserted, not updated.
-          .returning({ id: newWords.id, inserted: sql<boolean>`(xmax = 0)` });
-        if (word.inserted) report.added++;
+    if (rising)
+      for (const root of await rootsForToday()) {
+        const queries = await paid(round, "rising", root, () =>
+          rising(root, US),
+        );
+        const kept = queries.filter((q) => q.value >= MIN_GROWTH);
+        report.roots.push({ root, rising: kept.length });
+        for (const q of kept) {
+          const phrase = normalizePhrase(q.query);
+          if (!phrase || phrase.length > MAX_PHRASE || phrase === root)
+            continue;
+          await record(phrase, root, Math.round(q.value), report);
+        }
         await database
-          .insert(newWordRoots)
-          .values({
-            wordId: word.id,
-            root,
-            growth: Math.round(q.value),
-            seenAt: now(),
-          })
+          .insert(newWordRootScans)
+          .values({ root, scannedAt: now(), rising: kept.length })
           .onConflictDoUpdate({
-            target: [newWordRoots.wordId, newWordRoots.root],
-            set: { growth: Math.round(q.value), seenAt: now() },
+            target: newWordRootScans.root,
+            set: { scannedAt: now(), rising: kept.length },
           });
       }
+    // Names from free lists: no growth figure; the screen measures them like the rest.
+    for (const source of deps.nameSources ?? []) {
+      const names = await source
+        .names(NAMES_PER_SOURCE)
+        .catch((error: unknown) => {
+          logger.warn("newwords.name_source_failed", {
+            source: source.name,
+            error,
+          });
+          report.sourceFailures = [
+            ...(report.sourceFailures ?? []),
+            source.name,
+          ];
+          return [];
+        });
+      for (const name of names) {
+        const phrase = normalizePhrase(name);
+        if (!phrase || phrase.length > MAX_PHRASE) continue;
+        await record(phrase, `source:${source.name}`, null, report);
+      }
+      report.names = { ...report.names, [source.name]: names.length };
     }
   }
 

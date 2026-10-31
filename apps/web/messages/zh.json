@@ -1171,7 +1171,11 @@
     "appeared": "{date} 出现",
     "firstDay": "第一次有量",
     "growth": "自身近 7 天 {pct}",
-    "spike": "单日尖峰"
+    "spike": "单日尖峰",
+    "nameSource": {
+      "hugging_face": "Hugging Face 热门模型",
+      "itch_io": "itch.io 新游戏"
+    }
   },
   "research": {
     "metaTitle": "研究",

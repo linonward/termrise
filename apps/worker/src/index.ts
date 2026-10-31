@@ -28,6 +28,7 @@ import {
   createKeywordProvider,
   createLaunchSiteAnalyst,
   createNewWordAnalyst,
+  createNameSources,
   createNewWordOriginAnalyst,
   createOriginSources,
   createSeedExtractor,
@@ -83,6 +84,8 @@ async function main() {
     rdap: createRdapClient(),
     budget,
     roots: env.NEW_WORD_ROOTS,
+    rootsPerDay: env.NEW_WORD_ROOTS_PER_DAY,
+    nameSources: createNameSources(env),
     screensPerDay: env.NEW_WORDS_SCREENS,
     checksPerDay: env.NEW_WORDS_CHECKS,
   });

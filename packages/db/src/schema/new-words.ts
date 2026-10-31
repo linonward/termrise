@@ -122,3 +122,12 @@ export const newWordRoots = pgTable(
   },
   (t) => [primaryKey({ columns: [t.wordId, t.root] })],
 );
+
+// When each root word was last scanned for rising queries (S69): rounds take the roots
+// scanned longest ago, so a long list turns over about once a week.
+export const newWordRootScans = pgTable("new_word_root_scans", {
+  root: text().primaryKey(),
+  scannedAt: timestamp({ withTimezone: true }).notNull(),
+  /** Rising queries kept from the last scan. */
+  rising: integer().notNull().default(0),
+});

@@ -336,7 +336,9 @@ export default async function NewWordPage({
                 key={r.root}
                 className="rounded-md bg-surface-strong px-3 py-1.5 text-[15px]"
               >
-                {r.root}
+                {r.root === "source:hugging_face" || r.root === "source:itch_io"
+                  ? t(`nameSource.${r.root.slice(7) as "hugging_face"}`)
+                  : r.root}
                 {r.growth != null && (
                   <span className="text-muted-foreground">
                     {" "}

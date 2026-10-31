@@ -10,6 +10,11 @@ const num = (n: number | null | undefined) =>
 export const newWordBriefFileName = (w: Pick<NewWord, "phrase">) =>
   `keyword-brief-${w.phrase.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.md`;
 
+const SOURCE_NAMES: Record<string, string> = {
+  "source:hugging_face": "Hugging Face 热门模型",
+  "source:itch_io": "itch.io 新游戏",
+};
+
 export function buildNewWordBrief(
   w: NewWord,
   roots: (typeof newWordRoots.$inferSelect)[],
@@ -36,7 +41,7 @@ export function buildNewWordBrief(
   return [
     `# 选词简报：${w.phrase}（新词）`,
     "",
-    `选定日期：${w.selectedAt?.toISOString().slice(0, 10) ?? "—"} · 来源：Termrise 新词（规则 ${w.rules ?? "newword-v1"}）· 冒出来的根词：${roots.map((r) => r.root).join("、") || "—"}`,
+    `选定日期：${w.selectedAt?.toISOString().slice(0, 10) ?? "—"} · 来源：Termrise 新词（规则 ${w.rules ?? "newword-v1"}）· 冒出来的根词：${roots.map((r) => SOURCE_NAMES[r.root] ?? r.root).join("、") || "—"}`,
     "",
     "## 结论",
     "",

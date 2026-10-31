@@ -421,3 +421,74 @@ it("leaves words that passed beyond the day's deep checks for tomorrow", async (
   for (const i of waiting)
     expect(i.word.nextCheckAt).toEqual(new Date("2026-11-01T02:00:00Z"));
 });
+
+it("scans the roots scanned longest ago, a few per round", async () => {
+  const provider = stub();
+  const make = () =>
+    createNewWords({
+      database: db,
+      provider,
+      budget: createBudget({
+        database: db,
+        now,
+        dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+      }),
+      roots: ["ai", "game", "tool"],
+      rootsPerDay: 2,
+      checksPerDay: 0,
+      screensPerDay: 1,
+      now,
+    });
+  const w = make();
+  await w.scheduleDaily(0);
+  const first = await w.run((await w.claim())!);
+  expect(
+    (first.report as { roots: { root: string }[] }).roots.map((r) => r.root),
+  ).toEqual(["ai", "game"]);
+  clock = new Date("2026-11-01T02:00:00Z");
+  await w.scheduleDaily(0);
+  const second = await w.run((await w.claim())!);
+  expect(
+    (second.report as { roots: { root: string }[] }).roots.map((r) => r.root),
+  ).toEqual(["tool", "ai"]);
+});
+
+it("adds names from the free lists, and goes on when one fails", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    nameSources: [
+      { name: "hugging_face", names: async () => ["liquid lfm3", "Qwen3.8"] },
+      {
+        name: "itch_io",
+        names: async () => {
+          throw new Error("itch.io returned 503");
+        },
+      },
+    ],
+    checksPerDay: 0,
+    screensPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({
+    added: 2,
+    names: { hugging_face: 2, itch_io: 0 },
+    sourceFailures: ["itch_io"],
+  });
+  const { items } = await w.list({});
+  expect(items.map((i) => i.word.phrase).sort()).toEqual([
+    "liquid lfm3",
+    "qwen3.8",
+  ]);
+  expect(items[0].roots.map((r) => [r.root, r.growth])).toEqual([
+    ["source:hugging_face", null],
+  ]);
+});
