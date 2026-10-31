@@ -39,7 +39,9 @@ DataForSEO Base URL：`https://api.dataforseo.com/v3/`。编码前核对 https:/
 | 搜索量/CPC       | `keywords_data/google_ads/search_volume/live`         |
 | 批量 KD          | `dataforseo_labs/google/bulk_keyword_difficulty/live` |
 | SERP             | `serp/google/organic/live/advanced`                   |
-| 竞品排名词（P1） | `dataforseo_labs/google/ranked_keywords/live`         |
+| 竞品排名词       | `dataforseo_labs/google/ranked_keywords/live`         |
+| 网站自然流量     | `dataforseo_labs/google/bulk_traffic_estimation/live` |
+| 搜索趋势（5 年） | `keywords_data/google_trends/explore/live`            |
 
 SERP 的自然结果常被 Google 包成 `google.com/goto` 跳转，DataForSEO 返回的 `url` 和 `domain` 都是 google.com。真实网站从 `breadcrumb`（或 `website_name`）取，存为 `serp_results.site`；SERP 竞争和 Brief 用它，不用 URL 的域名。
 

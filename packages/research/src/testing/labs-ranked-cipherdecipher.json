@@ -1,0 +1,420 @@
+{
+  "note": "Real response from dataforseo_labs/google/ranked_keywords/live, target cipherdecipher.com, limit 5 (2026-10-31), trimmed to the fields the adapter reads.",
+  "cost": 0.0126,
+  "result": [
+    {
+      "items": [
+        {
+          "keyword_data": {
+            "keyword": "decipher",
+            "keyword_info": {
+              "search_volume": 49500,
+              "cpc": 3.700000047683716,
+              "competition": 0,
+              "monthly_searches": [
+                {
+                  "year": 2026,
+                  "month": 8,
+                  "search_volume": 49500
+                },
+                {
+                  "year": 2026,
+                  "month": 7,
+                  "search_volume": 40500
+                },
+                {
+                  "year": 2026,
+                  "month": 6,
+                  "search_volume": 40500
+                },
+                {
+                  "year": 2026,
+                  "month": 5,
+                  "search_volume": 49500
+                },
+                {
+                  "year": 2026,
+                  "month": 4,
+                  "search_volume": 60500
+                },
+                {
+                  "year": 2026,
+                  "month": 3,
+                  "search_volume": 60500
+                },
+                {
+                  "year": 2026,
+                  "month": 2,
+                  "search_volume": 60500
+                },
+                {
+                  "year": 2026,
+                  "month": 1,
+                  "search_volume": 60500
+                },
+                {
+                  "year": 2025,
+                  "month": 12,
+                  "search_volume": 49500
+                },
+                {
+                  "year": 2025,
+                  "month": 11,
+                  "search_volume": 49500
+                },
+                {
+                  "year": 2025,
+                  "month": 10,
+                  "search_volume": 60500
+                },
+                {
+                  "year": 2025,
+                  "month": 9,
+                  "search_volume": 60500
+                }
+              ]
+            },
+            "keyword_properties": {
+              "keyword_difficulty": 33
+            }
+          },
+          "ranked_serp_element": {
+            "serp_item": {
+              "rank_group": 12,
+              "url": "https://www.cipherdecipher.com/",
+              "etv": 83.67520141601562
+            }
+          }
+        },
+        {
+          "keyword_data": {
+            "keyword": "cipher decode",
+            "keyword_info": {
+              "search_volume": 14800,
+              "cpc": 2,
+              "competition": 0,
+              "monthly_searches": [
+                {
+                  "year": 2026,
+                  "month": 8,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 7,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 6,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 5,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2026,
+                  "month": 4,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2026,
+                  "month": 3,
+                  "search_volume": 22200
+                },
+                {
+                  "year": 2026,
+                  "month": 2,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 1,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 12,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 11,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2025,
+                  "month": 10,
+                  "search_volume": 9900
+                },
+                {
+                  "year": 2025,
+                  "month": 9,
+                  "search_volume": 8100
+                }
+              ]
+            },
+            "keyword_properties": {
+              "keyword_difficulty": 15
+            }
+          },
+          "ranked_serp_element": {
+            "serp_item": {
+              "rank_group": 6,
+              "url": "https://www.cipherdecipher.com/",
+              "etv": 2.4031383991241455
+            }
+          }
+        },
+        {
+          "keyword_data": {
+            "keyword": "cipher decoder",
+            "keyword_info": {
+              "search_volume": 14800,
+              "cpc": 2,
+              "competition": 0,
+              "monthly_searches": [
+                {
+                  "year": 2026,
+                  "month": 8,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 7,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 6,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 5,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2026,
+                  "month": 4,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2026,
+                  "month": 3,
+                  "search_volume": 22200
+                },
+                {
+                  "year": 2026,
+                  "month": 2,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 1,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 12,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 11,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2025,
+                  "month": 10,
+                  "search_volume": 9900
+                },
+                {
+                  "year": 2025,
+                  "month": 9,
+                  "search_volume": 8100
+                }
+              ]
+            },
+            "keyword_properties": {
+              "keyword_difficulty": 14
+            }
+          },
+          "ranked_serp_element": {
+            "serp_item": {
+              "rank_group": 17,
+              "url": "https://www.cipherdecipher.com/",
+              "etv": 65.27143859863281
+            }
+          }
+        },
+        {
+          "keyword_data": {
+            "keyword": "ciphers decoder",
+            "keyword_info": {
+              "search_volume": 14800,
+              "cpc": 2,
+              "competition": 0,
+              "monthly_searches": [
+                {
+                  "year": 2026,
+                  "month": 8,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 7,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 6,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 5,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2026,
+                  "month": 4,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2026,
+                  "month": 3,
+                  "search_volume": 22200
+                },
+                {
+                  "year": 2026,
+                  "month": 2,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 1,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 12,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 11,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2025,
+                  "month": 10,
+                  "search_volume": 9900
+                },
+                {
+                  "year": 2025,
+                  "month": 9,
+                  "search_volume": 8100
+                }
+              ]
+            },
+            "keyword_properties": {
+              "keyword_difficulty": 13
+            }
+          },
+          "ranked_serp_element": {
+            "serp_item": {
+              "rank_group": 9,
+              "url": "https://www.cipherdecipher.com/",
+              "etv": 0.289650559425354
+            }
+          }
+        },
+        {
+          "keyword_data": {
+            "keyword": "ciphertext decoder",
+            "keyword_info": {
+              "search_volume": 14800,
+              "cpc": 2,
+              "competition": 0,
+              "monthly_searches": [
+                {
+                  "year": 2026,
+                  "month": 8,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 7,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 6,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 5,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2026,
+                  "month": 4,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2026,
+                  "month": 3,
+                  "search_volume": 22200
+                },
+                {
+                  "year": 2026,
+                  "month": 2,
+                  "search_volume": 12100
+                },
+                {
+                  "year": 2026,
+                  "month": 1,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 12,
+                  "search_volume": 14800
+                },
+                {
+                  "year": 2025,
+                  "month": 11,
+                  "search_volume": 18100
+                },
+                {
+                  "year": 2025,
+                  "month": 10,
+                  "search_volume": 9900
+                },
+                {
+                  "year": 2025,
+                  "month": 9,
+                  "search_volume": 8100
+                }
+              ]
+            },
+            "keyword_properties": {
+              "keyword_difficulty": 14
+            }
+          },
+          "ranked_serp_element": {
+            "serp_item": {
+              "rank_group": 9,
+              "url": "https://www.cipherdecipher.com/",
+              "etv": 2.2267332077026367
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -50,3 +50,7 @@ export function dataForSeoFetch(routes: Record<string, DataForSeoRoute>) {
 export const ADS = "keywords_data/google_ads/keywords_for_keywords/live";
 export const KD = "dataforseo_labs/google/bulk_keyword_difficulty/live";
 export const SERP = "serp/google/organic/live/advanced";
+export const SUGGESTIONS = "dataforseo_labs/google/keyword_suggestions/live";
+export const RANKED = "dataforseo_labs/google/ranked_keywords/live";
+export const TRAFFIC = "dataforseo_labs/google/bulk_traffic_estimation/live";
+export const TREND = "keywords_data/google_trends/explore/live";

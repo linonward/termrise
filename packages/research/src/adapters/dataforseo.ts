@@ -7,7 +7,10 @@ import type {
   KeywordIdea,
   KeywordProvider,
   Market,
+  RankedKeyword,
   SerpItem,
+  TrendPoint,
+  VolumeBand,
 } from "../keyword-provider";
 
 const AUTH_FAILED = 40100;
@@ -21,18 +24,32 @@ export const DATAFORSEO_API = "https://api.dataforseo.com/v3";
 // dataforseo.com/pricing (checked 2026-10-10): Google Ads Live $0.09 per task; SERP Live
 // $0.002 per 10 results, 5× for operators such as site:; Labs $0.012 per task + $0.00012
 // per keyword. The ledger settles on the cost each response reports.
+// Labs calls of up to 1000 keywords: $0.012 + 1000 × $0.00012 = $0.132 (seen 2026-10-31).
+// Google Trends explore: $0.011 per term (seen 2026-10-31).
 export const DATAFORSEO_MAX_COST = {
   expand: 100_000,
   serp: 10_000,
   difficulty: 50_000,
+  suggestions: 200_000,
+  ranked: 200_000,
+  traffic: 50_000,
+  trend: 20_000,
 } as const;
+/** Most keywords one Labs call returns: the reservation above covers this many. */
+export const LABS_MAX_LIMIT = 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 // Google Ads volumes are monthly figures and KD moves slowly: reuse for 30 days. Search
 // results change faster: 7 days.
+// Labs keyword data and site traffic are monthly figures too; the Trends curve gains a
+// point a week.
 export const DATAFORSEO_CACHE_TTL_MS = {
   expand: 30 * DAY_MS,
   difficulty: 30 * DAY_MS,
   serp: 7 * DAY_MS,
+  suggestions: 30 * DAY_MS,
+  ranked: 30 * DAY_MS,
+  traffic: 30 * DAY_MS,
+  trend: 7 * DAY_MS,
 } as const;
 /** Keywords per bulk difficulty call; the API takes up to 1000. */
 export const DIFFICULTY_BATCH = 200;
@@ -119,6 +136,116 @@ export function realSite(item: {
   const name = item.website_name?.split("·")[0].trim();
   return { url: item.url, site: name || (own ?? item.url) };
 }
+
+// A Labs keyword (keyword_suggestions, ranked_keywords): Google Ads data plus
+// difficulty. Labs competition is 0 to 1; the port's adsCompetition is 0 to 100.
+const labsKeyword = z.object({
+  keyword: z.string(),
+  keyword_info: z
+    .object({
+      search_volume: z.number().int().nullish(),
+      cpc: z.number().nullish(),
+      competition: z.number().nullish(),
+      monthly_searches: z
+        .array(
+          z.object({
+            year: z.number().int(),
+            month: z.number().int(),
+            search_volume: z.number().int().nullish(),
+          }),
+        )
+        .nullish(),
+    })
+    .nullish(),
+  keyword_properties: z
+    .object({ keyword_difficulty: z.number().int().nullish() })
+    .nullish(),
+});
+
+const suggestionsResult = z.object({
+  seed_keyword: z.string().nullish(),
+  seed_keyword_data: labsKeyword.omit({ keyword: true }).nullish(),
+  items: z.array(labsKeyword).nullish(),
+});
+
+const rankedResult = z.object({
+  items: z
+    .array(
+      z.object({
+        keyword_data: labsKeyword,
+        ranked_serp_element: z.object({
+          serp_item: z.looseObject({
+            rank_group: z.number().int(),
+            url: z.string(),
+          }),
+        }),
+      }),
+    )
+    .nullish(),
+});
+
+const trafficResult = z.object({
+  items: z
+    .array(
+      z.object({
+        target: z.string(),
+        metrics: z
+          .object({
+            organic: z.object({ etv: z.number().nullish() }).nullish(),
+          })
+          .nullish(),
+      }),
+    )
+    .nullish(),
+});
+
+const trendResult = z.object({
+  items: z
+    .array(
+      z.looseObject({
+        type: z.string(),
+        data: z
+          .array(
+            z.object({
+              date_from: z.string(),
+              missing_data: z.boolean().nullish(),
+              values: z.array(z.number().nullable()).nullish(),
+            }),
+          )
+          .nullish(),
+      }),
+    )
+    .nullish(),
+});
+
+function labsIdea(item: z.output<typeof labsKeyword>): KeywordIdea {
+  const info = item.keyword_info;
+  const months = [...(info?.monthly_searches ?? [])]
+    .sort((a, b) => a.year - b.year || a.month - b.month)
+    .slice(-12)
+    .map((m) => m.search_volume ?? 0);
+  return {
+    phrase: item.keyword,
+    metrics: {
+      searchVolume: info?.search_volume ?? null,
+      cpcMicros: info?.cpc == null ? null : micros(info.cpc),
+      adsCompetition:
+        info?.competition == null ? null : Math.round(info.competition * 100),
+      keywordDifficulty: item.keyword_properties?.keyword_difficulty ?? null,
+    },
+    ...(months.length > 0 && { monthlySearches: months }),
+  };
+}
+
+const volumeFilter = (field: string, band: VolumeBand) =>
+  band.maxVolume === undefined
+    ? [field, ">=", band.minVolume]
+    : [[field, ">=", band.minVolume], "and", [field, "<=", band.maxVolume]];
+
+const inBand = (volume: number | null, band: VolumeBand) =>
+  volume !== null &&
+  volume >= band.minVolume &&
+  (band.maxVolume === undefined || volume <= band.maxVolume);
 
 const micros = (usd: number | null | undefined) =>
   Math.round((usd ?? 0) * 1_000_000);
@@ -243,6 +370,94 @@ export function createDataForSeoProvider(deps: {
         value: items.sort((a, b) => a.rank - b.rank).slice(0, 10),
         costMicros: charged.costMicros,
       };
+    },
+    async suggestions(seed, market, band) {
+      const charged = await post(
+        "dataforseo_labs/google/keyword_suggestions/live",
+        {
+          keyword: seed,
+          ...location(market),
+          include_seed_keyword: true,
+          limit: Math.min(band.limit, LABS_MAX_LIMIT),
+          filters: volumeFilter("keyword_info.search_volume", band),
+          order_by: ["keyword_info.search_volume,desc"],
+        },
+        suggestionsResult,
+      );
+      const value: KeywordIdea[] = [];
+      for (const result of charged.value) {
+        // The seed comes apart from the items and is not filtered by the band.
+        if (result.seed_keyword && result.seed_keyword_data) {
+          const idea = labsIdea({
+            keyword: result.seed_keyword,
+            ...result.seed_keyword_data,
+          });
+          if (inBand(idea.metrics.searchVolume, band)) value.push(idea);
+        }
+        for (const item of result.items ?? []) value.push(labsIdea(item));
+      }
+      return { value, costMicros: charged.costMicros };
+    },
+    async rankedKeywords(site, market, band) {
+      const charged = await post(
+        "dataforseo_labs/google/ranked_keywords/live",
+        {
+          target: site,
+          ...location(market),
+          limit: Math.min(band.limit, LABS_MAX_LIMIT),
+          filters: volumeFilter(
+            "keyword_data.keyword_info.search_volume",
+            band,
+          ),
+          order_by: ["keyword_data.keyword_info.search_volume,desc"],
+        },
+        rankedResult,
+      );
+      const value: RankedKeyword[] = charged.value.flatMap((result) =>
+        (result.items ?? []).map((item) => ({
+          ...labsIdea(item.keyword_data),
+          rank: item.ranked_serp_element.serp_item.rank_group,
+          url: item.ranked_serp_element.serp_item.url,
+        })),
+      );
+      return { value, costMicros: charged.costMicros };
+    },
+    async siteTraffic(sites, market) {
+      const charged = await post(
+        "dataforseo_labs/google/bulk_traffic_estimation/live",
+        { targets: sites, ...location(market), item_types: ["organic"] },
+        trafficResult,
+      );
+      const value = new Map<string, number>();
+      for (const result of charged.value)
+        for (const item of result.items ?? []) {
+          const etv = item.metrics?.organic?.etv;
+          if (etv != null) value.set(item.target, etv);
+        }
+      return { value, costMicros: charged.costMicros };
+    },
+    async searchTrend(phrase, market) {
+      const charged = await post(
+        "keywords_data/google_trends/explore/live",
+        {
+          keywords: [phrase],
+          location_code: market.locationCode,
+          time_range: "past_5_years",
+          type: "web",
+        },
+        trendResult,
+      );
+      const value: TrendPoint[] = [];
+      for (const result of charged.value)
+        for (const item of result.items ?? [])
+          if (item.type === "google_trends_graph")
+            for (const point of item.data ?? []) {
+              const v = point.values?.[0];
+              // The current week is partial and marked missing.
+              if (!point.missing_data && v != null)
+                value.push({ week: point.date_from, value: v });
+            }
+      return { value, costMicros: charged.costMicros };
     },
   };
 }

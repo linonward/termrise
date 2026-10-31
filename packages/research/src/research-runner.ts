@@ -32,6 +32,11 @@ export type ResearchRun = typeof researchRuns.$inferSelect;
 
 /** Keywords kept per run: the seeds first, then expansions in order. */
 export const MAX_KEYWORDS = 200;
+/**
+ * When Google Ads gives a seed no ideas but the seed itself (a rare seed, seen in S33),
+ * Labs keyword suggestions are asked once for keywords that contain it.
+ */
+export const SUGGESTIONS_FALLBACK = { minVolume: 10, limit: 100 } as const;
 /** Keywords whose SERP is audited: the seeds first, then by search volume. */
 export const SERP_AUDIT_COUNT = 5;
 /**
@@ -316,7 +321,7 @@ export function createResearchRunner(deps: {
   // Each paid call goes through the budget ledger first (budget.ts).
   const call = (
     run: ResearchRun,
-    operation: "expand" | "serp" | "difficulty",
+    operation: "expand" | "serp" | "difficulty" | "suggestions",
   ) => ({
     projectId: run.projectId,
     runId: run.id,
@@ -332,7 +337,7 @@ export function createResearchRunner(deps: {
    */
   async function cached<T>(
     run: ResearchRun,
-    operation: "expand" | "serp",
+    operation: "expand" | "serp" | "suggestions",
     market: Market,
     params: unknown,
     paid: () => Promise<Charged<T>>,
@@ -374,6 +379,31 @@ export function createResearchRunner(deps: {
       if (!answer) {
         budgetExhausted = true;
         break;
+      }
+      const onlySeed = answer.value.every(
+        (idea) => normalizeSeeds([idea.phrase])[0] === seed,
+      );
+      if (onlySeed && provider.suggestions) {
+        const suggestions = provider.suggestions.bind(provider);
+        // Extra ideas only: a failure keeps the seed and the run goes on.
+        const more = await cached(
+          run,
+          "suggestions",
+          market,
+          { seed, ...SUGGESTIONS_FALLBACK },
+          () => suggestions(seed, market, SUGGESTIONS_FALLBACK),
+        ).catch((error: unknown) => {
+          logger.warn("research.suggestions_failed", { runId: run.id, error });
+          return { value: [] as KeywordIdea[], fetchedAt: now() };
+        });
+        if (!more) budgetExhausted = true;
+        else
+          answer.value = [
+            ...answer.value,
+            ...more.value.filter(
+              (idea) => normalizeSeeds([idea.phrase])[0] !== seed,
+            ),
+          ];
       }
       for (const idea of answer.value) {
         const [phrase] = normalizeSeeds([idea.phrase]);

@@ -15,7 +15,25 @@ export type KeywordMetrics = {
   keywordDifficulty: number | null;
 };
 
-export type KeywordIdea = { phrase: string; metrics: KeywordMetrics };
+export type KeywordIdea = {
+  phrase: string;
+  metrics: KeywordMetrics;
+  /** Monthly searches for the last 12 months, oldest first, when the provider has them. */
+  monthlySearches?: number[];
+};
+
+/** A keyword a site already ranks for, with the page and its position. */
+export type RankedKeyword = KeywordIdea & { rank: number; url: string };
+
+/** One week of a search-interest curve (0 to 100, relative to the curve's peak). */
+export type TrendPoint = { week: string; value: number };
+
+/** Which keywords to fetch: a search-volume band and how many at most. */
+export type VolumeBand = {
+  minVolume: number;
+  maxVolume?: number;
+  limit: number;
+};
 
 export type SerpItem = {
   rank: number;
@@ -32,12 +50,28 @@ export type Charged<T> = { value: T; costMicros: number };
 export interface KeywordProvider {
   name: "fake" | "dataforseo";
   /** The most one call can cost, reserved from the data budget before it (budget.ts). */
-  maxCostMicros: { expand: number; serp: number; difficulty?: number };
+  maxCostMicros: {
+    expand: number;
+    serp: number;
+    difficulty?: number;
+    suggestions?: number;
+    ranked?: number;
+    traffic?: number;
+    trend?: number;
+  };
   /**
    * How long an answer may be reused instead of paid again (provider-cache.ts), per
    * operation. Without it nothing is cached.
    */
-  cacheTtlMs?: { expand: number; serp: number; difficulty: number };
+  cacheTtlMs?: {
+    expand: number;
+    serp: number;
+    difficulty: number;
+    suggestions?: number;
+    ranked?: number;
+    traffic?: number;
+    trend?: number;
+  };
   /** Ideas for one seed, the seed itself included, with their metrics. */
   expand(seed: string, market: Market): Promise<Charged<KeywordIdea[]>>;
   /**
@@ -50,4 +84,26 @@ export interface KeywordProvider {
   ): Promise<Charged<Map<string, number>>>;
   /** The top 10 organic results on desktop. */
   serp(phrase: string, market: Market): Promise<Charged<SerpItem[]>>;
+  /**
+   * Keywords that contain the seed, in a search-volume band, biggest first, with
+   * difficulty and monthly searches. The seed itself is included when it is in the band.
+   */
+  suggestions?(
+    seed: string,
+    market: Market,
+    band: VolumeBand,
+  ): Promise<Charged<KeywordIdea[]>>;
+  /** Keywords a site ranks for, biggest first. */
+  rankedKeywords?(
+    site: string,
+    market: Market,
+    band: VolumeBand,
+  ): Promise<Charged<RankedKeyword[]>>;
+  /** Estimated monthly organic visits per site; sites without data are left out. */
+  siteTraffic?(
+    sites: string[],
+    market: Market,
+  ): Promise<Charged<Map<string, number>>>;
+  /** Weekly search interest for the past 5 years, oldest first; weeks without data are left out. */
+  searchTrend?(phrase: string, market: Market): Promise<Charged<TrendPoint[]>>;
 }

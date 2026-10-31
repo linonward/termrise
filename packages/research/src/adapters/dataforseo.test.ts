@@ -3,8 +3,21 @@ import { expect, it, vi } from "vitest";
 import { ProviderAuthError } from "@repo/ai/provider-errors";
 
 import { createDataForSeoProvider, GOOGLE_ADS_INTERVAL_MS } from "./dataforseo";
-import { ADS, dataForSeoFetch, KD, SERP } from "../testing/dataforseo-fetch";
+import {
+  ADS,
+  dataForSeoFetch,
+  KD,
+  RANKED,
+  SERP,
+  SUGGESTIONS,
+  TRAFFIC,
+  TREND,
+} from "../testing/dataforseo-fetch";
+import labsRanked from "../testing/labs-ranked-cipherdecipher.json";
+import labsSuggestions from "../testing/labs-suggestions-cipher.json";
+import labsTraffic from "../testing/labs-traffic.json";
 import serpCipherDecoder from "../testing/serp-cipher-decoder.json";
+import trendsCipherDecoder from "../testing/trends-cipher-decoder.json";
 
 const market = { locationCode: 2840, languageCode: "en" };
 const noSleep = async () => {};
@@ -236,5 +249,115 @@ it("spaces Google Ads calls to 12 a minute", async () => {
   expect(sleep.mock.calls.map(([ms]) => ms)).toEqual([
     GOOGLE_ADS_INTERVAL_MS,
     GOOGLE_ADS_INTERVAL_MS,
+  ]);
+});
+
+const provider = (routes: Parameters<typeof dataForSeoFetch>[0]) => {
+  const { fetch, calls } = dataForSeoFetch(routes);
+  return {
+    calls,
+    provider: createDataForSeoProvider({ login: "l", password: "p", fetch }),
+  };
+};
+
+it("fetches keywords in a volume band with difficulty and monthly searches", async () => {
+  const { calls, provider: p } = provider({
+    [SUGGESTIONS]: labsSuggestions,
+  });
+  const band = { minVolume: 5000, maxVolume: 30000, limit: 6 };
+  const { value, costMicros } = await p.suggestions!("cipher", market, band);
+  expect(costMicros).toBe(12_720);
+  // The seed (49,500 searches) is above the band, so it is not added.
+  expect(value.map((i) => i.phrase)).toEqual([
+    "cipher vigenere",
+    "vigenère cipher",
+    "vigenere cipher",
+    "vernier cipher",
+    "visionaire cipher",
+    "cipher mining stock",
+  ]);
+  expect(value[5]).toMatchObject({
+    metrics: {
+      searchVolume: 18100,
+      cpcMicros: 5_250_000,
+      adsCompetition: 1,
+      keywordDifficulty: 48,
+    },
+  });
+  expect(value[0].metrics.cpcMicros).toBeNull();
+  expect(value[0].monthlySearches).toHaveLength(12);
+  expect(calls[0].body).toEqual([
+    {
+      keyword: "cipher",
+      location_code: 2840,
+      language_code: "en",
+      include_seed_keyword: true,
+      limit: 6,
+      filters: [
+        ["keyword_info.search_volume", ">=", 5000],
+        "and",
+        ["keyword_info.search_volume", "<=", 30000],
+      ],
+      order_by: ["keyword_info.search_volume,desc"],
+    },
+  ]);
+});
+
+it("adds the seed when its volume is in the band", async () => {
+  const { provider: p } = provider({ [SUGGESTIONS]: labsSuggestions });
+  const { value } = await p.suggestions!("cipher", market, {
+    minVolume: 5000,
+    limit: 6,
+  });
+  expect(value[0]).toMatchObject({
+    phrase: "cipher",
+    metrics: { searchVolume: 49500 },
+  });
+});
+
+it("fetches the keywords a site ranks for, with its page and position", async () => {
+  const { calls, provider: p } = provider({ [RANKED]: labsRanked });
+  const { value } = await p.rankedKeywords!("cipherdecipher.com", market, {
+    minVolume: 100,
+    limit: 5,
+  });
+  expect(value[2]).toMatchObject({
+    phrase: "cipher decoder",
+    rank: 17,
+    url: "https://www.cipherdecipher.com/",
+    metrics: { searchVolume: 14800 },
+  });
+  expect(calls[0].body).toMatchObject([
+    {
+      target: "cipherdecipher.com",
+      filters: ["keyword_data.keyword_info.search_volume", ">=", 100],
+    },
+  ]);
+});
+
+it("estimates each site's monthly organic visits", async () => {
+  const { calls, provider: p } = provider({ [TRAFFIC]: labsTraffic });
+  const { value } = await p.siteTraffic!(
+    ["cryptii.com", "cipherdecipher.com", "reddit.com"],
+    market,
+  );
+  expect(Math.round(value.get("cryptii.com")!)).toBe(131843);
+  expect(Math.round(value.get("cipherdecipher.com")!)).toBe(419);
+  expect(calls[0].body).toMatchObject([{ item_types: ["organic"] }]);
+});
+
+it("reads 5 years of weekly search interest and leaves out weeks without data", async () => {
+  const { calls, provider: p } = provider({ [TREND]: trendsCipherDecoder });
+  const { value } = await p.searchTrend!("cipher decoder", market);
+  // 261 weeks; the current week is marked missing_data.
+  expect(value).toHaveLength(260);
+  expect(value[0]).toEqual({ week: "2021-10-31", value: 29 });
+  expect(calls[0].body).toEqual([
+    {
+      keywords: ["cipher decoder"],
+      location_code: 2840,
+      time_range: "past_5_years",
+      type: "web",
+    },
   ]);
 });

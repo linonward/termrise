@@ -17,6 +17,7 @@ import {
   createFakeKeywordProvider,
   FAKE_KEYWORDS_AUTH_FAILURE,
   FAKE_KEYWORDS_FAILURE,
+  FAKE_KEYWORDS_SEED_ONLY,
   FAKE_SERP_FAILURE,
 } from "./adapters/fake-keywords";
 import type { KeywordProvider } from "./keyword-provider";
@@ -72,6 +73,45 @@ it("expands the seeds, stores metrics and audits the top SERPs", async () => {
   expect(serps.length).toBeLessThanOrEqual(SERP_AUDIT_COUNT);
   expect(serps.length).toBeGreaterThan(0);
   expect(serps[0].results).toHaveLength(10);
+});
+
+it("asks Labs suggestions once when Google Ads expands a seed to nothing", async () => {
+  const seed = `${FAKE_KEYWORDS_SEED_ONLY} notes`;
+  const { id } = await project([seed, "meeting notes"]);
+  const run = await runner.run("a", id, { requestId: randomUUID() });
+  expect(run.status).toBe("completed");
+  const phrases = (await results.listKeywords("a", id)).map(
+    (k) => toKeywordDto(k).phrase,
+  );
+  expect(phrases).toContain(seed);
+  expect(phrases).toContain(`${seed} online`);
+  const calls = await db
+    .select({ operation: apiUsage.operation })
+    .from(apiUsage)
+    .where(eq(apiUsage.projectId, id));
+  // Only the seed with nothing to expand gets the extra call.
+  expect(calls.filter((c) => c.operation === "suggestions")).toHaveLength(1);
+  expect(calls.filter((c) => c.operation === "expand")).toHaveLength(2);
+});
+
+it("keeps the seed and goes on when the Labs suggestions fail", async () => {
+  const failing: KeywordProvider = {
+    ...fake,
+    suggestions: () => Promise.reject(new Error("labs down")),
+  };
+  const local = createResearchRunner({
+    database: db,
+    provider: failing,
+    analyst,
+  });
+  const seed = `${FAKE_KEYWORDS_SEED_ONLY} notes`;
+  const { id } = await project([seed]);
+  const run = await local.run("a", id, { requestId: randomUUID() });
+  expect(run.status).toBe("completed");
+  const phrases = (await results.listKeywords("a", id)).map(
+    (k) => toKeywordDto(k).phrase,
+  );
+  expect(phrases).toEqual([seed]);
 });
 
 it("keeps null metrics as null, not 0", async () => {

@@ -1,0 +1,522 @@
+{
+  "note": "Real response from dataforseo_labs/google/keyword_suggestions/live, seed cipher, volume 5000 to 30000, limit 6 (2026-10-31), trimmed to the fields the adapter reads.",
+  "cost": 0.01272,
+  "result": [
+    {
+      "seed_keyword": "cipher",
+      "seed_keyword_data": {
+        "keyword": "cipher",
+        "keyword_info": {
+          "search_volume": 49500,
+          "cpc": 22.31,
+          "competition": 0,
+          "monthly_searches": [
+            {
+              "year": 2026,
+              "month": 9,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 8,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 7,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 6,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 5,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 4,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 3,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 2,
+              "search_volume": 49500
+            },
+            {
+              "year": 2026,
+              "month": 1,
+              "search_volume": 60500
+            },
+            {
+              "year": 2025,
+              "month": 12,
+              "search_volume": 60500
+            },
+            {
+              "year": 2025,
+              "month": 11,
+              "search_volume": 74000
+            },
+            {
+              "year": 2025,
+              "month": 10,
+              "search_volume": 60500
+            }
+          ]
+        },
+        "keyword_properties": {
+          "keyword_difficulty": 30
+        }
+      },
+      "items": [
+        {
+          "keyword": "cipher vigenere",
+          "keyword_info": {
+            "search_volume": 22200,
+            "cpc": null,
+            "competition": 0,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 14800
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 27100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 22200
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 24
+          }
+        },
+        {
+          "keyword": "vigenère cipher",
+          "keyword_info": {
+            "search_volume": 22200,
+            "cpc": null,
+            "competition": 0,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 14800
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 27100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 22200
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 15
+          }
+        },
+        {
+          "keyword": "vigenere cipher",
+          "keyword_info": {
+            "search_volume": 22200,
+            "cpc": null,
+            "competition": 0,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 14800
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 27100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 22200
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 25
+          }
+        },
+        {
+          "keyword": "vernier cipher",
+          "keyword_info": {
+            "search_volume": 22200,
+            "cpc": null,
+            "competition": 0,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 14800
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 27100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 22200
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 25
+          }
+        },
+        {
+          "keyword": "visionaire cipher",
+          "keyword_info": {
+            "search_volume": 22200,
+            "cpc": null,
+            "competition": 0,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 14800
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 18100
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 27100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 22200
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 22200
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 26
+          }
+        },
+        {
+          "keyword": "cipher mining stock",
+          "keyword_info": {
+            "search_volume": 18100,
+            "cpc": 5.25,
+            "competition": 0.01,
+            "monthly_searches": [
+              {
+                "year": 2026,
+                "month": 9,
+                "search_volume": 4400
+              },
+              {
+                "year": 2026,
+                "month": 8,
+                "search_volume": 5400
+              },
+              {
+                "year": 2026,
+                "month": 7,
+                "search_volume": 2900
+              },
+              {
+                "year": 2026,
+                "month": 6,
+                "search_volume": 3600
+              },
+              {
+                "year": 2026,
+                "month": 5,
+                "search_volume": 5400
+              },
+              {
+                "year": 2026,
+                "month": 4,
+                "search_volume": 4400
+              },
+              {
+                "year": 2026,
+                "month": 3,
+                "search_volume": 12100
+              },
+              {
+                "year": 2026,
+                "month": 2,
+                "search_volume": 22200
+              },
+              {
+                "year": 2026,
+                "month": 1,
+                "search_volume": 27100
+              },
+              {
+                "year": 2025,
+                "month": 12,
+                "search_volume": 27100
+              },
+              {
+                "year": 2025,
+                "month": 11,
+                "search_volume": 40500
+              },
+              {
+                "year": 2025,
+                "month": 10,
+                "search_volume": 49500
+              }
+            ]
+          },
+          "keyword_properties": {
+            "keyword_difficulty": 48
+          }
+        }
+      ]
+    }
+  ]
+}

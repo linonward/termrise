@@ -1,0 +1,34 @@
+{
+  "note": "Real response from dataforseo_labs/google/bulk_traffic_estimation/live, three sites (2026-10-31), trimmed to the fields the adapter reads.",
+  "cost": 0.01236,
+  "result": [
+    {
+      "items": [
+        {
+          "target": "reddit.com",
+          "metrics": {
+            "organic": {
+              "etv": 630671738.1172475
+            }
+          }
+        },
+        {
+          "target": "cipherdecipher.com",
+          "metrics": {
+            "organic": {
+              "etv": 418.72155116152135
+            }
+          }
+        },
+        {
+          "target": "cryptii.com",
+          "metrics": {
+            "organic": {
+              "etv": 131843.29069799307
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

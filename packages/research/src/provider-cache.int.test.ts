@@ -24,6 +24,7 @@ import {
   type DataForSeoRoute,
   KD,
   SERP,
+  SUGGESTIONS,
 } from "./testing/dataforseo-fetch";
 
 // The same request within its time to live is not paid again: stub fetch, real database.
@@ -51,6 +52,8 @@ const kd = (items: [string, number | null][]): DataForSeoRoute => ({
     },
   ],
 });
+// Google Ads gives these seeds no ideas but themselves, so Labs suggestions are asked too.
+const suggestions: DataForSeoRoute = { cost: 0.012, result: [{ items: [] }] };
 const serp: DataForSeoRoute = {
   cost: 0.002,
   result: [
@@ -138,33 +141,36 @@ it("reuses fresh answers for free and keeps the time the provider answered", asy
 it("pays again after the time to live", async () => {
   const routes = {
     [ADS]: ads(["invoice tool"]),
+    [SUGGESTIONS]: suggestions,
     [KD]: kd([["invoice tool", 20]]),
     [SERP]: serp,
   };
   await runOnce(routes);
   clock = new Date(clock.getTime() + DATAFORSEO_CACHE_TTL_MS.serp + 1000);
-  // The SERP expired; the expansion and KD did not.
+  // The SERP expired; the expansion, suggestions and KD did not.
   expect((await runOnce(routes)).calls).toEqual([SERP]);
   clock = new Date(clock.getTime() + DATAFORSEO_CACHE_TTL_MS.expand);
-  expect((await runOnce(routes)).calls).toEqual([ADS, KD, SERP]);
+  expect((await runOnce(routes)).calls).toEqual([ADS, SUGGESTIONS, KD, SERP]);
 });
 
 it("asks difficulty only for phrases not cached", async () => {
   await runOnce({
     [ADS]: ads(["invoice tool"]),
+    [SUGGESTIONS]: suggestions,
     [KD]: kd([["invoice tool", 20]]),
     [SERP]: serp,
   });
   const second = await runOnce(
     {
       [ADS]: ads(["receipt scanner"]),
+      [SUGGESTIONS]: suggestions,
       [KD]: kd([["receipt scanner", 30]]),
       [SERP]: serp,
     },
     ["invoice tool", "receipt scanner"],
   );
-  expect(second.calls).toEqual([ADS, KD, SERP]);
-  expect(second.body[1]).toEqual([
+  expect(second.calls).toEqual([ADS, SUGGESTIONS, KD, SERP]);
+  expect(second.body[2]).toEqual([
     { keywords: ["receipt scanner"], location_code: 2840, language_code: "en" },
   ]);
 });

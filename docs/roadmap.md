@@ -55,6 +55,7 @@
 | S46   | 代码使用 S44 的业务组件：`@repo/ui` 的 `Badge` 与 `Tag`；全部状态徽章按 Status 一节加图标（`status-badges.ts`，处理中图标旋转）；最近一次运行显示运行状态徽章；关键词表的数字用等宽字体，Seed 为 `Tag/Brand`；跑题按钮（`Topic Toggle`）；维度的 5 格评分条；搜索结果组改为细线分隔并显示结果数；收藏按钮加描边；列表页与区块的空状态（`EmptyState`）；复选框与单选框用 `primary`                                                                                                     | 单元测试覆盖每个状态的色调与图标；E2E 覆盖跑题按钮的新文字                                                                                                                                                                                                       | 已完成 |
 | S47   | 界面只用中文：删除 `en.json`（web 与 api）和语言切换（用户菜单、移动端菜单、Footer）；`LOCALE = "zh"`，`<html lang="zh-CN">`；登录邮件只用中文；OG 图只显示 Logo 和品牌名；Landing 去掉「中文和英文」一项；E2E 改用中文文案                                                                                                                                                                                                                                                           | 单元测试覆盖固定的 locale 与文案完整性；E2E 覆盖没有语言菜单、页面为中文                                                                                                                                                                                         | 已完成 |
 | S48   | SERP 的真实网站：`serp_results.site` 与 migration；DataForSEO 适配器的 `realSite()`（Google 把自然结果包成 `google.com/goto` 跳转，`url` 与 `domain` 都是 google.com：用 breadcrumb 的地址，没有地址时用 `website_name`；首页换回自己的地址，内页保留跳转链接）；搜索结果和 Brief 显示 `site`，S48 之前的结果仍用 URL 的域名                                                                                                                                                          | 单元测试用保存的真实响应（`cipher decoder`，2026-10-31）覆盖每种结果；Brief 测试覆盖 `site` 与旧结果                                                                                                                                                             | 已完成 |
+| S49   | Labs 数据：`KeywordProvider` 增加 `suggestions()`（搜索量区间、KD、近 12 个月搜索量）、`rankedKeywords()`、`siteTraffic()`、`searchTrend()`（Google Trends，美国 5 年，每周）；DataForSEO 与 fake 实现，预留额与缓存期；研究运行中 Google Ads 只返回种子词本身时，补用一次 `suggestions()`（`SUGGESTIONS_FALLBACK`，记入项目的数据预算）                                                                                                                                              | 单元测试用保存的真实响应（2026-10-31）覆盖四个接口；集成测试覆盖补用：只对扩不出词的种子词调用一次                                                                                                                                                               | 已完成 |
 
 ## Confirmed Decisions
 
@@ -102,21 +103,21 @@
 - 2026-10-21：产品只供维护者自己使用，界面只用中文（S47），不再支持英文界面。研究的市场语言（英语关键词）不变。
 - 2026-10-31：keyword-lab（维护者的选词 SOP 和脚本，私有仓库 `linonward/keyword-lab`）合并进 Termrise。新增「词库」模块，和研究项目、机会评分并列：研究项目找产品机会，词库为新工具站选一个长青主词。词库的规则 `tool-site-v1` 用硬性门槛（月搜索量 ≥ 5,000、KD ≤ 29、CPC ≥ 0.1、前 10 中强对手 ≤ 3、趋势和种子词基线比），不改现有的 6 维评分。需要人判断的几项（确认自动排除的词、变现、合规、AI 改造点）由维护者在页面上确认，不用 AI。合并期间，keyword-lab 用本机 launchd 每天跑一轮（DataForSEO 每天 0.5 美元），S56 时导入。顺序：
   - S48 SERP 的真实域名：Google 把自然结果包成 `google.com/goto` 跳转，DataForSEO 返回的 `url` 和 `domain` 都是 google.com，真实网站在 `breadcrumb` 中。
-  - S49 Labs 扩词：`keyword_suggestions` 支持搜索量区间（大种子词不加上限时，前 1,000 个全是头部大词）；数据完全相同的说法合并为一组（DataForSEO 给它们相同的搜索量、CPC 和趋势，只有 KD 不同）。
-  - S50 搜索趋势：DataForSEO 的 Google Trends（美国、5 年），和种子词基线比；F02 增加按搜索趋势的版本。
-  - S51 规则 `tool-site-v1`。
-  - S52 词库页 `/pool`：状态、淘汰原因、下次复查日期，每次检查追加一条记录。
-  - S53 词源：对手已有排名的词（`ranked_keywords`）、后缀词清单轮换。
-  - S54 每日出词：Worker 每天跑一轮，有每日数据预算，页面显示日报。
-  - S55 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
-  - S56 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
+  - S49 Labs 数据：按搜索量区间扩词（大种子词不加上限时，前 1,000 个全是头部大词）、对手已有排名的词、网站的自然流量、5 年搜索趋势；研究运行中 Google Ads 扩不出词的种子词，补用一次 Labs 扩词。
+  - S50 规则 `tool-site-v1`：硬性门槛；数据完全相同的说法合并为一组（DataForSEO 给它们相同的搜索量、CPC 和趋势，只有 KD 不同）；趋势和种子词基线比；强对手。
+  - S51 词库：数据表、每日数据预算、复查日期、维护者的确认和 API。
+  - S52 一轮选词：词源（后缀词清单轮换、对手已有排名的词、到期复查）、深查、日报；Worker 每天跑一轮。
+  - S53 词库页面 `/pool`。
+  - S54 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
+  - S55 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
+  - S56 site-starter 去掉与 Termrise 重叠的部分：`analyze-keywords` 和 `analyze-competitors` 读选词简报，不再重新拉主词的数据；上线后的 Search Console 新词作为词库的词源。
 
 ## Open Questions
 
 - S38 后的真实运行（2026-10-21）：「screen to sign」组的 SERP 来自竞品的登录词 `screen cloud login`（导航类，1900），建站建议为 `new_site`。是否让导航类关键词不能代表组的 SERP 竞争，待决定。
 - Production 仍要求 `PAYMENT_PROVIDER=waffo` 和 Waffo Key（Fake 在 Production 被禁止）。部署 Production 前决定：配置 Waffo Key，还是让收费模块可以关闭。
 - S33（2026-10-21）真实运行的问题，在 S34 之前决定怎么处理：
-  - ~~低搜索量的种子词，Google Ads `keywords_for_keywords` 只返回种子词本身，没有扩词。是否补用 Labs 的 `keyword_suggestions`？~~ 2026-10-31 决定在 S49 补用：keyword-lab 用它跑过两轮，按搜索量区间拉词有效。
+  - ~~低搜索量的种子词，Google Ads `keywords_for_keywords` 只返回种子词本身，没有扩词。是否补用 Labs 的 `keyword_suggestions`？~~ 2026-10-31 决定补用（S49）：keyword-lab 用它跑过两轮，按搜索量区间拉词有效。
   - Google Trends Trending Now 的条目大多是体育、人名、新闻（如 `michael jordan`、`ncis cast`），不是产品需求。是否在 Radar 中按类别过滤或降低排序？
 
 ### 暂缓
