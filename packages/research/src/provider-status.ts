@@ -1,8 +1,9 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, gte, sql } from "drizzle-orm";
 
 import type { Database } from "@repo/db/client";
 import {
   apiUsage,
+  poolRounds,
   radarItems,
   researchProjects,
   workerHeartbeats,
@@ -11,7 +12,20 @@ import {
 /** A worker not seen for this long is shown as offline; it writes every minute. */
 export const WORKER_OFFLINE_MS = 3 * 60 * 1000;
 
+/** What the worker may spend, in USD per UTC day or month, and how often it runs rounds. */
+export type WorkerBudgets = {
+  monthly: { data: number; ai: number };
+  evergreen: { enabled: boolean; everyDays: number; dailyData: number };
+  newWords: {
+    enabled: boolean;
+    dailyData: number;
+    dailyAi: number;
+    checks: number;
+  };
+};
+
 export type WorkerInfo = {
+  budgets?: WorkerBudgets;
   workerId: string;
   keywordProvider: string;
   analystProvider: string;
@@ -42,6 +56,7 @@ export function createProviderStatus(deps: {
           analystProvider: info.analystProvider,
           analystModel: info.analystModel,
           radarSources: info.radarSources,
+          budgets: info.budgets ?? null,
           lastSeenAt: at,
         },
       });
@@ -75,7 +90,43 @@ export function createProviderStatus(deps: {
       .where(eq(researchProjects.userId, userId))
       .groupBy(apiUsage.provider, apiUsage.kind)
       .orderBy(apiUsage.kind, apiUsage.provider);
+    // The keyword pool's spending, today and this month (UTC), per round kind and budget kind.
+    const at = now();
+    const dayStart = new Date(
+      Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+    );
+    const monthStart = new Date(
+      Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), 1),
+    );
+    const occupied = sql<number>`coalesce(sum(case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end), 0)::bigint`;
+    const poolSpend = await database
+      .select({
+        bucket: sql<
+          "evergreen" | "new_words"
+        >`case when ${poolRounds.kind} = 'new_words' then 'new_words' else 'evergreen' end`,
+        kind: apiUsage.kind,
+        todayMicros: sql<number>`coalesce(sum(case when ${apiUsage.createdAt} >= ${dayStart} then (case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end) end), 0)::bigint`,
+        monthMicros: occupied,
+      })
+      .from(apiUsage)
+      .innerJoin(poolRounds, eq(apiUsage.poolRoundId, poolRounds.id))
+      .where(gte(apiUsage.createdAt, monthStart))
+      .groupBy(sql`1`, apiUsage.kind);
+    const [{ monthData, monthAi }] = await database
+      .select({
+        monthData: sql<number>`coalesce(sum(case when ${apiUsage.kind} = 'data' then (case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end) end), 0)::bigint`,
+        monthAi: sql<number>`coalesce(sum(case when ${apiUsage.kind} = 'ai' then (case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end) end), 0)::bigint`,
+      })
+      .from(apiUsage)
+      .where(gte(apiUsage.createdAt, monthStart));
     return {
+      poolSpend: poolSpend.map((p) => ({
+        bucket: p.bucket,
+        kind: p.kind,
+        todayMicros: Number(p.todayMicros),
+        monthMicros: Number(p.monthMicros),
+      })),
+      monthMicros: { data: Number(monthData), ai: Number(monthAi) },
       worker: worker
         ? {
             ...worker,
@@ -116,7 +167,15 @@ export function toProviderStatusDto(s: ProviderStatus) {
       analystProvider: s.worker.analystProvider,
       analystModel: s.worker.analystModel,
       radarSources: s.worker.radarSources,
+      budgets: (s.worker.budgets ?? null) as WorkerBudgets | null,
     },
+    poolSpend: s.poolSpend.map((p) => ({
+      bucket: p.bucket,
+      kind: p.kind,
+      todayUsd: usd(p.todayMicros),
+      monthUsd: usd(p.monthMicros),
+    })),
+    monthUsd: { data: usd(s.monthMicros.data), ai: usd(s.monthMicros.ai) },
     radar: {
       items: s.radar.items,
       lastCollectedAt: s.radar.lastCollectedAt?.toISOString() ?? null,

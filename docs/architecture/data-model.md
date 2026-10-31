@@ -632,6 +632,8 @@ processed_at = now()
 
 ## Worker Heartbeats
 
+S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，长青词的开关、每几天一轮和每天数据上限，新词的开关、每天数据和 AI 上限、每天复核个数。设置页用它显示「已用 / 上限」。
+
 `worker_heartbeats`（`packages/db/src/schema/workers.ts`，`packages/research/src/provider-status.ts`）：每个 Worker 进程一行（`worker_id`，默认主机名，可用 `WORKER_ID` 设置），启动时和之后每分钟写入关键词数据来源、分析来源与模型、Radar 采集的来源（`radar_sources`，为空表示不采集）、启动时间和最近在线时间。不含 Key。API 不读取 Worker 的环境变量，`/settings/providers` 从这张表和账本读取服务状态：
 
 - Worker 3 分钟内写过为在线，否则为离线；没有行时为未启动。

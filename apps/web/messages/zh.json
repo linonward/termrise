@@ -717,6 +717,29 @@
     "radarSource": {
       "hacker_news": "Hacker News",
       "google_trends": "Google Trends"
+    },
+    "budgets": {
+      "title": "预算与用量",
+      "noWorker": "Worker 还没有报告它的预算。",
+      "monthly": "本月合计：数据 {data} / 上限 {dataCap}，AI {ai} / 上限 {aiCap}。到达上限后，到下个月 1 日（UTC）前不再付费调用。",
+      "column": {
+        "budget": "预算",
+        "schedule": "排程",
+        "today": "今天 / 每天上限",
+        "month": "本月"
+      },
+      "newWords": "新词",
+      "evergreen": "长青词",
+      "research": "研究项目",
+      "newWordsOn": "每天一轮，复核 {checks} 个",
+      "daily": "每天一轮",
+      "everyDays": "每 {days} 天一轮",
+      "off": "关闭（只能手动）",
+      "todayDataAi": "数据 {data} / {dataCap} · AI {ai} / {aiCap}",
+      "todayData": "数据 {data} / {dataCap}",
+      "researchNote": "每个研究项目有自己的数据和 AI 预算。",
+      "researchLink": "研究项目",
+      "note": "上限来自 Worker 的环境变量（POOL_*、NEW_WORDS_*、MONTHLY_*），日期按 UTC 计。用量含已结算的费用和还在占用的预留额。"
     }
   },
   "favorites": {

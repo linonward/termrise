@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { apiUsage, user } from "@repo/db/schema";
+import { apiUsage, poolRounds, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import {
@@ -46,6 +46,7 @@ it("shows the worker online until it stops writing, and keeps its start time", a
     analystProvider: "deepseek",
     analystModel: "deepseek-flash",
     radarSources: ["hacker_news"],
+    budgets: null,
   });
   clock = new Date(clock.getTime() + WORKER_OFFLINE_MS);
   expect((await status.forUser("a")).worker).toMatchObject({
@@ -94,4 +95,40 @@ it("sums a user's calls per provider, with the last result", async () => {
     },
   ]);
   expect((await status.forUser("b")).usage[0].calls).toBe(1);
+});
+
+it("reports the worker's budgets and the pool's spending today and this month", async () => {
+  const at = new Date();
+  const status = createProviderStatus({ database: db, now: () => at });
+  await status.heartbeat({
+    workerId: "budgets",
+    keywordProvider: "fake",
+    analystProvider: "fake",
+    analystModel: null,
+    radarSources: [],
+    budgets: {
+      monthly: { data: 10, ai: 2 },
+      evergreen: { enabled: true, everyDays: 7, dailyData: 0.5 },
+      newWords: { enabled: true, dailyData: 0.25, dailyAi: 0.05, checks: 6 },
+    },
+  });
+  const [round] = await db
+    .insert(poolRounds)
+    .values({ kind: "new_words" })
+    .returning();
+  await db.insert(apiUsage).values({
+    poolRoundId: round.id,
+    kind: "data",
+    provider: "fake",
+    operation: "compare",
+    reservedMicros: 20_000,
+    costMicros: 11_000,
+    status: "settled",
+  });
+  const dto = toProviderStatusDto(await status.forUser("nobody"));
+  expect(dto.worker?.budgets?.evergreen.everyDays).toBe(7);
+  expect(dto.poolSpend).toEqual([
+    { bucket: "new_words", kind: "data", todayUsd: 0.011, monthUsd: 0.011 },
+  ]);
+  expect(dto.monthUsd.data).toBeCloseTo(0.011);
 });

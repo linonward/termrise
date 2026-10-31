@@ -160,6 +160,23 @@ async function main() {
         analystModel:
           env.ANALYST_PROVIDER === "deepseek" ? env.DEEPSEEK_MODEL! : null,
         radarSources: [...radarSources],
+        budgets: {
+          monthly: {
+            data: env.MONTHLY_DATA_BUDGET_USD,
+            ai: env.MONTHLY_AI_BUDGET_USD,
+          },
+          evergreen: {
+            enabled: env.POOL_DAILY_ENABLED === "1",
+            everyDays: env.POOL_ROUND_EVERY_DAYS,
+            dailyData: env.POOL_DAILY_DATA_BUDGET_USD,
+          },
+          newWords: {
+            enabled: env.NEW_WORDS_ENABLED === "1",
+            dailyData: env.NEW_WORDS_DAILY_DATA_BUDGET_USD,
+            dailyAi: env.NEW_WORDS_DAILY_AI_BUDGET_USD,
+            checks: env.NEW_WORDS_CHECKS,
+          },
+        },
       })
       .catch((error: unknown) =>
         logger.warn("worker.heartbeat_failed", { error }),

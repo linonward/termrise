@@ -9,6 +9,7 @@ import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { BudgetUsage } from "@/features/settings/budget-usage";
 import { apiGet } from "@/server/api/api";
 
 export async function generateMetadata() {
@@ -154,6 +155,7 @@ export default async function ProvidersPage() {
         </dl>
         <p className="text-[13px] text-muted-foreground">{t("keysNote")}</p>
       </section>
+      <BudgetUsage status={status} />
       <section aria-labelledby="usage-title" className="space-y-4">
         <h2 id="usage-title" className="font-heading text-2xl font-semibold">
           {t("usage")}
