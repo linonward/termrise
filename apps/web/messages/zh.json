@@ -895,7 +895,7 @@
       "screen": "初筛",
       "deep": "深查",
       "review": "操作",
-      "import": "导入"
+      "import": "从 keyword-lab 导入"
     },
     "review": {
       "title": "你的判断",
@@ -966,6 +966,11 @@
         "note": "{value}",
         "fail": "{value}",
         "unsure": "{value}"
+      },
+      "imported": {
+        "fail": "keyword-lab：{value}",
+        "note": "keyword-lab：{value}",
+        "unsure": "keyword-lab：{value}"
       }
     },
     "reportTitle": "一轮选词的报告",

@@ -1,6 +1,6 @@
 # 词库（工具站选词）
 
-词库为新的工具站选一个长青主词：月搜索量够、新站能排上去、需求不在下滑、能变现。研究项目找产品机会（[product.md](product.md)），词库只回答"这个词值不值得做一个工具站"。规则来自 keyword-lab 的选词 SOP，在两轮真实数据（2026-10-04、2026-10-31）中验证过。
+词库为新的工具站选一个长青主词：月搜索量够、新站能排上去、需求不在下滑、能变现。研究项目找产品机会（[product.md](product.md)），词库只回答"这个词值不值得做一个工具站"。规则来自 keyword-lab 的选词 SOP（[原文](keyword-lab/README.md)），在两轮真实数据（2026-10-04、2026-10-31）中验证过。
 
 ## Rules
 
@@ -62,6 +62,10 @@ Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的�
 ## Brief
 
 候选词和选定的词，在详情页可以复制或下载**选词简报**（`GET /api/pool/keywords/:id/brief.md`，`pool-brief.ts`），存为 site-starter 新网站的 `docs/keyword-brief.md`。格式沿用 keyword-lab SOP 的附录 D：结论、数据（搜索量、KD、CPC、变种数、趋势和基线、强对手数、内页数）、合并的说法、联想词、合规和变现、前 10 名、AI 改造点、交给建站时要注意。简报只用已保存的数据：没查过的项写"—"或"待确认"，并列在"交给建站时要注意"里。
+
+## keyword-lab
+
+keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目录>` 导入（`pool-import.ts`）：`research/pool.csv` 给每个词的状态、来源、首次加入、最近检查和下次检查日期，`research/keyword-research-*.csv` 给最近一次的搜索量、KD、CPC、变种数、强对手数和内页数。keyword-lab 的原因文字原样保留（规则 `imported`）。每个词一条 `import` 检查；导入过的词再运行时跳过。keyword-lab 每天花费的记录（`spend.csv`）不导入预算账本。
 
 ## New Words
 

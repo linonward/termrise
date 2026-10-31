@@ -93,6 +93,8 @@ export type CheckInput = {
   fields?: KeywordFields;
   /** When the check was made; default now. Imports keep their own dates. */
   at?: Date;
+  /** The next check, when it is known already (an import); else from the status. */
+  nextCheckAt?: Date | null;
 };
 
 const phrase = z
@@ -152,7 +154,10 @@ export function createKeywordPool(deps: {
         status: input.status,
         reasons: input.reasons,
         lastCheckedAt: input.status === "new" ? null : at,
-        nextCheckAt: nextCheckAt(input.status, input.reasons, at),
+        nextCheckAt:
+          input.nextCheckAt !== undefined
+            ? input.nextCheckAt
+            : nextCheckAt(input.status, input.reasons, at),
         updatedAt: at,
         ...input.fields,
       };

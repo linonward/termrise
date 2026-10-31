@@ -23,7 +23,18 @@ export const MIN_VARIANT_VOLUME = 50;
 export const MID_BAND = { minVolume: 5000, maxVolume: 30_000 } as const;
 
 export type Reason = {
-  rule: "H1" | "H2" | "H3" | "H4" | "H5" | "H6" | "H7" | "exclude" | "variants";
+  rule:
+    | "H1"
+    | "H2"
+    | "H3"
+    | "H4"
+    | "H5"
+    | "H6"
+    | "H7"
+    | "exclude"
+    | "variants"
+    /** keyword-lab's own words, kept as they were (pool-import.ts). */
+    | "imported";
   result: "fail" | "unsure" | "note";
   value?: number | string | null;
   limit?: number;

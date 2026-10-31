@@ -11,7 +11,8 @@
     "admin:adjust": "tsx scripts/admin-adjust.ts",
     "admin:export-user": "tsx scripts/admin-export-user.ts",
     "admin:delete-user": "tsx scripts/admin-delete-user.ts",
-    "dev:login": "tsx --env-file=.dev.vars scripts/dev-login.ts"
+    "dev:login": "tsx --env-file=.dev.vars scripts/dev-login.ts",
+    "pool:import": "tsx scripts/pool-import.ts"
   },
   "dependencies": {
     "@repo/admin": "workspace:*",
