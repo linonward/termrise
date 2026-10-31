@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { claudeCostMicros, createClaudeWebOrigin } from "./claude-web-origin";
+import {
+  claudeCostMicros,
+  createClaudeWebOrigin,
+  stripMarkdown,
+} from "./claude-web-origin";
 
 const window = {
   from: new Date("2026-09-24T00:00:00Z"),
@@ -133,4 +137,12 @@ it("keeps the answer when the search returns many pages", async () => {
     kind: "summary",
     title: "A TikTok costume trend.",
   });
+});
+
+it("drops Markdown from the answer", () => {
+  expect(
+    stripMarkdown(
+      "**Unknown.** The results show a *TikTok* trend, see [this](https://x.y).\n## Note",
+    ),
+  ).toBe("Unknown. The results show a TikTok trend, see this. Note");
 });

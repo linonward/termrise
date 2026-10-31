@@ -65,3 +65,32 @@ export function judgementsByIndex(raw: unknown, results: number) {
     parsed.data.pages.filter((p) => p.i < results).map((p) => [p.i, p]),
   );
 }
+
+/**
+ * Whether a page could be judged: gone (404, 410: the result is dead, a weak result),
+ * unreadable (blocked, timed out, a server error, not HTML or nearly no text: nothing is
+ * known about it, so it is neither weak nor judged), or ok.
+ */
+export type PageAccess = "ok" | "gone" | "unreadable";
+/** Visible characters below which a page is treated as unreadable (a script shell). */
+export const MIN_PAGE_TEXT = 100;
+
+export function pageAccess(page: {
+  status: number | null;
+  text: string;
+}): PageAccess {
+  if (page.status === 404 || page.status === 410) return "gone";
+  if (page.status === null || page.status >= 400) return "unreadable";
+  return page.text.length < MIN_PAGE_TEXT ? "unreadable" : "ok";
+}
+
+/** One result after the page check; madeForPhrase is null when the page was not judged. */
+export type CheckedPage = {
+  access: PageAccess;
+  madeForPhrase: boolean | null;
+  kind: PageKind | null;
+  weak: boolean;
+  note: string;
+  title: string | null;
+  status: number | null;
+};

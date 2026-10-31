@@ -19,7 +19,13 @@ import type {
   TrendPoint,
 } from "./keyword-provider";
 import { ONE_KEYWORD_RESERVE } from "./new-words";
-import { judgementsByIndex, type PageJudge } from "./page-judge";
+import {
+  type CheckedPage,
+  judgementsByIndex,
+  pageAccess,
+  type PageJudge,
+  type PageJudgement,
+} from "./page-judge";
 import {
   MAX_STRONG,
   MID_BAND,
@@ -389,32 +395,70 @@ export function createPoolRounds(deps: {
       h1: texts[i].h1,
       text: texts[i].text,
     }));
-    const charged = await budget
-      .charge(
-        {
-          projectId: null,
-          poolRoundId: round.id,
-          poolBudget: "evergreen",
-          runId: null,
-          kind: "ai",
-          provider: pageJudge.name,
-          operation: "page_check",
-          maxCostMicros: pageJudge.maxCostMicros,
-        },
-        () => pageJudge.judge({ phrase, pages }),
-      )
-      .catch((error: unknown) => {
-        logger.warn("pool.page_check_failed", { phrase, error });
-        return null;
-      });
-    if (!charged) return null;
-    const judged = judgementsByIndex(charged.value, pages.length);
+    const access = pages.map((p) => pageAccess(p));
+    // Only pages that could be read go to the judge.
+    const readable = pages.filter((_, i) => access[i] === "ok");
+    let judged: Map<number, PageJudgement> | null = new Map();
+    if (readable.length > 0) {
+      const charged = await budget
+        .charge(
+          {
+            projectId: null,
+            poolRoundId: round.id,
+            poolBudget: "evergreen",
+            runId: null,
+            kind: "ai",
+            provider: pageJudge.name,
+            operation: "page_check",
+            maxCostMicros: pageJudge.maxCostMicros,
+          },
+          () => pageJudge.judge({ phrase, pages: readable }),
+        )
+        .catch((error: unknown) => {
+          logger.warn("pool.page_check_failed", { phrase, error });
+          return null;
+        });
+      judged = charged ? judgementsByIndex(charged.value, pages.length) : null;
+    }
     if (!judged) return null;
-    return new Map(
-      [...judged].map(([i, j]) => [
-        i,
-        { ...j, title: pages[i].title, status: pages[i].status },
-      ]),
+    return new Map<number, CheckedPage>(
+      pages.map((p, i) => {
+        const base = { title: p.title, status: p.status, access: access[i] };
+        if (access[i] === "gone")
+          return [
+            i,
+            {
+              ...base,
+              madeForPhrase: false,
+              kind: null,
+              weak: true,
+              note: `页面已失效（${p.status}）`,
+            },
+          ];
+        const j = access[i] === "ok" ? judged.get(i) : undefined;
+        if (!j)
+          return [
+            i,
+            {
+              ...base,
+              access: access[i] === "ok" ? "unreadable" : access[i],
+              madeForPhrase: null,
+              kind: null,
+              weak: false,
+              note: "读不到页面内容",
+            },
+          ];
+        return [
+          i,
+          {
+            ...base,
+            madeForPhrase: j.madeForPhrase,
+            kind: j.kind,
+            weak: j.weak,
+            note: j.note,
+          },
+        ];
+      }),
     );
   }
 
@@ -486,7 +530,11 @@ export function createPoolRounds(deps: {
         serp,
         traffic,
         pages
-          ? new Map([...pages].map(([i, p]) => [i, p.madeForPhrase]))
+          ? new Map(
+              [...pages]
+                .filter(([, p]) => p.madeForPhrase !== null)
+                .map(([i, p]) => [i, p.madeForPhrase as boolean]),
+            )
           : undefined,
       );
       serpData = {
@@ -496,16 +544,7 @@ export function createPoolRounds(deps: {
           url: r.url,
           title: r.title,
           traffic: traffic.get(r.site) ?? null,
-          ...(pages?.get(i) && {
-            page: {
-              madeForPhrase: pages.get(i)!.madeForPhrase,
-              kind: pages.get(i)!.kind,
-              weak: pages.get(i)!.weak,
-              note: pages.get(i)!.note,
-              title: pages.get(i)!.title,
-              status: pages.get(i)!.status,
-            },
-          }),
+          ...(pages?.get(i) && { page: pages.get(i) }),
         })),
         strongSites: h5.strongSites,
         pageCheck: pages ? (deps.pageJudge?.promptVersion ?? null) : null,

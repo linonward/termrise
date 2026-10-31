@@ -365,14 +365,19 @@ it("reads the top pages to count strong competitors, and keeps Google's suggesti
   const { checks } = await pool.get(k.id);
   const data = checks[0].data as {
     autocomplete: string[];
-    serp: { pageCheck: string; results: { page?: { weak: boolean } }[] };
+    serp: { pageCheck: string; results: { page?: Record<string, unknown> }[] };
   };
   expect(data.autocomplete).toEqual([
     "morse translator audio",
     "morse translator image",
   ]);
   expect(data.serp.pageCheck).toBe("fake-v1");
-  expect(data.serp.results[0].page?.weak).toBe(true);
+  // The 404 page is gone: weak, and not made for the phrase.
+  expect(data.serp.results[0].page).toMatchObject({
+    weak: true,
+    access: "gone",
+    madeForPhrase: false,
+  });
 });
 
 it("falls back to the title rule when the page check has no AI budget", async () => {
@@ -388,12 +393,13 @@ it("falls back to the title rule when the page check has no AI budget", async ()
     provider: stub(),
     budget: createBudget({ database: db, now, dailyPoolCapMicros: 500_000 }),
     deepChecks: 1,
+    // Readable pages, but no AI budget to judge them.
     readPage: async (url) => ({
       url,
-      status: 404,
-      title: null,
+      status: 200,
+      title: "Something else",
       h1: null,
-      text: "",
+      text: "x".repeat(200),
     }),
     pageJudge: createFakePageJudge(),
     now,
@@ -404,4 +410,57 @@ it("falls back to the title rule when the page check has no AI budget", async ()
     (i) => i.phrase === "morse translator",
   )!;
   expect(k.strongCompetitors).toBe(2);
+});
+
+it("does not judge pages it cannot read: they fall back to the title rule and are not weak", async () => {
+  await pool.record({
+    phrase: "morse translator",
+    status: "queued",
+    reasons: [],
+    kind: "review",
+    fields: { searchVolume: 9000, keywordDifficulty: 20, cpcMicros: 1_000_000 },
+  });
+  const r = createPoolRounds({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyPoolCapMicros: 500_000,
+      dailyPoolAiCapMicros: 100_000,
+    }),
+    deepChecks: 1,
+    // Every site blocks the reader.
+    readPage: async (url) => ({
+      url,
+      status: 403,
+      title: null,
+      h1: null,
+      text: "",
+    }),
+    pageJudge: createFakePageJudge(),
+    now,
+  });
+  await r.scheduleDaily(0);
+  const done = await r.run((await r.claim())!);
+  const k = (await pool.list({ status: "all" })).items.find(
+    (i) => i.phrase === "morse translator",
+  )!;
+  // The title rule: both big.com pages carry the phrase.
+  expect(k.strongCompetitors).toBe(2);
+  const { checks } = await pool.get(k.id);
+  const results = (
+    checks[0].data as { serp: { results: { page: Record<string, unknown> }[] } }
+  ).serp.results;
+  expect(results[0].page).toMatchObject({
+    access: "unreadable",
+    madeForPhrase: null,
+    weak: false,
+  });
+  // Nothing readable: no AI call.
+  const usage = await db
+    .select()
+    .from(apiUsage)
+    .where(eq(apiUsage.poolRoundId, done.id));
+  expect(usage.filter((u) => u.kind === "ai")).toHaveLength(0);
 });

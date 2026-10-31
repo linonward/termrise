@@ -29,8 +29,10 @@ type SerpRow = {
   traffic: number | null;
   /** The page check's reading (S71); absent before it or without AI budget. */
   page?: {
-    madeForPhrase: boolean;
-    kind: PageKind;
+    /** Absent in checks from before the access split: those were all judged. */
+    access?: "ok" | "gone" | "unreadable";
+    madeForPhrase: boolean | null;
+    kind: PageKind | null;
     weak: boolean;
     note: string;
     title: string | null;
@@ -258,11 +260,21 @@ export default async function PoolKeywordPage({
                       )}
                       {r.page && (
                         <span className="flex flex-wrap items-center gap-1.5 pt-1 text-[13px]">
-                          <Tag>{t(`pageKind.${r.page.kind}`)}</Tag>
+                          {r.page.access === "unreadable" && (
+                            <Tag>{t("pageCheck.unreadable")}</Tag>
+                          )}
+                          {r.page.access === "gone" && (
+                            <Tag>{t("pageCheck.gone")}</Tag>
+                          )}
+                          {r.page.kind && (
+                            <Tag>{t(`pageKind.${r.page.kind}`)}</Tag>
+                          )}
                           {r.page.madeForPhrase && (
                             <Tag tone="brand">{t("pageCheck.madeFor")}</Tag>
                           )}
-                          {r.page.weak && <Tag>{t("pageCheck.weak")}</Tag>}
+                          {r.page.weak && r.page.access !== "gone" && (
+                            <Tag>{t("pageCheck.weak")}</Tag>
+                          )}
                           <span className="text-muted-foreground">
                             {r.page.note}
                           </span>
