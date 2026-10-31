@@ -29,3 +29,15 @@ it("reads the registration date, and gives null when the lookup fails", async ()
   });
   expect((await down.registeredOn("x.com")).registeredOn).toBeNull();
 });
+
+it("names itself, since rdap.org refuses anonymous requests", async () => {
+  let agent: string | null = null;
+  const client = createRdapClient({
+    fetch: (async (_url: string, init: RequestInit) => {
+      agent = new Headers(init.headers).get("user-agent");
+      return Response.json({ events: [] });
+    }) as unknown as typeof fetch,
+  });
+  await client.registeredOn("x.com");
+  expect(agent).toMatch(/^termrise\//);
+});

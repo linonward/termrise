@@ -279,6 +279,23 @@ export function createLaunchSites(deps: {
           if (row) report.added++;
         }
       }
+      // Registration dates a lookup missed before (RDAP can refuse or time out).
+      if (deps.rdap) {
+        const missing = await database
+          .select({ id: launchSites.id, site: launchSites.site })
+          .from(launchSites)
+          .where(isNull(launchSites.registeredOn))
+          .orderBy(desc(launchSites.postedAt))
+          .limit(50);
+        for (const m of missing.filter((m) => !PLATFORM.test(m.site))) {
+          const age = await deps.rdap.registeredOn(registrableDomain(m.site));
+          if (age.registeredOn)
+            await database
+              .update(launchSites)
+              .set({ registeredOn: age.registeredOn })
+              .where(eq(launchSites.id, m.id));
+        }
+      }
       // Analyse what is not analysed yet, newest first; a short budget stops here.
       const pending = await database
         .select()

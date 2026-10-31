@@ -25,7 +25,11 @@ export function createRdapClient(
         const res = await fetcher(
           `https://rdap.org/domain/${encodeURIComponent(domain)}`,
           {
-            headers: { accept: "application/rdap+json" },
+            // rdap.org answers 403 to a request without a user agent (seen 2026-10-31).
+            headers: {
+              accept: "application/rdap+json",
+              "user-agent": "termrise/1.0 (+https://termrise.com)",
+            },
             signal: AbortSignal.timeout(deps.timeoutMs ?? 10_000),
           },
         );
