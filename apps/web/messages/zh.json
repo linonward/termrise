@@ -122,7 +122,8 @@
     "research": "研究",
     "opportunities": "机会",
     "products": "产品",
-    "providers": "服务"
+    "providers": "服务",
+    "pool": "词库"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -793,6 +794,196 @@
       "points": "{count} 分",
       "searches": "{count}+ 次搜索"
     }
+  },
+  "pool": {
+    "metaTitle": "词库",
+    "title": "词库",
+    "subtitle": "为新的工具站选一个长青主词：月搜索量够、新站能排上去、需求不在下滑。规则见 tool-site-v1。",
+    "roundTitle": "一轮选词",
+    "roundSource": "词源",
+    "roundSourcePlaceholder": "suffix:calculator 或 ranked:example.com，留空自动选",
+    "roundStart": "开始一轮",
+    "roundStarting": "正在排队…",
+    "roundOpen": "有一轮在进行",
+    "roundHelp": "Worker 一分钟内开始。每轮花费计入词库的每日预算。",
+    "roundNoSource": "没有词源",
+    "roundKind": {
+      "daily": "每日",
+      "manual": "手动"
+    },
+    "roundStatus": {
+      "queued": "排队中",
+      "running": "运行中",
+      "completed": "完成",
+      "partial": "部分完成",
+      "failed": "失败",
+      "budget_exhausted": "预算用完"
+    },
+    "roundError": {
+      "DAILY_BUDGET_EXHAUSTED": "今天的词库预算用完了，没查的词留到下一轮。",
+      "ROUND_TIMED_OUT": "Worker 中断，这一轮没有做完。",
+      "ROUND_FAILED": "这一轮出错了，请看 Worker 日志。"
+    },
+    "addTitle": "加入新词",
+    "addLabel": "每行一个词，下一轮先查",
+    "addButton": "加入词库",
+    "addDone": "加入 {added} 个，已在词库中 {existing} 个。",
+    "statusFilter": "按状态筛选",
+    "all": "全部",
+    "status": {
+      "new": "新加入",
+      "queued": "待深查",
+      "candidate": "候选",
+      "unsure": "待确认",
+      "watch": "观察",
+      "failed": "未通过",
+      "excluded": "已排除",
+      "selected": "已选定",
+      "dropped": "已放弃"
+    },
+    "search": "搜索词",
+    "sortLabel": "排序",
+    "sort": {
+      "updated": "最近更新",
+      "volume": "搜索量",
+      "next": "下次检查"
+    },
+    "apply": "应用",
+    "emptyTitle": "词库还是空的",
+    "emptyBody": "开始一轮选词，或加入你想到的词。",
+    "noMatchTitle": "没有匹配的词",
+    "noMatchBody": "请换一个搜索词。",
+    "column": {
+      "keyword": "关键词",
+      "status": "状态",
+      "volume": "月搜索量",
+      "kd": "KD",
+      "cpc": "CPC",
+      "strong": "强对手",
+      "trend": "趋势",
+      "variants": "变种",
+      "next": "下次检查"
+    },
+    "pages": "分页",
+    "prev": "上一页",
+    "next": "下一页",
+    "pageOf": "第 {page} 页，共 {pages} 页",
+    "back": "词库",
+    "innerPages": "前 10 内页",
+    "firstSeen": "首次加入",
+    "nextCheck": "下次检查",
+    "trendTitle": "趋势",
+    "trendRelative": "最近 3 个月比去年同期 {recent}，种子词 {baseline} 同期变化后，相对 {relative}。",
+    "trendAbsolute": "最近 3 个月比去年同期 {recent}（没有基线）。",
+    "trendDetail": "12 个月最高月比最低月 {ratio}，近 12 个月比前 12 个月 {yoy}。",
+    "variantsTitle": "合并的说法",
+    "variantsBody": "这些说法的搜索量、CPC 和曲线和主词完全相同，是同一个需求。",
+    "serpTitle": "前 10 名",
+    "traffic": "每月约 {visits} 次自然访问",
+    "strong": "强对手",
+    "answer": {
+      "h4": "变现",
+      "h7": "合规",
+      "aiAngle": "AI 改造点"
+    },
+    "checksTitle": "检查记录",
+    "round": "这一轮",
+    "rules": "规则版本 {rules}",
+    "checkKind": {
+      "screen": "初筛",
+      "deep": "深查",
+      "review": "操作",
+      "import": "导入"
+    },
+    "review": {
+      "title": "你的判断",
+      "select": "选定，去建站",
+      "drop": "放弃",
+      "exclude": "排除",
+      "restore": "改回待深查",
+      "note": "备注（放弃或排除时一起保存）",
+      "h4": {
+        "question": "能变现吗（H4）？",
+        "ok": "能",
+        "no": "不能",
+        "placeholder": "怎么变现，或为什么不能"
+      },
+      "h7": {
+        "question": "合规吗（H7）？",
+        "ok": "合规",
+        "no": "不合规",
+        "placeholder": "主流意图和依据"
+      },
+      "aiAngle": "AI 改造点（S4）",
+      "aiAnglePlaceholder": "一句话：AI 能把这个工具做得更好的地方",
+      "save": "保存回答"
+    },
+    "reason": {
+      "H1": {
+        "fail": "月搜索量 {value}，低于 {limit}",
+        "unsure": "没有搜索量"
+      },
+      "H2": {
+        "fail": "KD {value}，高于 {limit}",
+        "unsure": "没有 KD，以前 10 名为准"
+      },
+      "H3": {
+        "fail": "CPC {value}，低于 {limit}",
+        "unsure": "没有 CPC 数据"
+      },
+      "H4": {
+        "fail": "不能变现：{value}",
+        "unsure": "变现待确认"
+      },
+      "H5": {
+        "fail": "前 10 名有 {value} 个强对手，超过 {limit}",
+        "unsure": "前 10 名待查"
+      },
+      "H6": {
+        "fail": "12 个月波动比 {value}，不低于 {limit}",
+        "unsure": "趋势数据不够（{value} 个月）"
+      },
+      "H7": {
+        "fail": "不合规：{value}",
+        "unsure": "合规待确认"
+      },
+      "h6": {
+        "ratio": "季节性：12 个月最高月比最低月不低于 3",
+        "yoy": "近 12 个月比前 12 个月跌超过 50%",
+        "recent_drop": "最近 3 个月比去年同期跌超过 30%（没有基线）",
+        "relative_drop": "比种子词多跌超过 20%"
+      },
+      "exclude": {
+        "offline": "自动排除：线下服务或工作，请确认",
+        "shopping": "自动排除：购物，不是网页工具，请确认",
+        "downloads": "自动排除：下载别人的内容（H7），请确认",
+        "fail": "已排除 {value}",
+        "unsure": "排除待确认"
+      },
+      "variants": {
+        "note": "{value}",
+        "fail": "{value}",
+        "unsure": "{value}"
+      }
+    },
+    "reportTitle": "一轮选词的报告",
+    "reportPending": "这一轮还没有结束。",
+    "spent": "花费 {usd}",
+    "reportCount": {
+      "pulled": "拉到的词",
+      "added": "新加入",
+      "deep": "深查",
+      "candidates": "新候选"
+    },
+    "screen": {
+      "pass": "初筛通过",
+      "unsure": "待确认",
+      "excluded": "自动排除",
+      "failed": "未通过"
+    },
+    "deepTitle": "深查结果",
+    "deepEmpty": "这一轮没有深查。",
+    "recheck": "复查（之前：{from}）"
   },
   "research": {
     "metaTitle": "研究",

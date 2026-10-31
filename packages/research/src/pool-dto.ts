@@ -60,3 +60,7 @@ export function toPoolRoundDto({
     finishedAt: round.finishedAt?.toISOString() ?? null,
   };
 }
+
+export type PoolKeywordDto = ReturnType<typeof toPoolKeywordDto>;
+export type PoolCheckDto = ReturnType<typeof toPoolCheckDto>;
+export type PoolRoundDto = ReturnType<typeof toPoolRoundDto>;

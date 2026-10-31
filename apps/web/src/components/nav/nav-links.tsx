@@ -10,6 +10,7 @@ import product from "@product";
 const links = [
   { href: "/dashboard", key: "dashboard" },
   { href: "/radar", key: "radar" },
+  { href: "/pool", key: "pool" },
   { href: "/research", key: "research" },
   { href: "/opportunities", key: "opportunities" },
   { href: "/projects", key: "products" },

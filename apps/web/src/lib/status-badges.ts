@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
+import type { PoolKeywordDto, PoolRoundDto } from "@repo/research/pool-dto";
 import type { RadarItemDto } from "@repo/research/radar-dto";
 import type {
   ExperimentDto,
@@ -126,4 +127,45 @@ export function revenueSourceBadge(source: string): StatusBadge | null {
   return source === "payment_verified"
     ? { tone: "success", icon: ShieldCheck }
     : null;
+}
+
+/** A keyword's status in the pool (docs/product/keyword-pool.md#statuses). */
+export function poolBadge(status: PoolKeywordDto["status"]): StatusBadge {
+  switch (status) {
+    case "candidate":
+      return success;
+    case "selected":
+      return { tone: "success", icon: Rocket };
+    case "queued":
+    case "new":
+      return { tone: "info", icon: Hourglass };
+    case "watch":
+      return { tone: "warning", icon: TrendingUp };
+    case "unsure":
+      return { tone: "warning", icon: TriangleAlert };
+    case "failed":
+      return danger;
+    case "excluded":
+      return { tone: "neutral", icon: OctagonX };
+    case "dropped":
+      return { tone: "neutral", icon: Archive };
+  }
+}
+
+/** A pool round's status. */
+export function poolRoundBadge(status: PoolRoundDto["status"]): StatusBadge {
+  switch (status) {
+    case "queued":
+      return { tone: "info", icon: Hourglass };
+    case "running":
+      return loading;
+    case "completed":
+      return success;
+    case "partial":
+      return partial;
+    case "budget_exhausted":
+      return { tone: "warning", icon: TriangleAlert };
+    case "failed":
+      return danger;
+  }
 }
