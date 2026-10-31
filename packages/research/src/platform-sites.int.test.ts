@@ -27,7 +27,7 @@ const commonCrawl: CommonCrawl = {
 let etv: Record<string, number> = {
   "cipher-decoder.vercel.app": 1800,
   "flip-a-coin.vercel.app": 40,
-  "ann.github.io": 0,
+  "ann.github.io": 0.3,
 };
 const calls: string[] = [];
 const provider = {
@@ -96,7 +96,7 @@ beforeEach(async () => {
   etv = {
     "cipher-decoder.vercel.app": 1800,
     "flip-a-coin.vercel.app": 40,
-    "ann.github.io": 0,
+    "ann.github.io": 0.3,
   };
   await resetDb();
 });
@@ -109,7 +109,7 @@ it("reads the platforms' hosts, keeps the ones with traffic and finds the main k
     pagesRead: 3,
     added: 4,
     checked: 4,
-    withTraffic: 2,
+    withTraffic: 3,
     keywords: 1,
     titles: 1,
   });
@@ -118,6 +118,7 @@ it("reads the platforms' hosts, keeps the ones with traffic and finds the main k
   const list = await sites().list({});
   expect(list.months).toEqual(lastMonths(clock));
   expect(list.months.at(-1)).toBe("2026-10");
+  // ann.github.io has 0.3 visits a month: below one, it is not listed.
   expect(list.items.map((i) => i.host)).toEqual([
     "cipher-decoder.vercel.app",
     "flip-a-coin.vercel.app",
@@ -146,9 +147,9 @@ it("rechecks sites with traffic once a month and fills in the next month", async
   calls.length = 0;
   etv["cipher-decoder.vercel.app"] = 2500;
   const again = await round();
-  // ann.github.io had no traffic: it is not checked again; the keyword is not looked up twice.
-  expect(calls).toEqual(["traffic:2"]);
-  expect(again.report).toMatchObject({ added: 0, checked: 2 });
+  // The keyword is not looked up twice.
+  expect(calls).toEqual(["traffic:3"]);
+  expect(again.report).toMatchObject({ added: 0, checked: 3 });
   const [top] = (await sites().list({})).items;
   expect(top).toMatchObject({
     etv: 2500,

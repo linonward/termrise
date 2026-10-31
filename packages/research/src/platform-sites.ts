@@ -53,6 +53,8 @@ const TITLES_PER_ROUND = 30;
 export const PLATFORM_PAGE_SIZE = 50;
 /** Months shown in the list, newest last. */
 export const PLATFORM_MONTHS = 6;
+/** Monthly visits from which a site is listed: an estimate below one visit is noise. */
+export const PLATFORM_MIN_ETV = 1;
 const STALE_MS = 30 * 60 * 1000;
 const US: Market = { locationCode: 2840, languageCode: "en" };
 
@@ -476,7 +478,7 @@ export function createPlatformSites(deps: {
       hidden
         ? isNotNull(platformSites.hiddenAt)
         : isNull(platformSites.hiddenAt),
-      gt(platformSites.etv, 0),
+      gte(platformSites.etv, PLATFORM_MIN_ETV),
       q
         ? sql`(${platformSites.host} ilike ${`%${q}%`} or ${platformSites.pageTitle} ilike ${`%${q}%`} or ${platformSites.topKeyword} ilike ${`%${q}%`})`
         : undefined,
