@@ -30,6 +30,7 @@ import {
   type PoolKeyword,
   type PoolRound,
   type PoolStatus,
+  RECHECK_PREFIX,
 } from "./pool-service";
 import { baselineChange, type Baseline, trendCheck } from "./pool-trend";
 import { createProviderCache } from "./provider-cache";
@@ -496,13 +497,28 @@ export function createPoolRounds(deps: {
       failures: [],
     };
     const baselines = new Map<string, Baseline | null>();
-    const queue: { keyword: PoolKeyword; screened: ScreenedKeyword | null }[] =
-      [];
+    const queue: {
+      keyword: PoolKeyword;
+      screened: ScreenedKeyword | null;
+      /** Fetch the keyword's own numbers again instead of the stored ones. */
+      fresh?: boolean;
+    }[] = [];
+    const recheck = round.source?.startsWith(RECHECK_PREFIX)
+      ? round.source.slice(RECHECK_PREFIX.length)
+      : null;
     try {
-      // Due first: queued keywords from earlier rounds, then rechecks.
-      for (const keyword of await pool.due(deps.deepChecks))
-        queue.push({ keyword, screened: null });
-      if (report.source) {
+      if (recheck) {
+        // One keyword the maintainer asked about: nothing else, no new keywords.
+        const [keyword] = await database
+          .select()
+          .from(poolKeywords)
+          .where(eq(poolKeywords.phrase, recheck));
+        if (keyword) queue.push({ keyword, screened: null, fresh: true });
+      } else
+        // Due first: queued keywords from earlier rounds, then rechecks.
+        for (const keyword of await pool.due(deps.deepChecks))
+          queue.push({ keyword, screened: null });
+      if (report.source && !recheck) {
         let ideas: KeywordIdea[] = [];
         try {
           ideas = await pull(round, report.source);
@@ -569,7 +585,7 @@ export function createPoolRounds(deps: {
         let screened = item.screened;
         if (!screened) {
           const k = item.keyword;
-          if (k.searchVolume === null || k.status === "new") {
+          if (item.fresh || k.searchVolume === null || k.status === "new") {
             // A maintainer's idea, or a keyword without data: screen it first.
             const idea = await metricsFor(round, k.phrase);
             const [row] = screenKeywords([

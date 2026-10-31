@@ -6,6 +6,8 @@ import { createCreditService } from "@repo/credits/credit-service";
 import {
   newWords,
   platformSiteMonths,
+  poolChecks,
+  poolKeywords,
   platformSites,
   tasks,
 } from "@repo/db/schema";
@@ -102,6 +104,49 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   await expect(
     evidence.getByRole("link", { name: "lumo/Lumo-Edit" }),
   ).toHaveAttribute("href", "https://huggingface.co/lumo/Lumo-Edit");
+});
+
+test("an imported keyword says where its numbers came from and can be measured again", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  const phrase = `bond savings calculator ${randomUUID().slice(0, 6)}`;
+  const [keyword] = await testDb()
+    .insert(poolKeywords)
+    .values({
+      phrase,
+      sources: ["suffix:calculator"],
+      status: "candidate",
+      searchVolume: 27100,
+      keywordDifficulty: 1,
+      lastCheckedAt: new Date(),
+    })
+    .returning();
+  await testDb()
+    .insert(poolChecks)
+    .values({
+      keywordId: keyword.id,
+      kind: "import",
+      status: "candidate",
+      rules: "tool-site-v1",
+      data: {
+        keywordLab: {
+          date: "2026-10-31",
+          round: "keyword-research-20261031-calculator.csv",
+          reason: 'checked as "savings bond calculator": H5 0 strong',
+        },
+      },
+    });
+  await page.goto(`/keywords/${keyword.id}`);
+  await expect(
+    page.getByText("下面的数字来自 keyword-lab 导入（2026-10-31"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("keyword-lab 按「savings bond calculator」测"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /用 Termrise 重新测/ }).click();
+  await expect(page.getByRole("status")).toContainText(/已排队|有一轮在进行/);
 });
 
 test("platform sites list monthly visits and can be hidden", async ({

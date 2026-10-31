@@ -15,6 +15,7 @@ import {
   trendSummary,
   usd,
 } from "@/features/pool/pool-format";
+import { RecheckKeyword } from "@/features/pool/recheck-keyword";
 import { ReviewActions } from "@/features/pool/review-actions";
 import { apiGet, apiRequest } from "@/server/api/api";
 
@@ -63,6 +64,19 @@ export default async function PoolKeywordPage({
         { serp?: { results?: SerpRow[]; strongSites?: string[] } } | undefined
     )?.serp ?? null;
   const strong = new Set(serp?.strongSites ?? []);
+  // The check the numbers above come from: an import keeps keyword-lab's numbers.
+  const numbersFrom = k.checks.find((c) =>
+    ["import", "screen", "deep"].includes(c.kind),
+  );
+  const lab =
+    numbersFrom?.kind === "import"
+      ? ((
+          numbersFrom.data as {
+            keywordLab?: { round?: string; date?: string; reason?: string };
+          } | null
+        )?.keywordLab ?? null)
+      : null;
+  const checkedAs = /checked as "([^"]+)"/.exec(lab?.reason ?? "")?.[1];
   const facts: [string, string][] = [
     [t("column.volume"), count(k.searchVolume)],
     [
@@ -110,6 +124,26 @@ export default async function PoolKeywordPage({
           )}
         </p>
       </header>
+
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="max-w-3xl text-[13px] text-muted-foreground">
+          {lab
+            ? t("provenance.imported", {
+                date: lab.date ?? numbersFrom!.createdAt.slice(0, 10),
+                round: lab.round ?? "—",
+              })
+            : numbersFrom
+              ? t("provenance.termrise", {
+                  date: numbersFrom.createdAt.slice(0, 10),
+                })
+              : null}
+          {lab && checkedAs && checkedAs !== k.phrase && (
+            <> {t("provenance.checkedAs", { phrase: checkedAs })}</>
+          )}
+          {lab && <> {t("provenance.labNote")}</>}
+        </p>
+        <RecheckKeyword id={k.id} phrase={k.phrase} />
+      </div>
 
       <dl className="grid grid-cols-2 gap-6 border-y border-border py-6 md:grid-cols-6">
         {facts.map(([label, value]) => (

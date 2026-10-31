@@ -1025,7 +1025,19 @@
     "reviewEmptyBody": "新的候选会在每周一轮后出现在这里。看全部词库请点「全部」。",
     "reviewTab": "待确认",
     "lastRound": "最近一轮",
-    "viaGoogle": "{site}（经 Google 跳转，没有路径）"
+    "viaGoogle": "{site}（经 Google 跳转，没有路径）",
+    "provenance": {
+      "imported": "下面的数字来自 keyword-lab 导入（{date}，{round}），不是 Termrise 测的。",
+      "checkedAs": "keyword-lab 按「{phrase}」测，几种说法共用搜索量和 CPC，KD 只属于那一个说法。",
+      "labNote": "口径见 keyword-lab 选词 SOP：月搜、KD、CPC 来自 DataForSEO Labs，强对手是前 10 名中域名月自然流量 ≥ 50,000 且页面专门做这个词的结果。",
+      "termrise": "下面的数字是 Termrise {date} 测的：月搜、KD、CPC 来自 DataForSEO Labs，强对手和内页来自谷歌前 10 名。"
+    },
+    "recheckOne": {
+      "button": "用 Termrise 重新测（约 $0.07）",
+      "queued": "已排队，Worker 一分钟内开始，只测这一个词。",
+      "busy": "有一轮在进行，等它结束再点。",
+      "round": "看这一轮 ›"
+    }
   },
   "newWords": {
     "metaTitle": "新词",

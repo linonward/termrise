@@ -82,6 +82,16 @@ export const poolRoutes = userRoutes()
       productId: product?.id ?? null,
     });
   })
+  .post("/keywords/:id/recheck", rateLimit("research"), async (c) => {
+    const { round, created } = await pool(c).requestRecheck(
+      c.var.user.id,
+      c.req.param("id"),
+    );
+    return c.json(
+      toPoolRoundDto({ round, spentMicros: 0 }),
+      created ? 201 : 200,
+    );
+  })
   .get("/rounds", async (c) =>
     c.json({ items: (await pool(c).rounds()).map(toPoolRoundDto) }),
   )

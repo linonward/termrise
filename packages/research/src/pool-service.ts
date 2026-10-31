@@ -28,6 +28,9 @@ import { AppError } from "@repo/observability/errors";
 import { type Reason, TOOL_SITE_RULES } from "./pool-rules";
 import type { TrendCheck } from "./pool-trend";
 
+/** The source of a round that rechecks one keyword: "recheck:<phrase>". */
+export const RECHECK_PREFIX = "recheck:";
+
 export type PoolStatus = (typeof POOL_STATUSES)[number];
 export type PoolKeyword = typeof poolKeywords.$inferSelect;
 export type PoolCheck = typeof poolChecks.$inferSelect;
@@ -411,6 +414,35 @@ export function createKeywordPool(deps: {
     return { round, created: true };
   }
 
+  /**
+   * Queues a round that rechecks one keyword with fresh data of its own and pulls no
+   * new keywords (source "recheck:<phrase>"). An open round is returned instead.
+   */
+  async function requestRecheck(userId: string, id: string) {
+    const { keyword } = await get(id);
+    const [open] = await database
+      .select()
+      .from(poolRounds)
+      .where(
+        and(
+          inArray(poolRounds.status, ["queued", "running"]),
+          inArray(poolRounds.kind, ["daily", "manual"]),
+        ),
+      )
+      .limit(1);
+    if (open) return { round: open, created: false };
+    const [round] = await database
+      .insert(poolRounds)
+      .values({
+        kind: "manual",
+        source: `${RECHECK_PREFIX}${keyword.phrase}`,
+        requestedBy: userId,
+        createdAt: now(),
+      })
+      .returning();
+    return { round, created: true };
+  }
+
   /** Recent rounds with what each spent, in micro-USD. */
   async function rounds(limit = 30) {
     const rows = await database
@@ -460,6 +492,7 @@ export function createKeywordPool(deps: {
     due,
     review,
     requestRound,
+    requestRecheck,
     rounds,
     getRound,
   };

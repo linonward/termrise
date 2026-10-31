@@ -301,3 +301,24 @@ it("lists platform sites with their months and hides one", async () => {
     (await send("PUT", "/api/pool/platform-sites/not-a-uuid/hide")).status,
   ).toBe(404);
 });
+
+it("queues a recheck of one keyword", async () => {
+  const added = await send("POST", "/api/pool/keywords", {
+    phrases: ["bond savings calculator"],
+  });
+  const [keyword] = (await added.json()).added;
+  const res = await send(
+    "POST",
+    `/api/pool/keywords/${keyword.id}/recheck`,
+    {},
+  );
+  expect(res.status).toBe(201);
+  expect(await res.json()).toMatchObject({
+    kind: "manual",
+    source: "recheck:bond savings calculator",
+    status: "queued",
+  });
+  expect(
+    (await send("POST", "/api/pool/keywords/not-a-uuid/recheck", {})).status,
+  ).toBe(404);
+});

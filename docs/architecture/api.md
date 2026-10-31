@@ -61,6 +61,8 @@ POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }�
 
 GET /api/pool/rounds（最近 30 轮，含每轮的花费 spentMicros）
 
+POST /api/pool/keywords/:id/recheck（排队一轮只复查这一个词：重新取它自己的搜索量、KD、CPC，再查趋势和前 10 名，不拉新词；轮次的 source 为 `recheck:<词>`；201；已有一轮在排队或运行时返回它，200；词不存在时 404）
+
 POST /api/pool/rounds（{ source? }：source 为 `suffix:<词>` 或 `ranked:<网站>`，省略时由这一轮选词源；排队一轮手动选词，201；已有一轮在排队或运行时返回它，200）
 
 GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 POOL_ROUND_NOT_FOUND）

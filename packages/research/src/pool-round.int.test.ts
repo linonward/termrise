@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { apiUsage, poolRounds } from "@repo/db/schema";
+import { apiUsage, poolRounds, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createBudget } from "./budget";
@@ -279,4 +279,45 @@ it("fails a round whose worker died", async () => {
   await r.claim();
   clock = new Date(clock.getTime() + 31 * 60_000);
   expect(await r.failStale()).toHaveLength(1);
+});
+
+it("rechecks one keyword with its own fresh numbers, and nothing else", async () => {
+  await db.insert(user).values({ id: "u", name: "U", email: "u@example.com" });
+  const imported = await pool.record({
+    phrase: "bond savings calculator",
+    source: "suffix:calculator",
+    status: "candidate",
+    reasons: [],
+    kind: "import",
+    fields: {
+      searchVolume: 27100,
+      keywordDifficulty: 1,
+      strongCompetitors: 0,
+    },
+  });
+  // Another keyword is due: a recheck round leaves it for the next round.
+  await pool.record({
+    phrase: "morse translator",
+    status: "queued",
+    reasons: [],
+    kind: "review",
+  });
+  const { round, created } = await pool.requestRecheck("u", imported.id);
+  expect(created).toBe(true);
+  expect(round.source).toBe("recheck:bond savings calculator");
+  // A second request while it waits returns the same round.
+  expect((await pool.requestRecheck("u", imported.id)).created).toBe(false);
+  const provider = stub();
+  const r = rounds(provider);
+  const done = await r.run((await r.claim())!);
+  const deep = (done.report as { deep: { phrase: string }[] }).deep;
+  expect(deep.map((d) => d.phrase)).toEqual(["bond savings calculator"]);
+  // No new keywords pulled; the numbers are the keyword's own, fetched again.
+  expect(provider.calls).not.toContain("suggestions");
+  expect(provider.calls[0]).toBe("metrics");
+  const { keyword, checks } = await pool.get(imported.id);
+  expect(keyword.searchVolume).toBe(9000);
+  // The stub's top 3 has two big.com pages made for the phrase: the imported 0 is replaced.
+  expect(keyword.strongCompetitors).toBe(2);
+  expect(checks[0].kind).toBe("deep");
 });
