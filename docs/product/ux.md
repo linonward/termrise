@@ -49,10 +49,6 @@
 
 /products/:id
 
-/radar
-
-/radar/:id
-
 /settings/providers
 
 /billing
@@ -68,7 +64,7 @@ S59 之前的网址跳转到新网址（`next.config.ts` 的 `redirects`，临�
 
 `product.config.ts` 的 `billingEnabled` 为 `false` 时（Termrise 暂不收费），`/pricing`、`/billing`、`/refund-policy` 返回 404，不出现在导航、页脚、sitemap 和 Landing 中，导航栏没有 Credits，结构化数据不含价格。收费代码与 API 保留，改为 `true` 即恢复。
 
-`/today`、`/discover`、`/keywords`、`/opportunities`、`/products`、`/radar`、`/settings` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
+`/today`、`/discover`、`/keywords`、`/opportunities`、`/products`、`/settings` 和 `/billing` 下的页面需要登录：未登录或 session 无效时跳转到 `/sign-in?next=<原路径>`，登录后回到原页面（见 security.md 的 Session Checks）。
 
 ---
 
@@ -279,33 +275,7 @@ Logout
 
 ## Radar
 
-`/radar`（无设计稿）：
-
-```text
-标题 + 说明
-info-soft 提示：HN 的分数和评论是讨论热度，Google Trends 是近似搜索次数的下限，两者都不是月搜索量
-搜索框（搜索词）+ 排序（首次发现 / 分数）+ 只看收藏（复选框）+ [Apply]（GET 表单，参数写在 URL 中）
-表：故事（→ 详情）、趋势徽章（生命周期）、来源徽章、热度（HN「42 分」，Google Trends「500+ 次搜索」）、评论、首次发现
-```
-
-- 没有条目时说明 Worker 每小时采集一次 Hacker News；搜索没有结果时说明换一个词。
-- 缺失的分数或评论显示「—」，不显示 0。
-
-`/radar/:id`：
-
-```text
-← Radar
-标题 + 来源徽章 + 趋势徽章，下方一句话说明这个生命周期的判断依据
-Open link（有链接时；Google Trends 为它关联的第一条新闻）、来源链接（HN 为 Discussion，Google Trends 为该市场的 Trending Now 页面），新窗口打开，rel="noopener noreferrer nofollow"
-同一条提示
-左侧：观测记录表（时间、列表、排名、分数、评论）
-右侧：事实（发布时间、首次发现、最近发现、分数、评论；缺失为「暂无数据」）+「研究这个词」面板 [Start research]
-```
-
-- Start research 打开 `/research?name=<标题>&seed=<建议的种子词>&radar=<条目 id>`，新建项目表单预先填好，用户可以修改后再创建。创建后，项目的 Signals 表列出条目每个观测日的信号（来源为 Hacker News 或 Google Trends）。
-- 不存在的条目返回 404 页面。
-
----
+S60 起停用（维护者 2026-10-31 定）：Hacker News 和 Trending Now 的标题大多是新闻、体育和人名，新词（[keyword-pool.md](keyword-pool.md#new-words)）已经覆盖发现。页面已删除，`/radar` 跳转到 `/discover`；Worker 不再采集（`HACKER_NEWS_ENABLED`、`GOOGLE_TRENDS_ENABLED` 不设置）。已采集的数据、`/api/radar/*` 和从 Radar 条目创建研究项目的接口保留，设置这两个变量即可恢复采集。
 
 ## Keyword Pool
 

@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
       ["/research/:id", "/opportunities/research/:id"],
       ["/projects", "/products"],
       ["/projects/:id", "/products/:id"],
+      // Radar is off (S60): its stories are not shown any more.
+      ["/radar", "/discover"],
+      ["/radar/:id", "/discover"],
     ];
     return moved.map(([source, destination]) => ({
       source,
