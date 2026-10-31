@@ -9,6 +9,11 @@ export interface JobPayloads {
   "research.run": { runId: string };
   /** Runs one queued seed suggestion (packages/research seed-suggestions.ts). */
   "seeds.suggest": { suggestionId: string };
+  /**
+   * Queues today's daily keyword pool round when it is due, fails stale rounds and runs
+   * one queued round (packages/research pool-round.ts). Scheduled.
+   */
+  "pool.scan": Record<string, never>;
   /** Collects one public source into the radar (packages/research radar.ts). Scheduled. */
   "trend.ingest": { provider: "hacker_news" | "google_trends" };
 }

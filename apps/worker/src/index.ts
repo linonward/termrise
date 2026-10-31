@@ -6,6 +6,8 @@ import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
 import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
+import { createBudget } from "@repo/research/budget";
+import { createPoolRounds } from "@repo/research/pool-round";
 import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
 import { createResearchRunner } from "@repo/research/research-runner";
@@ -29,10 +31,11 @@ async function main() {
     data: Math.round(env.MONTHLY_DATA_BUDGET_USD * 1_000_000),
     ai: Math.round(env.MONTHLY_AI_BUDGET_USD * 1_000_000),
   };
+  const keywordProvider = createKeywordProvider(env);
   const runner = createResearchRunner({
     database,
     monthlyCapMicros,
-    provider: createKeywordProvider(env),
+    provider: keywordProvider,
     analyst: createAnalyst(env),
   });
   const suggester = createSeedSuggester({
@@ -40,6 +43,22 @@ async function main() {
     monthlyCapMicros,
     extractor: createSeedExtractor(env),
   });
+  // The keyword pool's rounds: manual ones always, the daily one when enabled.
+  const rounds = createPoolRounds({
+    database,
+    provider: keywordProvider,
+    budget: createBudget({
+      database,
+      monthlyCapMicros,
+      dailyPoolCapMicros: Math.round(
+        env.POOL_DAILY_DATA_BUDGET_USD * 1_000_000,
+      ),
+    }),
+    deepChecks: env.POOL_DEEP_CHECKS,
+  });
+  const dailyHourUtc = env.POOL_DAILY_ENABLED
+    ? env.POOL_DAILY_HOUR_UTC
+    : undefined;
   const radarSources = [
     ...(env.HACKER_NEWS_ENABLED ? (["hacker_news"] as const) : []),
     ...(env.GOOGLE_TRENDS_ENABLED ? (["google_trends"] as const) : []),
@@ -63,10 +82,18 @@ async function main() {
     stops.push(
       await startWorker(
         queue,
-        createHandlers({ runner, suggester, queue, radar }),
+        createHandlers({
+          runner,
+          suggester,
+          queue,
+          radar,
+          rounds,
+          dailyHourUtc,
+        }),
       ),
     );
     await queue.schedule("research.scan", env.SCAN_INTERVAL_MS);
+    await queue.schedule("pool.scan", env.POOL_SCAN_INTERVAL_MS);
     // One schedule per source; a source turned off loses its schedule. The schedule
     // without a source in its id is from before Google Trends.
     await queue.unschedule("trend.ingest");

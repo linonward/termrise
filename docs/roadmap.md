@@ -58,6 +58,7 @@
 | S49   | Labs 数据：`KeywordProvider` 增加 `suggestions()`（搜索量区间、KD、近 12 个月搜索量）、`rankedKeywords()`、`siteTraffic()`、`searchTrend()`（Google Trends，美国 5 年，每周）；DataForSEO 与 fake 实现，预留额与缓存期；研究运行中 Google Ads 只返回种子词本身时，补用一次 `suggestions()`（`SUGGESTIONS_FALLBACK`，记入项目的数据预算）                                                                                                                                              | 单元测试用保存的真实响应（2026-10-31）覆盖四个接口；集成测试覆盖补用：只对扩不出词的种子词调用一次                                                                                                                                                               | 已完成 |
 | S50   | 规则 `tool-site-v1`：`pool-rules.ts`（H1、H2、H3、H6 ① 初筛，自动排除，合并相同数据的说法，中段优先的顺序，H5 强对手与内页数）、`pool-trend.ts`（按月平均，H6 ①②③，和种子词基线比，大类萎缩，快速上升）；[keyword-pool.md](product/keyword-pool.md) 的 Rules                                                                                                                                                                                                                          | 单元测试用 keyword-lab 的真实 Trends 曲线（calculator、converter 基线，average、dividend、gravel、cipher decoder、title case converter），结果与 keyword-lab 一致                                                                                                | 已完成 |
 | S51   | 词库：`pool_keywords`、`pool_checks`（只追加）、`pool_rounds` 与 migration；`api_usage` 可以属于一轮选词（`pool_round_id`，与 `project_id` 二选一）；预算账本的词库每日预算（UTC 日，全部轮次合计，拒绝原因 `daily`）；`pool-service.ts`（`record()`、复查日期、加入新词、列表与计数、到期、维护者操作、排队一轮）；`/api/pool/*`；错误码 `POOL_KEYWORD_NOT_FOUND`、`POOL_REVIEW_INVALID`、`POOL_ROUND_NOT_FOUND`                                                                     | 集成测试覆盖复查日期、来源只记一次、检查历史、到期顺序、选定只能从 candidate、H4/H7 回答、每日预算的上限与跨日、没有每日预算时不能调用；API 覆盖登录、列表、操作、排队一轮、跨站写入                                                                             | 已完成 |
+| S52   | 一轮选词：`pool-round.ts`（到期的词先查、后缀词轮换与小站的排名词、初筛、深查 H6 与 H5、前 2 个候选数变种、报告、预算停止、中断的轮次）；Worker 的 `pool.scan`（`POOL_DAILY_ENABLED`、`POOL_DAILY_HOUR_UTC`、`POOL_DAILY_DATA_BUDGET_USD`、`POOL_DEEP_CHECKS`、`POOL_SCAN_INTERVAL_MS`）                                                                                                                                                                                              | 集成测试用固定回答的 Provider 覆盖每日一轮每天一次、词源轮换、拉词到报告、全部调用记入这一轮、已选定的词不被改、维护者的新词先补数据、每日预算停止、中断的轮次；单元测试覆盖 `pool.scan`                                                                         | 已完成 |
 
 ## Confirmed Decisions
 
@@ -110,9 +111,10 @@
   - S51 词库：数据表、每日数据预算、复查日期、维护者的确认和 API。
   - S52 一轮选词：词源（后缀词清单轮换、对手已有排名的词、到期复查）、深查、日报；Worker 每天跑一轮。
   - S53 词库页面 `/pool`。
-  - S54 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
-  - S55 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
-  - S56 site-starter 去掉与 Termrise 重叠的部分：`analyze-keywords` 和 `analyze-competitors` 读选词简报，不再重新拉主词的数据；上线后的 Search Console 新词作为词库的词源。
+  - S54 新词：参考 Web.Cafe 的新词发现（维护者 2026-10-31 给的截图），见 [keyword-pool.md](product/keyword-pool.md#new-words)。
+  - S55 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
+  - S56 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
+  - S57 site-starter 去掉与 Termrise 重叠的部分：`analyze-keywords` 和 `analyze-competitors` 读选词简报，不再重新拉主词的数据；上线后的 Search Console 新词作为词库的词源。
 
 ## Open Questions
 

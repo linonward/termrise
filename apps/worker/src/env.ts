@@ -39,6 +39,16 @@ const schema = z
      */
     MONTHLY_DATA_BUDGET_USD: z.coerce.number().min(0).max(100_000).default(10),
     MONTHLY_AI_BUDGET_USD: z.coerce.number().min(0).max(100_000).default(2),
+    /** 1: run the keyword pool's daily round (docs/product/keyword-pool.md#rounds). */
+    POOL_DAILY_ENABLED: z.literal("1").optional(),
+    /** The UTC hour from which the daily round may start (0 is 08:00 in Shanghai). */
+    POOL_DAILY_HOUR_UTC: z.coerce.number().int().min(0).max(23).default(0),
+    /** What the pool's rounds may spend on data per UTC day, all rounds together. */
+    POOL_DAILY_DATA_BUDGET_USD: z.coerce.number().min(0).max(1000).default(0.5),
+    /** Keywords deep-checked per round, rechecks included. */
+    POOL_DEEP_CHECKS: z.coerce.number().int().min(1).max(50).default(6),
+    /** How often the worker looks for a pool round to run. */
+    POOL_SCAN_INTERVAL_MS: z.coerce.number().int().min(1000).default(60_000),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })
