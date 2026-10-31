@@ -301,6 +301,10 @@ Open link（有链接时；Google Trends 为它关联的第一条新闻）、来
 - 详情：状态和原因、来源、数据、趋势（和种子词比）、合并的说法、前 10 名（网站、流量、强对手）、维护者的回答、操作（选定、放弃、排除、改回待深查；回答变现和合规，填写 AI 改造点）、检查记录（每条链接到它的那一轮）。
 - 报告：拉到的词数、新加入、深查数、新候选；初筛各状态的数；每个深查的结果（复查的词标出之前的状态）；预算用完或中断时说明。
 
+## New Words
+
+「词库」的第二个标签「新词」（`/pool/new`），规则和页面内容见 [keyword-pool.md](keyword-pool.md#new-words)。列表按首次出现排序，新的在前；按结论筛选，或看已隐藏的词。隐藏只影响列表，词继续保留。
+
 ## Research
 
 `/research`（设计稿：`docs/design/exports/research-desktop.png`、`research-mobile-empty.png`）：

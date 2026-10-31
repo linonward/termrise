@@ -17,6 +17,7 @@ export const CLIENT_NAMESPACES = [
   "favorites",
   "meta",
   "nav",
+  "newWords",
   "pool",
   "pricing",
   "products",

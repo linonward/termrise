@@ -15,6 +15,7 @@ import {
   RoundStatusBadge,
 } from "@/features/pool/pool-badges";
 import { count, pct, usd } from "@/features/pool/pool-format";
+import { PoolTabs } from "@/features/pool/pool-tabs";
 import { StartRound } from "@/features/pool/start-round";
 import { apiGet } from "@/server/api/api";
 
@@ -81,6 +82,8 @@ export default async function PoolPage({ searchParams }: PageProps<"/pool">) {
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
+
+      <PoolTabs current="evergreen" />
 
       <div className="grid gap-8 md:grid-cols-2">
         <section aria-labelledby="round-title" className="space-y-3">
