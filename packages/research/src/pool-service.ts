@@ -120,7 +120,11 @@ const reviewSchema = z.discriminatedUnion("action", [
   }),
 ]);
 const listQuery = z.object({
-  status: z.enum(POOL_STATUSES).optional().catch(undefined),
+  /** review: what waits for the maintainer (candidate and watch); all: everything. */
+  status: z
+    .enum([...POOL_STATUSES, "review", "all"])
+    .optional()
+    .catch(undefined),
   q: z.string().trim().max(100).optional().catch(undefined),
   sort: z.enum(["volume", "next", "updated"]).catch("updated"),
   page: z.coerce.number().int().min(1).max(1000).catch(1),
@@ -227,7 +231,11 @@ export function createKeywordPool(deps: {
   async function list(query: Record<string, string | undefined>) {
     const { status, q, sort, page } = listQuery.parse(query);
     const where = and(
-      status ? eq(poolKeywords.status, status) : undefined,
+      status === "review"
+        ? inArray(poolKeywords.status, ["candidate", "watch"])
+        : status && status !== "all"
+          ? eq(poolKeywords.status, status)
+          : undefined,
       q
         ? ilike(poolKeywords.phrase, `%${q.replace(/[%_\\]/g, "\\$&")}%`)
         : undefined,

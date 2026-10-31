@@ -40,7 +40,11 @@ export default async function PoolPage({
   searchParams,
 }: PageProps<"/keywords">) {
   const params = await searchParams;
-  const status = STATUSES.find((s) => s === params.status);
+  // The default view is what waits for the maintainer: candidates and rising words.
+  const status =
+    params.status === "all"
+      ? "all"
+      : (STATUSES.find((s) => s === params.status) ?? "review");
   const sort = SORTS.find((s) => s === params.sort) ?? "updated";
   const q = typeof params.q === "string" ? params.q : "";
   const page = Math.max(1, Number(params.page) || 1);
@@ -48,7 +52,7 @@ export default async function PoolPage({
   const query = new URLSearchParams({
     sort,
     page: String(page),
-    ...(status ? { status } : {}),
+    status,
     ...(q ? { q } : {}),
   });
   const [list, rounds] = await Promise.all([
@@ -63,6 +67,7 @@ export default async function PoolPage({
     (r) => r.status === "queued" || r.status === "running",
   );
   const all = Object.values(list.counts).reduce((a, b) => a + (b ?? 0), 0);
+  const waiting = (list.counts.candidate ?? 0) + (list.counts.watch ?? 0);
   const href = (next: Record<string, string | undefined>) => {
     const p = new URLSearchParams({
       ...(status ? { status } : {}),
@@ -123,16 +128,25 @@ export default async function PoolPage({
       </div>
 
       <nav aria-label={t("statusFilter")} className="flex flex-wrap gap-2">
-        <Link
-          href={href({ status: undefined, page: undefined })}
-          aria-current={!status ? "page" : undefined}
-          className={cn(
-            "rounded-full border border-border px-3 py-1 text-[13px]",
-            !status && "border-primary bg-primary text-primary-foreground",
-          )}
-        >
-          {t("all")} {all}
-        </Link>
+        {(
+          [
+            ["review", t("reviewTab"), waiting],
+            ["all", t("all"), all],
+          ] as const
+        ).map(([key, label, n]) => (
+          <Link
+            key={key}
+            href={href({ status: key, page: undefined })}
+            aria-current={status === key ? "page" : undefined}
+            className={cn(
+              "rounded-full border border-border px-3 py-1 text-[13px]",
+              status === key &&
+                "border-primary bg-primary text-primary-foreground",
+            )}
+          >
+            {label} {n}
+          </Link>
+        ))}
         {STATUSES.map((s) => (
           <Link
             key={s}
@@ -186,8 +200,20 @@ export default async function PoolPage({
       {list.items.length === 0 ? (
         <EmptyState
           icon={q ? SearchX : Library}
-          title={q ? t("noMatchTitle") : t("emptyTitle")}
-          body={q ? t("noMatchBody") : t("emptyBody")}
+          title={
+            q
+              ? t("noMatchTitle")
+              : status === "review"
+                ? t("reviewEmptyTitle")
+                : t("emptyTitle")
+          }
+          body={
+            q
+              ? t("noMatchBody")
+              : status === "review"
+                ? t("reviewEmptyBody")
+                : t("emptyBody")
+          }
         />
       ) : (
         <div className="overflow-x-auto">

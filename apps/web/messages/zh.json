@@ -993,7 +993,10 @@
     "deepEmpty": "这一轮没有深查。",
     "recheck": "复查（之前：{from}）",
     "briefTitle": "选词简报",
-    "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。"
+    "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。",
+    "reviewEmptyTitle": "没有等你确认的词",
+    "reviewEmptyBody": "新的候选会在每周一轮后出现在这里。看全部词库请点「全部」。",
+    "reviewTab": "待确认"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -1537,5 +1540,36 @@
     "addEvent": "记录访客或激活",
     "addRevenue": "记录收入",
     "delete": "删除"
+  },
+  "today": {
+    "title": "今天",
+    "subtitle": "每天先看这里：值得做的新词、等你确认的词、最近两轮和本月花费。",
+    "workerOnline": "Worker 在线",
+    "workerOffline": "Worker 离线，最后一次在 {at}（UTC）",
+    "workerNever": "Worker 还没有运行过",
+    "wordsTitle": "新词",
+    "wordsAll": "全部新词",
+    "wordsCounts": "近两天：值得做 {worth} 个，可以试试 {try} 个",
+    "wordsEmpty": "近两天没有值得看的新词。每天早上 8 点找一轮。",
+    "keywordsTitle": "等你确认",
+    "keywordsAll": "全部 {n} 个",
+    "keywordsEmpty": "没有等你确认的词。",
+    "keywordFacts": "月搜 {volume} · KD {kd} · 强对手 {strong}",
+    "roundsTitle": "最近两轮",
+    "round": {
+      "newWords": "新词",
+      "evergreen": "长青词"
+    },
+    "roundNone": "还没有跑过",
+    "newWordsSchedule": "每天 8 点",
+    "evergreenSchedule": "每周一次",
+    "spendTitle": "本月花费",
+    "spend": {
+      "total": "合计",
+      "new_words": "新词",
+      "evergreen": "长青词",
+      "research": "研究项目"
+    },
+    "spendNote": "DataForSEO 与 DeepSeek 按调用结算，每月数据上限 10 美元（Worker 的 MONTHLY_DATA_BUDGET_USD）。"
   }
 }

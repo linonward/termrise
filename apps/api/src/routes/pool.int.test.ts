@@ -172,3 +172,14 @@ it("exports a keyword brief as Markdown", async () => {
   );
   expect(await res.text()).toContain("# 选词简报：cipher decoder");
 });
+
+it("lists what waits for review", async () => {
+  await send("POST", "/api/pool/keywords", { phrases: ["x"] });
+  const review = await (
+    await send("GET", "/api/pool/keywords?status=review")
+  ).json();
+  expect(review.total).toBe(0);
+  const all = await (await send("GET", "/api/pool/keywords?status=all")).json();
+  expect(all.total).toBe(1);
+  expect((await send("GET", "/api/today")).status).toBe(200);
+});

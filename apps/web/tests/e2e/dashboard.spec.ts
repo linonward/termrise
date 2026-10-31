@@ -15,7 +15,7 @@ test.afterAll(closeTestDb);
 // credits and no example paid action; the tests of those run only with billing on.
 const PAID = "billing is disabled in product.config.ts";
 
-test("an early access user sees the welcome without credits, and needs a session", async ({
+test("an early access user sees today's work without credits, and needs a session", async ({
   page,
   context,
 }) => {
@@ -25,13 +25,12 @@ test("an early access user sees the welcome without credits, and needs a session
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/today");
   await expect(
-    page.getByRole("heading", { level: 1, name: "欢迎回来" }),
+    page.getByRole("heading", { level: 1, name: "今天" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "你的研究项目" }),
-  ).toBeVisible();
-  await page.getByRole("main").getByRole("link", { name: "前往研究" }).click();
-  await expect(page).toHaveURL(/\/opportunities\/research$/);
+  for (const name of ["新词", "等你确认", "最近两轮", "本月花费"])
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  await page.getByRole("main").getByRole("link", { name: "全部新词" }).click();
+  await expect(page).toHaveURL(/\/discover$/);
   await page.goto("/today");
   await expect(page.getByTestId("nav-credits")).toHaveCount(0);
   await expect(page.getByLabel("文字")).toHaveCount(0);
