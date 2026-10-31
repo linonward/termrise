@@ -98,7 +98,6 @@ export default async function PoolKeywordPage({
           } | null
         )?.keywordLab ?? null)
       : null;
-  const checkedAs = /checked as "([^"]+)"/.exec(lab?.reason ?? "")?.[1];
   // The third item is a hint shown on hover.
   const facts: [string, string, string?][] = [
     [t("column.volume"), count(k.searchVolume)],
@@ -152,19 +151,12 @@ export default async function PoolKeywordPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="max-w-3xl text-[13px] text-muted-foreground">
           {lab
-            ? t("provenance.imported", {
-                date: lab.date ?? numbersFrom!.createdAt.slice(0, 10),
-                round: lab.round ?? "—",
-              })
+            ? t("provenance.importedPending")
             : numbersFrom
               ? t("provenance.termrise", {
                   date: numbersFrom.createdAt.slice(0, 10),
                 })
               : null}
-          {lab && checkedAs && checkedAs !== k.phrase && (
-            <> {t("provenance.checkedAs", { phrase: checkedAs })}</>
-          )}
-          {lab && <> {t("provenance.labNote")}</>}
         </p>
         <RecheckKeyword id={k.id} phrase={k.phrase} />
       </div>

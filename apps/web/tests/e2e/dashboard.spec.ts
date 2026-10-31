@@ -106,7 +106,7 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   ).toHaveAttribute("href", "https://huggingface.co/lumo/Lumo-Edit");
 });
 
-test("an imported keyword says where its numbers came from and can be measured again", async ({
+test("an imported keyword says its numbers wait for a Termrise check and can be measured again", async ({
   page,
   context,
 }) => {
@@ -140,11 +140,10 @@ test("an imported keyword says where its numbers came from and can be measured a
     });
   await page.goto(`/keywords/${keyword.id}`);
   await expect(
-    page.getByText("下面的数字来自 keyword-lab 导入（2026-10-31"),
+    page.getByText("这个词的数字来自旧数据导入，还没有用 Termrise 测过"),
   ).toBeVisible();
-  await expect(
-    page.getByText("keyword-lab 按「savings bond calculator」测"),
-  ).toBeVisible();
+  // keyword-lab's own wording is not shown.
+  await expect(page.getByText(/keyword-lab/)).toHaveCount(0);
   await page.getByRole("button", { name: /用 Termrise 重新测/ }).click();
   await expect(page.getByRole("status")).toContainText(/已排队|有一轮在进行/);
 });

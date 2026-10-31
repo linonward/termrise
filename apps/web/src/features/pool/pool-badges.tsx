@@ -40,7 +40,10 @@ export function Reasons({
   compact?: boolean;
 }) {
   const t = useTranslations("pool.reason");
-  const all = (Array.isArray(reasons) ? reasons : []) as Reason[];
+  // keyword-lab's own words are not shown: its numbers are measured again (S72).
+  const all = ((Array.isArray(reasons) ? reasons : []) as Reason[]).filter(
+    (r) => r.rule !== "imported",
+  );
   const list = compact ? all.slice(0, 1) : all;
   if (list.length === 0) return null;
   return (

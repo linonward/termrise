@@ -4,7 +4,7 @@
 import { and, eq, inArray, lt, sql } from "drizzle-orm";
 
 import type { Database } from "@repo/db/client";
-import { poolKeywords, poolRounds } from "@repo/db/schema";
+import { poolChecks, poolKeywords, poolRounds } from "@repo/db/schema";
 import { logger } from "@repo/observability/logger";
 
 import type { Autocomplete } from "./adapters/google-autocomplete";
@@ -368,6 +368,33 @@ export function createPoolRounds(deps: {
     return ideas.find((i) => i.phrase === phrase) ?? null;
   }
 
+  /** Keywords whose latest numbers came from the import, not from a screen or deep check. */
+  async function importedOnly(ids: string[]) {
+    if (ids.length === 0) return new Set<string>();
+    const checks = await database
+      .select({
+        keywordId: poolChecks.keywordId,
+        kind: poolChecks.kind,
+        createdAt: poolChecks.createdAt,
+      })
+      .from(poolChecks)
+      .where(
+        and(
+          inArray(poolChecks.keywordId, ids),
+          inArray(poolChecks.kind, ["import", "screen", "deep"]),
+        ),
+      );
+    const latest = new Map<string, { kind: string; at: number }>();
+    for (const c of checks) {
+      const at = c.createdAt.getTime();
+      if ((latest.get(c.keywordId)?.at ?? -1) < at)
+        latest.set(c.keywordId, { kind: c.kind, at });
+    }
+    return new Set(
+      [...latest].filter(([, c]) => c.kind === "import").map(([id]) => id),
+    );
+  }
+
   /**
    * The page check: read the top 10 pages and let the judge say which are made for the
    * phrase. Null without a judge, or when the AI budget or the judge fails: H5 then uses
@@ -648,10 +675,18 @@ export function createPoolRounds(deps: {
           .from(poolKeywords)
           .where(eq(poolKeywords.phrase, recheck));
         if (keyword) queue.push({ keyword, screened: null, fresh: true });
-      } else
-        // Due first: queued keywords from earlier rounds, then rechecks.
-        for (const keyword of await pool.due(deps.deepChecks))
-          queue.push({ keyword, screened: null });
+      } else {
+        // Due first: queued keywords from earlier rounds, then rechecks. Numbers that
+        // came from the keyword-lab import are fetched again, never carried on.
+        const due = await pool.due(deps.deepChecks);
+        const imported = await importedOnly(due.map((k) => k.id));
+        for (const keyword of due)
+          queue.push({
+            keyword,
+            screened: null,
+            fresh: imported.has(keyword.id),
+          });
+      }
       if (report.source && !recheck) {
         let ideas: KeywordIdea[] = [];
         try {

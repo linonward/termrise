@@ -506,3 +506,23 @@ it("holds back a keyword whose top 10 has no tool page", async () => {
     { rule: "intent", result: "unsure", value: "no_tool" },
   ]);
 });
+
+it("fetches fresh numbers for a due keyword whose numbers came from the import", async () => {
+  await pool.record({
+    phrase: "morse translator",
+    source: "suffix:translator",
+    status: "queued",
+    reasons: [{ rule: "imported", result: "note", value: "checked as x" }],
+    kind: "import",
+    fields: { searchVolume: 27100, keywordDifficulty: 1, cpcMicros: 1_000_000 },
+  });
+  const provider = stub();
+  const r = rounds(provider, 0.5, 1);
+  await r.scheduleDaily(0);
+  await r.run((await r.claim())!);
+  expect(provider.calls).toContain("metrics");
+  const k = (await pool.list({ status: "all" })).items.find(
+    (i) => i.phrase === "morse translator",
+  )!;
+  expect(k.searchVolume).toBe(9000);
+});
