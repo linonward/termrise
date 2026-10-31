@@ -3,7 +3,11 @@
 // each one goes to the new words' screen like a rising query.
 import { z } from "zod";
 
-export const NAME_SOURCES = ["hugging_face", "itch_io"] as const;
+export const NAME_SOURCES = [
+  "hugging_face",
+  "itch_io",
+  "trending_now",
+] as const;
 export type NameSourceName = (typeof NAME_SOURCES)[number];
 
 export interface NameSource {

@@ -253,6 +253,13 @@
       "when": 1793459281373,
       "tag": "0035_new_word_root_scans",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793464762939,
+      "tag": "0036_new_word_suggestions",
+      "breakpoints": true
     }
   ]
 }

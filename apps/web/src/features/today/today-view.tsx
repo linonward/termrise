@@ -24,7 +24,15 @@ type Today = {
     kind: "data" | "ai";
     micros: number;
   }[];
-  worker: { lastSeenAt: string; online: boolean } | null;
+  worker: {
+    lastSeenAt: string;
+    online: boolean;
+    schedule: {
+      newWordsScanHours: number | null;
+      newWordsDaily: boolean;
+      evergreenEveryDays: number | null;
+    } | null;
+  } | null;
 };
 
 const card = "space-y-4 rounded-lg border border-border bg-card p-6";
@@ -38,6 +46,7 @@ export async function TodayView() {
       .filter((s) => s.bucket === bucket)
       .reduce((a, s) => a + s.micros, 0);
   const total = d.spend.reduce((a, s) => a + s.micros, 0);
+  const sched = d.worker?.schedule ?? null;
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:py-16">
@@ -169,8 +178,32 @@ export async function TodayView() {
         <ul className="flex flex-col gap-2 md:flex-row md:flex-wrap md:gap-x-8">
           {(
             [
-              ["newWords", d.newWordsRound, t("newWordsSchedule")],
-              ["evergreen", d.evergreenRound, t("evergreenSchedule")],
+              [
+                "newWords",
+                d.newWordsRound,
+                !sched
+                  ? t("newWordsSchedule")
+                  : !sched.newWordsDaily
+                    ? t("scheduleOff")
+                    : sched.newWordsScanHours
+                      ? t("newWordsScanSchedule", {
+                          hours: sched.newWordsScanHours,
+                        })
+                      : t("newWordsSchedule"),
+              ],
+              [
+                "evergreen",
+                d.evergreenRound,
+                !sched
+                  ? t("evergreenSchedule")
+                  : sched.evergreenEveryDays === null
+                    ? t("scheduleOff")
+                    : sched.evergreenEveryDays === 1
+                      ? t("evergreenDaily")
+                      : t("evergreenEveryDays", {
+                          days: sched.evergreenEveryDays,
+                        }),
+              ],
             ] as const
           ).map(([key, round, schedule]) => (
             <li key={key} className="flex flex-wrap items-center gap-2">

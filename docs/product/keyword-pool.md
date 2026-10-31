@@ -77,6 +77,8 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 
 新词：刚开始在 Google 上冒头的查询，参考 Web.Cafe 的新词发现。规则版本 `newword-v2`（S68，`packages/research/src/new-word-rules.ts`），阈值是初版，看过真实结果后再调。v2 相对 v1：GPTs 倍数改为近 7 天平均，曲线改为 90 天，加第一次有量日、7 天涨幅和单日尖峰，测量分两步。
 
+**频率**（S73，维护者 2026-11-01 定）：每天 UTC `NEW_WORDS_HOUR_UTC` 点一轮完整的（含付费飙升词）；另外每 `NEW_WORDS_SCAN_HOURS` 小时（默认 3）一轮**扫描**（`pool_rounds.source = 'scan'`），只用免费来源：Trending Now（美国，去掉体育、政治、法律、娱乐、天气类，每轮最多 50 个）、根词的谷歌自动补全里新出现的建议（和 `new_word_suggestions` 里见过的比，根词第一次只记基线；新词记在 `suggest:<根词>` 下）、Hugging Face 和 itch.io。初筛、深查和网页搜索的数量按天累计，所有轮次共用，所以每天的花费不随扫描次数增加。来源和可借鉴的开源项目见 [trend-sources.md](trend-sources.md)。
+
 **每天一轮**（`new-words.ts`，`pool_rounds` 的 `new_words` 类型）：
 
 1. **发现**（S69 起）：

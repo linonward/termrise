@@ -21,12 +21,14 @@ import {
   newWordRoots,
   newWordRootScans,
   newWords,
+  newWordSuggestions,
   poolRounds,
 } from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
 import type { WebOriginSearch } from "./adapters/claude-web-origin";
+import type { Autocomplete } from "./adapters/google-autocomplete";
 import type { NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { RdapClient } from "./adapters/rdap";
@@ -193,10 +195,17 @@ export const SCREEN_BATCH = 4;
 export const DEFAULT_SCREENS = 40;
 /** Words whose origin is traced per round: worth and try ones, newest checks first. */
 export const ORIGINS_PER_ROUND = 8;
-/** Paid web searches per round, for words without free evidence. */
-export const WEB_ORIGINS_PER_ROUND = 3;
+/** Paid web searches per day, for words without free evidence. */
+export const WEB_ORIGINS_PER_DAY = 3;
+/** The source of a scan round: free sources only, every few hours (S73). */
+export const SCAN_SOURCE = "scan";
+export const SCAN_HOURS = 3;
+/** Trending Now items taken per round, after dropping news categories. */
+const TRENDING_PER_ROUND = 50;
 
 export type NewWord = typeof newWords.$inferSelect;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export type NewWordsReport = {
   roots: { root: string; rising: number }[];
   added: number;
@@ -208,6 +217,8 @@ export type NewWordsReport = {
   failures: string[];
   /** Words whose origin was traced; absent in reports from before S67. */
   origins?: number;
+  /** Suggestions not seen before, added as new words this round. */
+  suggestions?: number;
   /** Paid web searches for origins this round. */
   webSearches?: number;
   /** Names taken from each name source this round. */
@@ -241,8 +252,12 @@ export function createNewWords(deps: {
   roots?: string[];
   /** Roots scanned per round, the longest unscanned first. */
   rootsPerDay?: number;
-  /** Free lists of new names (Hugging Face, itch.io). */
+  /** Free lists of new names (Hugging Face, itch.io, Trending Now). */
   nameSources?: NameSource[];
+  /** Google's suggestions for a root; new ones are new words (S73). */
+  autocomplete?: Autocomplete;
+  /** Pause between roots' suggestion calls, so Google does not throttle. */
+  suggestDelayMs?: number;
   /** Words screened per day (step 1, cheap). */
   screensPerDay?: number;
   /** Words deep-checked per day (step 2: search results and volume). */
@@ -275,6 +290,8 @@ export function createNewWords(deps: {
         .where(
           and(
             eq(poolRounds.kind, "new_words"),
+            // Scans do not count: the paid daily round still runs once a day.
+            sql`${poolRounds.source} is distinct from ${SCAN_SOURCE}`,
             sql`${poolRounds.createdAt} >= ${dayStart}`,
           ),
         )
@@ -286,6 +303,59 @@ export function createNewWords(deps: {
         .returning();
       return round;
     });
+  }
+
+  /**
+   * Queues a scan (S73) when no new-words round started in the last `hours`: free sources
+   * only (Trending Now, new suggestions, name lists), then the day's remaining screens.
+   */
+  async function scheduleScan(hours = SCAN_HOURS) {
+    const at = now();
+    const since = new Date(at.getTime() - hours * 3_600_000);
+    return database.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext('new-words-scan-round'))`,
+      );
+      const [recent] = await tx
+        .select({ id: poolRounds.id })
+        .from(poolRounds)
+        .where(
+          and(
+            eq(poolRounds.kind, "new_words"),
+            sql`${poolRounds.createdAt} > ${since}`,
+          ),
+        )
+        .limit(1);
+      if (recent) return null;
+      const [round] = await tx
+        .insert(poolRounds)
+        .values({ kind: "new_words", source: SCAN_SOURCE, createdAt: at })
+        .returning();
+      return round;
+    });
+  }
+
+  /** What today's other new-words rounds used of the daily allowances. */
+  async function usedToday(round: PoolRound) {
+    const at = now();
+    const dayStart = new Date(
+      Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+    );
+    const [used] = await database
+      .select({
+        screened: sql<number>`coalesce(sum((${poolRounds.report}->>'screened')::int), 0)::int`,
+        deep: sql<number>`coalesce(sum((${poolRounds.report}->>'deep')::int), 0)::int`,
+        web: sql<number>`coalesce(sum((${poolRounds.report}->>'webSearches')::int), 0)::int`,
+      })
+      .from(poolRounds)
+      .where(
+        and(
+          eq(poolRounds.kind, "new_words"),
+          sql`${poolRounds.id} <> ${round.id}`,
+          sql`${poolRounds.createdAt} >= ${dayStart}`,
+        ),
+      );
+    return used;
   }
 
   async function failStale(olderThanMs = STALE_ROUND_MS) {
@@ -413,7 +483,8 @@ export function createNewWords(deps: {
   async function discover(round: PoolRound, report: NewWordsReport) {
     const provider = providerOf();
     const rising = provider.risingQueries?.bind(provider);
-    if (rising)
+    // A scan uses free sources only; the paid rising queries run once a day.
+    if (rising && round.source !== SCAN_SOURCE)
       for (const root of await rootsForToday()) {
         const queries = await paid(round, "rising", root, () =>
           rising(root, US),
@@ -437,7 +508,11 @@ export function createNewWords(deps: {
     // Names from free lists: no growth figure; the screen measures them like the rest.
     for (const source of deps.nameSources ?? []) {
       const names = await source
-        .names(NAMES_PER_SOURCE)
+        .names(
+          source.name === "trending_now"
+            ? TRENDING_PER_ROUND
+            : NAMES_PER_SOURCE,
+        )
         .catch((error: unknown) => {
           logger.warn("newwords.name_source_failed", {
             source: source.name,
@@ -456,6 +531,45 @@ export function createNewWords(deps: {
       }
       report.names = { ...report.names, [source.name]: names.length };
     }
+    await newSuggestions(report);
+  }
+
+  /**
+   * Google's suggestions for each root, against those seen before: a new one is a new
+   * word, often before it shows in Trends. A root's first scan only records its baseline.
+   */
+  async function newSuggestions(report: NewWordsReport) {
+    const suggest = deps.autocomplete;
+    if (!suggest) return;
+    let added = 0;
+    for (const root of roots) {
+      const phrases = [
+        ...new Set(
+          (await suggest(root).catch(() => [] as string[]))
+            .map((p) => normalizePhrase(p))
+            .filter(
+              (p): p is string => !!p && p !== root && p.length <= MAX_PHRASE,
+            ),
+        ),
+      ];
+      if (phrases.length === 0) continue;
+      const [known] = await database
+        .select({ n: count() })
+        .from(newWordSuggestions)
+        .where(eq(newWordSuggestions.root, root));
+      const fresh = await database
+        .insert(newWordSuggestions)
+        .values(phrases.map((phrase) => ({ root, phrase, firstSeenAt: now() })))
+        .onConflictDoNothing()
+        .returning({ phrase: newWordSuggestions.phrase });
+      if (known.n > 0)
+        for (const f of fresh) {
+          await record(f.phrase, `suggest:${root}`, null, report);
+          added++;
+        }
+      if (deps.suggestDelayMs) await sleep(deps.suggestDelayMs);
+    }
+    report.suggestions = added;
   }
 
   async function newSitesOf(serp: SerpItem[]) {
@@ -662,6 +776,13 @@ export function createNewWords(deps: {
 
   /** Screens the due words, then deep-checks the warmest that passed. */
   async function measure(round: PoolRound, report: NewWordsReport) {
+    // The allowances are per day; scans every few hours share them.
+    const used = await usedToday(round);
+    const screens = Math.max(
+      0,
+      (deps.screensPerDay ?? DEFAULT_SCREENS) - used.screened,
+    );
+    const deepLeft = Math.max(0, (deps.checksPerDay ?? 12) - used.deep);
     const due = await database
       .select()
       .from(newWords)
@@ -672,7 +793,7 @@ export function createNewWords(deps: {
         desc(newWords.firstSeenAt),
         asc(newWords.nextCheckAt),
       )
-      .limit(deps.screensPerDay ?? DEFAULT_SCREENS);
+      .limit(screens);
     // Excluded words (downloads, shopping, offline) need no data at all.
     const excluded = due.filter((w) => autoExclude(w.phrase));
     for (const word of excluded) {
@@ -721,7 +842,7 @@ export function createNewWords(deps: {
     passed.sort(
       (a, b) => (facts.get(b.id)!.ratio ?? 0) - (facts.get(a.id)!.ratio ?? 0),
     );
-    for (const word of passed.slice(0, deps.checksPerDay ?? 12)) {
+    for (const word of passed.slice(0, deepLeft)) {
       const f = facts.get(word.id)!;
       try {
         const verdict = await deepCheck(round, word, f);
@@ -738,7 +859,7 @@ export function createNewWords(deps: {
       }
     }
     // Passed but over today's deep checks: measured again tomorrow, deep-checked then.
-    const waiting = passed.slice(deps.checksPerDay ?? 12).map((w) => w.id);
+    const waiting = passed.slice(deepLeft).map((w) => w.id);
     if (waiting.length)
       await database
         .update(newWords)
@@ -751,6 +872,10 @@ export function createNewWords(deps: {
   async function traceOrigins(round: PoolRound, report: NewWordsReport) {
     const { originSources, originAnalyst, budget, webOrigin } = deps;
     let webSearches = 0;
+    const webAllowance = Math.max(
+      0,
+      WEB_ORIGINS_PER_DAY - (await usedToday(round)).web,
+    );
     if (!originSources?.length || !originAnalyst || !budget) return;
     const words = await database
       .select()
@@ -783,12 +908,8 @@ export function createNewWords(deps: {
         evidence.push(...found);
       }
       // Nothing in the free sources: games, holidays and social media trends live on the
-      // open web. One paid search, a few per round; a short budget only skips it.
-      if (
-        evidence.length === 0 &&
-        webOrigin &&
-        webSearches < WEB_ORIGINS_PER_ROUND
-      ) {
+      // open web. One paid search, a few per day; a short budget only skips it.
+      if (evidence.length === 0 && webOrigin && webSearches < webAllowance) {
         webSearches++;
         const found = await budget
           .charge(
@@ -1030,6 +1151,7 @@ export function createNewWords(deps: {
 
   return {
     scheduleDaily,
+    scheduleScan,
     failStale,
     claim,
     run,

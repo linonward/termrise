@@ -29,6 +29,8 @@ export type WorkerBudgets = {
     checks: number;
     /** Absent in heartbeats from before S68. */
     screens?: number;
+    /** Hours between free scans (S73); absent or null when off. */
+    scanHours?: number | null;
   };
   /** Absent in heartbeats from before platform sites. */
   platform?: { enabled: boolean; dailyData: number; batch: number };

@@ -5,6 +5,7 @@ import { poolProcessors } from "./pool.processor";
 const rounds = (claimed: { id: string } | null) => ({
   failStale: vi.fn(async () => []),
   scheduleDaily: vi.fn(async () => null),
+  scheduleScan: vi.fn(async () => null),
   claim: vi.fn(async () => claimed as never),
   run: vi.fn(async () => ({ status: "completed" }) as never),
 });
@@ -33,5 +34,17 @@ it("runs a new-words round after the evergreen one", async () => {
     newWordsHourUtc: 0,
   })["pool.scan"]();
   expect(words.scheduleDaily).toHaveBeenCalledWith(0);
+  expect(words.scheduleScan).not.toHaveBeenCalled();
   expect(words.run).toHaveBeenCalledTimes(1);
+});
+
+it("queues a free new-words scan every few hours when told to", async () => {
+  const words = rounds(null);
+  await poolProcessors({
+    rounds: rounds(null),
+    newWords: words,
+    newWordsHourUtc: 0,
+    newWordsScanHours: 3,
+  })["pool.scan"]();
+  expect(words.scheduleScan).toHaveBeenCalledWith(3);
 });

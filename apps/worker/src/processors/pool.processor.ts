@@ -19,10 +19,12 @@ export function poolProcessors(deps: {
   everyDays?: number;
   newWords?: Pick<
     ReturnType<typeof createNewWords>,
-    "scheduleDaily" | "failStale" | "claim" | "run"
+    "scheduleDaily" | "scheduleScan" | "failStale" | "claim" | "run"
   >;
   /** The UTC hour from which today's new-words round is queued; none when off. */
   newWordsHourUtc?: number;
+  /** Hours between free new-word scans; none when off. */
+  newWordsScanHours?: number;
   /** Show HN launches, every few hours; none when off. */
   launchSites?: Pick<
     ReturnType<typeof createLaunchSites>,
@@ -78,6 +80,8 @@ export function poolProcessors(deps: {
       await deps.newWords.failStale();
       if (deps.newWordsHourUtc !== undefined)
         await deps.newWords.scheduleDaily(deps.newWordsHourUtc);
+      if (deps.newWordsScanHours)
+        await deps.newWords.scheduleScan(deps.newWordsScanHours);
       const words = await deps.newWords.claim();
       if (!words) return;
       const done = await deps.newWords.run(words);

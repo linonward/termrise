@@ -25,6 +25,7 @@ import {
   createHuggingFaceOrigin,
 } from "@repo/research/adapters/origin-sources";
 import { readPage } from "@repo/research/adapters/page-reader";
+import { createTrendingNow } from "@repo/research/adapters/trending-now";
 
 import type { WorkerEnv } from "./env";
 
@@ -113,8 +114,15 @@ export function createOriginSources(env: WorkerEnv) {
 // Free lists of new names for the new words; only with real keyword data.
 export function createNameSources(env: WorkerEnv) {
   return env.KEYWORD_PROVIDER === "dataforseo"
-    ? [createHuggingFaceNames(), createItchNames()]
+    ? [createHuggingFaceNames(), createItchNames(), createTrendingNow()]
     : [];
+}
+
+// Google's suggestions for the roots, compared with the last scan; real data only.
+export function createSuggestions(env: WorkerEnv) {
+  return env.KEYWORD_PROVIDER === "dataforseo"
+    ? createGoogleAutocomplete()
+    : undefined;
 }
 
 // The page check of the evergreen deep check: pages are read and suggestions fetched only

@@ -584,3 +584,79 @@ it("searches the web only for words the free sources found nothing on", async ()
     costMicros: 25_000,
   });
 });
+
+it("scans every few hours with free sources only, and leaves the daily round its place", async () => {
+  const provider = stub();
+  const w = words(provider);
+  // A scan at 01:00 UTC, before the daily round's hour.
+  clock = new Date("2026-11-01T01:00:00Z");
+  const scan = await w.scheduleScan(3);
+  expect(scan?.source).toBe("scan");
+  expect(await w.scheduleScan(3)).toBeNull();
+  await w.run((await w.claim())!);
+  expect(provider.calls).not.toContain("rising");
+  // The daily round is still queued at its hour, though a scan ran today.
+  clock = new Date("2026-11-01T02:00:00Z");
+  expect(await w.scheduleDaily(2)).not.toBeNull();
+  await w.run((await w.claim())!);
+  expect(provider.calls).toContain("rising");
+  // Three hours after the daily round, the next scan.
+  clock = new Date("2026-11-01T05:01:00Z");
+  expect(await w.scheduleScan(3)).not.toBeNull();
+});
+
+it("shares the day's screens across rounds", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    screensPerDay: 2,
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const first = await w.run((await w.claim())!);
+  expect(first.report).toMatchObject({ screened: 2 });
+  clock = new Date("2026-10-31T06:00:00Z");
+  await w.scheduleScan(3);
+  const scan = await w.run((await w.claim())!);
+  // Two of two used today: the scan screens nothing.
+  expect(scan.report).toMatchObject({ screened: 0 });
+});
+
+it("adds a suggestion it has not seen before, after the root's first baseline", async () => {
+  let suggestions = ["ai chat", "ai art"];
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai"],
+    autocomplete: async () => suggestions,
+    screensPerDay: 0,
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleScan(3);
+  const first = await w.run((await w.claim())!);
+  // The first scan of a root only records what Google suggests today.
+  expect(first.report).toMatchObject({ suggestions: 0 });
+  suggestions = ["ai chat", "qwen 3.8 flash ai", "ai art"];
+  clock = new Date("2026-10-31T05:01:00Z");
+  await w.scheduleScan(3);
+  const second = await w.run((await w.claim())!);
+  expect(second.report).toMatchObject({ suggestions: 1 });
+  const { items } = await w.list({});
+  const added = items.find((i) => i.word.phrase === "qwen 3.8 flash ai")!;
+  expect(added.roots.map((r) => r.root)).toEqual(["suggest:ai"]);
+});

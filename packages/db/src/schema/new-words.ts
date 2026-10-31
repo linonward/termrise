@@ -131,3 +131,15 @@ export const newWordRootScans = pgTable("new_word_root_scans", {
   /** Rising queries kept from the last scan. */
   rising: integer().notNull().default(0),
 });
+
+// Google's suggestions seen for each root (S73): a suggestion not seen before is a new
+// word. A root's first scan only fills its baseline.
+export const newWordSuggestions = pgTable(
+  "new_word_suggestions",
+  {
+    root: text().notNull(),
+    phrase: text().notNull(),
+    firstSeenAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.root, t.phrase] })],
+);

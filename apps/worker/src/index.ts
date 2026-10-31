@@ -29,6 +29,7 @@ import {
   createLaunchSiteAnalyst,
   createNewWordAnalyst,
   createNameSources,
+  createSuggestions,
   createNewWordOriginAnalyst,
   createOriginSources,
   createPageCheck,
@@ -91,6 +92,8 @@ async function main() {
     roots: env.NEW_WORD_ROOTS,
     rootsPerDay: env.NEW_WORD_ROOTS_PER_DAY,
     nameSources: createNameSources(env),
+    autocomplete: createSuggestions(env),
+    suggestDelayMs: 500,
     screensPerDay: env.NEW_WORDS_SCREENS,
     checksPerDay: env.NEW_WORDS_CHECKS,
   });
@@ -152,6 +155,9 @@ async function main() {
           everyDays: env.POOL_ROUND_EVERY_DAYS,
           newWords,
           newWordsHourUtc,
+          newWordsScanHours: env.NEW_WORDS_ENABLED
+            ? env.NEW_WORDS_SCAN_HOURS || undefined
+            : undefined,
           launchSites,
           platformSites,
         }),
@@ -221,6 +227,7 @@ async function main() {
             dailyAi: env.NEW_WORDS_DAILY_AI_BUDGET_USD,
             checks: env.NEW_WORDS_CHECKS,
             screens: env.NEW_WORDS_SCREENS,
+            scanHours: env.NEW_WORDS_SCAN_HOURS || null,
           },
           platform: {
             enabled: env.PLATFORM_SITES_ENABLED === "1",

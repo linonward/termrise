@@ -23,6 +23,7 @@ export const todayRoutes = userRoutes().get("/", async (c) => {
       ? {
           lastSeenAt: s.worker.lastSeenAt.toISOString(),
           online: s.worker.online,
+          schedule: s.worker.schedule,
         }
       : null,
   });

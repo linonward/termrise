@@ -633,6 +633,9 @@ importers:
       fast-xml-parser:
         specifier: ^5.11.2
         version: 5.11.2
+      google-trends-now:
+        specifier: 1.1.1
+        version: 1.1.1
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -5057,6 +5060,11 @@ packages:
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
+
+  google-trends-now@1.1.1:
+    resolution: {integrity: sha512-CIFiYI5Xo9IjBBgFHiPV6JAUOI3GrktkeM4CLeJik4L2IKuQ59GKWxN9WhJ/1EWLLmrYGzWr5xNUBkIowcoQCg==}
+    engines: {node: '>=22'}
+    hasBin: true
 
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
@@ -11127,6 +11135,8 @@ snapshots:
     dependencies:
       define-properties: 1.2.1
       gopd: 1.2.0
+
+  google-trends-now@1.1.1: {}
 
   gopd@1.2.0: {}
 

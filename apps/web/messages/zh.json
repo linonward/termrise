@@ -731,7 +731,7 @@
       "newWords": "新词",
       "evergreen": "长青词",
       "research": "研究项目",
-      "newWordsOn": "每天一轮，初筛 {screens} 个，深查 {checks} 个",
+      "newWordsOn": "每 {hours} 小时扫一次，每天初筛 {screens} 个、深查 {checks} 个",
       "platform": "平台站",
       "platformOn": "每天一轮，查 {batch} 个子站",
       "daily": "每天一轮",
@@ -1692,7 +1692,11 @@
     "evergreenSchedule": "每周一次",
     "statusTitle": "轮次与花费",
     "spendLine": "本月花费 {total}：新词 {newWords}，长青词 {evergreen}，平台站 {platform}，研究项目 {research}。",
-    "spendLink": "预算与用量"
+    "spendLink": "预算与用量",
+    "newWordsScanSchedule": "每 {hours} 小时扫一次，付费飙升词每天 8 点",
+    "evergreenDaily": "每天 8 点",
+    "evergreenEveryDays": "每 {days} 天一次",
+    "scheduleOff": "未开启"
   },
   "discover": {
     "tabs": "发现分类",

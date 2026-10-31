@@ -21,6 +21,8 @@ import {
   workerHeartbeats,
 } from "@repo/db/schema";
 
+import type { WorkerBudgets } from "./provider-status";
+
 /** New words checked this recently count as today's. */
 const NEW_WORD_WINDOW_MS = 2 * 86_400_000;
 /** A worker heard from this recently is online (it writes every minute). */
@@ -28,6 +30,18 @@ const ONLINE_MS = 3 * 60_000;
 const LIST = 5;
 
 const committed = sql<number>`coalesce(sum(case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end), 0)::bigint`;
+
+/** How often each kind of round runs, from the worker's heartbeat; null when unknown. */
+function scheduleOf(b: WorkerBudgets | null) {
+  if (!b) return null;
+  return {
+    newWordsScanHours: b.newWords.enabled
+      ? (b.newWords.scanHours ?? null)
+      : null,
+    newWordsDaily: b.newWords.enabled,
+    evergreenEveryDays: b.evergreen.enabled ? b.evergreen.everyDays : null,
+  };
+}
 
 export function createToday(deps: { database: Database; now?: () => Date }) {
   const { database } = deps;
@@ -92,7 +106,10 @@ export function createToday(deps: { database: Database; now?: () => Date }) {
         .where(gte(apiUsage.createdAt, monthStart))
         .groupBy(sql`1`, apiUsage.kind),
       database
-        .select({ lastSeenAt: workerHeartbeats.lastSeenAt })
+        .select({
+          lastSeenAt: workerHeartbeats.lastSeenAt,
+          budgets: workerHeartbeats.budgets,
+        })
         .from(workerHeartbeats)
         .where(isNotNull(workerHeartbeats.lastSeenAt))
         .orderBy(desc(workerHeartbeats.lastSeenAt))
@@ -118,6 +135,8 @@ export function createToday(deps: { database: Database; now?: () => Date }) {
         ? {
             lastSeenAt: heartbeat.lastSeenAt,
             online: at.getTime() - heartbeat.lastSeenAt.getTime() < ONLINE_MS,
+            // How often the rounds run, as the worker reports it.
+            schedule: scheduleOf(heartbeat.budgets as WorkerBudgets | null),
           }
         : null,
     };
