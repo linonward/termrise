@@ -22,6 +22,8 @@ export type WorkerBudgets = {
     dailyAi: number;
     checks: number;
   };
+  /** Absent in heartbeats from before platform sites. */
+  platform?: { enabled: boolean; dailyData: number; batch: number };
 };
 
 export type WorkerInfo = {
@@ -101,9 +103,10 @@ export function createProviderStatus(deps: {
     const occupied = sql<number>`coalesce(sum(case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end), 0)::bigint`;
     const poolSpend = await database
       .select({
+        // The same buckets as the budget's daily caps (budget.ts).
         bucket: sql<
-          "evergreen" | "new_words"
-        >`case when ${poolRounds.kind} = 'new_words' then 'new_words' else 'evergreen' end`,
+          "evergreen" | "new_words" | "platform"
+        >`case when ${poolRounds.kind} in ('new_words', 'launch_sites') then 'new_words' when ${poolRounds.kind} = 'platform_sites' then 'platform' else 'evergreen' end`,
         kind: apiUsage.kind,
         todayMicros: sql<number>`coalesce(sum(case when ${apiUsage.createdAt} >= ${dayStart} then (case when ${apiUsage.status} in ('settled', 'released') then ${apiUsage.costMicros} else ${apiUsage.reservedMicros} end) end), 0)::bigint`,
         monthMicros: occupied,

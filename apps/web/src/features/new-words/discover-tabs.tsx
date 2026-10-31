@@ -3,10 +3,13 @@ import { useTranslations } from "next-intl";
 
 import { cn } from "@repo/ui/utils";
 
-// Discover's two halves: rising search words, and newly launched sites.
-export function DiscoverTabs({ current }: { current: "words" | "sites" }) {
+// Discover's parts: rising search words, newly launched sites, and sites with search
+// traffic on free hosting platforms.
+type Tab = "words" | "sites" | "platforms";
+
+export function DiscoverTabs({ current }: { current: Tab }) {
   const t = useTranslations("discover");
-  const tab = (key: "words" | "sites", href: string) => (
+  const tab = (key: Tab, href: string) => (
     <Link
       href={href}
       aria-current={current === key ? "page" : undefined}
@@ -24,6 +27,7 @@ export function DiscoverTabs({ current }: { current: "words" | "sites" }) {
     <nav aria-label={t("tabs")} className="flex gap-6 border-b border-border">
       {tab("words", "/discover")}
       {tab("sites", "/discover/sites")}
+      {tab("platforms", "/discover/platforms")}
     </nav>
   );
 }

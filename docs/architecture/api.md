@@ -81,6 +81,10 @@ GET /api/pool/launch-sites（新站，每页 50 个，新发布的在前；?moti
 
 PUT / DELETE /api/pool/launch-sites/:id/hide（隐藏 / 重新显示）
 
+GET /api/pool/platform-sites（平台站：有流量的站，每页 50 个，按最新月访问量从大到小；?platform=vercel.app|github.io|pages.dev、?q= 搜子站、标题和核心词，?hidden=1 只看隐藏的；返回 months（最近 6 个月，旧的在前）、每个站的 monthly（月份 → 访问量）、counts（每个平台有流量的站数）、known（已收录的子站数）、checked（已查过流量的子站数）和 lastRound）
+
+PUT / DELETE /api/pool/platform-sites/:id/hide（隐藏 / 重新显示）
+
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）

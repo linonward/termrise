@@ -52,11 +52,13 @@ it("shows today's new words, keywords waiting, latest rounds, spending and the w
     reasons: [],
     kind: "deep",
   });
-  const [weekly, words] = await db
+  const [weekly, words, launches, platforms] = await db
     .insert(poolRounds)
     .values([
       { kind: "daily", status: "completed", createdAt: day(30) },
       { kind: "new_words", status: "partial", createdAt: day(2) },
+      { kind: "launch_sites", status: "completed", createdAt: day(4) },
+      { kind: "platform_sites", status: "completed", createdAt: day(5) },
     ])
     .returning();
   await db.insert(apiUsage).values([
@@ -90,6 +92,27 @@ it("shows today's new words, keywords waiting, latest rounds, spending and the w
       status: "settled",
       createdAt: day(2),
     },
+    // Launch sites draw on the new-words budget; platform sites have their own.
+    {
+      poolRoundId: launches.id,
+      kind: "ai",
+      provider: "x",
+      operation: "analyze",
+      reservedMicros: 1,
+      costMicros: 2_000,
+      status: "settled",
+      createdAt: day(4),
+    },
+    {
+      poolRoundId: platforms.id,
+      kind: "data",
+      provider: "x",
+      operation: "traffic",
+      reservedMicros: 1,
+      costMicros: 48_000,
+      status: "settled",
+      createdAt: day(5),
+    },
   ]);
   await db.insert(workerHeartbeats).values({
     workerId: "w",
@@ -114,7 +137,8 @@ it("shows today's new words, keywords waiting, latest rounds, spending and the w
     expect.arrayContaining([
       { bucket: "evergreen", kind: "data", micros: 240_000 },
       { bucket: "new_words", kind: "data", micros: 310_000 },
-      { bucket: "new_words", kind: "ai", micros: 1_000 },
+      { bucket: "new_words", kind: "ai", micros: 3_000 },
+      { bucket: "platform", kind: "data", micros: 48_000 },
     ]),
   );
   expect(s.worker).toMatchObject({ online: true });

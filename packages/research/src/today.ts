@@ -83,7 +83,7 @@ export function createToday(deps: { database: Database; now?: () => Date }) {
         .limit(20),
       database
         .select({
-          bucket: sql<string>`case when ${apiUsage.projectId} is not null then 'research' when ${poolRounds.kind} = 'new_words' then 'new_words' else 'evergreen' end`,
+          bucket: sql<string>`case when ${apiUsage.projectId} is not null then 'research' when ${poolRounds.kind} in ('new_words', 'launch_sites') then 'new_words' when ${poolRounds.kind} = 'platform_sites' then 'platform' else 'evergreen' end`,
           kind: apiUsage.kind,
           spent: committed,
         })

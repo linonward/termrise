@@ -81,6 +81,14 @@ const schema = z
       ),
     /** 1: read Show HN every 6 hours for newly launched sites (launch-sites.ts). */
     LAUNCH_SITES_ENABLED: z.literal("1").optional(),
+    /** 1: find sites with Google traffic on vercel.app, github.io and pages.dev once a day (platform-sites.ts). */
+    PLATFORM_SITES_ENABLED: z.literal("1").optional(),
+    /** What platform-site rounds may spend on data per day: $2 a month by default. */
+    PLATFORM_SITES_DAILY_DATA_BUDGET_USD: z.coerce
+      .number()
+      .min(0)
+      .max(1000)
+      .default(0.066),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })

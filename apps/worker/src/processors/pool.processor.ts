@@ -1,6 +1,7 @@
 import { logger } from "@repo/observability/logger";
 import type { createLaunchSites } from "@repo/research/launch-sites";
 import type { createNewWords } from "@repo/research/new-words";
+import type { createPlatformSites } from "@repo/research/platform-sites";
 import type { createPoolRounds } from "@repo/research/pool-round";
 
 type Rounds = Pick<
@@ -25,6 +26,11 @@ export function poolProcessors(deps: {
   /** Show HN launches, every few hours; none when off. */
   launchSites?: Pick<
     ReturnType<typeof createLaunchSites>,
+    "scheduleEvery" | "failStale" | "claim" | "run"
+  >;
+  /** Sites with traffic on free hosting platforms, once a day; none when off. */
+  platformSites?: Pick<
+    ReturnType<typeof createPlatformSites>,
     "scheduleEvery" | "failStale" | "claim" | "run"
   >;
 }) {
@@ -52,6 +58,18 @@ export function poolProcessors(deps: {
           const done = await deps.launchSites.run(launches);
           logger.info("launch_sites.round_executed", {
             roundId: launches.id,
+            status: done.status,
+          });
+        }
+      }
+      if (deps.platformSites) {
+        await deps.platformSites.failStale();
+        await deps.platformSites.scheduleEvery();
+        const platform = await deps.platformSites.claim();
+        if (platform) {
+          const done = await deps.platformSites.run(platform);
+          logger.info("platform_sites.round_executed", {
+            roundId: platform.id,
             status: done.status,
           });
         }

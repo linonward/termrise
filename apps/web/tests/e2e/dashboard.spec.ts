@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 import { createCreditService } from "@repo/credits/credit-service";
-import { tasks } from "@repo/db/schema";
+import { platformSiteMonths, platformSites, tasks } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
 import product from "../../../../product.config";
@@ -42,6 +42,45 @@ test("an early access user sees today's work without credits, and needs a sessio
   await page.goto("/today");
   await expect(page).toHaveURL(/\/sign-in\?next=/);
 });
+test("platform sites list monthly visits and can be hidden", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  const name = `e2e-${randomUUID().slice(0, 8)}`;
+  const month = new Date().toISOString().slice(0, 7);
+  const [site] = await testDb()
+    .insert(platformSites)
+    .values({
+      host: `${name}.vercel.app`,
+      platform: "vercel.app",
+      firstCrawl: "CC-MAIN-2026-43",
+      etv: 987_654,
+      checkedAt: new Date(),
+      topKeyword: "cipher decoder",
+      topKeywordVolume: 6600,
+      topKeywordRank: 3,
+      keywordCheckedAt: new Date(),
+      pageTitle: "Cipher Decoder",
+    })
+    .returning();
+  await testDb()
+    .insert(platformSiteMonths)
+    .values({ siteId: site.id, month, etv: 987_654 });
+  await page.goto("/discover");
+  await page.getByRole("link", { name: "平台站" }).click();
+  await expect(page).toHaveURL(/\/discover\/platforms$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "平台站" }),
+  ).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: month })).toBeVisible();
+  const row = page.getByTestId("platform-site-row").filter({ hasText: name });
+  await expect(row).toContainText("cipher decoder");
+  await expect(row).toContainText("987,654");
+  await row.getByRole("button", { name: `隐藏 ${name}.vercel.app` }).click();
+  await expect(row).toHaveCount(0);
+});
+
 test("new user sees ten credits, live balance updates and needs a session", async ({
   page,
   context,

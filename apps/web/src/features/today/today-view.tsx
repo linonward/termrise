@@ -20,7 +20,7 @@ type Today = {
   evergreenRound: PoolRoundDto | null;
   newWordsRound: PoolRoundDto | null;
   spend: {
-    bucket: "research" | "evergreen" | "new_words";
+    bucket: "research" | "evergreen" | "new_words" | "platform";
     kind: "data" | "ai";
     micros: number;
   }[];
@@ -199,6 +199,7 @@ export async function TodayView() {
             total: usd(total),
             newWords: usd(spent("new_words")),
             evergreen: usd(spent("evergreen")),
+            platform: usd(spent("platform")),
             research: usd(spent("research")),
           })}{" "}
           <Link

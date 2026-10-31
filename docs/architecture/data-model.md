@@ -680,7 +680,11 @@ S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，�
 
 - `pool_keywords`：每个词一行（`phrase` 小写、单空格、唯一），记来源（`sources`，第一个来源在前，同一来源只记一次）、最新状态和原因、最新数据（搜索量、KD、CPC、合并的说法、变种数、强对手数、内页数、趋势）、维护者的回答（变现、合规、AI 改造点）、最近检查时间和下次检查时间。
 - `pool_checks`：只追加。每次初筛（`screen`）、深查（`deep`）、维护者操作（`review`）和导入（`import`）一行，记状态、原因、数据、规则版本和操作人。删除用户时操作人置空，检查保留。
-- `pool_rounds`：一轮选词：`daily` 或 `manual`，词源，状态，报告和时间。同一时间最多一轮排队或运行。
+- `pool_rounds`：一轮：`daily` 或 `manual`（长青词）、`new_words`（新词）、`launch_sites`（新站）、`platform_sites`（平台站），词源，状态，报告和时间。同一时间每种最多一轮排队或运行。
+- 每日预算按轮次类型分三份（`budget.ts`）：长青词（`daily`、`manual`，`POOL_DAILY_DATA_BUDGET_USD`）、发现（`new_words`、`launch_sites`，`NEW_WORDS_DAILY_*`）、平台站（`platform_sites`，`PLATFORM_SITES_DAILY_DATA_BUDGET_USD`，只有数据预算）。设置页和「今天」的花费按同样的分组统计。
+- `platform_sites`：平台站（S66），每个子站一行（`host` 小写、唯一），记平台、首次出现的 Common Crawl 期号、最新月访问量 `etv` 和查询时间（`checked_at` 为空表示还没查）、核心词和它的月搜与名次（`keyword_checked_at`：查过，即使没有结果）、首页标题（`title_checked_at`）、隐藏时间。
+- `platform_site_months`：每个站每月一行（`site_id`、`month` 为 YYYY-MM），记当月的访问量估算；同月复查时覆盖。
+- `platform_crawls`：每期 Common Crawl、每个平台一行，记索引总页数和下一页。
 - 状态只经 `record()` 修改：它更新词的最新结果，并追加一条检查。下次检查时间由状态和原因算出（`nextCheckAt()`）。
 - 词库对所有登录用户相同，不属于某个用户，所以不进入账号导出和删除。
 

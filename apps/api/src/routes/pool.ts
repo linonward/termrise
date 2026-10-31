@@ -9,6 +9,8 @@ import {
 } from "@repo/research/new-word-brief";
 import { toNewWordDto } from "@repo/research/new-word-dto";
 import { createNewWords } from "@repo/research/new-words";
+import { toPlatformSiteDto } from "@repo/research/platform-site-dto";
+import { createPlatformSites } from "@repo/research/platform-sites";
 import {
   buildKeywordBrief,
   keywordBriefFileName,
@@ -165,6 +167,35 @@ export const poolRoutes = userRoutes()
   })
   .delete("/launch-sites/:id/hide", rateLimit("research"), async (c) => {
     await createLaunchSites({ database: c.var.db }).hide(
+      c.req.param("id"),
+      false,
+    );
+    return c.json({ hidden: false });
+  })
+  .get("/platform-sites", async (c) => {
+    const result = await createPlatformSites({ database: c.var.db }).list(
+      c.req.query(),
+    );
+    return c.json({
+      ...result,
+      items: result.items.map(toPlatformSiteDto),
+      lastRound: result.lastRound
+        ? {
+            status: result.lastRound.status,
+            createdAt: result.lastRound.createdAt.toISOString(),
+          }
+        : null,
+    });
+  })
+  .put("/platform-sites/:id/hide", rateLimit("research"), async (c) => {
+    await createPlatformSites({ database: c.var.db }).hide(
+      c.req.param("id"),
+      true,
+    );
+    return c.json({ hidden: true });
+  })
+  .delete("/platform-sites/:id/hide", rateLimit("research"), async (c) => {
+    await createPlatformSites({ database: c.var.db }).hide(
       c.req.param("id"),
       false,
     );

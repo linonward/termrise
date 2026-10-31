@@ -732,6 +732,8 @@
       "evergreen": "长青词",
       "research": "研究项目",
       "newWordsOn": "每天一轮，复核 {checks} 个",
+      "platform": "平台站",
+      "platformOn": "每天一轮，查 {batch} 个子站",
       "daily": "每天一轮",
       "everyDays": "每 {days} 天一轮",
       "off": "关闭（只能手动）",
@@ -836,7 +838,8 @@
       "daily": "每日",
       "manual": "手动",
       "new_words": "新词",
-      "launch_sites": "新站"
+      "launch_sites": "新站",
+      "platform_sites": "平台站"
     },
     "roundStatus": {
       "queued": "排队中",
@@ -1596,14 +1599,15 @@
     "newWordsSchedule": "每天 8 点",
     "evergreenSchedule": "每周一次",
     "statusTitle": "轮次与花费",
-    "spendLine": "本月花费 {total}：新词 {newWords}，长青词 {evergreen}，研究项目 {research}。",
+    "spendLine": "本月花费 {total}：新词 {newWords}，长青词 {evergreen}，平台站 {platform}，研究项目 {research}。",
     "spendLink": "预算与用量"
   },
   "discover": {
     "tabs": "发现分类",
     "tab": {
       "words": "新词",
-      "sites": "新站"
+      "sites": "新站",
+      "platforms": "平台站"
     },
     "sitesMetaTitle": "新站",
     "sitesTitle": "新站",
@@ -1651,6 +1655,30 @@
     "hnDiscussion": "HN 讨论 ›",
     "hide": "隐藏 {site}",
     "show": "重新显示 {site}",
-    "hideFailed": "没有成功，请再试一次"
+    "hideFailed": "没有成功，请再试一次",
+    "platformsMetaTitle": "平台站",
+    "platformsTitle": "平台站",
+    "platformsSubtitle": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。",
+    "platformsSchedule": "每天查一批",
+    "platformsProgress": "已收录 {known} 个子站，查过 {checked} 个",
+    "platformFilter": "按平台筛选",
+    "platformsSearchPlaceholder": "搜子站、标题或关键词",
+    "platformsNote": "月访问量是 DataForSEO 按排名估算的美国谷歌自然点击，不是真实统计。每月复查一次有流量的站，新的一列从本月开始累积。",
+    "platformsEmptyTitle": "还没有找到有流量的平台站",
+    "platformsEmptyBody": "Worker 每天从 Common Crawl 读子站列表、查一批流量。打开 PLATFORM_SITES_ENABLED 后，有流量的站会出现在这里。",
+    "column": {
+      "site": "网站",
+      "keyword": "核心词",
+      "monthly": "月访问量",
+      "hide": "隐藏"
+    },
+    "keywordFacts": "月搜 {volume} · 第 {rank} 名",
+    "keywordPending": "流量满 100 后查",
+    "keywordNext": "下一轮查",
+    "pages": "分页",
+    "prev": "上一页",
+    "next": "下一页",
+    "pageOf": "第 {page} 页，共 {pages} 页",
+    "noTitle": "没有标题"
   }
 }

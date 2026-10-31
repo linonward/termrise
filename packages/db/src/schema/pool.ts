@@ -37,6 +37,7 @@ export const POOL_ROUND_KINDS = [
   "manual",
   "new_words",
   "launch_sites",
+  "platform_sites",
 ] as const;
 export const POOL_ROUND_STATUSES = [
   "queued",

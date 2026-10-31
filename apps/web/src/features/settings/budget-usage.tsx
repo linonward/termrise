@@ -10,8 +10,10 @@ const usd = (n: number | undefined) => `$${(n ?? 0).toFixed(2)}`;
 export async function BudgetUsage({ status }: { status: ProviderStatusDto }) {
   const t = await getTranslations("providers.budgets");
   const b = status.worker?.budgets ?? null;
-  const spend = (bucket: "evergreen" | "new_words", kind: "data" | "ai") =>
-    status.poolSpend.find((p) => p.bucket === bucket && p.kind === kind);
+  const spend = (
+    bucket: "evergreen" | "new_words" | "platform",
+    kind: "data" | "ai",
+  ) => status.poolSpend.find((p) => p.bucket === bucket && p.kind === kind);
   const rows: {
     name: string;
     schedule: string;
@@ -54,6 +56,21 @@ export async function BudgetUsage({ status }: { status: ProviderStatusDto }) {
           })
         : "—",
       month: usd(spend("evergreen", "data")?.monthUsd),
+    },
+    {
+      name: t("platform"),
+      schedule: b?.platform
+        ? b.platform.enabled
+          ? t("platformOn", { batch: b.platform.batch })
+          : t("off")
+        : "—",
+      today: b?.platform
+        ? t("todayData", {
+            data: usd(spend("platform", "data")?.todayUsd),
+            dataCap: usd(b.platform.dailyData),
+          })
+        : "—",
+      month: usd(spend("platform", "data")?.monthUsd),
     },
   ];
   return (

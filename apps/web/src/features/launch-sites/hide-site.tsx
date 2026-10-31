@@ -8,15 +8,17 @@ import { Button } from "@repo/ui/components/button";
 
 import { apiFetch } from "@/lib/api-fetch";
 
-// Hides a launch site from the list, or shows it again.
+// Hides a launch site or a platform site from its list, or shows it again.
 export function HideSite({
   id,
   hidden,
   site,
+  list = "launch-sites",
 }: {
   id: string;
   hidden: boolean;
   site: string;
+  list?: "launch-sites" | "platform-sites";
 }) {
   const t = useTranslations("discover");
   const router = useRouter();
@@ -35,7 +37,7 @@ export function HideSite({
       onClick={async () => {
         setPending(true);
         setFailed(false);
-        const res = await apiFetch(`/api/pool/launch-sites/${id}/hide`, {
+        const res = await apiFetch(`/api/pool/${list}/${id}/hide`, {
           method: hidden ? "DELETE" : "PUT",
         }).catch(() => null);
         setPending(false);

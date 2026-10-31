@@ -4,12 +4,17 @@ import { hostname } from "node:os";
 import { createDb } from "@repo/db/client";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
+import { createCommonCrawl } from "@repo/research/adapters/common-crawl";
 import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createRdapClient } from "@repo/research/adapters/rdap";
 import { createBudget } from "@repo/research/budget";
 import { createLaunchSites, fetchPageTitle } from "@repo/research/launch-sites";
 import { createNewWords } from "@repo/research/new-words";
+import {
+  createPlatformSites,
+  PLATFORM_TRAFFIC_BATCH,
+} from "@repo/research/platform-sites";
 import { createPoolRounds } from "@repo/research/pool-round";
 import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
@@ -57,6 +62,9 @@ async function main() {
       data: Math.round(env.NEW_WORDS_DAILY_DATA_BUDGET_USD * 1_000_000),
       ai: Math.round(env.NEW_WORDS_DAILY_AI_BUDGET_USD * 1_000_000),
     },
+    dailyPlatformCapMicros: Math.round(
+      env.PLATFORM_SITES_DAILY_DATA_BUDGET_USD * 1_000_000,
+    ),
   });
   const rounds = createPoolRounds({
     database,
@@ -79,6 +87,15 @@ async function main() {
         hackerNews: createHackerNewsClient(),
         analyst: createLaunchSiteAnalyst(env),
         rdap: createRdapClient(),
+        budget,
+        pageTitle: (url) => fetchPageTitle(url),
+      })
+    : undefined;
+  const platformSites = env.PLATFORM_SITES_ENABLED
+    ? createPlatformSites({
+        database,
+        commonCrawl: createCommonCrawl(),
+        provider: keywordProvider,
         budget,
         pageTitle: (url) => fetchPageTitle(url),
       })
@@ -123,6 +140,7 @@ async function main() {
           newWords,
           newWordsHourUtc,
           launchSites,
+          platformSites,
         }),
       ),
     );
@@ -188,6 +206,11 @@ async function main() {
             dailyData: env.NEW_WORDS_DAILY_DATA_BUDGET_USD,
             dailyAi: env.NEW_WORDS_DAILY_AI_BUDGET_USD,
             checks: env.NEW_WORDS_CHECKS,
+          },
+          platform: {
+            enabled: env.PLATFORM_SITES_ENABLED === "1",
+            dailyData: env.PLATFORM_SITES_DAILY_DATA_BUDGET_USD,
+            batch: PLATFORM_TRAFFIC_BATCH,
           },
         },
       })

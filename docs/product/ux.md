@@ -29,6 +29,10 @@
 
 /discover/:id
 
+/discover/sites
+
+/discover/platforms
+
 /keywords
 
 /keywords/:id
@@ -56,7 +60,7 @@
 
 ### Navigation
 
-登录后的导航按工作流排（S59，维护者 2026-10-31 定）：**今天**（`/today`，每天的入口）→ **发现**（`/discover`，新词）→ **选词**（`/keywords`，长青词库）→ **机会**（`/opportunities`，下有「研究项目」标签）→ **产品**（`/products`，选定之后的跟踪）。设置在用户菜单中。
+登录后的导航按工作流排（S59，维护者 2026-10-31 定）：**今天**（`/today`，每天的入口）→ **发现**（`/discover`，分新词、新站、平台站三个标签）→ **选词**（`/keywords`，长青词库）→ **机会**（`/opportunities`，下有「研究项目」标签）→ **产品**（`/products`，选定之后的跟踪）。设置在用户菜单中。
 
 S59 之前的网址跳转到新网址（`next.config.ts` 的 `redirects`，临时跳转）：`/dashboard` → `/today`，`/pool/new` → `/discover`，`/pool` → `/keywords`，`/research` → `/opportunities/research`，`/projects` → `/products`，带 `:id` 的同样。这些页面都需要登录、不收录，改网址不影响搜索。
 

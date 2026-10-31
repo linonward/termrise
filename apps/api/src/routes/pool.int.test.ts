@@ -254,3 +254,50 @@ it("lists launch sites and hides one", async () => {
     (await (await send("GET", "/api/pool/launch-sites")).json()).total,
   ).toBe(0);
 });
+
+it("lists platform sites with their months and hides one", async () => {
+  const { testDb } = await import("@repo/db/testing/db");
+  const { platformSites, platformSiteMonths } = await import("@repo/db/schema");
+  const db = testDb();
+  const [site] = await db
+    .insert(platformSites)
+    .values({
+      host: "cipher-decoder.vercel.app",
+      platform: "vercel.app",
+      firstCrawl: "CC-MAIN-2026-43",
+      etv: 1800,
+      checkedAt: new Date(),
+      topKeyword: "cipher decoder",
+      keywordCheckedAt: new Date(),
+    })
+    .returning();
+  const month = new Date().toISOString().slice(0, 7);
+  await db
+    .insert(platformSiteMonths)
+    .values({ siteId: site.id, month, etv: 1800 });
+  const list = await (await send("GET", "/api/pool/platform-sites")).json();
+  expect(list).toMatchObject({
+    total: 1,
+    counts: { "vercel.app": 1 },
+    known: 1,
+    checked: 1,
+    items: [
+      {
+        host: "cipher-decoder.vercel.app",
+        topKeyword: "cipher decoder",
+        keywordChecked: true,
+        monthly: { [month]: 1800 },
+      },
+    ],
+  });
+  expect(list.months.at(-1)).toBe(month);
+  expect(
+    (await send("PUT", `/api/pool/platform-sites/${site.id}/hide`)).status,
+  ).toBe(200);
+  expect(
+    (await (await send("GET", "/api/pool/platform-sites")).json()).total,
+  ).toBe(0);
+  expect(
+    (await send("PUT", "/api/pool/platform-sites/not-a-uuid/hide")).status,
+  ).toBe(404);
+});
