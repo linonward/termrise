@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 
 import { ProviderAuthError } from "@repo/ai/provider-errors";
 import type { Database } from "@repo/db/client";
@@ -8,8 +8,10 @@ import type { Charged } from "./keyword-provider";
 
 export type BudgetKind = (typeof BUDGET_KINDS)[number];
 
+// A paid call belongs to a research project, or to a keyword pool round (pool-round.ts).
 type Call = {
-  projectId: string;
+  projectId: string | null;
+  poolRoundId?: string | null;
   runId: string | null;
   kind: BudgetKind;
   provider: string;
@@ -32,11 +34,16 @@ export function createBudget(deps: {
    * together: a hard limit on what the paid providers can cost. None when absent.
    */
   monthlyCapMicros?: Record<BudgetKind, number>;
+  /**
+   * What the keyword pool's rounds may spend on data per calendar day (UTC), all rounds
+   * together. Without it, pool rounds cannot make paid calls.
+   */
+  dailyPoolCapMicros?: number;
 }) {
   const { database, monthlyCapMicros } = deps;
   const now = deps.now ?? (() => new Date());
   // Why the last call of a run (or of a project, without a run) was refused, per kind.
-  const refusals = new Map<string, "project" | "monthly">();
+  const refusals = new Map<string, "project" | "daily" | "monthly">();
   const refusalKey = (key: string, kind: BudgetKind) => `${key}:${kind}`;
 
   /** Why a call of this run (or project) and kind was refused; null when none was. */
@@ -46,31 +53,56 @@ export function createBudget(deps: {
 
   /** Reserves the call's maximum; null when a budget cannot cover it (see refusal()). */
   async function reserve(call: Call) {
-    const refuse = (scope: "project" | "monthly") => {
-      refusals.set(refusalKey(call.runId ?? call.projectId, call.kind), scope);
+    const owner = call.runId ?? call.poolRoundId ?? call.projectId ?? "";
+    const refuse = (scope: "project" | "daily" | "monthly") => {
+      refusals.set(refusalKey(owner, call.kind), scope);
       return null;
     };
     return database.transaction(async (tx) => {
-      // The project row lock makes concurrent reservations take turns.
-      const [project] = await tx
-        .select({
-          data: researchProjects.dataBudgetMicros,
-          ai: researchProjects.aiBudgetMicros,
-        })
-        .from(researchProjects)
-        .where(eq(researchProjects.id, call.projectId))
-        .for("update");
-      const [{ total }] = await tx
-        .select({ total: committed })
-        .from(apiUsage)
-        .where(
-          and(
-            eq(apiUsage.projectId, call.projectId),
-            eq(apiUsage.kind, call.kind),
-          ),
+      if (call.poolRoundId) {
+        // One lock for all pool rounds, taken before the monthly lock.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext('pool-daily-budget'))`,
         );
-      if (Number(total) + call.maxCostMicros > project[call.kind])
-        return refuse("project");
+        const at = now();
+        const dayStart = new Date(
+          Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate()),
+        );
+        const [{ total: day }] = await tx
+          .select({ total: committed })
+          .from(apiUsage)
+          .where(
+            and(
+              isNotNull(apiUsage.poolRoundId),
+              eq(apiUsage.kind, call.kind),
+              gte(apiUsage.createdAt, dayStart),
+            ),
+          );
+        const cap = call.kind === "data" ? (deps.dailyPoolCapMicros ?? 0) : 0;
+        if (Number(day) + call.maxCostMicros > cap) return refuse("daily");
+      } else {
+        const projectId = call.projectId ?? "";
+        // The project row lock makes concurrent reservations take turns.
+        const [project] = await tx
+          .select({
+            data: researchProjects.dataBudgetMicros,
+            ai: researchProjects.aiBudgetMicros,
+          })
+          .from(researchProjects)
+          .where(eq(researchProjects.id, projectId))
+          .for("update");
+        const [{ total }] = await tx
+          .select({ total: committed })
+          .from(apiUsage)
+          .where(
+            and(
+              eq(apiUsage.projectId, projectId),
+              eq(apiUsage.kind, call.kind),
+            ),
+          );
+        if (Number(total) + call.maxCostMicros > project[call.kind])
+          return refuse("project");
+      }
       if (monthlyCapMicros) {
         // One lock per kind for the whole service: concurrent reservations of all
         // projects take turns. Taken after the project lock, always in this order.
@@ -97,6 +129,7 @@ export function createBudget(deps: {
         .insert(apiUsage)
         .values({
           projectId: call.projectId,
+          poolRoundId: call.poolRoundId ?? null,
           runId: call.runId,
           kind: call.kind,
           provider: call.provider,

@@ -12,6 +12,7 @@ import {
 
 import { createdAt, inList } from "./columns";
 import { researchRuns } from "./keywords";
+import { poolRounds } from "./pool";
 import { researchProjects } from "./research";
 
 export const BUDGET_KINDS = ["data", "ai"] as const;
@@ -25,14 +26,18 @@ export const USAGE_STATUSES = [
   "released",
 ] as const;
 
-// One paid provider call: reserved from a project's budget before, settled after.
+// One paid provider call: reserved from a project's budget, or from the keyword pool's
+// daily budget for a pool round, before; settled after.
 export const apiUsage = pgTable(
   "api_usage",
   {
     id: uuid().primaryKey().defaultRandom(),
-    projectId: uuid()
-      .notNull()
-      .references(() => researchProjects.id, { onDelete: "cascade" }),
+    projectId: uuid().references(() => researchProjects.id, {
+      onDelete: "cascade",
+    }),
+    poolRoundId: uuid().references(() => poolRounds.id, {
+      onDelete: "cascade",
+    }),
     runId: uuid().references(() => researchRuns.id, { onDelete: "cascade" }),
     kind: text({ enum: BUDGET_KINDS }).notNull(),
     provider: text().notNull(),
@@ -45,6 +50,11 @@ export const apiUsage = pgTable(
   },
   (t) => [
     index("api_usage_project_idx").on(t.projectId, t.kind),
+    index("api_usage_pool_idx").on(t.poolRoundId, t.createdAt),
+    check(
+      "api_usage_one_owner",
+      sql`(${t.projectId} is null) <> (${t.poolRoundId} is null)`,
+    ),
     check("api_usage_kind_valid", sql`${t.kind} in (${inList(BUDGET_KINDS)})`),
     check(
       "api_usage_status_valid",

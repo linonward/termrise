@@ -47,6 +47,20 @@ PUT / DELETE /api/radar/items/:id/star（收藏 / 取消收藏，返回 { starre
 
 GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
 
+GET /api/pool/keywords（词库，每页 50 个；?status= 按状态，?q= 按词搜索，?sort=updated（默认）| volume | next（下次检查早的在前）；返回 { items, total, page, counts }，counts 为每个状态的词数；任何登录用户看到同样的词库；见 data-model.md 的 Keyword Pool）
+
+POST /api/pool/keywords（{ phrases, source? }：加入新词，状态 new，最多 100 个；已在词库中的词不变，列在 existing 中；返回 201 { added, existing }）
+
+GET /api/pool/keywords/:id（词与检查记录（新的在前，最多 100 条）；不存在时 404 POOL_KEYWORD_NOT_FOUND）
+
+POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }（只有 candidate 可以选定）、{ action: "drop", note? }、{ action: "exclude", note? }、{ action: "restore" }（excluded、dropped、failed 改回 queued）、{ action: "answer", monetization?, compliance?, aiAngle? }（monetization、compliance 为 { ok, note }，ok 为 false 时词改为 failed）；状态不允许时 409 POOL_REVIEW_INVALID）
+
+GET /api/pool/rounds（最近 30 轮，含每轮的花费 spentMicros）
+
+POST /api/pool/rounds（{ source? }：source 为 `suffix:<词>` 或 `ranked:<网站>`，省略时由这一轮选词源；排队一轮手动选词，201；已有一轮在排队或运行时返回它，200）
+
+GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 POOL_ROUND_NOT_FOUND）
+
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）

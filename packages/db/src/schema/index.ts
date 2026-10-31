@@ -6,6 +6,7 @@ export * from "./execution";
 export * from "./keywords";
 export * from "./opportunities";
 export * from "./orders";
+export * from "./pool";
 export * from "./radar";
 export * from "./rate-limits";
 export * from "./research";

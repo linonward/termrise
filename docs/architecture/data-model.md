@@ -664,12 +664,23 @@ processed_at = now()
 - 调用前预留：在一个事务中锁住项目行，计算该预算（`data` 或 `ai`）已占用的金额：已结算的按实际费用，`released` 为 0，`reserved` 和 `failed` 按预留额。加上本次调用的上限（端口的 `maxCostMicros`）超过项目预算时，不调用，返回预算不足。并发预留排队进行，不会超出预算。之后检查本服务的每月硬限额（Worker 的 `MONTHLY_DATA_BUDGET_USD`、`MONTHLY_AI_BUDGET_USD`）：用每种预算一个事务级 advisory lock 让全部项目的预留排队，按同样的规则汇总本自然月（UTC，按 `created_at`）全部项目的占用，加上本次上限超过限额时不调用。被拒绝的原因（项目预算或每月限额）按运行（没有运行时按项目）记住：运行、种子词建议和 AI 分析用 `MONTHLY_BUDGET_EXHAUSTED` 区分每月限额，这时项目状态为 `failed`，不是 `budget_exhausted`（提高项目预算没有用）。
 - 调用后结算：成功时记录 Provider 报告的费用（`cost_micros`），状态为 `settled`。调用失败时状态为 `failed`，费用未知，预留额继续计入，不当作 0。Provider 拒绝凭据时（`ProviderAuthError`，`packages/ai/src/provider-errors.ts`：DataForSEO 的 HTTP 401 或状态码 40100，DeepSeek 的 HTTP 401），调用没有计费，状态为 `released`，费用为 0，不占用预算；运行、种子词建议的错误码和 AI 分析的 `analysis_error` 为 `PROVIDER_AUTH_FAILED`，页面提示检查 Worker 的 Key，并说明没有扣费。
 - 记录项目、运行、预算类型、Provider、操作（`expand`、`serp`、`analyze`）、预留额、费用、状态和时间。删除项目时随之删除。
+- 词库的一轮选词（`pool_rounds`）也经过账本：调用属于这一轮（`pool_round_id`），不属于项目（`project_id` 为空，两者必须有且只有一个）。没有项目预算，改为词库的每日预算（Worker 的 `POOL_DAILY_DATA_BUDGET_USD`，S52）：用一个事务级 advisory lock 让全部轮次的预留排队，汇总本 UTC 日全部轮次的占用，加上本次上限超过每日预算时不调用（拒绝原因 `daily`）；之后照常检查每月硬限额。没有设置每日预算时，词库不能付费调用。
 - 运行中的预算不足：一个种子词都扩不了时，运行 `failed`（`BUDGET_EXHAUSTED`），项目状态为 `budget_exhausted`，可以修改预算后再运行；扩词、SERP 中途不足时停止该阶段；AI 预算不足时该机会不做分析（`analysis_error` 为 `BUDGET_EXHAUSTED`），分数照常。有阶段因预算提前结束时运行为 `partial`。
 - fake Provider 的费用是编造的固定值（扩词上限 0.10 / 实际 0.075 美元，SERP 0.02 / 0.006，分析 0.01 / 0.0015），只用于测试账本，不是服务商价格。真实 Provider 按官方文档的 `cost` 结算。
 - DataForSEO 每个响应都报告费用（美元），按任务的 `cost` 结算。预留额高于官方价格页（2026-10-10 核对）：扩词 0.10 美元（Google Ads Live 每任务 0.09）、SERP 0.01（每 10 个结果 0.002，带 `site:` 等运算符时 5 倍）、KD 0.05（Labs 每任务 0.012 + 每个关键词 0.00012）。操作名为 `expand`、`difficulty`、`serp`。
 - DeepSeek 不返回费用：按返回的 token（缓存命中、未命中、输出）乘以 `adapters/deepseek-prices.ts` 中的价格计算，向上取整。官方价格页（2026-10-10 核对）分高峰和低谷价格，高峰时段排除中国法定节假日，代码无法可靠判断，所以一律按高峰价结算：账本可能高于实际账单，不会低于。价格表中没有的模型不能使用。每次分析的预留额 = 7000 个输入 token 按未命中价 + 1500 个输出 token（`deepseek-flash` 为 0.0039 美元）。
 
 ---
+
+## Keyword Pool
+
+词库（[keyword-pool.md](../product/keyword-pool.md)，`packages/research/src/pool-service.ts`）。
+
+- `pool_keywords`：每个词一行（`phrase` 小写、单空格、唯一），记来源（`sources`，第一个来源在前，同一来源只记一次）、最新状态和原因、最新数据（搜索量、KD、CPC、合并的说法、变种数、强对手数、内页数、趋势）、维护者的回答（变现、合规、AI 改造点）、最近检查时间和下次检查时间。
+- `pool_checks`：只追加。每次初筛（`screen`）、深查（`deep`）、维护者操作（`review`）和导入（`import`）一行，记状态、原因、数据、规则版本和操作人。删除用户时操作人置空，检查保留。
+- `pool_rounds`：一轮选词：`daily` 或 `manual`，词源，状态，报告和时间。同一时间最多一轮排队或运行。
+- 状态只经 `record()` 修改：它更新词的最新结果，并追加一条检查。下次检查时间由状态和原因算出（`nextCheckAt()`）。
+- 词库对所有登录用户相同，不属于某个用户，所以不进入账号导出和删除。
 
 ## Favorites
 

@@ -522,6 +522,9 @@
     "EXECUTION_NEEDS_GO": "先对机会做 Go 决策，再开始产品。",
     "EXECUTION_RECORD_NOT_FOUND": "这条记录不存在，或不能删除。",
     "RADAR_ITEM_NOT_FOUND": "这个 Radar 条目不存在。",
+    "POOL_KEYWORD_NOT_FOUND": "词库里没有这个词。",
+    "POOL_REVIEW_INVALID": "这个词的当前状态不能做这个操作。",
+    "POOL_ROUND_NOT_FOUND": "这一轮选词不存在。",
     "RESEARCH_RUN_NOT_FOUND": "这次运行不存在。",
     "RESEARCH_RUN_FINISHED": "运行已经结束。"
   },
