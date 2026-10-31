@@ -138,6 +138,8 @@ export const serpResults = pgTable(
       .references(() => serpSnapshots.id, { onDelete: "cascade" }),
     rank: integer().notNull(),
     url: text().notNull(),
+    /** The real site (host or name); null for results saved before S48. */
+    site: text(),
     title: text().notNull(),
     /** Result type as the provider names it, e.g. organic. */
     type: text().notNull(),

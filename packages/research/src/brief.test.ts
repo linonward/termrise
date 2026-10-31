@@ -73,7 +73,20 @@ const base: OpportunityDetailDto = {
       device: "desktop",
       fetchedAt: "2026-10-10T00:00:00.000Z",
       results: [
-        { rank: 1, url: "https://otter.ai/x", title: "Otter", type: "organic" },
+        {
+          rank: 1,
+          url: "https://otter.ai/x",
+          site: null,
+          title: "Otter",
+          type: "organic",
+        },
+        {
+          rank: 2,
+          url: "https://google.com/goto?url=x",
+          site: "Reddit",
+          title: "Best meeting notes app?",
+          type: "organic",
+        },
       ],
     },
   ],
@@ -120,6 +133,8 @@ it("covers every section a coding agent needs, from stored data only", () => {
   );
   expect(md).toContain("| meeting notes | 5400 | $2.50 | no data |");
   expect(md).toContain("1. Otter (otter.ai)");
+  // The real site, not the google.com redirect (S48).
+  expect(md).toContain("2. Best meeting notes app? (Reddit)");
   expect(md).toContain("- [ ] Paste a transcript");
   expect(md).toContain(
     "2026-10-11 go by Ada (scoring v1, score 72): Pre-orders came in",

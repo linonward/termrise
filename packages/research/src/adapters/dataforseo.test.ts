@@ -4,6 +4,7 @@ import { ProviderAuthError } from "@repo/ai/provider-errors";
 
 import { createDataForSeoProvider, GOOGLE_ADS_INTERVAL_MS } from "./dataforseo";
 import { ADS, dataForSeoFetch, KD, SERP } from "../testing/dataforseo-fetch";
+import serpCipherDecoder from "../testing/serp-cipher-decoder.json";
 
 const market = { locationCode: 2840, languageCode: "en" };
 const noSleep = async () => {};
@@ -132,6 +133,7 @@ it("keeps the top 10 organic results only, in rank order", async () => {
   expect(value[0]).toEqual({
     rank: 1,
     url: "https://r1.example/",
+    site: "r1.example",
     title: "Result 1",
     type: "organic",
   });
@@ -145,6 +147,37 @@ it("keeps the top 10 organic results only, in rank order", async () => {
       depth: 10,
     },
   ]);
+});
+
+it("names the real site of results behind a google.com/goto redirect", async () => {
+  // A real response (2026-10-31): Google wraps most organic results in a goto link,
+  // and DataForSEO reports both url and domain as google.com.
+  const { fetch } = dataForSeoFetch({
+    [SERP]: { cost: 0.002, result: [{ items: serpCipherDecoder.items }] },
+  });
+  const provider = createDataForSeoProvider({
+    login: "l",
+    password: "p",
+    fetch,
+  });
+  const { value } = await provider.serp("cipher decoder", market);
+  expect(value.map((r) => r.site)).toEqual([
+    "Reddit",
+    "kloudbean.com",
+    "cipherdecipher.com",
+    "cryptii.com",
+    "hanginghyena.com",
+    "Reddit",
+    "cipherchronicle.com",
+    "play.google.com",
+  ]);
+  // A home page behind the redirect gets its own address, so it still counts as one.
+  expect(value[2].url).toBe("https://www.cipherdecipher.com");
+  // An inner page keeps the redirect: the breadcrumb shortens the path.
+  expect(value[1].url).toMatch(/^https:\/\/google\.com\/goto\?/);
+  expect(value[3].url).toBe(
+    "https://cryptii.com/pipes/alphabetical-substitution/",
+  );
 });
 
 it("returns no results for a SERP without items", async () => {

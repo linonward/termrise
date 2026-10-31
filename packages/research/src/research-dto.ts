@@ -122,6 +122,7 @@ export function toSerpDto(row: {
     results: row.results.map((r) => ({
       rank: r.rank,
       url: r.url,
+      site: r.site,
       title: r.title,
       type: r.type,
     })),

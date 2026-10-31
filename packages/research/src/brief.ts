@@ -95,7 +95,10 @@ export function buildBrief(o: OpportunityDetailDto): string {
           `Top results for "${line(topSerp.phrase)}" (${topSerp.provider}, ${date(topSerp.fetchedAt)}):`,
           ...topSerp.results
             .slice(0, COMPETITORS_LISTED)
-            .map((r) => `${r.rank}. ${line(r.title)} (${hostname(r.url)})`),
+            .map(
+              (r) =>
+                `${r.rank}. ${line(r.title)} (${r.site ?? hostname(r.url)})`,
+            ),
         ].join("\n")
       : "No search results were audited.",
     "## Differentiation",
