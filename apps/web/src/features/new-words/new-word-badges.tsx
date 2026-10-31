@@ -73,7 +73,7 @@ export function VerdictReasons({
     return t(key as Parameters<typeof t>[0], values);
   });
   if (as === "sentence")
-    return <span className="text-muted-foreground">· {texts.join("，")}</span>;
+    return <span className="text-muted-foreground">{texts.join("，")}</span>;
   return (
     <ul className="list-disc space-y-1 pl-5 text-[15px]">
       {texts.map((text) => (

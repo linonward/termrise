@@ -100,9 +100,9 @@ export default async function NewWordsPage({
             <li
               key={w.id}
               data-testid="new-word-row"
-              className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center"
+              className="relative flex flex-col gap-4 py-6 lg:flex-row lg:items-center"
             >
-              <div className="min-w-0 flex-1 space-y-2">
+              <div className="min-w-0 flex-1 space-y-2 pr-10 lg:pr-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/discover/${w.id}`}
@@ -126,7 +126,7 @@ export default async function NewWordsPage({
                   <VerdictReasons reasons={w.reasons} as="sentence" />
                 </VerdictLine>
               </div>
-              <dl className="grid shrink-0 grid-cols-2 items-center gap-x-6 gap-y-2 text-[13px] sm:grid-cols-4 lg:w-[520px]">
+              <dl className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2 text-[13px] lg:grid lg:w-[520px] lg:grid-cols-4">
                 <div>
                   <dt className="sr-only">{t("heat")}</dt>
                   <dd className="whitespace-nowrap">
@@ -159,7 +159,9 @@ export default async function NewWordsPage({
                   </dd>
                 </div>
               </dl>
-              <HideWord id={w.id} hidden={w.hidden} phrase={w.phrase} />
+              <div className="absolute top-5 right-0 lg:static">
+                <HideWord id={w.id} hidden={w.hidden} phrase={w.phrase} />
+              </div>
             </li>
           ))}
         </ul>

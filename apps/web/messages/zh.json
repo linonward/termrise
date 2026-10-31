@@ -825,7 +825,7 @@
     "title": "选词",
     "subtitle": "为新的工具站选一个长青主词：月搜索量够、新站能排上去、需求不在下滑。规则见 tool-site-v1。",
     "roundTitle": "一轮选词",
-    "roundSource": "词源",
+    "roundSource": "指定词源",
     "roundSourcePlaceholder": "suffix:calculator 或 ranked:example.com，留空自动选",
     "roundStart": "开始一轮",
     "roundStarting": "正在排队…",
@@ -860,7 +860,7 @@
       "new": "新加入",
       "queued": "待深查",
       "candidate": "候选",
-      "unsure": "待确认",
+      "unsure": "数据不足",
       "watch": "观察",
       "failed": "未通过",
       "excluded": "已排除",
@@ -882,7 +882,7 @@
     "column": {
       "keyword": "关键词",
       "status": "状态",
-      "volume": "月搜索量",
+      "volume": "月搜",
       "kd": "KD",
       "cpc": "CPC",
       "strong": "强对手",
@@ -1019,7 +1019,9 @@
     "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。",
     "reviewEmptyTitle": "没有等你确认的词",
     "reviewEmptyBody": "新的候选会在每周一轮后出现在这里。看全部词库请点「全部」。",
-    "reviewTab": "待确认"
+    "reviewTab": "待确认",
+    "lastRound": "最近一轮",
+    "viaGoogle": "{site}（经 Google 跳转，没有路径）"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -1116,7 +1118,8 @@
     "rootsBody": "做这些大词的站，都可以把它加成内页",
     "rules": "规则版本 {rules}",
     "select": "选定，去建站",
-    "selected": "{date} 已选定，产品见「产品」"
+    "selected": "{date} 已选定，产品见「产品」",
+    "viaGoogle": "{site}（经 Google 跳转，没有路径）"
   },
   "research": {
     "metaTitle": "研究",
@@ -1565,8 +1568,8 @@
     "addEvent": "记录访客或激活",
     "addRevenue": "记录收入",
     "delete": "删除",
-    "keywordLink": "选词",
-    "newWordLink": "新词",
+    "keywordLink": "来自选词：{name}",
+    "newWordLink": "来自新词：{name}",
     "briefTitle": "选词简报",
     "briefBody": "存为 site-starter 新网站的 docs/keyword-brief.md。"
   },
@@ -1584,7 +1587,6 @@
     "keywordsAll": "全部 {n} 个",
     "keywordsEmpty": "没有等你确认的词。",
     "keywordFacts": "月搜 {volume} · KD {kd} · 强对手 {strong}",
-    "roundsTitle": "最近两轮",
     "round": {
       "newWords": "新词",
       "evergreen": "长青词"
@@ -1592,13 +1594,8 @@
     "roundNone": "还没有跑过",
     "newWordsSchedule": "每天 8 点",
     "evergreenSchedule": "每周一次",
-    "spendTitle": "本月花费",
-    "spend": {
-      "total": "合计",
-      "new_words": "新词",
-      "evergreen": "长青词",
-      "research": "研究项目"
-    },
-    "spendNote": "DataForSEO 与 DeepSeek 按调用结算，每月数据上限 10 美元（Worker 的 MONTHLY_DATA_BUDGET_USD）。"
+    "statusTitle": "轮次与花费",
+    "spendLine": "本月花费 {total}：新词 {newWords}，长青词 {evergreen}，研究项目 {research}。",
+    "spendLink": "预算与用量"
   }
 }

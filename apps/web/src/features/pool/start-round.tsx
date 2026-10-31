@@ -9,7 +9,8 @@ import { usePoolAction } from "./pool-action";
 const input =
   "h-10 w-full rounded-md border border-border-strong bg-background px-3 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none";
 
-// Queues a manual round; the worker runs it within a minute (docs/product/keyword-pool.md#rounds).
+// Queues a manual round; the worker runs it within a minute. The source is optional and
+// tucked away: most rounds take the next one (docs/product/keyword-pool.md#rounds).
 export function StartRound({ open }: { open: boolean }) {
   const t = useTranslations("pool");
   const { post, pending, error } = usePoolAction();
@@ -26,17 +27,7 @@ export function StartRound({ open }: { open: boolean }) {
         );
       }}
     >
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <label className="flex-1">
-          <span className="sr-only">{t("roundSource")}</span>
-          <input
-            className={input}
-            value={source}
-            maxLength={70}
-            placeholder={t("roundSourcePlaceholder")}
-            onChange={(e) => setSource(e.target.value)}
-          />
-        </label>
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" className="h-10 px-4" disabled={pending || open}>
           {open
             ? t("roundOpen")
@@ -44,8 +35,22 @@ export function StartRound({ open }: { open: boolean }) {
               ? t("roundStarting")
               : t("roundStart")}
         </Button>
+        <details className="group text-[13px]">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            {t("roundSource")}
+          </summary>
+          <label className="mt-2 block w-72 max-w-full">
+            <span className="sr-only">{t("roundSource")}</span>
+            <input
+              className={input}
+              value={source}
+              maxLength={70}
+              placeholder={t("roundSourcePlaceholder")}
+              onChange={(e) => setSource(e.target.value)}
+            />
+          </label>
+        </details>
       </div>
-      <p className="text-[13px] text-muted-foreground">{t("roundHelp")}</p>
       {error && (
         <p role="alert" className="text-[13px] text-destructive">
           {error}

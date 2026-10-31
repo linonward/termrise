@@ -1,6 +1,13 @@
 import { expect, it } from "vitest";
 
-import { pct, reasonMessage, trendSummary, usd } from "./pool-format";
+import {
+  displayUrl,
+  pct,
+  reasonMessage,
+  shortDate,
+  trendSummary,
+  usd,
+} from "./pool-format";
 
 it("formats money and percents", () => {
   expect(usd(2_000_000)).toBe("$2.00");
@@ -58,4 +65,24 @@ it("summarizes a trend against its baseline", () => {
     ratio: "1.88",
     yoy: "-8%",
   });
+});
+
+it("writes short dates, with the year only when it differs", () => {
+  const now = new Date(2026, 9, 31);
+  expect(shortDate(new Date(2026, 10, 14).toISOString(), now)).toBe("11/14");
+  expect(shortDate(new Date(2027, 0, 29).toISOString(), now)).toBe("2027/1/29");
+  expect(shortDate(null, now)).toBe("—");
+});
+
+it("shows a result's address without the scheme, and none for a Google redirect", () => {
+  expect(
+    displayUrl(
+      "https://www.facerealityskincare.com/pages/pore-clogging-checker/",
+    ),
+  ).toBe("facerealityskincare.com/pages/pore-clogging-checker");
+  expect(displayUrl("https://cryptii.com/")).toBe("cryptii.com");
+  expect(displayUrl("https://a.com/x?srsltid=AYCX9&utm_source=g&page=2")).toBe(
+    "a.com/x?page=2",
+  );
+  expect(displayUrl("https://google.com/goto?url=CAES")).toBeNull();
 });

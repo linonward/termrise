@@ -9,7 +9,12 @@ import { Tag } from "@repo/ui/components/badge";
 import { LocalDateTime } from "@/components/local-date-time";
 import { BriefPanel } from "@/features/opportunities/brief-panel";
 import { PoolStatusBadge, Reasons } from "@/features/pool/pool-badges";
-import { count, trendSummary, usd } from "@/features/pool/pool-format";
+import {
+  count,
+  displayUrl,
+  trendSummary,
+  usd,
+} from "@/features/pool/pool-format";
 import { ReviewActions } from "@/features/pool/review-actions";
 import { apiGet, apiRequest } from "@/server/api/api";
 
@@ -117,145 +122,168 @@ export default async function PoolKeywordPage({
         ))}
       </dl>
 
-      {trend && (
-        <section aria-labelledby="trend-title" className="space-y-2">
-          <h2 id="trend-title" className="font-heading text-xl font-semibold">
-            {t("trendTitle")}
-          </h2>
-          <p className="text-[15px]">
-            {trend.relative
-              ? t("trendRelative", {
-                  recent: trend.recent,
-                  baseline: trend.baseline ?? "",
-                  relative: trend.relative,
-                })
-              : t("trendAbsolute", { recent: trend.recent })}
-          </p>
-          <p className="text-[13px] text-muted-foreground">
-            {t("trendDetail", { ratio: trend.ratio, yoy: trend.yoy })}
-          </p>
-        </section>
-      )}
-
-      {k.variants.length > 0 && (
-        <section aria-labelledby="variants-title" className="space-y-2">
-          <h2
-            id="variants-title"
-            className="font-heading text-xl font-semibold"
-          >
-            {t("variantsTitle")}
-          </h2>
-          <p className="text-[13px] text-muted-foreground">
-            {t("variantsBody")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {k.variants.map((v) => (
-              <Tag key={v}>{v}</Tag>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {serp?.results && serp.results.length > 0 && (
-        <section aria-labelledby="serp-title" className="space-y-3">
-          <h2 id="serp-title" className="font-heading text-xl font-semibold">
-            {t("serpTitle")}
-          </h2>
-          <ol className="divide-y divide-border border-y border-border">
-            {serp.results.map((r) => (
-              <li key={r.rank} className="flex gap-4 py-3">
-                <span className="w-6 shrink-0 font-mono text-sm text-muted-foreground tabular-nums">
-                  {r.rank}
-                </span>
-                <span className="min-w-0 flex-1 space-y-0.5">
-                  <a
-                    href={r.url}
-                    target="_blank"
-                    rel="noreferrer nofollow"
-                    className="block truncate text-[15px] font-medium hover:underline"
-                  >
-                    {r.title}
-                  </a>
-                  <span className="block text-[13px] text-muted-foreground">
-                    {r.site}
-                    {r.traffic != null &&
-                      ` · ${t("traffic", { visits: count(Math.round(r.traffic)) })}`}
-                  </span>
-                </span>
-                {strong.has(r.site) && <Tag tone="brand">{t("strong")}</Tag>}
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {(k.monetization || k.compliance || k.aiAngle) && (
-        <dl className="grid gap-4 md:grid-cols-3">
-          {(
-            [
-              ["h4", k.monetization],
-              ["h7", k.compliance],
-              ["aiAngle", k.aiAngle],
-            ] as const
-          ).map(([key, value]) =>
-            value ? (
-              <div key={key} className="space-y-1">
-                <dt className="text-[13px] text-muted-foreground">
-                  {t(`answer.${key}`)}
-                </dt>
-                <dd className="text-[15px]">{value}</dd>
-              </div>
-            ) : null,
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="min-w-0 space-y-10">
+          {trend && (
+            <section aria-labelledby="trend-title" className="space-y-2">
+              <h2
+                id="trend-title"
+                className="font-heading text-xl font-semibold"
+              >
+                {t("trendTitle")}
+              </h2>
+              <p className="text-[15px]">
+                {trend.relative
+                  ? t("trendRelative", {
+                      recent: trend.recent,
+                      baseline: trend.baseline ?? "",
+                      relative: trend.relative,
+                    })
+                  : t("trendAbsolute", { recent: trend.recent })}
+              </p>
+              <p className="text-[13px] text-muted-foreground">
+                {t("trendDetail", { ratio: trend.ratio, yoy: trend.yoy })}
+              </p>
+            </section>
           )}
-        </dl>
-      )}
 
-      <ReviewActions keyword={k} />
-
-      {brief?.markdown && (
-        <section aria-labelledby="brief-title" className="space-y-4">
-          <div className="space-y-1">
-            <h2 id="brief-title" className="font-heading text-xl font-semibold">
-              {t("briefTitle")}
-            </h2>
-            <p className="text-[15px] text-muted-foreground">
-              {t("briefBody")}
-            </p>
-          </div>
-          <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
-        </section>
-      )}
-
-      <section aria-labelledby="checks-title" className="space-y-3">
-        <h2 id="checks-title" className="font-heading text-xl font-semibold">
-          {t("checksTitle")}
-        </h2>
-        <ol className="divide-y divide-border border-y border-border">
-          {k.checks.map((c) => (
-            <li key={c.id} className="space-y-1 py-3">
-              <div className="flex flex-wrap items-center gap-3 text-[13px]">
-                <LocalDateTime iso={c.createdAt} />
-                <Tag>{t(`checkKind.${c.kind}`)}</Tag>
-                <PoolStatusBadge status={c.status} />
-                {c.roundId && (
-                  <Link
-                    href={`/keywords/rounds/${c.roundId}`}
-                    className="text-muted-foreground hover:underline"
-                  >
-                    {t("round")}
-                  </Link>
-                )}
+          {k.variants.length > 0 && (
+            <section aria-labelledby="variants-title" className="space-y-2">
+              <h2
+                id="variants-title"
+                className="font-heading text-xl font-semibold"
+              >
+                {t("variantsTitle")}
+              </h2>
+              <p className="text-[13px] text-muted-foreground">
+                {t("variantsBody")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {k.variants.map((v) => (
+                  <Tag key={v}>{v}</Tag>
+                ))}
               </div>
-              <Reasons reasons={c.reasons} />
-            </li>
-          ))}
-        </ol>
-      </section>
-      {k.checks[0] && (
-        <p className="text-[13px] text-muted-foreground">
-          {t("rules", { rules: k.checks[0].rules })}
-        </p>
-      )}
+            </section>
+          )}
+
+          {serp?.results && serp.results.length > 0 && (
+            <section aria-labelledby="serp-title" className="space-y-3">
+              <h2
+                id="serp-title"
+                className="font-heading text-xl font-semibold"
+              >
+                {t("serpTitle")}
+              </h2>
+              <ol className="divide-y divide-border border-y border-border">
+                {serp.results.map((r) => (
+                  <li key={r.rank} className="flex gap-4 py-3">
+                    <span className="w-6 shrink-0 font-mono text-sm text-muted-foreground tabular-nums">
+                      {r.rank}
+                    </span>
+                    <span className="min-w-0 flex-1 space-y-0.5">
+                      <a
+                        href={r.url}
+                        target="_blank"
+                        rel="noreferrer nofollow"
+                        className="block truncate text-[15px] font-medium hover:underline"
+                      >
+                        {r.title}
+                      </a>
+                      <span className="block font-mono text-[12px] break-all text-muted-foreground">
+                        {displayUrl(r.url) ?? t("viaGoogle", { site: r.site })}
+                      </span>
+                      {r.traffic != null && (
+                        <span className="block text-[13px] text-muted-foreground">
+                          {t("traffic", {
+                            visits: count(Math.round(r.traffic)),
+                          })}
+                        </span>
+                      )}
+                    </span>
+                    {strong.has(r.site) && (
+                      <Tag tone="brand">{t("strong")}</Tag>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {brief?.markdown && (
+            <section aria-labelledby="brief-title" className="space-y-4">
+              <div className="space-y-1">
+                <h2
+                  id="brief-title"
+                  className="font-heading text-xl font-semibold"
+                >
+                  {t("briefTitle")}
+                </h2>
+                <p className="text-[15px] text-muted-foreground">
+                  {t("briefBody")}
+                </p>
+              </div>
+              <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+            </section>
+          )}
+
+          <section aria-labelledby="checks-title" className="space-y-3">
+            <h2
+              id="checks-title"
+              className="font-heading text-xl font-semibold"
+            >
+              {t("checksTitle")}
+            </h2>
+            <ol className="divide-y divide-border border-y border-border">
+              {k.checks.map((c) => (
+                <li key={c.id} className="space-y-1 py-3">
+                  <div className="flex flex-wrap items-center gap-3 text-[13px]">
+                    <LocalDateTime iso={c.createdAt} />
+                    <Tag>{t(`checkKind.${c.kind}`)}</Tag>
+                    <PoolStatusBadge status={c.status} />
+                    {c.roundId && (
+                      <Link
+                        href={`/keywords/rounds/${c.roundId}`}
+                        className="text-muted-foreground hover:underline"
+                      >
+                        {t("round")}
+                      </Link>
+                    )}
+                  </div>
+                  <Reasons reasons={c.reasons} />
+                </li>
+              ))}
+            </ol>
+          </section>
+          {k.checks[0] && (
+            <p className="text-[13px] text-muted-foreground">
+              {t("rules", { rules: k.checks[0].rules })}
+            </p>
+          )}
+        </div>
+        <aside className="space-y-8 lg:sticky lg:top-24">
+          <ReviewActions keyword={k} />
+          {(k.monetization || k.compliance || k.aiAngle) && (
+            <dl className="grid gap-4">
+              {(
+                [
+                  ["h4", k.monetization],
+                  ["h7", k.compliance],
+                  ["aiAngle", k.aiAngle],
+                ] as const
+              ).map(([key, value]) =>
+                value ? (
+                  <div key={key} className="space-y-1">
+                    <dt className="text-[13px] text-muted-foreground">
+                      {t(`answer.${key}`)}
+                    </dt>
+                    <dd className="text-[15px]">{value}</dd>
+                  </div>
+                ) : null,
+              )}
+            </dl>
+          )}
+        </aside>
+      </div>
     </main>
   );
 }

@@ -27,8 +27,9 @@ test("an early access user sees today's work without credits, and needs a sessio
   await expect(
     page.getByRole("heading", { level: 1, name: "今天" }),
   ).toBeVisible();
-  for (const name of ["新词", "等你确认", "最近两轮", "本月花费"])
+  for (const name of ["新词", "等你确认"])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  await expect(page.getByTestId("today-spend")).toContainText("本月花费");
   await page.getByRole("main").getByRole("link", { name: "全部新词" }).click();
   await expect(page).toHaveURL(/\/discover$/);
   await page.goto("/today");

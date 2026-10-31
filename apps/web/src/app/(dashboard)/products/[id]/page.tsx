@@ -89,7 +89,7 @@ export default async function ProductPage({
             href={`/keywords/${p.poolKeywordId}`}
             className="w-fit text-[15px] font-medium underline underline-offset-4"
           >
-            {t("keywordLink")}
+            {t("keywordLink", { name: p.name })}
           </Link>
         )}
         {p.newWordId && (
@@ -97,26 +97,10 @@ export default async function ProductPage({
             href={`/discover/${p.newWordId}`}
             className="w-fit text-[15px] font-medium underline underline-offset-4"
           >
-            {t("newWordLink")}
+            {t("newWordLink", { name: p.name })}
           </Link>
         )}
       </header>
-      {brief?.markdown && (
-        <section aria-labelledby="product-brief" className="space-y-4">
-          <div className="space-y-1">
-            <h2
-              id="product-brief"
-              className="font-heading text-2xl font-semibold"
-            >
-              {t("briefTitle")}
-            </h2>
-            <p className="text-[15px] text-muted-foreground">
-              {t("briefBody")}
-            </p>
-          </div>
-          <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
-        </section>
-      )}
       <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
         <section
           aria-labelledby="results-title"
@@ -140,7 +124,7 @@ export default async function ProductPage({
                   {t(`metric.${key}`)}
                 </dt>
                 <dd
-                  className="font-heading text-2xl font-semibold tabular-nums"
+                  className="font-mono text-2xl font-semibold tabular-nums"
                   data-testid={`total-${key}`}
                 >
                   {format.number(value)}
@@ -312,6 +296,22 @@ export default async function ProductPage({
           </details>
         </section>
       </div>
+      {brief?.markdown && (
+        <section aria-labelledby="product-brief" className="space-y-4">
+          <div className="space-y-1">
+            <h2
+              id="product-brief"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("briefTitle")}
+            </h2>
+            <p className="text-[15px] text-muted-foreground">
+              {t("briefBody")}
+            </p>
+          </div>
+          <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+        </section>
+      )}
     </main>
   );
 }

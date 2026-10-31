@@ -101,7 +101,7 @@ export async function TodayView() {
                       {w.phrase}
                     </Link>
                     <WordTags word={w} />
-                    <span className="ml-auto font-mono text-[13px] tabular-nums">
+                    <span className="font-mono text-[13px] tabular-nums sm:ml-auto">
                       GPTs {times(w.ratio)}
                     </span>
                   </div>
@@ -145,7 +145,7 @@ export async function TodayView() {
                     {k.phrase}
                   </Link>
                   <PoolStatusBadge status={k.status} />
-                  <span className="ml-auto font-mono text-[13px] text-muted-foreground tabular-nums">
+                  <span className="font-mono text-[13px] text-muted-foreground tabular-nums sm:ml-auto">
                     {t("keywordFacts", {
                       volume: count(k.searchVolume),
                       kd: k.keywordDifficulty ?? "—",
@@ -157,72 +157,58 @@ export async function TodayView() {
             </ul>
           )}
         </section>
-
-        <section aria-labelledby="today-rounds" className={card}>
-          <h2 id="today-rounds" className="font-heading text-xl font-semibold">
-            {t("roundsTitle")}
-          </h2>
-          <ul className="divide-y divide-border">
-            {(
-              [
-                ["newWords", d.newWordsRound, t("newWordsSchedule")],
-                ["evergreen", d.evergreenRound, t("evergreenSchedule")],
-              ] as const
-            ).map(([key, round, schedule]) => (
-              <li
-                key={key}
-                className="flex flex-wrap items-center gap-3 py-3 text-[15px]"
-              >
-                <span className="font-semibold">{t(`round.${key}`)}</span>
-                {round ? (
-                  <>
-                    <RoundStatusBadge status={round.status} />
-                    <Link
-                      href={`/keywords/rounds/${round.id}`}
-                      className="text-[13px] text-muted-foreground hover:underline"
-                    >
-                      <LocalDateTime iso={round.createdAt} />
-                    </Link>
-                  </>
-                ) : (
-                  <span className="text-[13px] text-muted-foreground">
-                    {t("roundNone")}
-                  </span>
-                )}
-                <span className="ml-auto text-[13px] text-muted-foreground">
-                  {schedule}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section aria-labelledby="today-spend" className={card}>
-          <h2 id="today-spend" className="font-heading text-xl font-semibold">
-            {t("spendTitle")}
-          </h2>
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {(
-              [
-                ["total", total],
-                ["new_words", spent("new_words")],
-                ["evergreen", spent("evergreen")],
-                ["research", spent("research")],
-              ] as const
-            ).map(([key, micros]) => (
-              <div key={key} className="space-y-1">
-                <dt className="text-[13px] text-muted-foreground">
-                  {t(`spend.${key}`)}
-                </dt>
-                <dd className="font-mono text-xl font-semibold tabular-nums">
-                  {usd(micros)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="text-[13px] text-muted-foreground">{t("spendNote")}</p>
-        </section>
       </div>
+
+      <section
+        aria-labelledby="today-status"
+        className="space-y-3 border-t border-border pt-6 text-[13px] text-muted-foreground"
+      >
+        <h2 id="today-status" className="sr-only">
+          {t("statusTitle")}
+        </h2>
+        <ul className="flex flex-col gap-2 md:flex-row md:flex-wrap md:gap-x-8">
+          {(
+            [
+              ["newWords", d.newWordsRound, t("newWordsSchedule")],
+              ["evergreen", d.evergreenRound, t("evergreenSchedule")],
+            ] as const
+          ).map(([key, round, schedule]) => (
+            <li key={key} className="flex flex-wrap items-center gap-2">
+              <span className="font-medium text-foreground">
+                {t(`round.${key}`)}
+              </span>
+              {round ? (
+                <>
+                  <RoundStatusBadge status={round.status} />
+                  <Link
+                    href={`/keywords/rounds/${round.id}`}
+                    className="hover:underline"
+                  >
+                    <LocalDateTime iso={round.createdAt} />
+                  </Link>
+                </>
+              ) : (
+                <span>{t("roundNone")}</span>
+              )}
+              <span>· {schedule}</span>
+            </li>
+          ))}
+        </ul>
+        <p data-testid="today-spend">
+          {t("spendLine", {
+            total: usd(total),
+            newWords: usd(spent("new_words")),
+            evergreen: usd(spent("evergreen")),
+            research: usd(spent("research")),
+          })}{" "}
+          <Link
+            href="/settings/providers"
+            className="underline underline-offset-4"
+          >
+            {t("spendLink")}
+          </Link>
+        </p>
+      </section>
     </main>
   );
 }

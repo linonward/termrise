@@ -14,7 +14,7 @@ import {
   Reasons,
   RoundStatusBadge,
 } from "@/features/pool/pool-badges";
-import { count, pct, usd } from "@/features/pool/pool-format";
+import { count, pct, shortDate, usd } from "@/features/pool/pool-format";
 import { StartRound } from "@/features/pool/start-round";
 import { apiGet } from "@/server/api/api";
 
@@ -63,7 +63,10 @@ export default async function PoolPage({
     }>(`/api/pool/keywords?${query}`),
     apiGet<{ items: PoolRoundDto[] }>("/api/pool/rounds"),
   ]);
-  const open = rounds.items.some(
+  // New-word rounds have their own page: here only the evergreen ones.
+  const evergreen = rounds.items.filter((r) => r.kind !== "new_words");
+  const latest = evergreen[0] ?? null;
+  const open = evergreen.some(
     (r) => r.status === "queued" || r.status === "running",
   );
   const all = Object.values(list.counts).reduce((a, b) => a + (b ?? 0), 0);
@@ -82,52 +85,48 @@ export default async function PoolPage({
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
+      <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
+            {t("title")}
+          </h1>
+          <p className="max-w-2xl text-[15px] text-muted-foreground">
+            {t("subtitle")}
+          </p>
+          {latest && (
+            <p className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+              {t("lastRound")}
+              <RoundStatusBadge status={latest.status} />
+              <Link
+                href={`/keywords/rounds/${latest.id}`}
+                className="font-medium text-foreground hover:underline hover:underline-offset-4"
+              >
+                {latest.source ?? t("roundNoSource")}
+              </Link>
+              <span>
+                <LocalDateTime iso={latest.createdAt} /> ·{" "}
+                {usd(latest.spentMicros, 3)}
+              </span>
+            </p>
+          )}
+        </div>
+        <div className="shrink-0 space-y-3 md:w-80">
+          <StartRound open={open} />
+          <details className="text-[13px]">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+              {t("addTitle")}
+            </summary>
+            <div className="mt-3">
+              <AddIdeas />
+            </div>
+          </details>
+        </div>
       </header>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <section aria-labelledby="round-title" className="space-y-3">
-          <h2 id="round-title" className="font-heading text-xl font-semibold">
-            {t("roundTitle")}
-          </h2>
-          <StartRound open={open} />
-          {rounds.items.length > 0 && (
-            <ul className="divide-y divide-border border-y border-border text-[15px]">
-              {rounds.items.slice(0, 5).map((r) => (
-                <li
-                  key={r.id}
-                  className="flex flex-wrap items-center gap-3 py-3"
-                >
-                  <RoundStatusBadge status={r.status} />
-                  <Link
-                    href={`/keywords/rounds/${r.id}`}
-                    className="font-medium hover:underline hover:underline-offset-4"
-                  >
-                    {r.source ?? t("roundNoSource")}
-                  </Link>
-                  <span className="text-[13px] text-muted-foreground">
-                    {t(`roundKind.${r.kind}`)} ·{" "}
-                    <LocalDateTime iso={r.createdAt} /> ·{" "}
-                    {usd(r.spentMicros, 3)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section aria-labelledby="add-title" className="space-y-3">
-          <h2 id="add-title" className="font-heading text-xl font-semibold">
-            {t("addTitle")}
-          </h2>
-          <AddIdeas />
-        </section>
-      </div>
-
-      <nav aria-label={t("statusFilter")} className="flex flex-wrap gap-2">
+      <nav
+        aria-label={t("statusFilter")}
+        className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+      >
         {(
           [
             ["review", t("reviewTab"), waiting],
@@ -139,7 +138,7 @@ export default async function PoolPage({
             href={href({ status: key, page: undefined })}
             aria-current={status === key ? "page" : undefined}
             className={cn(
-              "rounded-full border border-border px-3 py-1 text-[13px]",
+              "shrink-0 rounded-full border border-border px-3 py-1 text-[13px] whitespace-nowrap",
               status === key &&
                 "border-primary bg-primary text-primary-foreground",
             )}
@@ -153,7 +152,7 @@ export default async function PoolPage({
             href={href({ status: s, page: undefined })}
             aria-current={status === s ? "page" : undefined}
             className={cn(
-              "rounded-full border border-border px-3 py-1 text-[13px]",
+              "shrink-0 rounded-full border border-border px-3 py-1 text-[13px] whitespace-nowrap",
               status === s &&
                 "border-primary bg-primary text-primary-foreground",
             )}
@@ -165,10 +164,10 @@ export default async function PoolPage({
 
       <form
         role="search"
-        className="flex flex-col gap-4 md:flex-row md:items-end"
+        className="flex flex-wrap items-end gap-3 md:flex-nowrap md:gap-4"
       >
         {status && <input type="hidden" name="status" value={status} />}
-        <label className="block flex-1 space-y-2 text-[13px] font-medium">
+        <label className="block flex-1 basis-full space-y-2 text-[13px] font-medium md:basis-auto">
           <span>{t("search")}</span>
           <input
             name="q"
@@ -178,7 +177,7 @@ export default async function PoolPage({
             className="h-11 w-full rounded-md border border-border-strong bg-background px-4 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
           />
         </label>
-        <label className="block space-y-2 text-[13px] font-medium md:w-48">
+        <label className="block flex-1 space-y-2 text-[13px] font-medium md:w-48 md:flex-none">
           <span>{t("sortLabel")}</span>
           <select
             name="sort"
@@ -236,7 +235,7 @@ export default async function PoolPage({
                   <th
                     key={key}
                     className={cn(
-                      "pr-4 pb-3 font-semibold",
+                      "pr-4 pb-3 font-semibold whitespace-nowrap",
                       !["keyword", "status", "next"].includes(key) &&
                         "text-right",
                     )}
@@ -265,8 +264,8 @@ export default async function PoolPage({
                       >
                         {k.phrase}
                       </Link>
-                      <div className="mt-1">
-                        <Reasons reasons={k.reasons} />
+                      <div className="mt-1 max-w-md">
+                        <Reasons reasons={k.reasons} compact />
                       </div>
                     </td>
                     <td className="py-4 pr-4">
@@ -291,11 +290,7 @@ export default async function PoolPage({
                       {count(k.variantCount)}
                     </td>
                     <td className="py-4 pr-4 whitespace-nowrap text-muted-foreground">
-                      {k.nextCheckAt ? (
-                        <LocalDateTime iso={k.nextCheckAt} />
-                      ) : (
-                        "—"
-                      )}
+                      {shortDate(k.nextCheckAt)}
                     </td>
                   </tr>
                 );

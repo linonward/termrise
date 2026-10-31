@@ -61,3 +61,33 @@ export function trendSummary(trend: TrendCheck | null) {
     yoy: pct(trend.yoy),
   };
 }
+
+/** "11/14" this year, "2027/1/29" another year; for dense tables. */
+export function shortDate(iso: string | null | undefined, now = new Date()) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const md = `${d.getMonth() + 1}/${d.getDate()}`;
+  return d.getFullYear() === now.getFullYear()
+    ? md
+    : `${d.getFullYear()}/${md}`;
+}
+
+/**
+ * A result's address without the scheme, for showing: "example.com/tools/x". A Google
+ * redirect has no real path to show (S48): null, and the page says so.
+ */
+export function displayUrl(url: string) {
+  try {
+    const u = new URL(url);
+    if (/(^|\.)google\.com$/.test(u.hostname) && u.pathname.startsWith("/goto"))
+      return null;
+    // Tracking added by Google or campaigns says nothing about the page.
+    for (const key of [...u.searchParams.keys()])
+      if (key === "srsltid" || key.startsWith("utm_"))
+        u.searchParams.delete(key);
+    const path = decodeURIComponent(u.pathname).replace(/\/$/, "");
+    return `${u.hostname.replace(/^www\./, "")}${path}${u.search}`;
+  } catch {
+    return url;
+  }
+}

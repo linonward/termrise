@@ -31,16 +31,33 @@ export function RoundStatusBadge({
 }
 
 /** Why a keyword has its status, one line per reason. */
-export function Reasons({ reasons }: { reasons: unknown }) {
+export function Reasons({
+  reasons,
+  compact = false,
+}: {
+  reasons: unknown;
+  /** Lists: the first reason on one line; the detail page shows them all. */
+  compact?: boolean;
+}) {
   const t = useTranslations("pool.reason");
-  const list = (Array.isArray(reasons) ? reasons : []) as Reason[];
+  const all = (Array.isArray(reasons) ? reasons : []) as Reason[];
+  const list = compact ? all.slice(0, 1) : all;
   if (list.length === 0) return null;
   return (
     <ul className="space-y-1 text-[13px] text-muted-foreground">
       {list.map((r, i) => {
         const { key, values } = reasonMessage(r);
         // Keys come from reasonMessage(); pool-format.test.ts covers them.
-        return <li key={i}>{t(key as Parameters<typeof t>[0], values)}</li>;
+        const text = t(key as Parameters<typeof t>[0], values);
+        return (
+          <li
+            key={i}
+            className={compact ? "line-clamp-1" : undefined}
+            title={compact ? text : undefined}
+          >
+            {text}
+          </li>
+        );
       })}
     </ul>
   );

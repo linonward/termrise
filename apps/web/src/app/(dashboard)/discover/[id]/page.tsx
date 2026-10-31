@@ -14,7 +14,7 @@ import {
 import { daysSince, times } from "@/features/new-words/new-word-format";
 import { SelectWord } from "@/features/new-words/select-word";
 import { TrendChart } from "@/features/new-words/sparkline";
-import { count, usd } from "@/features/pool/pool-format";
+import { count, displayUrl, usd } from "@/features/pool/pool-format";
 import { apiGet } from "@/server/api/api";
 
 type Detail = NewWordDto & { children: NewWordDto[] };
@@ -274,8 +274,8 @@ export default async function NewWordPage({
                     >
                       {r.title}
                     </a>
-                    <span className="block text-[13px] text-muted-foreground">
-                      {r.site}
+                    <span className="block font-mono text-[12px] break-all text-muted-foreground">
+                      {displayUrl(r.url) ?? t("viaGoogle", { site: r.site })}
                     </span>
                   </span>
                 </li>
