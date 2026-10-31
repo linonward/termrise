@@ -34,6 +34,7 @@ import {
   screenKeywords,
   type ScreenedKeyword,
   strongCompetitors,
+  noToolPage,
 } from "./pool-rules";
 import {
   createKeywordPool,
@@ -564,7 +565,13 @@ export function createPoolRounds(deps: {
               ],
               extra,
             )
-          : result("candidate", [], extra);
+          : pages && noToolPage([...pages.values()])
+            ? result(
+                "unsure",
+                [{ rule: "intent", result: "unsure", value: "no_tool" }],
+                extra,
+              )
+            : result("candidate", [], extra);
     }
     const autocomplete = deps.autocomplete
       ? await deps.autocomplete(phrase).catch(() => [])

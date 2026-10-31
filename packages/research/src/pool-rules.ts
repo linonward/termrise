@@ -1,10 +1,11 @@
-// The tool-site rules (docs/product/keyword-pool.md#rules), version tool-site-v1: hard
-// limits a main keyword for a new tool site must pass. Ported from keyword-lab's SOP,
-// where they were tested in two rounds of real data (2026-10-04, 2026-10-31).
+// The tool-site rules (docs/product/keyword-pool.md#rules): hard limits a main keyword for
+// a new tool site must pass. Ported from keyword-lab's SOP, where they were tested in two
+// rounds of real data (2026-10-04, 2026-10-31). v2 (S72): a suffix keyword must end with
+// its suffix, and a top 10 without a single tool page is not a tool search.
 import type { KeywordIdea } from "./keyword-provider";
 import { isDedicated, isHomepage } from "./serp-competition";
 
-export const TOOL_SITE_RULES = "tool-site-v1";
+export const TOOL_SITE_RULES = "tool-site-v2";
 /** H1: monthly searches in the US. */
 export const MIN_VOLUME = 5000;
 /** H2: SEO keyword difficulty. */
@@ -33,6 +34,8 @@ export type Reason = {
     | "H7"
     | "exclude"
     | "variants"
+    /** S72: the top 10 has no tool page: people may want to buy, read or look. */
+    | "intent"
     /** keyword-lab's own words, kept as they were (pool-import.ts). */
     | "imported";
   result: "fail" | "unsure" | "note";
@@ -203,6 +206,16 @@ const ORDER: Record<ScreenStatus, number> = {
  * plain non-tools, groups phrasings, and orders them as they are checked: passing
  * first, mid-band before head terms, then by volume.
  */
+/**
+ * Whether a phrase ends with its suffix ("grammar checker", "unit calculators"): the tool
+ * word comes last in English. In "checker board" the checker is a game, not a tool.
+ */
+export function endsWithSuffix(phrase: string, suffix: string) {
+  const p = phrase.toLowerCase().trim();
+  const s = suffix.toLowerCase().trim();
+  return p === s || p.endsWith(` ${s}`) || p.endsWith(` ${s}s`);
+}
+
 export function screenKeywords(ideas: KeywordIdea[], seed = "") {
   const rows = ideas
     .map(screenOne)
@@ -212,7 +225,39 @@ export function screenKeywords(ideas: KeywordIdea[], seed = "") {
         Number(b.midBand) - Number(a.midBand) ||
         (b.metrics.searchVolume ?? 0) - (a.metrics.searchVolume ?? 0),
     );
-  return groupVariants(rows, seed);
+  // After grouping, so a group keeps its natural phrasing when it has one. A keyword that
+  // already failed keeps its own reason.
+  return groupVariants(rows, seed).map((r) =>
+    seed &&
+    (r.status === "pass" || r.status === "unsure") &&
+    !endsWithSuffix(r.phrase, seed)
+      ? {
+          ...r,
+          status: "excluded" as const,
+          reasons: [
+            {
+              rule: "exclude" as const,
+              result: "unsure" as const,
+              value: "not_suffix",
+            },
+            ...r.reasons,
+          ],
+        }
+      : r,
+  );
+}
+
+/** Pages the page check read: at least this many before a missing tool page counts. */
+export const INTENT_MIN_READ = 3;
+
+/**
+ * The intent check: the top 10 pages that could be read hold no tool. Null when too few
+ * were read to say.
+ */
+export function noToolPage(pages: { access?: string; kind: string | null }[]) {
+  const read = pages.filter((p) => p.kind !== null);
+  if (read.length < INTENT_MIN_READ) return null;
+  return !read.some((p) => p.kind === "tool");
 }
 
 /**

@@ -464,3 +464,45 @@ it("does not judge pages it cannot read: they fall back to the title rule and ar
     .where(eq(apiUsage.poolRoundId, done.id));
   expect(usage.filter((u) => u.kind === "ai")).toHaveLength(0);
 });
+
+it("holds back a keyword whose top 10 has no tool page", async () => {
+  await pool.record({
+    phrase: "morse translator",
+    status: "queued",
+    reasons: [],
+    kind: "review",
+    fields: { searchVolume: 9000, keywordDifficulty: 20, cpcMicros: 1_000_000 },
+  });
+  const r = createPoolRounds({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyPoolCapMicros: 500_000,
+      dailyPoolAiCapMicros: 100_000,
+    }),
+    deepChecks: 1,
+    // Shops and articles only: no page converts anything.
+    readPage: async (url) => ({
+      url,
+      status: 200,
+      title: "Buy a morse key",
+      h1: null,
+      text: "Shop morse keys and telegraph sets. Free shipping on orders. ".repeat(
+        4,
+      ),
+    }),
+    pageJudge: createFakePageJudge(),
+    now,
+  });
+  await r.scheduleDaily(0);
+  await r.run((await r.claim())!);
+  const k = (await pool.list({ status: "all" })).items.find(
+    (i) => i.phrase === "morse translator",
+  )!;
+  expect(k.status).toBe("unsure");
+  expect(k.reasons).toEqual([
+    { rule: "intent", result: "unsure", value: "no_tool" },
+  ]);
+});

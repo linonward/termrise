@@ -1,7 +1,13 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { KeywordIdea } from "./keyword-provider";
-import { autoExclude, screenKeywords, strongCompetitors } from "./pool-rules";
+import {
+  autoExclude,
+  screenKeywords,
+  strongCompetitors,
+  endsWithSuffix,
+  noToolPage,
+} from "./pool-rules";
 
 const idea = (
   phrase: string,
@@ -142,5 +148,60 @@ it("counts strong competitors: big site and a page made for the keyword (H5)", (
     strong: 1,
     innerPages: 3,
     strongSites: ["calculator.net"],
+  });
+});
+
+describe("tool-site-v2", () => {
+  it("wants the suffix as the last word", () => {
+    expect(endsWithSuffix("grammar checker", "checker")).toBe(true);
+    expect(endsWithSuffix("unit converters", "converter")).toBe(true);
+    expect(endsWithSuffix("checker", "checker")).toBe(true);
+    expect(endsWithSuffix("checker board", "checker")).toBe(false);
+    expect(endsWithSuffix("checker in spanish", "checker")).toBe(false);
+  });
+
+  it("excludes a screened keyword whose suffix is not last, for the maintainer to confirm", () => {
+    const idea = (phrase: string) => ({
+      phrase,
+      metrics: {
+        searchVolume: 27_100,
+        keywordDifficulty: 1,
+        cpcMicros: 520_000,
+        adsCompetition: null,
+      },
+      monthlySearches: Array(12).fill(27_100),
+    });
+    const rows = screenKeywords(
+      [
+        idea("checker board"),
+        {
+          ...idea("grammar checker"),
+          metrics: { ...idea("x").metrics, searchVolume: 9_900 },
+        },
+      ],
+      "checker",
+    );
+    const board = rows.find((r) => r.phrase === "checker board")!;
+    expect(board.status).toBe("excluded");
+    expect(board.reasons[0]).toEqual({
+      rule: "exclude",
+      result: "unsure",
+      value: "not_suffix",
+    });
+    expect(rows.find((r) => r.phrase === "grammar checker")!.status).not.toBe(
+      "excluded",
+    );
+  });
+
+  it("sees no tool intent when the pages read hold no tool", () => {
+    const page = (kind: string | null) => ({ kind });
+    expect(noToolPage([page("store"), page("article"), page("video")])).toBe(
+      true,
+    );
+    expect(noToolPage([page("store"), page("tool"), page("video")])).toBe(
+      false,
+    );
+    // Too few pages read to say.
+    expect(noToolPage([page("store"), page(null), page(null)])).toBeNull();
   });
 });

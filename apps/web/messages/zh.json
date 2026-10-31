@@ -988,7 +988,8 @@
         "shopping": "自动排除：购物，不是网页工具，请确认",
         "downloads": "自动排除：下载别人的内容（H7），请确认",
         "fail": "已排除 {value}",
-        "unsure": "排除待确认"
+        "unsure": "排除待确认",
+        "not_suffix": "自动排除：根词不在词尾，词义可能不是这个工具（如 checker board 的 checker 是跳棋），请确认"
       },
       "variants": {
         "note": "{value}",
@@ -999,6 +1000,9 @@
         "fail": "keyword-lab：{value}",
         "note": "keyword-lab：{value}",
         "unsure": "keyword-lab：{value}"
+      },
+      "intent": {
+        "unsure": "前 10 名里没有一个工具页：搜这个词的人可能是想买东西、查资料或找图片，请确认"
       }
     },
     "reportTitle": "一轮选词的报告",
@@ -1057,7 +1061,9 @@
       "other": "其他"
     },
     "autocompleteTitle": "谷歌自动补全",
-    "autocompleteBody": "在谷歌美国输入这个词时的下拉建议：用户想接着搜什么，常能看出痛点（比如“not working”）和主流说法。"
+    "autocompleteBody": "在谷歌美国输入这个词时的下拉建议：用户想接着搜什么，常能看出痛点（比如“not working”）和主流说法。",
+    "kdReference": "KD（参考）",
+    "kdHint": "DataForSEO 的关键词难度。在我们的数据里它和实际竞争对不上（不少月搜过万的词 KD 为 0），判断竞争请看强对手和前 10 名。"
   },
   "newWords": {
     "metaTitle": "新词",

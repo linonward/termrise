@@ -99,11 +99,13 @@ export default async function PoolKeywordPage({
         )?.keywordLab ?? null)
       : null;
   const checkedAs = /checked as "([^"]+)"/.exec(lab?.reason ?? "")?.[1];
-  const facts: [string, string][] = [
+  // The third item is a hint shown on hover.
+  const facts: [string, string, string?][] = [
     [t("column.volume"), count(k.searchVolume)],
     [
-      t("column.kd"),
+      t("kdReference"),
       k.keywordDifficulty == null ? "—" : String(k.keywordDifficulty),
+      t("kdHint"),
     ],
     [t("column.cpc"), usd(k.cpcMicros)],
     [t("column.variants"), count(k.variantCount)],
@@ -168,9 +170,20 @@ export default async function PoolKeywordPage({
       </div>
 
       <dl className="grid grid-cols-2 gap-6 border-y border-border py-6 md:grid-cols-6">
-        {facts.map(([label, value]) => (
+        {facts.map(([label, value, hint]) => (
           <div key={label} className="space-y-1">
-            <dt className="text-[13px] text-muted-foreground">{label}</dt>
+            <dt className="text-[13px] text-muted-foreground">
+              {hint ? (
+                <span
+                  title={hint}
+                  className="cursor-help underline decoration-dotted underline-offset-4"
+                >
+                  {label}
+                </span>
+              ) : (
+                label
+              )}
+            </dt>
             <dd className="font-mono text-xl font-semibold tabular-nums">
               {value}
             </dd>

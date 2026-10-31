@@ -44,7 +44,7 @@ export function reasonMessage(reason: Reason): {
   if (
     reason.rule === "exclude" &&
     typeof value === "string" &&
-    ["offline", "shopping", "downloads"].includes(value)
+    ["offline", "shopping", "downloads", "not_suffix"].includes(value)
   )
     return { key: `exclude.${value}`, values };
   return { key: `${reason.rule}.${reason.result}`, values };

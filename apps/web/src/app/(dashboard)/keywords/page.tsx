@@ -239,6 +239,7 @@ export default async function PoolPage({
                       !["keyword", "status", "next"].includes(key) &&
                         "text-right",
                     )}
+                    title={key === "kd" ? t("kdHint") : undefined}
                   >
                     {t(`column.${key}`)}
                   </th>
