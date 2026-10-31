@@ -5,6 +5,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { ExecutionDetailDto } from "@repo/execution/execution-dto";
 
+import { BriefPanel } from "@/features/opportunities/brief-panel";
 import {
   DeleteRecord,
   EventForm,
@@ -35,6 +36,21 @@ export default async function ProductPage({
   params,
 }: PageProps<"/products/[id]">) {
   const p = await loadProduct((await params).id);
+  // A product started from a keyword carries the keyword's brief (S62).
+  const briefPath = p.poolKeywordId
+    ? `/api/pool/keywords/${p.poolKeywordId}/brief.md`
+    : p.newWordId
+      ? `/api/pool/new-words/${p.newWordId}/brief.md`
+      : null;
+  const brief = briefPath
+    ? await apiRequest(briefPath).then(async (r) => ({
+        markdown: r.ok ? await r.text() : "",
+        fileName:
+          /filename="([^"]+)"/.exec(
+            r.headers.get("Content-Disposition") ?? "",
+          )?.[1] ?? "keyword-brief.md",
+      }))
+    : null;
   const t = await getTranslations("products");
   const format = await getFormatter();
   const money = (value: number | null, currency: string) =>
@@ -68,7 +84,39 @@ export default async function ProductPage({
             {t("opportunityLink")}
           </Link>
         )}
+        {p.poolKeywordId && (
+          <Link
+            href={`/keywords/${p.poolKeywordId}`}
+            className="w-fit text-[15px] font-medium underline underline-offset-4"
+          >
+            {t("keywordLink")}
+          </Link>
+        )}
+        {p.newWordId && (
+          <Link
+            href={`/discover/${p.newWordId}`}
+            className="w-fit text-[15px] font-medium underline underline-offset-4"
+          >
+            {t("newWordLink")}
+          </Link>
+        )}
       </header>
+      {brief?.markdown && (
+        <section aria-labelledby="product-brief" className="space-y-4">
+          <div className="space-y-1">
+            <h2
+              id="product-brief"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("briefTitle")}
+            </h2>
+            <p className="text-[15px] text-muted-foreground">
+              {t("briefBody")}
+            </p>
+          </div>
+          <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+        </section>
+      )}
       <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
         <section
           aria-labelledby="results-title"

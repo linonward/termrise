@@ -44,6 +44,7 @@ export function toNewWordDto(row: {
     rules: w.rules,
     checkedAt: w.checkedAt?.toISOString() ?? null,
     hidden: w.hiddenAt !== null,
+    selectedAt: w.selectedAt?.toISOString() ?? null,
     roots: row.roots
       .map((r) => ({ root: r.root, growth: r.growth }))
       .sort((a, b) => (b.growth ?? 0) - (a.growth ?? 0)),

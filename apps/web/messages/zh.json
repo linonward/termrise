@@ -1091,7 +1091,9 @@
     "newSite": "{domain} · {date} 注册",
     "rootsTitle": "它是从哪些词下面冒出来的",
     "rootsBody": "做这些大词的站，都可以把它加成内页",
-    "rules": "规则版本 {rules}"
+    "rules": "规则版本 {rules}",
+    "select": "选定，去建站",
+    "selected": "{date} 已选定，产品见「产品」"
   },
   "research": {
     "metaTitle": "研究",
@@ -1539,7 +1541,11 @@
     "saving": "正在保存…",
     "addEvent": "记录访客或激活",
     "addRevenue": "记录收入",
-    "delete": "删除"
+    "delete": "删除",
+    "keywordLink": "选词",
+    "newWordLink": "新词",
+    "briefTitle": "选词简报",
+    "briefBody": "存为 site-starter 新网站的 docs/keyword-brief.md。"
   },
   "today": {
     "title": "今天",

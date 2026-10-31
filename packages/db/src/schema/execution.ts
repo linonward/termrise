@@ -14,7 +14,9 @@ import {
 
 import { user } from "./auth";
 import { createdAt, inList } from "./columns";
+import { newWords } from "./new-words";
 import { opportunities } from "./opportunities";
+import { poolKeywords } from "./pool";
 
 // docs/product/product.md#评分与状态
 export const PRODUCT_STATUSES = [
@@ -43,6 +45,12 @@ export const executionProjects = pgTable(
     opportunityId: uuid().references(() => opportunities.id, {
       onDelete: "set null",
     }),
+    /** Started by selecting a keyword in the pool (S62), not from an opportunity. */
+    poolKeywordId: uuid().references(() => poolKeywords.id, {
+      onDelete: "set null",
+    }),
+    /** Started by selecting a new word (S62). */
+    newWordId: uuid().references(() => newWords.id, { onDelete: "set null" }),
     name: text().notNull(),
     repoUrl: text(),
     domain: text(),
@@ -53,6 +61,8 @@ export const executionProjects = pgTable(
   },
   (t) => [
     unique("execution_projects_opportunity_unique").on(t.opportunityId),
+    unique("execution_projects_pool_keyword_unique").on(t.poolKeywordId),
+    unique("execution_projects_new_word_unique").on(t.newWordId),
     index("execution_projects_user_idx").on(t.userId, t.createdAt),
     check(
       "execution_projects_status_valid",

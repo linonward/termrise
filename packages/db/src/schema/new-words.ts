@@ -71,6 +71,8 @@ export const newWords = pgTable(
     nextCheckAt: timestamp({ withTimezone: true }),
     checks: integer().notNull().default(0),
     hiddenAt: timestamp({ withTimezone: true }),
+    /** The maintainer chose to build for it (S62); a product starts with it. */
+    selectedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
     index("new_words_seen_idx").on(t.firstSeenAt),

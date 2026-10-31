@@ -145,6 +145,41 @@ export function createExecutionService(deps: { database: Database }) {
     return project;
   }
 
+  /**
+   * Starts the product of a keyword the maintainer selected, from the pool or the new
+   * words; selecting again returns the same project.
+   */
+  async function startFromKeyword(
+    userId: string,
+    source:
+      | { poolKeywordId: string; name: string }
+      | { newWordId: string; name: string },
+  ) {
+    const link =
+      "poolKeywordId" in source
+        ? {
+            column: executionProjects.poolKeywordId,
+            value: { poolKeywordId: source.poolKeywordId },
+          }
+        : {
+            column: executionProjects.newWordId,
+            value: { newWordId: source.newWordId },
+          };
+    await database
+      .insert(executionProjects)
+      .values({
+        userId,
+        name: source.name.slice(0, NAME_MAX_LENGTH),
+        ...link.value,
+      })
+      .onConflictDoNothing({ target: link.column });
+    const [project] = await database
+      .select()
+      .from(executionProjects)
+      .where(eq(link.column, Object.values(link.value)[0]));
+    return project;
+  }
+
   async function list(userId: string, opportunityId?: string) {
     if (
       opportunityId !== undefined &&
@@ -263,5 +298,14 @@ export function createExecutionService(deps: { database: Database }) {
       throw new AppError("EXECUTION_RECORD_NOT_FOUND", "Record not found");
   }
 
-  return { create, list, get, update, addEvent, addRevenue, remove };
+  return {
+    create,
+    startFromKeyword,
+    list,
+    get,
+    update,
+    addEvent,
+    addRevenue,
+    remove,
+  };
 }

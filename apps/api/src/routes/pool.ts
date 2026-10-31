@@ -1,5 +1,10 @@
 import type { Context } from "hono";
 
+import { createExecutionService } from "@repo/execution/execution-service";
+import {
+  buildNewWordBrief,
+  newWordBriefFileName,
+} from "@repo/research/new-word-brief";
 import { toNewWordDto } from "@repo/research/new-word-dto";
 import { createNewWords } from "@repo/research/new-words";
 import {
@@ -54,17 +59,25 @@ export const poolRoutes = userRoutes()
       "Content-Disposition": `attachment; filename="${keywordBriefFileName(keyword)}"`,
     });
   })
-  .post("/keywords/:id/review", rateLimit("research"), async (c) =>
-    c.json(
-      toPoolKeywordDto(
-        await pool(c).review(
-          c.var.user.id,
-          c.req.param("id"),
-          await readJson(c),
-        ),
-      ),
-    ),
-  )
+  .post("/keywords/:id/review", rateLimit("research"), async (c) => {
+    const keyword = await pool(c).review(
+      c.var.user.id,
+      c.req.param("id"),
+      await readJson(c),
+    );
+    // Selecting a keyword starts its product (docs/product/ux.md#products).
+    const product =
+      keyword.status === "selected"
+        ? await createExecutionService({ database: c.var.db }).startFromKeyword(
+            c.var.user.id,
+            { poolKeywordId: keyword.id, name: keyword.phrase },
+          )
+        : null;
+    return c.json({
+      ...toPoolKeywordDto(keyword),
+      productId: product?.id ?? null,
+    });
+  })
   .get("/rounds", async (c) =>
     c.json({ items: (await pool(c).rounds()).map(toPoolRoundDto) }),
   )
@@ -99,6 +112,23 @@ export const poolRoutes = userRoutes()
       children: children.map((word) =>
         toNewWordDto({ word, innerCandidates: 0, roots: [] }),
       ),
+    });
+  })
+  .post("/new-words/:id/select", rateLimit("research"), async (c) => {
+    const word = await words(c).select(c.req.param("id"));
+    const product = await createExecutionService({
+      database: c.var.db,
+    }).startFromKeyword(c.var.user.id, {
+      newWordId: word.id,
+      name: word.phrase,
+    });
+    return c.json({ productId: product.id });
+  })
+  .get("/new-words/:id/brief.md", async (c) => {
+    const { word, roots, children } = await words(c).get(c.req.param("id"));
+    return c.body(buildNewWordBrief(word, roots, children), 200, {
+      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${newWordBriefFileName(word)}"`,
     });
   })
   .put("/new-words/:id/hide", rateLimit("research"), async (c) => {

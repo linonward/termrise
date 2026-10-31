@@ -12,6 +12,7 @@ import {
   WordTags,
 } from "@/features/new-words/new-word-badges";
 import { daysSince, times } from "@/features/new-words/new-word-format";
+import { SelectWord } from "@/features/new-words/select-word";
 import { TrendChart } from "@/features/new-words/sparkline";
 import { count, usd } from "@/features/pool/pool-format";
 import { apiGet } from "@/server/api/api";
@@ -165,6 +166,13 @@ export default async function NewWordPage({
         <div className="space-y-3 border-t border-border pt-6">
           <VerdictLine word={w} />
           <VerdictReasons reasons={w.reasons} as="list" />
+          {w.selectedAt ? (
+            <p className="text-[15px] font-medium">
+              {t("selected", { date: w.selectedAt.slice(0, 10) })}
+            </p>
+          ) : (
+            w.verdict !== "skip" && <SelectWord id={w.id} />
+          )}
         </div>
       </section>
 

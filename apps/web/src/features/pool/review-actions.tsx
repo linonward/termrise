@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -14,6 +15,7 @@ const field =
 export function ReviewActions({ keyword }: { keyword: PoolKeywordDto }) {
   const t = useTranslations("pool.review");
   const { post, pending, error } = usePoolAction();
+  const router = useRouter();
   const path = `/api/pool/keywords/${keyword.id}/review`;
   const [note, setNote] = useState("");
   const [h4, setH4] = useState<"" | "ok" | "no">("");
@@ -46,7 +48,11 @@ export function ReviewActions({ keyword }: { keyword: PoolKeywordDto }) {
         {s === "candidate" && (
           <Button
             disabled={pending}
-            onClick={() => post(path, { action: "select" })}
+            onClick={async () => {
+              // Selecting starts the product: go there.
+              const done = await post(path, { action: "select" });
+              if (done?.productId) router.push(`/products/${done.productId}`);
+            }}
           >
             {t("select")}
           </Button>

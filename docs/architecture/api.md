@@ -57,7 +57,7 @@ GET /api/pool/keywords/:id（词与检查记录（新的在前，最多 100 条�
 
 GET /api/pool/keywords/:id/brief.md（选词简报，Markdown 附件 `keyword-brief-<词>.md`；见 keyword-pool.md 的 Brief）
 
-POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }（只有 candidate 可以选定）、{ action: "drop", note? }、{ action: "exclude", note? }、{ action: "restore" }（excluded、dropped、failed 改回 queued）、{ action: "answer", monetization?, compliance?, aiAngle? }（monetization、compliance 为 { ok, note }，ok 为 false 时词改为 failed）；状态不允许时 409 POOL_REVIEW_INVALID）
+POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }（只有 candidate 可以选定；选定后开始它的产品，响应带 productId）、{ action: "drop", note? }、{ action: "exclude", note? }、{ action: "restore" }（excluded、dropped、failed 改回 queued）、{ action: "answer", monetization?, compliance?, aiAngle? }（monetization、compliance 为 { ok, note }，ok 为 false 时词改为 failed）；状态不允许时 409 POOL_REVIEW_INVALID）
 
 GET /api/pool/rounds（最近 30 轮，含每轮的花费 spentMicros）
 
@@ -70,6 +70,10 @@ GET /api/pool/new-words（新词，每页 50 个，新的在前；?verdict=worth
 POST /api/pool/new-words/rounds（排队一轮新词，201；已有一轮在排队或运行时返回它，200）
 
 GET /api/pool/new-words/:id（新词与它的长尾 children；不存在时 404 NEW_WORD_NOT_FOUND）
+
+POST /api/pool/new-words/:id/select（选定新词并开始它的产品，返回 { productId }；再次选定返回同一个产品）
+
+GET /api/pool/new-words/:id/brief.md（新词的选词简报，Markdown 附件）
 
 PUT / DELETE /api/pool/new-words/:id/hide（隐藏 / 重新显示）
 

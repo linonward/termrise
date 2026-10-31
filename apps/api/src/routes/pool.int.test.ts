@@ -183,3 +183,49 @@ it("lists what waits for review", async () => {
   expect(all.total).toBe(1);
   expect((await send("GET", "/api/today")).status).toBe(200);
 });
+
+it("starts a product when a keyword or a new word is selected, once", async () => {
+  const { testDb } = await import("@repo/db/testing/db");
+  const { newWords } = await import("@repo/db/schema");
+  const { createKeywordPool } = await import("@repo/research/pool-service");
+  const db = testDb();
+  const keyword = await createKeywordPool({ database: db }).record({
+    phrase: "cipher decoder",
+    status: "candidate",
+    reasons: [],
+    kind: "deep",
+  });
+  const selected = await (
+    await send("POST", `/api/pool/keywords/${keyword.id}/review`, {
+      action: "select",
+    })
+  ).json();
+  expect(selected).toMatchObject({
+    status: "selected",
+    productId: expect.any(String),
+  });
+  const product = await (
+    await send("GET", `/api/execution/projects/${selected.productId}`)
+  ).json();
+  expect(product).toMatchObject({
+    name: "cipher decoder",
+    poolKeywordId: keyword.id,
+    status: "not_started",
+  });
+
+  const [word] = await db
+    .insert(newWords)
+    .values({ phrase: "store stock checker" })
+    .returning();
+  const first = await (
+    await send("POST", `/api/pool/new-words/${word.id}/select`, {})
+  ).json();
+  const again = await (
+    await send("POST", `/api/pool/new-words/${word.id}/select`, {})
+  ).json();
+  expect(again.productId).toBe(first.productId);
+  const brief = await send("GET", `/api/pool/new-words/${word.id}/brief.md`);
+  expect(await brief.text()).toContain(
+    "# 选词简报：store stock checker（新词）",
+  );
+});

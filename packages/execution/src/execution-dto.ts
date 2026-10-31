@@ -11,6 +11,8 @@ export function toExecutionProjectDto(p: ExecutionProject) {
   return {
     id: p.id,
     opportunityId: p.opportunityId,
+    poolKeywordId: p.poolKeywordId,
+    newWordId: p.newWordId,
     name: p.name,
     repoUrl: p.repoUrl,
     domain: p.domain,

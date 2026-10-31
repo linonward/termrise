@@ -558,6 +558,18 @@ export function createNewWords(deps: {
     return { ...row, roots: wordRoots, children };
   }
 
+  /** The maintainer chooses to build for a word; the API starts its product. */
+  async function select(id: string) {
+    const { word } = await get(id);
+    if (word.selectedAt) return word;
+    const [selected] = await database
+      .update(newWords)
+      .set({ selectedAt: now() })
+      .where(eq(newWords.id, id))
+      .returning();
+    return selected;
+  }
+
   async function hide(id: string, hidden: boolean) {
     await get(id);
     const [word] = await database
@@ -576,6 +588,7 @@ export function createNewWords(deps: {
     requestRound,
     list,
     get,
+    select,
     hide,
   };
 }
