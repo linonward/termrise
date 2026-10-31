@@ -169,7 +169,8 @@ export function AppNav({
   const logout = useLogout();
   return (
     <header className="border-b border-border bg-background">
-      <div className="flex h-14 items-center gap-8 px-5 md:h-16 md:px-8">
+      {/* Same width and gutter as the pages, so the logo lines up with their titles. */}
+      <div className="mx-auto flex h-14 w-full max-w-310 items-center gap-8 px-5 md:h-16">
         <Link href="/today" className="flex items-center gap-2">
           <LogoMark className="size-6 md:size-5.5" />
           <span className="font-heading text-xl font-semibold tracking-tight max-md:sr-only">
@@ -222,7 +223,7 @@ export function AppNav({
       {logout.error && (
         <p
           role="alert"
-          className="px-5 pb-3 text-[13px] text-destructive md:px-8"
+          className="mx-auto w-full max-w-310 px-5 pb-3 text-[13px] text-destructive"
         >
           {t("logoutError")}
         </p>
