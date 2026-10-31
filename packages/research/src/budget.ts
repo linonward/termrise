@@ -80,8 +80,8 @@ export function createBudget(deps: {
             and(
               isNotNull(apiUsage.poolRoundId),
               newWords
-                ? sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind = 'new_words')`
-                : sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind <> 'new_words')`,
+                ? sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind in ('new_words', 'launch_sites'))`
+                : sql`${apiUsage.poolRoundId} in (select id from pool_rounds where kind not in ('new_words', 'launch_sites'))`,
               eq(apiUsage.kind, call.kind),
               gte(apiUsage.createdAt, dayStart),
             ),

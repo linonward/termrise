@@ -8,6 +8,7 @@ import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends"
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createRdapClient } from "@repo/research/adapters/rdap";
 import { createBudget } from "@repo/research/budget";
+import { createLaunchSites, fetchPageTitle } from "@repo/research/launch-sites";
 import { createNewWords } from "@repo/research/new-words";
 import { createPoolRounds } from "@repo/research/pool-round";
 import { createProviderStatus } from "@repo/research/provider-status";
@@ -20,6 +21,7 @@ import { workerEnv } from "./env";
 import {
   createAnalyst,
   createKeywordProvider,
+  createLaunchSiteAnalyst,
   createNewWordAnalyst,
   createSeedExtractor,
 } from "./providers";
@@ -71,6 +73,16 @@ async function main() {
     roots: env.NEW_WORD_ROOTS,
     checksPerDay: env.NEW_WORDS_CHECKS,
   });
+  const launchSites = env.LAUNCH_SITES_ENABLED
+    ? createLaunchSites({
+        database,
+        hackerNews: createHackerNewsClient(),
+        analyst: createLaunchSiteAnalyst(env),
+        rdap: createRdapClient(),
+        budget,
+        pageTitle: (url) => fetchPageTitle(url),
+      })
+    : undefined;
   const newWordsHourUtc = env.NEW_WORDS_ENABLED
     ? env.NEW_WORDS_HOUR_UTC
     : undefined;
@@ -110,6 +122,7 @@ async function main() {
           everyDays: env.POOL_ROUND_EVERY_DAYS,
           newWords,
           newWordsHourUtc,
+          launchSites,
         }),
       ),
     );

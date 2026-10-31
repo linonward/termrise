@@ -835,7 +835,8 @@
     "roundKind": {
       "daily": "每日",
       "manual": "手动",
-      "new_words": "新词"
+      "new_words": "新词",
+      "launch_sites": "新站"
     },
     "roundStatus": {
       "queued": "排队中",
@@ -1597,5 +1598,59 @@
     "statusTitle": "轮次与花费",
     "spendLine": "本月花费 {total}：新词 {newWords}，长青词 {evergreen}，研究项目 {research}。",
     "spendLink": "预算与用量"
+  },
+  "discover": {
+    "tabs": "发现分类",
+    "tab": {
+      "words": "新词",
+      "sites": "新站"
+    },
+    "sitesMetaTitle": "新站",
+    "sitesTitle": "新站",
+    "sitesSubtitle": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
+    "sitesSchedule": "每 6 小时抓一次",
+    "sitesLastRound": "最近一次",
+    "sitesTotal": "共 {n} 个",
+    "motiveFilter": "按动机筛选",
+    "all": "全部",
+    "motive": {
+      "keyword": "冲着关键词",
+      "own_pain": "自己的痛点",
+      "others_need": "别人的需求",
+      "hobby": "兴趣爱好",
+      "business": "商业机会",
+      "unstated": "没说"
+    },
+    "search": "搜索",
+    "searchPlaceholder": "搜域名、用途或关键词",
+    "showHidden": "显示已隐藏",
+    "apply": "应用",
+    "statedNote": "「作者明说」= 帖子或作者的回复里有原话；「推测」= 从标题和首页判断。",
+    "noMatchTitle": "没有匹配的网站",
+    "noMatchBody": "请换一个搜索词。",
+    "sitesEmptyTitle": "还没有新站",
+    "sitesEmptyBody": "Worker 每 6 小时读一次 Show HN。打开 LAUNCH_SITES_ENABLED 后，新站会出现在这里。",
+    "category": {
+      "tool": "工具",
+      "ai": "AI",
+      "game": "游戏",
+      "content": "内容",
+      "saas": "SaaS",
+      "dev": "开发者",
+      "other": "其他"
+    },
+    "stated": "作者明说",
+    "inferred": "推测",
+    "forWhom": "（给 {audience}）",
+    "why": "为什么做：",
+    "coreKeyword": "核心关键词：",
+    "pending": "还没分析：AI 预算用完时，下一轮补上。",
+    "points": "{score} 分 · {comments} 评论",
+    "registered": "域名 {month} 注册",
+    "monetization": "变现：{how}",
+    "hnDiscussion": "HN 讨论 ›",
+    "hide": "隐藏 {site}",
+    "show": "重新显示 {site}",
+    "hideFailed": "没有成功，请再试一次"
   }
 }

@@ -1,4 +1,5 @@
 import { logger } from "@repo/observability/logger";
+import type { createLaunchSites } from "@repo/research/launch-sites";
 import type { createNewWords } from "@repo/research/new-words";
 import type { createPoolRounds } from "@repo/research/pool-round";
 
@@ -21,6 +22,11 @@ export function poolProcessors(deps: {
   >;
   /** The UTC hour from which today's new-words round is queued; none when off. */
   newWordsHourUtc?: number;
+  /** Show HN launches, every few hours; none when off. */
+  launchSites?: Pick<
+    ReturnType<typeof createLaunchSites>,
+    "scheduleEvery" | "failStale" | "claim" | "run"
+  >;
 }) {
   return {
     async "pool.scan"() {
@@ -37,6 +43,18 @@ export function poolProcessors(deps: {
           roundId: round.id,
           status: done.status,
         });
+      }
+      if (deps.launchSites) {
+        await deps.launchSites.failStale();
+        await deps.launchSites.scheduleEvery();
+        const launches = await deps.launchSites.claim();
+        if (launches) {
+          const done = await deps.launchSites.run(launches);
+          logger.info("launch_sites.round_executed", {
+            roundId: launches.id,
+            status: done.status,
+          });
+        }
       }
       if (!deps.newWords) return;
       await deps.newWords.failStale();

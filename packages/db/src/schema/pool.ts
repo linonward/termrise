@@ -32,7 +32,12 @@ export const POOL_STATUSES = [
 ] as const;
 export const POOL_CHECK_KINDS = ["screen", "deep", "review", "import"] as const;
 // new_words: one day's discovery and checks of new words (new-words.ts).
-export const POOL_ROUND_KINDS = ["daily", "manual", "new_words"] as const;
+export const POOL_ROUND_KINDS = [
+  "daily",
+  "manual",
+  "new_words",
+  "launch_sites",
+] as const;
 export const POOL_ROUND_STATUSES = [
   "queued",
   "running",

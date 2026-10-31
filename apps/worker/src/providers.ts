@@ -1,10 +1,12 @@
 import { createDeepSeekJson } from "@repo/ai/adapters/deepseek-json";
 import { createDataForSeoProvider } from "@repo/research/adapters/dataforseo";
 import { createDeepSeekAnalyst } from "@repo/research/adapters/deepseek-analyst";
+import { createDeepSeekLaunchSiteAnalyst } from "@repo/research/adapters/deepseek-launch-sites";
 import { createDeepSeekNewWordAnalyst } from "@repo/research/adapters/deepseek-new-words";
 import { createDeepSeekSeedExtractor } from "@repo/research/adapters/deepseek-seeds";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
+import { createFakeLaunchSiteAnalyst } from "@repo/research/adapters/fake-launch-sites";
 import { createFakeNewWordAnalyst } from "@repo/research/adapters/fake-new-words";
 import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 
@@ -54,4 +56,16 @@ export function createNewWordAnalyst(env: WorkerEnv) {
         }),
       )
     : createFakeNewWordAnalyst();
+}
+
+// Launch-site readings use the analyst's provider and model too.
+export function createLaunchSiteAnalyst(env: WorkerEnv) {
+  return env.ANALYST_PROVIDER === "deepseek"
+    ? createDeepSeekLaunchSiteAnalyst(
+        createDeepSeekJson({
+          apiKey: env.DEEPSEEK_API_KEY!,
+          model: env.DEEPSEEK_MODEL!,
+        }),
+      )
+    : createFakeLaunchSiteAnalyst();
 }

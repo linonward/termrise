@@ -7,6 +7,7 @@ import type { PoolRoundDto } from "@repo/research/pool-dto";
 import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
+import { DiscoverTabs } from "@/features/new-words/discover-tabs";
 import { HideWord } from "@/features/new-words/hide-word";
 import {
   VerdictLine,
@@ -78,6 +79,7 @@ export default async function NewWordsPage({
         </h1>
         <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
       </header>
+      <DiscoverTabs current="words" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <nav aria-label={t("filter")} className="flex flex-wrap gap-2">
           {filter(undefined, t("all"), !verdict && !hidden)}

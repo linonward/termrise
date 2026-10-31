@@ -79,6 +79,8 @@ const schema = z
               .filter(Boolean)
           : undefined,
       ),
+    /** 1: read Show HN every 6 hours for newly launched sites (launch-sites.ts). */
+    LAUNCH_SITES_ENABLED: z.literal("1").optional(),
     /** Fake providers make up their data: only tests and local development allow them. */
     ALLOW_FAKE_PROVIDERS: z.literal("1").optional(),
   })

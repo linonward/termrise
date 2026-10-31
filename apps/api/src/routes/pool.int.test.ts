@@ -229,3 +229,28 @@ it("starts a product when a keyword or a new word is selected, once", async () =
     "# 选词简报：store stock checker（新词）",
   );
 });
+
+it("lists launch sites and hides one", async () => {
+  const { testDb } = await import("@repo/db/testing/db");
+  const { launchSites } = await import("@repo/db/schema");
+  const [site] = await testDb()
+    .insert(launchSites)
+    .values({
+      source: "hacker_news",
+      sourceId: "101",
+      sourceUrl: "https://news.ycombinator.com/item?id=101",
+      site: "cursedcam.com",
+      url: "https://cursedcam.com",
+      postTitle: "Cursed Cam",
+      motive: "own_pain",
+    })
+    .returning();
+  const list = await (await send("GET", "/api/pool/launch-sites")).json();
+  expect(list).toMatchObject({ total: 1, counts: { own_pain: 1 } });
+  expect(
+    (await send("PUT", `/api/pool/launch-sites/${site.id}/hide`)).status,
+  ).toBe(200);
+  expect(
+    (await (await send("GET", "/api/pool/launch-sites")).json()).total,
+  ).toBe(0);
+});

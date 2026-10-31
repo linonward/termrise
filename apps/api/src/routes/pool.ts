@@ -1,6 +1,8 @@
 import type { Context } from "hono";
 
 import { createExecutionService } from "@repo/execution/execution-service";
+import { toLaunchSiteDto } from "@repo/research/launch-site-dto";
+import { createLaunchSites } from "@repo/research/launch-sites";
 import {
   buildNewWordBrief,
   newWordBriefFileName,
@@ -137,5 +139,34 @@ export const poolRoutes = userRoutes()
   })
   .delete("/new-words/:id/hide", rateLimit("research"), async (c) => {
     await words(c).hide(c.req.param("id"), false);
+    return c.json({ hidden: false });
+  })
+  .get("/launch-sites", async (c) => {
+    const result = await createLaunchSites({ database: c.var.db }).list(
+      c.req.query(),
+    );
+    return c.json({
+      ...result,
+      items: result.items.map(toLaunchSiteDto),
+      lastRound: result.lastRound
+        ? {
+            status: result.lastRound.status,
+            createdAt: result.lastRound.createdAt.toISOString(),
+          }
+        : null,
+    });
+  })
+  .put("/launch-sites/:id/hide", rateLimit("research"), async (c) => {
+    await createLaunchSites({ database: c.var.db }).hide(
+      c.req.param("id"),
+      true,
+    );
+    return c.json({ hidden: true });
+  })
+  .delete("/launch-sites/:id/hide", rateLimit("research"), async (c) => {
+    await createLaunchSites({ database: c.var.db }).hide(
+      c.req.param("id"),
+      false,
+    );
     return c.json({ hidden: false });
   });

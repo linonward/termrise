@@ -6,7 +6,7 @@ import type {
 
 /** An item id in this set makes the fake source fail for it, so tests can check it. */
 export type FakeHackerNews = {
-  lists: Partial<Record<HackerNewsList, number[]>>;
+  lists: Partial<Record<HackerNewsList | "new", number[]>>;
   items: HackerNewsItem[];
   failing?: number[];
 };

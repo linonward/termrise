@@ -23,12 +23,18 @@ const itemSchema = z.object({
   time: z.number().int().optional(),
   score: z.number().int().optional(),
   descendants: z.number().int().optional(),
+  /** The author's user name. */
+  by: z.string().optional(),
+  /** HTML text of a post or comment. */
+  text: z.string().optional(),
+  /** Direct replies, in ranked order. */
+  kids: z.array(z.number().int()).optional(),
 });
 export type HackerNewsItem = z.output<typeof itemSchema>;
 
 export interface HackerNewsSource {
-  /** Story ids on a list, in the list's order. */
-  storyIds(list: HackerNewsList): Promise<number[]>;
+  /** Story ids on a list, in the list's order; "new" is the newest stories (up to 500). */
+  storyIds(list: HackerNewsList | "new"): Promise<number[]>;
   /** One item; null when it does not exist. */
   item(id: number): Promise<HackerNewsItem | null>;
 }
@@ -53,7 +59,11 @@ export function createHackerNewsClient(
     async storyIds(list) {
       return z
         .array(z.number().int())
-        .parse(await get(`${HACKER_NEWS_LISTS[list]}.json`));
+        .parse(
+          await get(
+            `${list === "new" ? "newstories" : HACKER_NEWS_LISTS[list]}.json`,
+          ),
+        );
     },
     async item(id) {
       const body = await get(`item/${id}.json`);

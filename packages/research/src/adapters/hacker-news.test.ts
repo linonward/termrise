@@ -44,6 +44,9 @@ it("reads a list and an item from the official API paths", async () => {
     time: 1_760_000_000,
     score: 42,
     descendants: 7,
+    // The maker and the replies: launch sites read the maker's own words (S65).
+    by: "someone",
+    kids: [4, 5],
   });
   expect(calls).toEqual([
     `${HACKER_NEWS_API}/showstories.json`,

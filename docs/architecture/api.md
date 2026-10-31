@@ -77,6 +77,10 @@ GET /api/pool/new-words/:id/brief.md（新词的选词简报，Markdown 附件�
 
 PUT / DELETE /api/pool/new-words/:id/hide（隐藏 / 重新显示）
 
+GET /api/pool/launch-sites（新站，每页 50 个，新发布的在前；?motive=、?category=、?q= 搜域名、标题、用途和关键词，?hidden=1 只看隐藏的；返回 counts（每种动机的数量，pending 为还没分析）和 lastRound）
+
+PUT / DELETE /api/pool/launch-sites/:id/hide（隐藏 / 重新显示）
+
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
