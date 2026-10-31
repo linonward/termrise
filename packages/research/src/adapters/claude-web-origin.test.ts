@@ -104,3 +104,33 @@ describe("createClaudeWebOrigin", () => {
     expect(web.maxCostMicros).toBeGreaterThan(30_000);
   });
 });
+
+it("keeps the answer when the search returns many pages", async () => {
+  const many = Array.from({ length: 15 }, (_, i) => ({
+    type: "web_search_result",
+    title: `Page ${i}`,
+    url: `https://example.com/${i}`,
+    page_age: null,
+    encrypted_content: "x",
+  }));
+  const web = createClaudeWebOrigin({
+    client: {
+      messages: {
+        create: async () => ({
+          stop_reason: "end_turn",
+          usage: { input_tokens: 1, output_tokens: 1, server_tool_use: null },
+          content: [
+            { type: "web_search_tool_result", tool_use_id: "s", content: many },
+            { type: "text", text: "A TikTok costume trend." },
+          ],
+        }),
+      },
+    } as never,
+  });
+  const { value } = await web.search("x", window);
+  expect(value).toHaveLength(11);
+  expect(value.at(-1)).toMatchObject({
+    kind: "summary",
+    title: "A TikTok costume trend.",
+  });
+});
