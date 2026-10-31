@@ -206,14 +206,50 @@ const ORDER: Record<ScreenStatus, number> = {
  * plain non-tools, groups phrasings, and orders them as they are checked: passing
  * first, mid-band before head terms, then by volume.
  */
+// Words that may follow the tool word and keep it a tool: "license plate checker free",
+// "tax calculator for ny", "pregnancy checker online".
+const PREPOSITIONS = new Set([
+  "for",
+  "in",
+  "on",
+  "with",
+  "to",
+  "at",
+  "by",
+  "from",
+  "of",
+]);
+const MODIFIERS = new Set([
+  "free",
+  "online",
+  "app",
+  "apps",
+  "tool",
+  "tools",
+  "scan",
+  "test",
+]);
+
 /**
- * Whether a phrase ends with its suffix ("grammar checker", "unit calculators"): the tool
- * word comes last in English. In "checker board" the checker is a game, not a tool.
+ * Whether the suffix is the tool word of the phrase: the last word ("grammar checker",
+ * "unit calculators"), or followed only by a modifier or a phrase that starts with a
+ * preposition. In "checker board" the checker is a game, not a tool.
  */
 export function endsWithSuffix(phrase: string, suffix: string) {
-  const p = phrase.toLowerCase().trim();
-  const s = suffix.toLowerCase().trim();
-  return p === s || p.endsWith(` ${s}`) || p.endsWith(` ${s}s`);
+  const words = phrase.toLowerCase().trim().split(/\s+/);
+  const s = suffix.toLowerCase().trim().split(/\s+/);
+  for (let i = 0; i + s.length <= words.length; i++) {
+    const hit = s.every(
+      (w, k) =>
+        words[i + k] === w || (k === s.length - 1 && words[i + k] === `${w}s`),
+    );
+    if (!hit) continue;
+    const after = words.slice(i + s.length);
+    if (after.length === 0) return true;
+    if (PREPOSITIONS.has(after[0])) return true;
+    if (after.every((w) => MODIFIERS.has(w))) return true;
+  }
+  return false;
 }
 
 export function screenKeywords(ideas: KeywordIdea[], seed = "") {

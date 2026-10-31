@@ -157,7 +157,12 @@ describe("tool-site-v2", () => {
     expect(endsWithSuffix("unit converters", "converter")).toBe(true);
     expect(endsWithSuffix("checker", "checker")).toBe(true);
     expect(endsWithSuffix("checker board", "checker")).toBe(false);
-    expect(endsWithSuffix("checker in spanish", "checker")).toBe(false);
+    // A preposition or a modifier after the tool word keeps it a tool.
+    expect(endsWithSuffix("tax calculator for ny", "calculator")).toBe(true);
+    expect(endsWithSuffix("license plate checker free", "checker")).toBe(true);
+    expect(endsWithSuffix("pregnancy checker online", "checker")).toBe(true);
+    expect(endsWithSuffix("checker game free", "checker")).toBe(false);
+    expect(endsWithSuffix("chinese checker board", "checker")).toBe(false);
   });
 
   it("excludes a screened keyword whose suffix is not last, for the maintainer to confirm", () => {
