@@ -47,30 +47,73 @@ it("counts pages made for the phrase by title or address", () => {
 it("judges like the reference screens", () => {
   // ai impacts theoretical computer science: ×0.554, 0 dedicated pages.
   expect(
-    newWordVerdict({ ratio: 0.554, dedicated: 0, rising: true, isNew: true }),
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.554,
+      dedicated: 0,
+      rising: true,
+      isNew: true,
+    }),
   ).toMatchObject({
     verdict: "worth",
     buildAs: "new_site",
   });
   // ragdoll robot boxing: ×0.105, 1 dedicated page.
   expect(
-    newWordVerdict({ ratio: 0.105, dedicated: 1, rising: true, isNew: true })
-      .verdict,
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.105,
+      dedicated: 1,
+      rising: true,
+      isNew: true,
+    }).verdict,
   ).toBe("worth");
   // gamestop pokemon valentines box: ×0.066, 4 dedicated pages.
   expect(
-    newWordVerdict({ ratio: 0.066, dedicated: 4, rising: true, isNew: true }),
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.066,
+      dedicated: 4,
+      rising: true,
+      isNew: true,
+    }),
   ).toMatchObject({
     verdict: "try",
     buildAs: "inner_page",
   });
   // mh outlander tier list: ×0.003, 2 dedicated pages, still rising.
   expect(
-    newWordVerdict({ ratio: 0.003, dedicated: 2, rising: true, isNew: true })
-      .verdict,
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.003,
+      dedicated: 2,
+      rising: true,
+      isNew: true,
+    }).verdict,
   ).toBe("try");
   expect(
-    newWordVerdict({ ratio: 0.5, dedicated: 0, rising: false, isNew: true })
-      .verdict,
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.5,
+      dedicated: 0,
+      rising: false,
+      isNew: true,
+    }).verdict,
   ).toBe("skip");
+});
+
+it("skips what the evergreen rules exclude, such as someone else's downloads", () => {
+  expect(
+    newWordVerdict({
+      phrase: "youtube to mp3 player converter app",
+      ratio: 0.3,
+      dedicated: 0,
+      rising: true,
+      isNew: true,
+    }),
+  ).toEqual({
+    verdict: "skip",
+    buildAs: null,
+    reasons: [{ code: "excluded", value: undefined, kind: "downloads" }],
+  });
 });

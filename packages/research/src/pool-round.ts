@@ -15,6 +15,7 @@ import type {
   Market,
   TrendPoint,
 } from "./keyword-provider";
+import { ONE_KEYWORD_RESERVE } from "./new-words";
 import {
   MAX_STRONG,
   MID_BAND,
@@ -268,6 +269,8 @@ export function createPoolRounds(deps: {
     operation: "suggestions" | "ranked" | "traffic" | "trend" | "serp",
     params: unknown,
     call: () => Promise<Charged<T>>,
+    /** Reserve this much instead of the operation's maximum (a call of one keyword). */
+    reserveMicros?: number,
   ): Promise<T> {
     const ttl = provider.cacheTtlMs?.[operation];
     const request = { provider: provider.name, operation, market: US, params };
@@ -284,7 +287,7 @@ export function createPoolRounds(deps: {
         kind: "data",
         provider: provider.name,
         operation,
-        maxCostMicros: provider.maxCostMicros[operation] ?? 0,
+        maxCostMicros: reserveMicros ?? provider.maxCostMicros[operation] ?? 0,
       },
       call,
     );
@@ -336,6 +339,7 @@ export function createPoolRounds(deps: {
       "suggestions",
       { seed: phrase, ...band },
       () => suggestions(phrase, US, band),
+      ONE_KEYWORD_RESERVE,
     );
     return ideas.find((i) => i.phrase === phrase) ?? null;
   }

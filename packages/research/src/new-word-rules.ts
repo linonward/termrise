@@ -2,6 +2,7 @@
 // how a just-rising query is measured and whether it is worth a page. The thresholds
 // are first guesses, set from the maintainer's reference screens; calibrate them.
 import type { TrendComparison } from "./keyword-provider";
+import { autoExclude } from "./pool-rules";
 import { isDedicated } from "./serp-competition";
 
 export const NEW_WORD_RULES = "newword-v1";
@@ -23,6 +24,8 @@ export const NEW_SITE_DAYS = 365;
 export type Verdict = "worth" | "try" | "skip";
 export type BuildAs = "new_site" | "inner_page";
 export type VerdictReason = {
+  /** For "excluded": offline, shopping or downloads. */
+  kind?: string;
   code:
     | "no_dedicated"
     | "few_dedicated"
@@ -32,7 +35,8 @@ export type VerdictReason = {
     | "cold"
     | "rising"
     | "falling"
-    | "new_word";
+    | "new_word"
+    | "excluded";
   value?: number;
 };
 
@@ -117,12 +121,21 @@ export function dedicatedPages(
 
 /** Whether a new word is worth a page, and which kind. */
 export function newWordVerdict(input: {
+  phrase: string;
   ratio: number | null;
   dedicated: number;
   rising: boolean;
   isNew: boolean;
 }): { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] } {
   const { ratio, dedicated, rising, isNew } = input;
+  // The evergreen exclusions hold here too: offline services, shopping, someone else's downloads.
+  const excluded = autoExclude(input.phrase);
+  if (excluded)
+    return {
+      verdict: "skip",
+      buildAs: null,
+      reasons: [{ code: "excluded", value: undefined, kind: excluded }],
+    };
   const heat = ratio ?? 0;
   const reasons: VerdictReason[] = [
     {

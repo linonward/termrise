@@ -64,6 +64,8 @@ export const MAX_CHECKS = 7;
 export const STALE_ROUND_MS = 30 * 60 * 1000;
 export const NEW_WORDS_PAGE_SIZE = 50;
 const SERP_DEPTH = 20;
+/** Labs for one keyword: $0.012 + $0.00012, reserved with room to spare. */
+export const ONE_KEYWORD_RESERVE = 20_000;
 const DAY_MS = 86_400_000;
 const MAX_PHRASE = 100;
 
@@ -183,6 +185,8 @@ export function createNewWords(deps: {
     operation: "rising" | "compare" | "serp" | "suggestions",
     params: unknown,
     call: () => Promise<Charged<T>>,
+    /** Reserve this much instead of the operation's maximum (a call of one keyword). */
+    reserveMicros?: number,
   ): Promise<T> {
     const provider = providerOf();
     const ttl = provider.cacheTtlMs?.[operation];
@@ -201,7 +205,7 @@ export function createNewWords(deps: {
         kind: "data",
         provider: provider.name,
         operation,
-        maxCostMicros: provider.maxCostMicros[operation] ?? 0,
+        maxCostMicros: reserveMicros ?? provider.maxCostMicros[operation] ?? 0,
       },
       call,
     );
@@ -332,12 +336,17 @@ export function createNewWords(deps: {
     const suggestions = provider.suggestions?.bind(provider);
     const band = { minVolume: 0, limit: 1 };
     const ideas: KeywordIdea[] = suggestions
-      ? await paid(round, "suggestions", { seed: word.phrase, ...band }, () =>
-          suggestions(word.phrase, US, band),
+      ? await paid(
+          round,
+          "suggestions",
+          { seed: word.phrase, ...band },
+          () => suggestions(word.phrase, US, band),
+          ONE_KEYWORD_RESERVE,
         )
       : [];
     const metrics = ideas.find((i) => i.phrase === word.phrase)?.metrics;
     const verdict = newWordVerdict({
+      phrase: word.phrase,
       ratio: facts.ratio,
       dedicated,
       rising: facts.rising,
