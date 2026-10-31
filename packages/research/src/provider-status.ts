@@ -15,7 +15,13 @@ export const WORKER_OFFLINE_MS = 3 * 60 * 1000;
 /** What the worker may spend, in USD per UTC day or month, and how often it runs rounds. */
 export type WorkerBudgets = {
   monthly: { data: number; ai: number };
-  evergreen: { enabled: boolean; everyDays: number; dailyData: number };
+  evergreen: {
+    enabled: boolean;
+    everyDays: number;
+    dailyData: number;
+    /** Absent in heartbeats from before S71. */
+    dailyAi?: number;
+  };
   newWords: {
     enabled: boolean;
     dailyData: number;

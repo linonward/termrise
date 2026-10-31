@@ -7,15 +7,19 @@ import type { Database } from "@repo/db/client";
 import { poolKeywords, poolRounds } from "@repo/db/schema";
 import { logger } from "@repo/observability/logger";
 
+import type { Autocomplete } from "./adapters/google-autocomplete";
+import type { PageText } from "./adapters/page-reader";
 import type { Budget } from "./budget";
 import type {
   Charged,
   KeywordIdea,
   KeywordProvider,
   Market,
+  SerpItem,
   TrendPoint,
 } from "./keyword-provider";
 import { ONE_KEYWORD_RESERVE } from "./new-words";
+import { judgementsByIndex, type PageJudge } from "./page-judge";
 import {
   MAX_STRONG,
   MID_BAND,
@@ -159,6 +163,11 @@ export function createPoolRounds(deps: {
   budget: Budget;
   /** Keywords deep-checked per round, rechecks included. */
   deepChecks: number;
+  /** Reads a result page (free); with a judge, the page check replaces the title rule. */
+  readPage?: (url: string) => Promise<PageText>;
+  pageJudge?: PageJudge;
+  /** Google's suggestions for the keyword (free). */
+  autocomplete?: Autocomplete;
   now?: () => Date;
 }) {
   const { database, provider, budget } = deps;
@@ -352,6 +361,63 @@ export function createPoolRounds(deps: {
     return ideas.find((i) => i.phrase === phrase) ?? null;
   }
 
+  /**
+   * The page check: read the top 10 pages and let the judge say which are made for the
+   * phrase. Null without a judge, or when the AI budget or the judge fails: H5 then uses
+   * the title rule.
+   */
+  async function checkPages(
+    round: PoolRound,
+    phrase: string,
+    serp: SerpItem[],
+  ) {
+    const { readPage, pageJudge } = deps;
+    if (!readPage || !pageJudge) return null;
+    const top = serp.slice(0, 10);
+    const texts: PageText[] = [];
+    for (let i = 0; i < top.length; i += 5)
+      texts.push(
+        ...(await Promise.all(top.slice(i, i + 5).map((r) => readPage(r.url)))),
+      );
+    const pages = top.map((r, i) => ({
+      i,
+      site: r.site,
+      url: r.url,
+      serpTitle: r.title,
+      status: texts[i].status,
+      title: texts[i].title,
+      h1: texts[i].h1,
+      text: texts[i].text,
+    }));
+    const charged = await budget
+      .charge(
+        {
+          projectId: null,
+          poolRoundId: round.id,
+          poolBudget: "evergreen",
+          runId: null,
+          kind: "ai",
+          provider: pageJudge.name,
+          operation: "page_check",
+          maxCostMicros: pageJudge.maxCostMicros,
+        },
+        () => pageJudge.judge({ phrase, pages }),
+      )
+      .catch((error: unknown) => {
+        logger.warn("pool.page_check_failed", { phrase, error });
+        return null;
+      });
+    if (!charged) return null;
+    const judged = judgementsByIndex(charged.value, pages.length);
+    if (!judged) return null;
+    return new Map(
+      [...judged].map(([i, j]) => [
+        i,
+        { ...j, title: pages[i].title, status: pages[i].status },
+      ]),
+    );
+  }
+
   /** H6 then H5 for one keyword; records the verdict. */
   async function deepCheck(
     round: PoolRound,
@@ -414,16 +480,35 @@ export function createPoolRounds(deps: {
               ),
             )
           : new Map<string, number>();
-      const h5 = strongCompetitors(phrase, serp, traffic);
+      const pages = await checkPages(round, phrase, serp);
+      const h5 = strongCompetitors(
+        phrase,
+        serp,
+        traffic,
+        pages
+          ? new Map([...pages].map(([i, p]) => [i, p.madeForPhrase]))
+          : undefined,
+      );
       serpData = {
-        results: serp.map((r) => ({
+        results: serp.map((r, i) => ({
           rank: r.rank,
           site: r.site,
           url: r.url,
           title: r.title,
           traffic: traffic.get(r.site) ?? null,
+          ...(pages?.get(i) && {
+            page: {
+              madeForPhrase: pages.get(i)!.madeForPhrase,
+              kind: pages.get(i)!.kind,
+              weak: pages.get(i)!.weak,
+              note: pages.get(i)!.note,
+              title: pages.get(i)!.title,
+              status: pages.get(i)!.status,
+            },
+          }),
         })),
         strongSites: h5.strongSites,
+        pageCheck: pages ? (deps.pageJudge?.promptVersion ?? null) : null,
       };
       const extra = { strongCompetitors: h5.strong, innerPages: h5.innerPages };
       verdict =
@@ -442,6 +527,9 @@ export function createPoolRounds(deps: {
             )
           : result("candidate", [], extra);
     }
+    const autocomplete = deps.autocomplete
+      ? await deps.autocomplete(phrase).catch(() => [])
+      : null;
     await pool.record({
       phrase,
       status: verdict.status,
@@ -449,7 +537,7 @@ export function createPoolRounds(deps: {
       kind: "deep",
       roundId: round.id,
       fields: verdict.fields,
-      data: { metrics: screened.metrics, trend, serp: serpData },
+      data: { metrics: screened.metrics, trend, serp: serpData, autocomplete },
     });
     return {
       phrase,

@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import type { PageKind } from "@repo/research/page-judge";
 import type { PoolCheckDto, PoolKeywordDto } from "@repo/research/pool-dto";
 import type { TrendCheck } from "@repo/research/pool-trend";
 import { Tag } from "@repo/ui/components/badge";
@@ -26,6 +27,15 @@ type SerpRow = {
   url: string;
   title: string;
   traffic: number | null;
+  /** The page check's reading (S71); absent before it or without AI budget. */
+  page?: {
+    madeForPhrase: boolean;
+    kind: PageKind;
+    weak: boolean;
+    note: string;
+    title: string | null;
+    status: number | null;
+  };
 };
 
 export async function generateMetadata({
@@ -61,8 +71,18 @@ export default async function PoolKeywordPage({
   const serp =
     (
       deep?.data as
-        { serp?: { results?: SerpRow[]; strongSites?: string[] } } | undefined
+        | {
+            serp?: {
+              results?: SerpRow[];
+              strongSites?: string[];
+              pageCheck?: string | null;
+            };
+          }
+        | undefined
     )?.serp ?? null;
+  const autocomplete =
+    (deep?.data as { autocomplete?: string[] | null } | undefined)
+      ?.autocomplete ?? null;
   const strong = new Set(serp?.strongSites ?? []);
   // The check the numbers above come from: an import keeps keyword-lab's numbers.
   const numbersFrom = k.checks.find((c) =>
@@ -208,6 +228,9 @@ export default async function PoolKeywordPage({
               >
                 {t("serpTitle")}
               </h2>
+              <p className="text-[13px] text-muted-foreground">
+                {serp.pageCheck ? t("pageCheck.on") : t("pageCheck.off")}
+              </p>
               <ol className="divide-y divide-border border-y border-border">
                 {serp.results.map((r) => (
                   <li key={r.rank} className="flex gap-4 py-3">
@@ -233,6 +256,18 @@ export default async function PoolKeywordPage({
                           })}
                         </span>
                       )}
+                      {r.page && (
+                        <span className="flex flex-wrap items-center gap-1.5 pt-1 text-[13px]">
+                          <Tag>{t(`pageKind.${r.page.kind}`)}</Tag>
+                          {r.page.madeForPhrase && (
+                            <Tag tone="brand">{t("pageCheck.madeFor")}</Tag>
+                          )}
+                          {r.page.weak && <Tag>{t("pageCheck.weak")}</Tag>}
+                          <span className="text-muted-foreground">
+                            {r.page.note}
+                          </span>
+                        </span>
+                      )}
                     </span>
                     {strong.has(r.site) && (
                       <Tag tone="brand">{t("strong")}</Tag>
@@ -240,6 +275,25 @@ export default async function PoolKeywordPage({
                   </li>
                 ))}
               </ol>
+            </section>
+          )}
+
+          {autocomplete && autocomplete.length > 0 && (
+            <section aria-labelledby="autocomplete-title" className="space-y-3">
+              <h2
+                id="autocomplete-title"
+                className="font-heading text-xl font-semibold"
+              >
+                {t("autocompleteTitle")}
+              </h2>
+              <p className="text-[13px] text-muted-foreground">
+                {t("autocompleteBody")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {autocomplete.map((s) => (
+                  <Tag key={s}>{s}</Tag>
+                ))}
+              </div>
             </section>
           )}
 

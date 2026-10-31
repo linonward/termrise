@@ -47,6 +47,10 @@ const schema = z
     POOL_ROUND_EVERY_DAYS: z.coerce.number().int().min(1).max(60).default(1),
     /** What the pool's rounds may spend on data per UTC day, all rounds together. */
     POOL_DAILY_DATA_BUDGET_USD: z.coerce.number().min(0).max(1000).default(0.5),
+    /** What evergreen rounds may spend on AI per day: the page check of the top 10. */
+    POOL_DAILY_AI_BUDGET_USD: z.coerce.number().min(0).max(1000).default(0.02),
+    /** Optional: Claude searches the web for a new word's origin when free sources find nothing. */
+    ANTHROPIC_API_KEY: z.string().min(1).optional(),
     /** Keywords deep-checked per round, rechecks included. */
     POOL_DEEP_CHECKS: z.coerce.number().int().min(1).max(50).default(6),
     /** How often the worker looks for a pool round to run. */

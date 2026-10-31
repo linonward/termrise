@@ -15,6 +15,7 @@ export async function WordOrigin({ word }: { word: NewWordDto }) {
         (a, b) =>
           Number(b.first) - Number(a.first) ||
           Number(b.cited) - Number(a.cited) ||
+          Number(!a.at) - Number(!b.at) ||
           a.at.localeCompare(b.at),
       )
     : [];
@@ -71,14 +72,23 @@ export async function WordOrigin({ word }: { word: NewWordDto }) {
                     <Tag>{t(`originSource.${e.source}`)}</Tag>
                     {e.first && <Tag tone="brand">{t("originFirst")}</Tag>}
                     {!e.first && e.cited && <Tag>{t("originCited")}</Tag>}
-                    <a
-                      href={e.url}
-                      target="_blank"
-                      rel="noreferrer nofollow"
-                      className="break-all hover:underline hover:underline-offset-4"
-                    >
-                      {e.title}
-                    </a>
+                    {e.kind === "summary" ? (
+                      <span>
+                        <span className="text-muted-foreground">
+                          {t("originAnswer")}：
+                        </span>
+                        {e.title}
+                      </span>
+                    ) : (
+                      <a
+                        href={e.url}
+                        target="_blank"
+                        rel="noreferrer nofollow"
+                        className="break-all hover:underline hover:underline-offset-4"
+                      >
+                        {e.title}
+                      </a>
+                    )}
                     {e.score != null && (
                       <span className="font-mono text-[13px] text-muted-foreground tabular-nums">
                         {t(`originScore.${e.kind}`, { n: count(e.score) })}

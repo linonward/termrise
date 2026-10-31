@@ -1037,7 +1037,25 @@
       "queued": "已排队，Worker 一分钟内开始，只测这一个词。",
       "busy": "有一轮在进行，等它结束再点。",
       "round": "看这一轮 ›"
-    }
+    },
+    "pageCheck": {
+      "on": "每个结果都打开页面读过：类型、是不是专门做这个词的、是不是弱页，由 AI 判断；强对手按这个结果算。",
+      "off": "这次没有读页面（没有 AI 预算或读取失败），专门页面按标题判断：标题里有这个词的全部单词才算。",
+      "madeFor": "专门页面",
+      "weak": "弱页"
+    },
+    "pageKind": {
+      "tool": "工具",
+      "article": "文章",
+      "forum": "论坛",
+      "video": "视频",
+      "directory": "导航目录",
+      "store": "商店",
+      "official": "官方",
+      "other": "其他"
+    },
+    "autocompleteTitle": "谷歌自动补全",
+    "autocompleteBody": "在谷歌美国输入这个词时的下拉建议：用户想接着搜什么，常能看出痛点（比如“not working”）和主流说法。"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -1155,19 +1173,22 @@
     "originNone": "Hacker News、Hugging Face 和 GitHub 里没有找到相关条目。",
     "originPending": "还没追溯。值得做和可以试试的词，每轮追溯 8 个。",
     "originSkip": "结论为跳过的词不追溯起因。",
-    "originChecked": "{date} 追溯。来源：Hacker News、Hugging Face、GitHub 和谷歌前 10 名。",
+    "originChecked": "{date} 追溯。来源：Hacker News、Hugging Face、GitHub、谷歌前 10 名；前三者都没有结果时，再用 Claude 搜一次网页。",
     "originFirst": "最早",
     "originCited": "引用",
     "originSource": {
       "hacker_news": "HN",
       "hugging_face": "Hugging Face",
-      "github": "GitHub"
+      "github": "GitHub",
+      "web": "网页搜索"
     },
     "originScore": {
       "story": "{n} 分",
       "model": "{n} 赞",
       "space": "{n} 赞",
-      "repo": "{n} 星"
+      "repo": "{n} 星",
+      "page": "{n}",
+      "summary": "{n}"
     },
     "found": "{date} 发现",
     "lagShort": {
@@ -1187,7 +1208,8 @@
     "nameSource": {
       "hugging_face": "Hugging Face 热门模型",
       "itch_io": "itch.io 新游戏"
-    }
+    },
+    "originAnswer": "搜索结论"
   },
   "research": {
     "metaTitle": "研究",

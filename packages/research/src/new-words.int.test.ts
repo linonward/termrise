@@ -492,3 +492,95 @@ it("adds names from the free lists, and goes on when one fails", async () => {
     ["source:hugging_face", null],
   ]);
 });
+
+it("searches the web only for words the free sources found nothing on", async () => {
+  const searched: string[] = [];
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    originSources: [
+      {
+        name: "github",
+        // Only the ai word has a repo.
+        search: async (phrase) =>
+          phrase.startsWith("ai")
+            ? [
+                {
+                  source: "github",
+                  kind: "repo",
+                  title: "a/ai-impacts",
+                  url: "https://github.com/a/ai-impacts",
+                  at: "2026-10-27T00:00:00.000Z",
+                  score: 5,
+                },
+              ]
+            : [],
+      },
+    ],
+    webOrigin: {
+      name: "claude",
+      model: "claude-haiku-5-5",
+      maxCostMicros: 40_000,
+      search: async (phrase) => {
+        searched.push(phrase);
+        return {
+          value: [
+            {
+              source: "web",
+              kind: "page",
+              title: `${phrase} trend`,
+              url: "https://example.com/trend",
+              at: "",
+              score: null,
+            },
+            {
+              source: "web",
+              kind: "summary",
+              title: "A Roblox game update.",
+              url: "",
+              at: "",
+              score: null,
+            },
+          ],
+          costMicros: 25_000,
+        };
+      },
+    },
+    originAnalyst: createFakeNewWordOriginAnalyst(),
+    rdap,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 1_000_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  const traced = (await w.list({})).items.filter(
+    (i) => i.word.originCheckedAt !== null,
+  );
+  expect(searched).not.toContain("ai impacts theoretical computer science");
+  expect(searched.length).toBe(
+    traced.filter((i) => !i.word.phrase.startsWith("ai")).length,
+  );
+  expect(done.report).toMatchObject({ webSearches: searched.length });
+  const boxing = traced.find((i) => i.word.phrase === searched[0])!.word;
+  expect(boxing.originEvidence).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ source: "web", kind: "summary" }),
+    ]),
+  );
+  const [usage] = await db
+    .select()
+    .from(apiUsage)
+    .where(eq(apiUsage.operation, "origin_search"));
+  expect(usage).toMatchObject({
+    kind: "ai",
+    provider: "anthropic",
+    costMicros: 25_000,
+  });
+});

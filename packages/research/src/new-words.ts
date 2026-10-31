@@ -26,6 +26,7 @@ import {
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import type { WebOriginSearch } from "./adapters/claude-web-origin";
 import type { NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { RdapClient } from "./adapters/rdap";
@@ -192,6 +193,8 @@ export const SCREEN_BATCH = 4;
 export const DEFAULT_SCREENS = 40;
 /** Words whose origin is traced per round: worth and try ones, newest checks first. */
 export const ORIGINS_PER_ROUND = 8;
+/** Paid web searches per round, for words without free evidence. */
+export const WEB_ORIGINS_PER_ROUND = 3;
 
 export type NewWord = typeof newWords.$inferSelect;
 export type NewWordsReport = {
@@ -205,6 +208,8 @@ export type NewWordsReport = {
   failures: string[];
   /** Words whose origin was traced; absent in reports from before S67. */
   origins?: number;
+  /** Paid web searches for origins this round. */
+  webSearches?: number;
   /** Names taken from each name source this round. */
   names?: Record<string, number>;
   /** Sources that failed this round, e.g. github. */
@@ -229,6 +234,8 @@ export function createNewWords(deps: {
   /** Free sources searched for a word's origin, and the analyst that reads them. */
   originSources?: OriginSource[];
   originAnalyst?: NewWordOriginAnalyst;
+  /** A paid web search, only for words the free sources found nothing on. */
+  webOrigin?: WebOriginSearch;
   rdap?: RdapClient;
   budget?: Budget;
   roots?: string[];
@@ -742,7 +749,8 @@ export function createNewWords(deps: {
   // Why a worth or try word rose: search the free sources around its burst, then let the
   // analyst read the evidence with the stored top results. Only the reading is paid.
   async function traceOrigins(round: PoolRound, report: NewWordsReport) {
-    const { originSources, originAnalyst, budget } = deps;
+    const { originSources, originAnalyst, budget, webOrigin } = deps;
+    let webSearches = 0;
     if (!originSources?.length || !originAnalyst || !budget) return;
     const words = await database
       .select()
@@ -774,7 +782,49 @@ export function createNewWords(deps: {
           });
         evidence.push(...found);
       }
-      evidence.sort((a, b) => a.at.localeCompare(b.at));
+      // Nothing in the free sources: games, holidays and social media trends live on the
+      // open web. One paid search, a few per round; a short budget only skips it.
+      if (
+        evidence.length === 0 &&
+        webOrigin &&
+        webSearches < WEB_ORIGINS_PER_ROUND
+      ) {
+        webSearches++;
+        const found = await budget
+          .charge(
+            {
+              projectId: null,
+              poolRoundId: round.id,
+              poolBudget: "new_words",
+              runId: null,
+              kind: "ai",
+              provider: "anthropic",
+              operation: "origin_search",
+              maxCostMicros: webOrigin.maxCostMicros,
+            },
+            () =>
+              webOrigin.search(word.phrase, {
+                ...window,
+                burstDay: word.burstDay,
+              }),
+          )
+          .catch((error: unknown) => {
+            logger.warn("newwords.web_origin_failed", {
+              phrase: word.phrase,
+              error,
+            });
+            failed.add("web");
+            return null;
+          });
+        if (found) {
+          evidence.push(...found.value);
+          report.webSearches = (report.webSearches ?? 0) + 1;
+        }
+      }
+      // Dated items in order; items without a date after them.
+      evidence.sort(
+        (a, b) => Number(!a.at) - Number(!b.at) || a.at.localeCompare(b.at),
+      );
       const serp = (word.serp ?? []) as { site: string; title: string }[];
       const charged = await budget.charge(
         {

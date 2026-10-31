@@ -7,15 +7,17 @@ export const ORIGIN_SOURCES = [
   "hacker_news",
   "hugging_face",
   "github",
+  "web",
 ] as const;
 export type OriginSourceName = (typeof ORIGIN_SOURCES)[number];
 
 export type OriginEvidence = {
   source: OriginSourceName;
-  kind: "story" | "model" | "space" | "repo";
+  /** page and summary come from a web search: a page found, and the searcher's answer. */
+  kind: "story" | "model" | "space" | "repo" | "page" | "summary";
   title: string;
   url: string;
-  /** When it was posted or created (ISO). */
+  /** When it was posted or created (ISO); empty when the source gives no date. */
   at: string;
   /** Points, likes or stars. */
   score: number | null;

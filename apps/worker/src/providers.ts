@@ -1,16 +1,20 @@
 import { createDeepSeekJson } from "@repo/ai/adapters/deepseek-json";
+import { createClaudeWebOrigin } from "@repo/research/adapters/claude-web-origin";
 import { createDataForSeoProvider } from "@repo/research/adapters/dataforseo";
 import { createDeepSeekAnalyst } from "@repo/research/adapters/deepseek-analyst";
 import { createDeepSeekLaunchSiteAnalyst } from "@repo/research/adapters/deepseek-launch-sites";
 import { createDeepSeekNewWordOriginAnalyst } from "@repo/research/adapters/deepseek-new-word-origin";
 import { createDeepSeekNewWordAnalyst } from "@repo/research/adapters/deepseek-new-words";
+import { createDeepSeekPageJudge } from "@repo/research/adapters/deepseek-page-judge";
 import { createDeepSeekSeedExtractor } from "@repo/research/adapters/deepseek-seeds";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
 import { createFakeLaunchSiteAnalyst } from "@repo/research/adapters/fake-launch-sites";
 import { createFakeNewWordOriginAnalyst } from "@repo/research/adapters/fake-new-word-origin";
 import { createFakeNewWordAnalyst } from "@repo/research/adapters/fake-new-words";
+import { createFakePageJudge } from "@repo/research/adapters/fake-page-judge";
 import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
+import { createGoogleAutocomplete } from "@repo/research/adapters/google-autocomplete";
 import {
   createHuggingFaceNames,
   createItchNames,
@@ -20,6 +24,7 @@ import {
   createHackerNewsOrigin,
   createHuggingFaceOrigin,
 } from "@repo/research/adapters/origin-sources";
+import { readPage } from "@repo/research/adapters/page-reader";
 
 import type { WorkerEnv } from "./env";
 
@@ -110,4 +115,30 @@ export function createNameSources(env: WorkerEnv) {
   return env.KEYWORD_PROVIDER === "dataforseo"
     ? [createHuggingFaceNames(), createItchNames()]
     : [];
+}
+
+// The page check of the evergreen deep check: pages are read and suggestions fetched only
+// with real keyword data (fake results point at made-up addresses).
+export function createPageCheck(env: WorkerEnv) {
+  if (env.KEYWORD_PROVIDER !== "dataforseo") return {};
+  return {
+    readPage: (url: string) => readPage(url),
+    autocomplete: createGoogleAutocomplete(),
+    pageJudge:
+      env.ANALYST_PROVIDER === "deepseek"
+        ? createDeepSeekPageJudge(
+            createDeepSeekJson({
+              apiKey: env.DEEPSEEK_API_KEY!,
+              model: env.DEEPSEEK_MODEL!,
+            }),
+          )
+        : createFakePageJudge(),
+  };
+}
+
+// Claude's web search for new-word origins; off without a key or without real data.
+export function createWebOrigin(env: WorkerEnv) {
+  return env.ANTHROPIC_API_KEY && env.KEYWORD_PROVIDER === "dataforseo"
+    ? createClaudeWebOrigin({ apiKey: env.ANTHROPIC_API_KEY })
+    : undefined;
 }

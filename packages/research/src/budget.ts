@@ -41,6 +41,8 @@ export function createBudget(deps: {
    * together. Without it, pool rounds cannot make paid calls.
    */
   dailyPoolCapMicros?: number;
+  /** What evergreen rounds may spend on AI per day (the page check); none when absent. */
+  dailyPoolAiCapMicros?: number;
   /** The daily caps of new-word rounds, per budget kind; none when absent. */
   dailyNewWordCapMicros?: Record<BudgetKind, number>;
   /** The daily data cap of platform-site rounds; none when absent. */
@@ -99,7 +101,7 @@ export function createBudget(deps: {
               : 0
             : call.kind === "data"
               ? (deps.dailyPoolCapMicros ?? 0)
-              : 0;
+              : (deps.dailyPoolAiCapMicros ?? 0);
         if (Number(day) + call.maxCostMicros > cap) return refuse("daily");
       } else {
         const projectId = call.projectId ?? "";

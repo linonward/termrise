@@ -4,6 +4,7 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { apiUsage, poolRounds, user } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
+import { createFakePageJudge } from "./adapters/fake-page-judge";
 import { createBudget } from "./budget";
 import type {
   KeywordIdea,
@@ -320,4 +321,87 @@ it("rechecks one keyword with its own fresh numbers, and nothing else", async ()
   // The stub's top 3 has two big.com pages made for the phrase: the imported 0 is replaced.
   expect(keyword.strongCompetitors).toBe(2);
   expect(checks[0].kind).toBe("deep");
+});
+
+it("reads the top pages to count strong competitors, and keeps Google's suggestions", async () => {
+  await pool.record({
+    phrase: "morse translator",
+    status: "queued",
+    reasons: [],
+    kind: "review",
+    fields: { searchVolume: 9000, keywordDifficulty: 20, cpcMicros: 1_000_000 },
+  });
+  const make = (aiCap: number) =>
+    createPoolRounds({
+      database: db,
+      provider: stub(),
+      budget: createBudget({
+        database: db,
+        now,
+        dailyPoolCapMicros: 500_000,
+        dailyPoolAiCapMicros: aiCap,
+      }),
+      deepChecks: 1,
+      // big.com's first result is gone: its page says 404.
+      readPage: async (url) => ({
+        url,
+        status: url.endsWith("/0") ? 404 : 200,
+        title: url.endsWith("/0") ? "Page Not Found" : "Morse Translator",
+        h1: null,
+        text: "Type text and convert it to morse code online, free translator.",
+      }),
+      pageJudge: createFakePageJudge(),
+      autocomplete: async (phrase) => [`${phrase} audio`, `${phrase} image`],
+      now,
+    });
+  const r = make(100_000);
+  await r.scheduleDaily(0);
+  await r.run((await r.claim())!);
+  const k = (await pool.list({ status: "all" })).items.find(
+    (i) => i.phrase === "morse translator",
+  )!;
+  // The title rule would count both big.com pages; the broken one is not made for it.
+  expect(k.strongCompetitors).toBe(1);
+  const { checks } = await pool.get(k.id);
+  const data = checks[0].data as {
+    autocomplete: string[];
+    serp: { pageCheck: string; results: { page?: { weak: boolean } }[] };
+  };
+  expect(data.autocomplete).toEqual([
+    "morse translator audio",
+    "morse translator image",
+  ]);
+  expect(data.serp.pageCheck).toBe("fake-v1");
+  expect(data.serp.results[0].page?.weak).toBe(true);
+});
+
+it("falls back to the title rule when the page check has no AI budget", async () => {
+  await pool.record({
+    phrase: "morse translator",
+    status: "queued",
+    reasons: [],
+    kind: "review",
+    fields: { searchVolume: 9000, keywordDifficulty: 20, cpcMicros: 1_000_000 },
+  });
+  const r = createPoolRounds({
+    database: db,
+    provider: stub(),
+    budget: createBudget({ database: db, now, dailyPoolCapMicros: 500_000 }),
+    deepChecks: 1,
+    readPage: async (url) => ({
+      url,
+      status: 404,
+      title: null,
+      h1: null,
+      text: "",
+    }),
+    pageJudge: createFakePageJudge(),
+    now,
+  });
+  await r.scheduleDaily(0);
+  await r.run((await r.claim())!);
+  const k = (await pool.list({ status: "all" })).items.find(
+    (i) => i.phrase === "morse translator",
+  )!;
+  expect(k.strongCompetitors).toBe(2);
 });

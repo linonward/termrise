@@ -53,12 +53,22 @@ export async function BudgetUsage({ status }: { status: ProviderStatusDto }) {
           : t("off")
         : "—",
       today: b
-        ? t("todayData", {
-            data: usd(spend("evergreen", "data")?.todayUsd),
-            dataCap: usd(b.evergreen.dailyData),
-          })
+        ? b.evergreen.dailyAi != null
+          ? t("todayDataAi", {
+              data: usd(spend("evergreen", "data")?.todayUsd),
+              dataCap: usd(b.evergreen.dailyData),
+              ai: usd(spend("evergreen", "ai")?.todayUsd),
+              aiCap: usd(b.evergreen.dailyAi),
+            })
+          : t("todayData", {
+              data: usd(spend("evergreen", "data")?.todayUsd),
+              dataCap: usd(b.evergreen.dailyData),
+            })
         : "—",
-      month: usd(spend("evergreen", "data")?.monthUsd),
+      month: usd(
+        (spend("evergreen", "data")?.monthUsd ?? 0) +
+          (spend("evergreen", "ai")?.monthUsd ?? 0),
+      ),
     },
     {
       name: t("platform"),

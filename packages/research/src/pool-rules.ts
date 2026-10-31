@@ -223,14 +223,16 @@ export function strongCompetitors(
   phrase: string,
   results: { site: string | null; url: string; title: string }[],
   traffic: Map<string, number>,
+  /** The page check's reading by result index; the title rule stands in without it. */
+  madeFor?: Map<number, boolean>,
 ) {
   const top = results.slice(0, 10);
   const strongSites = top
     .filter(
-      (r) =>
+      (r, i) =>
         r.site !== null &&
         (traffic.get(r.site) ?? 0) >= STRONG_SITE_TRAFFIC &&
-        isDedicated(r.title, phrase),
+        (madeFor?.get(i) ?? isDedicated(r.title, phrase)),
     )
     .map((r) => r.site as string);
   return {

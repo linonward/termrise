@@ -31,6 +31,8 @@ import {
   createNameSources,
   createNewWordOriginAnalyst,
   createOriginSources,
+  createPageCheck,
+  createWebOrigin,
   createSeedExtractor,
 } from "./providers";
 import { createHandlers, startWorker } from "./worker";
@@ -61,6 +63,7 @@ async function main() {
     database,
     monthlyCapMicros,
     dailyPoolCapMicros: Math.round(env.POOL_DAILY_DATA_BUDGET_USD * 1_000_000),
+    dailyPoolAiCapMicros: Math.round(env.POOL_DAILY_AI_BUDGET_USD * 1_000_000),
     dailyNewWordCapMicros: {
       data: Math.round(env.NEW_WORDS_DAILY_DATA_BUDGET_USD * 1_000_000),
       ai: Math.round(env.NEW_WORDS_DAILY_AI_BUDGET_USD * 1_000_000),
@@ -74,6 +77,7 @@ async function main() {
     provider: keywordProvider,
     budget,
     deepChecks: env.POOL_DEEP_CHECKS,
+    ...createPageCheck(env),
   });
   const newWords = createNewWords({
     database,
@@ -81,6 +85,7 @@ async function main() {
     analyst: createNewWordAnalyst(env),
     originSources: createOriginSources(env),
     originAnalyst: createNewWordOriginAnalyst(env),
+    webOrigin: createWebOrigin(env),
     rdap: createRdapClient(),
     budget,
     roots: env.NEW_WORD_ROOTS,
@@ -208,6 +213,7 @@ async function main() {
             enabled: env.POOL_DAILY_ENABLED === "1",
             everyDays: env.POOL_ROUND_EVERY_DAYS,
             dailyData: env.POOL_DAILY_DATA_BUDGET_USD,
+            dailyAi: env.POOL_DAILY_AI_BUDGET_USD,
           },
           newWords: {
             enabled: env.NEW_WORDS_ENABLED === "1",
