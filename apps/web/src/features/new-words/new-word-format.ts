@@ -13,11 +13,25 @@ export const monthDay = (iso: string | null | undefined) =>
   iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}` : "—";
 
 /** Whole days between an ISO time and now, at least 1. */
-export const daysSince = (iso: string, now = new Date()) =>
-  Math.max(
-    1,
-    Math.round((now.getTime() - new Date(iso).getTime()) / 86_400_000),
-  );
+/**
+ * Days from the word's burst to the day Termrise found it (UTC dates): how late the
+ * discovery was. Negative when it was found before the burst; null without a burst day.
+ */
+export const discoveryLag = (firstSeenAt: string, burstDay: string | null) =>
+  burstDay
+    ? Math.round(
+        (Date.parse(firstSeenAt.slice(0, 10)) - Date.parse(burstDay)) /
+          86_400_000,
+      )
+    : null;
+
+/** The message key and value that say the lag, e.g. lag.late with 7. */
+export const lagMessage = (lag: number) =>
+  lag > 0
+    ? ({ key: "late", days: lag } as const)
+    : lag < 0
+      ? ({ key: "early", days: -lag } as const)
+      : ({ key: "same", days: 0 } as const);
 
 /** The message key and values of a verdict reason. */
 export function verdictReason(reason: VerdictReason) {

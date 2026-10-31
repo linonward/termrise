@@ -305,7 +305,7 @@ S60 起停用（维护者 2026-10-31 定）：Hacker News 和 Trending Now 的�
 
 ## New Words
 
-「词库」的第二个标签「新词」（`/pool/new`），规则和页面内容见 [keyword-pool.md](keyword-pool.md#new-words)。列表按首次出现排序，新的在前；按结论筛选，或看已隐藏的词。隐藏只影响列表，词继续保留。
+「词库」的第二个标签「新词」（`/pool/new`），规则和页面内容见 [keyword-pool.md](keyword-pool.md#new-words)。列表按发现日期排序，新的在前；按结论筛选，或看已隐藏的词。隐藏只影响列表，词继续保留。
 
 ## Research
 

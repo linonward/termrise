@@ -11,7 +11,11 @@ import {
   VerdictReasons,
   WordTags,
 } from "@/features/new-words/new-word-badges";
-import { daysSince, times } from "@/features/new-words/new-word-format";
+import {
+  discoveryLag,
+  lagMessage,
+  times,
+} from "@/features/new-words/new-word-format";
 import { SelectWord } from "@/features/new-words/select-word";
 import { TrendChart } from "@/features/new-words/sparkline";
 import { WordOrigin } from "@/features/new-words/word-origin";
@@ -44,17 +48,18 @@ export default async function NewWordPage({
     const text = `${r.title} ${decodeURIComponent(r.url)}`.toLowerCase();
     return words.every((x) => text.includes(x));
   });
+  const lag = discoveryLag(w.firstSeenAt, w.burstDay);
+  const lagText =
+    lag === null
+      ? null
+      : t(`lagFull.${lagMessage(lag).key}`, { days: lagMessage(lag).days });
   const facts: [string, string, string | null][] = [
     [
       t("heatFull"),
       times(w.ratio),
       w.ratioDay ? t("measuredOn", { date: w.ratioDay }) : null,
     ],
-    [
-      t("firstSeen"),
-      w.firstSeenAt.slice(0, 10),
-      t("daysAgo", { days: daysSince(w.firstSeenAt) }),
-    ],
+    [t("firstSeen"), w.firstSeenAt.slice(0, 10), lagText],
     [t("burstDay"), w.burstDay ?? "—", null],
     [t("peakDay"), w.peakDay ?? "—", null],
     [

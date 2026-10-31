@@ -1038,8 +1038,7 @@
     "roundOpen": "有一轮在进行",
     "emptyTitle": "还没有新词",
     "emptyBody": "Worker 每天找一轮，也可以点“现在找一轮新词”。",
-    "seen": "{date} 出现（{days} 天）",
-    "burst": "{date} 爆发",
+    "burst": "{date} 起量",
     "fromZero": "自身近 7 天从 0 起量",
     "heat": "热度",
     "curve": "近 7 天",
@@ -1085,9 +1084,8 @@
     "home": "首页",
     "heatFull": "热度（GPTs 倍数）",
     "measuredOn": "{date} 量的",
-    "firstSeen": "首次出现",
-    "daysAgo": "{days} 天前",
-    "burstDay": "爆发日",
+    "firstSeen": "发现于",
+    "burstDay": "起量日",
     "peakDay": "峰值日",
     "last7": "自身近 7 天",
     "fromZeroShort": "从 0 起量",
@@ -1157,6 +1155,17 @@
       "model": "{n} 赞",
       "space": "{n} 赞",
       "repo": "{n} 星"
+    },
+    "found": "{date} 发现",
+    "lagShort": {
+      "late": "晚 {days} 天发现",
+      "same": "起量当天发现",
+      "early": "起量前 {days} 天发现"
+    },
+    "lagFull": {
+      "late": "比起量晚 {days} 天",
+      "same": "起量当天",
+      "early": "比起量早 {days} 天"
     }
   },
   "research": {

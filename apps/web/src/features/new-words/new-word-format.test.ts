@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 
 import {
-  daysSince,
+  discoveryLag,
+  lagMessage,
   linePoints,
   monthDay,
   times,
@@ -13,9 +14,16 @@ it("formats heat, dates and ages", () => {
   expect(times(0.0031)).toBe("×0.0031");
   expect(times(null)).toBe("—");
   expect(monthDay("2026-10-29")).toBe("10/29");
-  expect(
-    daysSince("2026-10-29T08:00:00Z", new Date("2026-10-31T08:00:00Z")),
-  ).toBe(2);
+});
+
+it("says how many days after its burst a word was found", () => {
+  expect(discoveryLag("2026-10-31T02:00:00.000Z", "2026-10-24")).toBe(7);
+  expect(discoveryLag("2026-10-24T23:00:00.000Z", "2026-10-24")).toBe(0);
+  expect(discoveryLag("2026-10-20T02:00:00.000Z", "2026-10-24")).toBe(-4);
+  expect(discoveryLag("2026-10-31T02:00:00.000Z", null)).toBeNull();
+  expect(lagMessage(7)).toEqual({ key: "late", days: 7 });
+  expect(lagMessage(0)).toEqual({ key: "same", days: 0 });
+  expect(lagMessage(-4)).toEqual({ key: "early", days: 4 });
 });
 
 it("draws a line from zero to the peak", () => {

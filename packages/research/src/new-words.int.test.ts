@@ -191,6 +191,33 @@ it("measures a rising word again the next day, but not the same day", async () =
   expect((second.report as { checked: unknown[] }).checked).toHaveLength(3);
 });
 
+it("keeps the burst day of the first measurement while the peak grows", async () => {
+  const provider = stub();
+  const w = words(provider);
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const phrase = "ai impacts theoretical computer science";
+  const before = (await w.list({})).items.find(
+    (i) => i.word.phrase === phrase,
+  )!;
+  expect(before.word.burstDay).toBe("2026-10-28");
+  // The next day the word jumps: 10% of the new peak is reached only on 10-30,
+  // which a fresh reading would take as the burst.
+  provider.trendCompare = async () => ({
+    value: Array.from({ length: 30 }, (_, i) => ({
+      at: new Date(Date.UTC(2026, 9, 2 + i)).toISOString().slice(0, 10),
+      values: [i < 26 ? 0 : i < 28 ? 1 : 100, 40],
+    })),
+    costMicros: 10_000,
+  });
+  clock = new Date("2026-11-01T02:00:00Z");
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const after = (await w.list({})).items.find((i) => i.word.phrase === phrase)!;
+  expect(after.word.peakDay).toBe("2026-10-30");
+  expect(after.word.burstDay).toBe("2026-10-28");
+});
+
 it("stops at the new words' daily budget, apart from the evergreen one", async () => {
   const w = words(stub(), 0.03);
   await w.scheduleDaily(0);

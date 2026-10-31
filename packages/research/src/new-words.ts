@@ -385,7 +385,8 @@ export function createNewWords(deps: {
       .update(newWords)
       .set({
         curve: facts.days,
-        burstDay: facts.burstDay,
+        // Fixed at the first measurement: 10% of a still-growing peak moves later each day.
+        burstDay: word.burstDay ?? facts.burstDay,
         peakDay: facts.peakDay,
         isNew: yes(facts.isNew),
         fromZero: yes(facts.fromZero),

@@ -15,7 +15,8 @@ import {
   WordTags,
 } from "@/features/new-words/new-word-badges";
 import {
-  daysSince,
+  discoveryLag,
+  lagMessage,
   monthDay,
   times,
 } from "@/features/new-words/new-word-format";
@@ -146,12 +147,15 @@ export default async function NewWordsPage({
                   <WordTags word={w} />
                 </div>
                 <p className="text-[13px] text-muted-foreground">
-                  {t("seen", {
-                    date: monthDay(w.firstSeenAt),
-                    days: daysSince(w.firstSeenAt),
-                  })}
+                  {t("found", { date: monthDay(w.firstSeenAt) })}
                   {w.burstDay &&
                     ` · ${t("burst", { date: monthDay(w.burstDay) })}`}
+                  {(() => {
+                    const lag = discoveryLag(w.firstSeenAt, w.burstDay);
+                    if (lag === null) return null;
+                    const m = lagMessage(lag);
+                    return `（${t(`lagShort.${m.key}`, { days: m.days })}）`;
+                  })()}
                   {w.fromZero && ` · ${t("fromZero")}`}
                 </p>
                 {w.about && <p className="text-[15px]">{w.about}</p>}
