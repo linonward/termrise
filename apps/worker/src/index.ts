@@ -28,6 +28,8 @@ import {
   createKeywordProvider,
   createLaunchSiteAnalyst,
   createNewWordAnalyst,
+  createNewWordOriginAnalyst,
+  createOriginSources,
   createSeedExtractor,
 } from "./providers";
 import { createHandlers, startWorker } from "./worker";
@@ -76,6 +78,8 @@ async function main() {
     database,
     provider: keywordProvider,
     analyst: createNewWordAnalyst(env),
+    originSources: createOriginSources(env),
+    originAnalyst: createNewWordOriginAnalyst(env),
     rdap: createRdapClient(),
     budget,
     roots: env.NEW_WORD_ROOTS,

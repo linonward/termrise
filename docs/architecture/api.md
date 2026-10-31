@@ -65,7 +65,7 @@ POST /api/pool/rounds（{ source? }：source 为 `suffix:<词>` 或 `ranked:<网
 
 GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 POOL_ROUND_NOT_FOUND）
 
-GET /api/pool/new-words（新词，每页 50 个，新的在前；?verdict=worth | try | skip，?category=，?hidden=1 只看隐藏的；每个词带根词和内页候选数）
+GET /api/pool/new-words（新词，每页 50 个，新的在前；?verdict=worth | try | skip，?category=，?origin= 起因类型，?hidden=1 只看隐藏的；每个词带根词、内页候选数和 origin（没追溯时为 null：type、summary、capture、evidence、checkedAt））
 
 POST /api/pool/new-words/rounds（排队一轮新词，201；已有一轮在排队或运行时返回它，200）
 

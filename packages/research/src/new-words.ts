@@ -16,10 +16,16 @@ import {
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
-import { newWordRoots, newWords, poolRounds } from "@repo/db/schema";
+import {
+  NEW_WORD_ORIGINS,
+  newWordRoots,
+  newWords,
+  poolRounds,
+} from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
+import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { RdapClient } from "./adapters/rdap";
 import { registrableDomain } from "./adapters/rdap";
 import type { Budget } from "./budget";
@@ -32,6 +38,13 @@ import type {
   TrendComparison,
 } from "./keyword-provider";
 import { newWordAnalysisSchema, type NewWordAnalyst } from "./new-word-analyst";
+import {
+  markEvidence,
+  newWordOriginSchema,
+  type NewWordOriginAnalyst,
+  originWindow,
+  serpMix,
+} from "./new-word-origin";
 import {
   curveFacts,
   dedicatedPages,
@@ -68,6 +81,8 @@ const SERP_DEPTH = 20;
 export const ONE_KEYWORD_RESERVE = 20_000;
 const DAY_MS = 86_400_000;
 const MAX_PHRASE = 100;
+/** Words whose origin is traced per round: worth and try ones, newest checks first. */
+export const ORIGINS_PER_ROUND = 8;
 
 export type NewWord = typeof newWords.$inferSelect;
 export type NewWordsReport = {
@@ -76,6 +91,10 @@ export type NewWordsReport = {
   checked: { phrase: string; verdict: string | null; ratio: number | null }[];
   budgetStopped: boolean;
   failures: string[];
+  /** Words whose origin was traced; absent in reports from before S67. */
+  origins?: number;
+  /** Sources that failed this round, e.g. github. */
+  sourceFailures?: string[];
 };
 
 class BudgetStop extends Error {}
@@ -83,6 +102,7 @@ class BudgetStop extends Error {}
 const listQuery = z.object({
   verdict: z.enum(["worth", "try", "skip"]).optional().catch(undefined),
   category: z.string().max(20).optional().catch(undefined),
+  origin: z.enum(NEW_WORD_ORIGINS).optional().catch(undefined),
   hidden: z.literal("1").optional().catch(undefined),
   page: z.coerce.number().int().min(1).max(1000).catch(1),
 });
@@ -92,6 +112,9 @@ export function createNewWords(deps: {
   /** Needed to run rounds; the API only reads and queues. */
   provider?: KeywordProvider;
   analyst?: NewWordAnalyst;
+  /** Free sources searched for a word's origin, and the analyst that reads them. */
+  originSources?: OriginSource[];
+  originAnalyst?: NewWordOriginAnalyst;
   rdap?: RdapClient;
   budget?: Budget;
   roots?: string[];
@@ -402,6 +425,85 @@ export function createNewWords(deps: {
     };
   }
 
+  // Why a worth or try word rose: search the free sources around its burst, then let the
+  // analyst read the evidence with the stored top results. Only the reading is paid.
+  async function traceOrigins(round: PoolRound, report: NewWordsReport) {
+    const { originSources, originAnalyst, budget } = deps;
+    if (!originSources?.length || !originAnalyst || !budget) return;
+    const words = await database
+      .select()
+      .from(newWords)
+      .where(
+        and(
+          isNull(newWords.hiddenAt),
+          isNull(newWords.originCheckedAt),
+          inArray(newWords.verdict, ["worth", "try"]),
+        ),
+      )
+      .orderBy(desc(newWords.checkedAt))
+      .limit(ORIGINS_PER_ROUND);
+    const failed = new Set<string>();
+    for (const word of words) {
+      const window = originWindow(word.burstDay, word.firstSeenAt, now());
+      const evidence: OriginEvidence[] = [];
+      for (const source of originSources) {
+        const found = await source
+          .search(word.phrase, window)
+          .catch((error: unknown) => {
+            logger.warn("newwords.origin_source_failed", {
+              source: source.name,
+              phrase: word.phrase,
+              error,
+            });
+            failed.add(source.name);
+            return [];
+          });
+        evidence.push(...found);
+      }
+      evidence.sort((a, b) => a.at.localeCompare(b.at));
+      const serp = (word.serp ?? []) as { site: string; title: string }[];
+      const charged = await budget.charge(
+        {
+          projectId: null,
+          poolRoundId: round.id,
+          poolBudget: "new_words",
+          runId: null,
+          kind: "ai",
+          provider: originAnalyst.name,
+          operation: "origin",
+          maxCostMicros: originAnalyst.maxCostMicros,
+        },
+        () =>
+          originAnalyst.analyze({
+            phrase: word.phrase,
+            burstDay: word.burstDay,
+            firstSeen: word.firstSeenAt.toISOString().slice(0, 10),
+            evidence: evidence.map((e, i) => ({ ...e, i })),
+            serp: serp.slice(0, 10).map(({ site, title }) => ({ site, title })),
+            serpMix: serpMix(serp),
+          }),
+      );
+      if (!charged) throw new BudgetStop();
+      const parsed = newWordOriginSchema.safeParse(charged.value);
+      if (!parsed.success) {
+        logger.warn("newwords.origin_invalid", { phrase: word.phrase });
+        continue;
+      }
+      await database
+        .update(newWords)
+        .set({
+          originType: parsed.data.originType,
+          originSummary: parsed.data.summary,
+          originCapture: parsed.data.capture,
+          originEvidence: markEvidence(evidence, parsed.data),
+          originCheckedAt: now(),
+        })
+        .where(eq(newWords.id, word.id));
+      report.origins = (report.origins ?? 0) + 1;
+    }
+    if (failed.size) report.sourceFailures = [...failed];
+  }
+
   async function run(round: PoolRound) {
     const report: NewWordsReport = {
       roots: [],
@@ -409,6 +511,7 @@ export function createNewWords(deps: {
       checked: [],
       budgetStopped: false,
       failures: [],
+      origins: 0,
     };
     try {
       await discover(round, report);
@@ -436,6 +539,7 @@ export function createNewWords(deps: {
           report.failures.push(word.phrase);
         }
       }
+      await traceOrigins(round, report);
     } catch (error) {
       if (!(error instanceof BudgetStop)) {
         logger.error("newwords.round_failed", { roundId: round.id, error });
@@ -498,13 +602,14 @@ export function createNewWords(deps: {
   const innerCandidates = sql<number>`(select count(*)::int from new_words c where c.id <> "new_words"."id" and (' ' || c.phrase || ' ') like ('% ' || "new_words"."phrase" || ' %'))`;
 
   async function list(query: Record<string, string | undefined>) {
-    const { verdict, category, hidden, page } = listQuery.parse(query);
+    const { verdict, category, origin, hidden, page } = listQuery.parse(query);
     const where = and(
       hidden
         ? sql`${newWords.hiddenAt} is not null`
         : isNull(newWords.hiddenAt),
       verdict ? eq(newWords.verdict, verdict) : undefined,
       category ? sql`${newWords.category} = ${category}` : undefined,
+      origin ? eq(newWords.originType, origin) : undefined,
     );
     const [rows, [{ total }]] = await Promise.all([
       database

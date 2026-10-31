@@ -1,6 +1,7 @@
 // Public shapes of new words (docs/architecture/api.md).
 import type { newWordRoots } from "@repo/db/schema";
 
+import type { StoredEvidence } from "./new-word-origin";
 import type { NewWord } from "./new-words";
 
 type Root = typeof newWordRoots.$inferSelect;
@@ -45,6 +46,15 @@ export function toNewWordDto(row: {
     checkedAt: w.checkedAt?.toISOString() ?? null,
     hidden: w.hiddenAt !== null,
     selectedAt: w.selectedAt?.toISOString() ?? null,
+    origin: w.originCheckedAt
+      ? {
+          type: w.originType,
+          summary: w.originSummary,
+          capture: w.originCapture,
+          evidence: (w.originEvidence ?? []) as StoredEvidence[],
+          checkedAt: w.originCheckedAt.toISOString(),
+        }
+      : null,
     roots: row.roots
       .map((r) => ({ root: r.root, growth: r.growth }))
       .sort((a, b) => (b.growth ?? 0) - (a.growth ?? 0)),

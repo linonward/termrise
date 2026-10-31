@@ -24,6 +24,16 @@ import { StartNewWords } from "@/features/new-words/start-new-words";
 import { apiGet } from "@/server/api/api";
 
 const VERDICTS = ["worth", "try", "skip"] as const;
+const ORIGINS = [
+  "model_release",
+  "open_source",
+  "product_launch",
+  "entertainment",
+  "news_event",
+  "seasonal",
+  "platform_change",
+  "unknown",
+] as const;
 
 export async function generateMetadata() {
   return { title: (await getTranslations("newWords"))("metaTitle") };
@@ -35,10 +45,12 @@ export default async function NewWordsPage({
 }: PageProps<"/discover">) {
   const params = await searchParams;
   const verdict = VERDICTS.find((v) => v === params.verdict);
+  const origin = ORIGINS.find((o) => o === params.origin);
   const hidden = params.hidden === "1";
   const t = await getTranslations("newWords");
   const query = new URLSearchParams({
     ...(verdict ? { verdict } : {}),
+    ...(origin ? { origin } : {}),
     ...(hidden ? { hidden: "1" } : {}),
   });
   const [list, rounds] = await Promise.all([
@@ -60,7 +72,7 @@ export default async function NewWordsPage({
   ) => (
     <Link
       key={label}
-      href={`/discover?${new URLSearchParams({ ...(key ? { verdict: key } : {}), ...(extra ? { hidden: "1" } : {}) })}`}
+      href={`/discover?${new URLSearchParams({ ...(key ? { verdict: key } : {}), ...(origin ? { origin } : {}), ...(extra ? { hidden: "1" } : {}) })}`}
       aria-current={active ? "page" : undefined}
       className={cn(
         "rounded-full border border-border px-3 py-1 text-[13px]",
@@ -90,6 +102,25 @@ export default async function NewWordsPage({
         </nav>
         <StartNewWords open={open} />
       </div>
+      <nav
+        aria-label={t("originFilter")}
+        className="-mx-5 flex gap-2 overflow-x-auto px-5 md:mx-0 md:flex-wrap md:px-0"
+      >
+        {[undefined, ...ORIGINS].map((o) => (
+          <Link
+            key={o ?? "all"}
+            href={`/discover?${new URLSearchParams({ ...(verdict ? { verdict } : {}), ...(o ? { origin: o } : {}), ...(hidden ? { hidden: "1" } : {}) })}`}
+            aria-current={origin === o ? "page" : undefined}
+            className={cn(
+              "shrink-0 rounded-full border border-border px-3 py-1 text-[13px] whitespace-nowrap",
+              origin === o &&
+                "border-primary bg-primary text-primary-foreground",
+            )}
+          >
+            {o ? t(`origin.${o}`) : t("originAll")}
+          </Link>
+        ))}
+      </nav>
       {list.items.length === 0 ? (
         <EmptyState
           icon={Sparkles}
@@ -124,6 +155,11 @@ export default async function NewWordsPage({
                   {w.fromZero && ` · ${t("fromZero")}`}
                 </p>
                 {w.about && <p className="text-[15px]">{w.about}</p>}
+                {w.origin?.summary && (
+                  <p className="text-[13px] text-muted-foreground">
+                    {t("originLine", { summary: w.origin.summary })}
+                  </p>
+                )}
                 <VerdictLine word={w}>
                   <VerdictReasons reasons={w.reasons} as="sentence" />
                 </VerdictLine>

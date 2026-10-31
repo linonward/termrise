@@ -4,7 +4,10 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { apiUsage, poolRounds } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
+import { createFakeNewWordOriginAnalyst } from "./adapters/fake-new-word-origin";
+import { createFakeNewWordOrigin } from "./adapters/fake-new-word-origin-sources";
 import { createFakeNewWordAnalyst } from "./adapters/fake-new-words";
+import type { OriginSource } from "./adapters/origin-sources";
 import { createRdapClient } from "./adapters/rdap";
 import { createBudget } from "./budget";
 import type { KeywordProvider } from "./keyword-provider";
@@ -99,11 +102,17 @@ const rdap = createRdapClient({
     })) as unknown as typeof fetch,
 });
 
-const words = (provider: KeywordProvider, dataUsd = 1) =>
+const words = (
+  provider: KeywordProvider,
+  dataUsd = 1,
+  originSources?: OriginSource[],
+) =>
   createNewWords({
     database: db,
     provider,
     analyst: createFakeNewWordAnalyst(),
+    originSources,
+    originAnalyst: createFakeNewWordOriginAnalyst(),
     rdap,
     budget: createBudget({
       database: db,
@@ -208,4 +217,77 @@ it("hides a word from the list and shows it again", async () => {
   await expect(w.get("nope")).rejects.toMatchObject({
     code: "NEW_WORD_NOT_FOUND",
   });
+});
+
+it("traces why worth and try words rose, from the free sources around the burst", async () => {
+  const seen: { source: string; phrase: string; from: string }[] = [];
+  const sources = createFakeNewWordOrigin(seen);
+  const w = words(stub(), 1, sources);
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  const traced = (await w.list({})).items.filter(
+    (i) => i.word.verdict === "worth" || i.word.verdict === "try",
+  );
+  expect(traced.length).toBeGreaterThan(0);
+  expect(done.report).toMatchObject({
+    origins: traced.length,
+    // One source failed: the others still count.
+    sourceFailures: ["hugging_face"],
+  });
+  const ai = (await w.list({})).items.find(
+    (i) => i.word.phrase === "ai impacts theoretical computer science",
+  )!.word;
+  expect(ai).toMatchObject({
+    originType: "open_source",
+    originSummary:
+      "测试数据：ai impacts theoretical computer science 来自 a/ai-impacts",
+  });
+  // Oldest first; the repo started it.
+  expect(ai.originEvidence).toEqual([
+    expect.objectContaining({ kind: "repo", cited: true, first: true }),
+    expect.objectContaining({ kind: "story", cited: true, first: false }),
+  ]);
+  // The search starts a month before the burst day (2026-10-28).
+  expect(seen.find((s) => s.phrase === ai.phrase)?.from).toBe("2026-09-28");
+  expect(
+    (await w.list({ origin: "open_source" })).items.map((i) => i.word.phrase),
+  ).toContain(ai.phrase);
+  // A word is traced once; skip words are never traced.
+  const skip = (await w.list({ verdict: "skip" })).items;
+  for (const s of skip) expect(s.word.originCheckedAt).toBeNull();
+  clock = new Date("2026-11-01T02:00:00Z");
+  seen.length = 0;
+  await w.scheduleDaily(0);
+  const again = await w.run((await w.claim())!);
+  expect(again.report).toMatchObject({ origins: 0 });
+  expect(seen).toEqual([]);
+});
+
+it("keeps words untraced when the AI budget is out", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    originSources: createFakeNewWordOrigin([]),
+    originAnalyst: createFakeNewWordOriginAnalyst(),
+    rdap,
+    budget: createBudget({
+      database: db,
+      now,
+      // Each AI call reserves 3,000 and settles 500. The third word analysis fits
+      // (2 × 500 + 3,000); the first origin reading does not (3 × 500 + 3,000).
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 4_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done).toMatchObject({
+    status: "partial",
+    errorCode: "DAILY_BUDGET_EXHAUSTED",
+  });
+  const { items } = await w.list({});
+  expect(items.every((i) => i.word.originCheckedAt === null)).toBe(true);
 });

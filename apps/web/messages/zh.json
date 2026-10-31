@@ -1123,7 +1123,41 @@
     "rules": "规则版本 {rules}",
     "select": "选定，去建站",
     "selected": "{date} 已选定，产品见「产品」",
-    "viaGoogle": "{site}（经 Google 跳转，没有路径）"
+    "viaGoogle": "{site}（经 Google 跳转，没有路径）",
+    "origin": {
+      "model_release": "新模型",
+      "open_source": "开源项目",
+      "product_launch": "产品发布",
+      "entertainment": "游戏影视梗",
+      "news_event": "新闻事件",
+      "seasonal": "季节周期",
+      "platform_change": "平台变化",
+      "unknown": "起因不明"
+    },
+    "originFilter": "按起因筛选",
+    "originAll": "全部起因",
+    "originLine": "起因：{summary}",
+    "originTitle": "起因",
+    "originWhy": "为什么涨",
+    "originCapture": "怎么承接",
+    "originEvidence": "证据（{n} 条，起量前 30 天到后 7 天）",
+    "originNone": "Hacker News、Hugging Face 和 GitHub 里没有找到相关条目。",
+    "originPending": "还没追溯。值得做和可以试试的词，每轮追溯 8 个。",
+    "originSkip": "结论为跳过的词不追溯起因。",
+    "originChecked": "{date} 追溯。来源：Hacker News、Hugging Face、GitHub 和谷歌前 10 名。",
+    "originFirst": "最早",
+    "originCited": "引用",
+    "originSource": {
+      "hacker_news": "HN",
+      "hugging_face": "Hugging Face",
+      "github": "GitHub"
+    },
+    "originScore": {
+      "story": "{n} 分",
+      "model": "{n} 赞",
+      "space": "{n} 赞",
+      "repo": "{n} 星"
+    }
   },
   "research": {
     "metaTitle": "研究",

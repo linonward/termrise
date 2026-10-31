@@ -232,6 +232,13 @@
       "when": 1793453339594,
       "tag": "0032_platform_sites",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793455138159,
+      "tag": "0033_new_word_origins",
+      "breakpoints": true
     }
   ]
 }

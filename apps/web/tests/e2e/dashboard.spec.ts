@@ -3,7 +3,12 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 import { createCreditService } from "@repo/credits/credit-service";
-import { platformSiteMonths, platformSites, tasks } from "@repo/db/schema";
+import {
+  newWords,
+  platformSiteMonths,
+  platformSites,
+  tasks,
+} from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 
 import product from "../../../../product.config";
@@ -42,6 +47,58 @@ test("an early access user sees today's work without credits, and needs a sessio
   await page.goto("/today");
   await expect(page).toHaveURL(/\/sign-in\?next=/);
 });
+test("a new word shows why it rose, with its evidence, and filters by cause", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  const phrase = `lumo edit ${randomUUID().slice(0, 6)}`;
+  const [word] = await testDb()
+    .insert(newWords)
+    .values({
+      phrase,
+      verdict: "worth",
+      buildAs: "new_site",
+      checkedAt: new Date(),
+      originType: "model_release",
+      originSummary: "2026-10-14 Hugging Face 上发布 Lumo-Edit，搜索随后起量。",
+      originCapture: "做在线试用页。",
+      originEvidence: [
+        {
+          source: "hugging_face",
+          kind: "model",
+          title: "lumo/Lumo-Edit",
+          url: "https://huggingface.co/lumo/Lumo-Edit",
+          at: "2026-10-14T00:00:00.000Z",
+          score: 1200,
+          cited: true,
+          first: true,
+        },
+      ],
+      originCheckedAt: new Date(),
+    })
+    .returning();
+  await page.goto("/discover");
+  await page
+    .getByRole("navigation", { name: "按起因筛选" })
+    .getByRole("link", { name: "新模型" })
+    .click();
+  await expect(page).toHaveURL(/origin=model_release/);
+  const row = page.getByTestId("new-word-row").filter({ hasText: phrase });
+  await expect(row).toContainText("起因：2026-10-14 Hugging Face 上发布");
+  await page.goto(`/discover/${word.id}`);
+  await expect(
+    page.getByRole("heading", { level: 2, name: "起因" }),
+  ).toBeVisible();
+  await expect(page.getByText("做在线试用页。")).toBeVisible();
+  const evidence = page.getByTestId("origin-evidence");
+  await expect(evidence).toContainText("最早");
+  await expect(evidence).toContainText("1,200 赞");
+  await expect(
+    evidence.getByRole("link", { name: "lumo/Lumo-Edit" }),
+  ).toHaveAttribute("href", "https://huggingface.co/lumo/Lumo-Edit");
+});
+
 test("platform sites list monthly visits and can be hidden", async ({
   page,
   context,

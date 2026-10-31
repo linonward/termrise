@@ -13,6 +13,9 @@ export function WordTags({ word }: { word: NewWordDto }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       {word.category && <Tag>{t(`category.${word.category}`)}</Tag>}
+      {word.origin?.type && word.origin.type !== "unknown" && (
+        <Tag tone="brand">{t(`origin.${word.origin.type}`)}</Tag>
+      )}
       {word.isNew && <Tag tone="brand">{t("tagNew")}</Tag>}
       {word.rising && (
         <span className="inline-flex h-5 items-center rounded-full bg-success-soft px-2 text-xs font-semibold text-success">

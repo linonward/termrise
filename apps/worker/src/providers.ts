@@ -2,13 +2,20 @@ import { createDeepSeekJson } from "@repo/ai/adapters/deepseek-json";
 import { createDataForSeoProvider } from "@repo/research/adapters/dataforseo";
 import { createDeepSeekAnalyst } from "@repo/research/adapters/deepseek-analyst";
 import { createDeepSeekLaunchSiteAnalyst } from "@repo/research/adapters/deepseek-launch-sites";
+import { createDeepSeekNewWordOriginAnalyst } from "@repo/research/adapters/deepseek-new-word-origin";
 import { createDeepSeekNewWordAnalyst } from "@repo/research/adapters/deepseek-new-words";
 import { createDeepSeekSeedExtractor } from "@repo/research/adapters/deepseek-seeds";
 import { createFakeAnalyst } from "@repo/research/adapters/fake-analyst";
 import { createFakeKeywordProvider } from "@repo/research/adapters/fake-keywords";
 import { createFakeLaunchSiteAnalyst } from "@repo/research/adapters/fake-launch-sites";
+import { createFakeNewWordOriginAnalyst } from "@repo/research/adapters/fake-new-word-origin";
 import { createFakeNewWordAnalyst } from "@repo/research/adapters/fake-new-words";
 import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
+import {
+  createGitHubOrigin,
+  createHackerNewsOrigin,
+  createHuggingFaceOrigin,
+} from "@repo/research/adapters/origin-sources";
 
 import type { WorkerEnv } from "./env";
 
@@ -68,4 +75,28 @@ export function createLaunchSiteAnalyst(env: WorkerEnv) {
         }),
       )
     : createFakeLaunchSiteAnalyst();
+}
+
+// New-word origins use the analyst's provider and model too.
+export function createNewWordOriginAnalyst(env: WorkerEnv) {
+  return env.ANALYST_PROVIDER === "deepseek"
+    ? createDeepSeekNewWordOriginAnalyst(
+        createDeepSeekJson({
+          apiKey: env.DEEPSEEK_API_KEY!,
+          model: env.DEEPSEEK_MODEL!,
+        }),
+      )
+    : createFakeNewWordOriginAnalyst();
+}
+
+// The free sources searched for a word's origin. Only with real keyword data: tests and
+// local runs on fake data make no calls to them.
+export function createOriginSources(env: WorkerEnv) {
+  return env.KEYWORD_PROVIDER === "dataforseo"
+    ? [
+        createHackerNewsOrigin(),
+        createHuggingFaceOrigin(),
+        createGitHubOrigin({ token: env.GITHUB_TOKEN }),
+      ]
+    : [];
 }

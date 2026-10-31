@@ -14,6 +14,7 @@ import {
 import { daysSince, times } from "@/features/new-words/new-word-format";
 import { SelectWord } from "@/features/new-words/select-word";
 import { TrendChart } from "@/features/new-words/sparkline";
+import { WordOrigin } from "@/features/new-words/word-origin";
 import { count, displayUrl, usd } from "@/features/pool/pool-format";
 import { apiGet } from "@/server/api/api";
 
@@ -175,6 +176,8 @@ export default async function NewWordPage({
           )}
         </div>
       </section>
+
+      <WordOrigin word={w} />
 
       <section aria-labelledby="tails" className="space-y-3">
         <h2 id="tails" className="font-heading text-xl font-semibold">

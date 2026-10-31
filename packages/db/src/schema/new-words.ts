@@ -30,6 +30,18 @@ export const NEW_WORD_CATEGORIES = [
   "other",
 ] as const;
 
+/** Why a word started to rise (S67): decides how to meet the demand. */
+export const NEW_WORD_ORIGINS = [
+  "model_release",
+  "open_source",
+  "product_launch",
+  "entertainment",
+  "news_event",
+  "seasonal",
+  "platform_change",
+  "unknown",
+] as const;
+
 export const newWords = pgTable(
   "new_words",
   {
@@ -73,6 +85,14 @@ export const newWords = pgTable(
     hiddenAt: timestamp({ withTimezone: true }),
     /** The maintainer chose to build for it (S62); a product starts with it. */
     selectedAt: timestamp({ withTimezone: true }),
+    /** Why it rose (new-word-origin.ts): the AI's reading of the evidence below. */
+    originType: text({ enum: NEW_WORD_ORIGINS }),
+    originSummary: text(),
+    /** How to meet the demand, given the cause. */
+    originCapture: text(),
+    /** What the sources returned around the burst (OriginEvidence[], with cited / first). */
+    originEvidence: jsonb(),
+    originCheckedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
     index("new_words_seen_idx").on(t.firstSeenAt),
