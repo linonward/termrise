@@ -20,6 +20,8 @@ export function createFakeNewWordAnalyst(): NewWordAnalyst {
             buildAs === "new_site"
               ? "测试数据：做新站首页"
               : "测试数据：做内页",
+          direction: buildAs === "long_tail" ? "comparison" : "tool",
+          copyrightRisk: /emulator|rom/.test(phrase),
         },
         costMicros: FAKE_NEW_WORDS_COST.actual,
       };

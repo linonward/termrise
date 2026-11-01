@@ -75,6 +75,10 @@ describe("rootSource", () => {
       source: "trending_now",
     });
     expect(rootSource("calculator")).toEqual({ root: "calculator" });
+    expect(rootSource("source:product_hunt")).toEqual({
+      source: "product_hunt",
+    });
+    expect(rootSource("source:github")).toEqual({ source: "github" });
     expect(rootSource("suggest:calculator")).toEqual({ suggest: "calculator" });
   });
 });

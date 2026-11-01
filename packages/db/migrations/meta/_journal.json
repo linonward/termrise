@@ -267,6 +267,13 @@
       "when": 1793499589704,
       "tag": "0037_new_word_priority",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793501395549,
+      "tag": "0038_new_word_direction",
+      "breakpoints": true
     }
   ]
 }

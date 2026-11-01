@@ -7,7 +7,8 @@ import { isDedicated } from "./serp-competition";
 
 // v2 (S68): heat is the last 7 days' average; a one-day spike is at most worth a try.
 // v3 (S75): the maker's own page and platform listings are not competition.
-export const NEW_WORD_RULES = "newword-v3";
+// v4 (S76): a hot word already crowded is worth its long tails, not skipped.
+export const NEW_WORD_RULES = "newword-v4";
 /** The reference term: a word's heat is its search interest as a multiple of this one's. */
 export const REFERENCE_TERM = "gpts";
 /** Heat at or above this, with at most WORTH_MAX_DEDICATED dedicated pages: worth a new site. */
@@ -26,7 +27,7 @@ export const SPIKE_SHARE = 0.6;
 export const NEW_SITE_DAYS = 365;
 
 export type Verdict = "worth" | "try" | "skip";
-export type BuildAs = "new_site" | "inner_page";
+export type BuildAs = "new_site" | "inner_page" | "long_tail";
 export type VerdictReason = {
   /** For "excluded": offline, shopping or downloads. */
   kind?: string;
@@ -43,7 +44,8 @@ export type VerdictReason = {
     | "spike"
     | "excluded"
     | "official"
-    | "category";
+    | "category"
+    | "crowded";
   /** For "category": the class that is not built for (news, entertainment...). */
   category?: string;
   value?: number;
@@ -304,5 +306,13 @@ export function newWordVerdict(input: {
     return { verdict: "worth", buildAs: "new_site", reasons };
   if (heat >= TRY_RATIO && dedicated <= TRY_MAX_DEDICATED && rising)
     return { verdict: "try", buildAs: "inner_page", reasons };
+  // A big name: too many pages for its own word, but its pricing, comparisons and
+  // how-tos are new searches too.
+  if (heat >= WORTH_RATIO && rising)
+    return {
+      verdict: "try",
+      buildAs: "long_tail",
+      reasons: [...reasons, { code: "crowded" }],
+    };
   return { verdict: "skip", buildAs: null, reasons };
 }

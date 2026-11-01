@@ -11,6 +11,7 @@ export const NAME_SOURCES = [
   "trending_now",
   "show_hn",
   "product_hunt",
+  "github",
 ] as const;
 export type NameSourceName = (typeof NAME_SOURCES)[number];
 
@@ -103,13 +104,23 @@ const SENTENCE =
   /^(i|i'm|i've|we|we're|my|our|a|an|the|this|how|why|what|open source|built|made|show)\b/i;
 const TLD = /\.(com|ai|app|dev|io|so|co|sh|xyz|net|org|me|gg|tools?)$/i;
 
-/** "Show HN: Lumo Edit – edit photos" → "lumo edit"; a sentence → null. */
+// Where a product runs, said after its name: people search the name alone.
+const PLATFORM =
+  /\s+(in|for|on)\s+(chatgpt|claude|gemini|slack|figma|notion|chrome|vs ?code|cursor|discord|telegram|whatsapp|excel|google sheets|gmail|shopify|wordpress|raycast|github|x|twitter|linkedin|ios|android|macos|mac|windows)$/i;
+
+/**
+ * "Show HN: Lumo Edit – edit photos" → "lumo edit"; "Floot in ChatGPT" → "floot";
+ * "MCP Server by XWiki" → "xwiki mcp server"; a sentence → null.
+ */
 export function showHnName(title: string): string | null {
-  const head = title
+  let head = title
     .replace(/^show hn:\s*/i, "")
     .split(/\s+[–—-]\s+|:\s|,\s|\s\(/)[0]
     .trim()
-    .replace(TLD, "");
+    .replace(TLD, "")
+    .replace(PLATFORM, "");
+  const by = /^(.+?)\s+by\s+(.+)$/i.exec(head);
+  if (by) head = `${by[2]} ${by[1]}`;
   if (!head || SENTENCE.test(head)) return null;
   const words = head.split(/\s+/);
   if (words.length > 4 || head.length > 40) return null;
@@ -300,6 +311,82 @@ export function createProductHuntNames(deps: {
               name,
               heat: productHuntHeat(p.votesCount),
               releasedAt: p.featuredAt ?? p.createdAt,
+            },
+          ];
+        })
+        .slice(0, limit);
+    },
+  };
+}
+
+// Repositories that are lists, courses or personal setups, not a product.
+const NOT_A_PRODUCT =
+  /(^|-)(awesome|list|lists|course|courses|tutorial|interview|roadmap|dotfiles|notes|config|homework|leetcode|resume)(-|$)/i;
+
+/** "acme/open-lovable_v2" → "open lovable v2"; a list or a course → null. */
+export function githubName(fullName: string): string | null {
+  const repo = (fullName.split("/")[1] ?? fullName).toLowerCase();
+  if (NOT_A_PRODUCT.test(repo)) return null;
+  const words = repo.split(/[-_.\s]+/).filter(Boolean);
+  if (words.length === 0 || words.length > 4) return null;
+  return words.join(" ");
+}
+
+const githubHeat = (stars: number): 1 | 2 | 3 =>
+  stars >= 1000 ? 3 : stars >= 200 ? 2 : 1;
+
+/** Repositories created in the last 7 days with 50+ stars, most starred first (S76). */
+export function createGitHubNames(
+  deps: { token?: string; fetch?: typeof fetch; now?: () => Date } = {},
+): NameSource {
+  const fetcher = deps.fetch ?? fetch;
+  const now = deps.now ?? (() => new Date());
+  return {
+    name: "github",
+    async names(limit) {
+      const since = new Date(now().getTime() - 7 * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+      const query = new URLSearchParams({
+        q: `created:>${since} stars:>=50`,
+        sort: "stars",
+        order: "desc",
+        per_page: "50",
+      });
+      const res = await fetcher(
+        `https://api.github.com/search/repositories?${query}`,
+        {
+          headers: {
+            accept: "application/vnd.github+json",
+            "user-agent": USER_AGENT,
+            ...(deps.token && { authorization: `Bearer ${deps.token}` }),
+          },
+          signal: AbortSignal.timeout(15_000),
+        },
+      );
+      if (!res.ok) throw new Error(`api.github.com returned ${res.status}`);
+      const { items } = z
+        .object({
+          items: z.array(
+            z.object({
+              full_name: z.string(),
+              stargazers_count: z.number().catch(0),
+              created_at: z.string().nullable().catch(null),
+            }),
+          ),
+        })
+        .parse(await res.json());
+      const seen = new Set<string>();
+      return items
+        .flatMap((r) => {
+          const name = githubName(r.full_name);
+          if (!name || seen.has(name)) return [];
+          seen.add(name);
+          return [
+            {
+              name,
+              heat: githubHeat(r.stargazers_count),
+              releasedAt: r.created_at,
             },
           ];
         })

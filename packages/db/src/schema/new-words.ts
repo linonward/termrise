@@ -2,6 +2,7 @@
 // Google Trends, measured against a reference term and judged for a page.
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
   index,
@@ -19,7 +20,16 @@ import {
 import { createdAt, inList } from "./columns";
 
 export const NEW_WORD_VERDICTS = ["worth", "try", "skip"] as const;
-export const NEW_WORD_BUILD = ["new_site", "inner_page"] as const;
+export const NEW_WORD_BUILD = ["new_site", "inner_page", "long_tail"] as const;
+export const NEW_WORD_DIRECTIONS = [
+  "tool",
+  "tutorial",
+  "calculator",
+  "comparison",
+  "alternatives",
+  "templates",
+  "collection",
+] as const;
 export const NEW_WORD_CATEGORIES = [
   "ai",
   "game",
@@ -28,6 +38,8 @@ export const NEW_WORD_CATEGORIES = [
   "news",
   "shopping",
   "other",
+  // A common word that names no one thing ("radar"): not worth a screen (S76).
+  "generic",
 ] as const;
 
 /** Why a word started to rise (S67): decides how to meet the demand. */
@@ -94,6 +106,14 @@ export const newWords = pgTable(
     priority: integer(),
     /** When the named thing was released, from its source; null when unknown. */
     releasedOn: date(),
+    /** The highest priority one source gave; `priority` adds 1 for each other kind of source (S76). */
+    basePriority: integer(),
+    /** Google's suggestions for a hot, crowded word: the long tails to build (S76). */
+    tails: jsonb(),
+    /** The AI's kind of page to build (S76): tutorial, calculator, comparison... */
+    direction: text({ enum: NEW_WORD_DIRECTIONS }),
+    /** The AI flags emulators, game ports, cracks and the like (S76). */
+    copyrightRisk: boolean(),
     hiddenAt: timestamp({ withTimezone: true }),
     /** The maintainer chose to build for it (S62); a product starts with it. */
     selectedAt: timestamp({ withTimezone: true }),

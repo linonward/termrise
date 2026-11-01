@@ -13,6 +13,8 @@
 | itch.io 新游戏                                                       | `itch.io/games/new-and-popular.xml`                    | 每 3 小时 | 免费                      |
 | Show HN 新产品（S75）                                                | `hn.algolia.com/api/v1/search_by_date?tags=show_hn`    | 每 3 小时 | 免费                      |
 | Product Hunt 新产品（S75）                                           | 官方 GraphQL API v2，`PRODUCT_HUNT_TOKEN`              | 每 3 小时 | 免费；商用需和他们联系    |
+| GitHub 近 7 天新建的仓库（S76）                                      | `api.github.com/search/repositories?q=created:>…`      | 每 3 小时 | 免费，用 `GITHUB_TOKEN`   |
+| Trending Now 英国、加拿大、澳大利亚、印度的科技类（S76）             | `google-trends-now`，category 18                       | 每 3 小时 | 免费                      |
 | 起因证据：Hacker News、Hugging Face、GitHub，Claude 网页搜索         | 见 keyword-pool.md#origins                             | 每轮追溯  | 网页搜索约 0.034 美元一次 |
 
 ## 开源项目

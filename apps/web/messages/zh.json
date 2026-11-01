@@ -1091,7 +1091,8 @@
       "entertainment": "娱乐",
       "news": "新闻",
       "shopping": "购物",
-      "other": "其他"
+      "other": "其他",
+      "generic": "普通词"
     },
     "verdict": {
       "worth": "值得做",
@@ -1100,7 +1101,8 @@
     },
     "buildAs": {
       "new_site": "新站首页",
-      "inner_page": "做内页"
+      "inner_page": "做内页",
+      "long_tail": "只做长尾"
     },
     "reason": {
       "no_dedicated": "前两页专门针对此词的页面为 0",
@@ -1115,7 +1117,8 @@
       "excluded": "不是网页工具或不合规（线下服务、购物或下载别人的内容），不做",
       "spike": "近 7 天的量集中在一天，是单日尖峰，最多做内页",
       "official": "另有 {value} 个官方或平台页面（作者自己的站、Hugging Face、GitHub、应用商店等），不算竞争",
-      "category": "分类为「{value}」，不是模型、游戏或工具，不做"
+      "category": "分类为「{value}」，不是模型、游戏或工具，不做",
+      "crowded": "这个词本身已被大站占满，但它的价格、对比、怎么用这些长尾还可以做"
     },
     "breadcrumb": "位置",
     "home": "首页",
@@ -1216,7 +1219,8 @@
       "itch_io": "itch.io 新游戏",
       "trending_now": "Google Trending Now",
       "show_hn": "Show HN 新产品",
-      "product_hunt": "Product Hunt 新产品"
+      "product_hunt": "Product Hunt 新产品",
+      "github": "GitHub 新仓库"
     },
     "originAnswer": "搜索结论",
     "stageFilter": "按阶段筛选",
@@ -1264,7 +1268,21 @@
     "rootRising": "{root} 的上升词",
     "priority": "优先级 {n}",
     "released": "{date} 发布",
-    "officialTag": "官方或平台，不算竞争"
+    "officialTag": "官方或平台，不算竞争",
+    "direction": {
+      "tool": "在线工具",
+      "tutorial": "教程",
+      "calculator": "计算器",
+      "comparison": "对比页",
+      "alternatives": "替代品",
+      "templates": "模板库",
+      "collection": "合集站"
+    },
+    "directionTag": "方向：{direction}",
+    "copyrightRisk": "版权风险",
+    "copyrightRiskNote": "可能涉及版权：模拟器、游戏移植、破解或别人的内容。做之前先确认。",
+    "longTailsTitle": "可以做的长尾",
+    "longTailsBody": "这个词本身竞争大，从谷歌联想里取它的对比、价格、怎么用"
   },
   "research": {
     "metaTitle": "研究",

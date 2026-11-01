@@ -71,6 +71,9 @@ export const NAME_SOURCES = [
   "hugging_face",
   "itch_io",
   "trending_now",
+  "show_hn",
+  "product_hunt",
+  "github",
 ] as const;
 
 /** A free list ("source:itch_io"), a root's Google suggestion ("suggest:x") or a rising root. */

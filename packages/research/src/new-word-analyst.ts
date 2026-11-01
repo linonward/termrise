@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { NEW_WORD_CATEGORIES } from "@repo/db/schema";
+import { NEW_WORD_CATEGORIES, NEW_WORD_DIRECTIONS } from "@repo/db/schema";
 
 import type { Charged } from "./keyword-provider";
 
@@ -12,6 +12,10 @@ export const newWordAnalysisSchema = z.object({
   about: z.string().min(1).max(200),
   userWants: z.string().min(1).max(200),
   plan: z.string().min(1).max(200),
+  /** The kind of page to build (S76). */
+  direction: z.enum(NEW_WORD_DIRECTIONS),
+  /** Emulators, game ports, cracks, someone else's content (S76). */
+  copyrightRisk: z.boolean(),
 });
 export type NewWordAnalysis = z.infer<typeof newWordAnalysisSchema>;
 
@@ -22,7 +26,7 @@ export type NewWordContext = {
   /** Titles of the top results: what the web already says about it. */
   titles: string[];
   /** The rule's advice, so the plan matches it. */
-  buildAs: "new_site" | "inner_page" | null;
+  buildAs: "new_site" | "inner_page" | "long_tail" | null;
 };
 
 export interface NewWordAnalyst {
@@ -35,7 +39,7 @@ export interface NewWordAnalyst {
   analyze(context: NewWordContext): Promise<Charged<unknown>>;
 }
 
-/** Classes worth a screen: names of models and games, and tools (S75). */
+/** Classes worth a screen: names of models and games, and tools (S75). "generic" is not. */
 export const BUILDABLE_CATEGORIES = ["ai", "game", "tool"] as const;
 
 export const newWordClassesSchema = z.object({
@@ -57,8 +61,13 @@ export interface NewWordClassifier {
   promptVersion: string;
   /** The most one batch of up to CLASSIFY_BATCH phrases can cost. */
   maxCostMicros: number;
-  /** Raw output; the caller validates it with newWordClassesSchema. */
-  classify(phrases: string[]): Promise<Charged<unknown>>;
+  /**
+   * Raw output; the caller validates it with newWordClassesSchema. A source says where a
+   * name came from (product_hunt...): a launch, so only a common word is "generic".
+   */
+  classify(
+    items: { phrase: string; source: string | null }[],
+  ): Promise<Charged<unknown>>;
 }
 
 /** Phrases sorted in one call. */

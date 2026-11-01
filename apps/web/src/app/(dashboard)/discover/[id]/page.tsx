@@ -117,6 +117,9 @@ export default async function NewWordPage({
         <div className="space-y-3">
           <VerdictLine word={w} />
           <VerdictReasons reasons={w.reasons} as="list" />
+          {w.copyrightRisk && (
+            <p className="text-[15px] text-warning">{t("copyrightRiskNote")}</p>
+          )}
           {w.selectedAt ? (
             <p className="text-[15px] font-medium">
               {t("selected", { date: w.selectedAt.slice(0, 10) })}
@@ -319,6 +322,28 @@ export default async function NewWordPage({
             {t("captureBody")}
           </p>
         </header>
+        {w.tails.length > 0 && (
+          <section aria-labelledby="long-tails" className="space-y-3">
+            <h3 id="long-tails" className="text-[15px] font-semibold">
+              {t("longTailsTitle")}{" "}
+              <span className="text-[13px] font-normal text-muted-foreground">
+                {t("longTailsBody")}
+              </span>
+            </h3>
+            <div className={card}>
+              <ul className="flex flex-wrap gap-2">
+                {w.tails.map((tail) => (
+                  <li
+                    key={tail}
+                    className="rounded-md bg-surface-strong px-3 py-1.5 text-[15px]"
+                  >
+                    {tail}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
         <section aria-labelledby="tails" className="space-y-3">
           <h3 id="tails" className="text-[15px] font-semibold">
             {t("tailsTitle")}

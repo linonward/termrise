@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   createHuggingFaceNames,
+  createGitHubNames,
   createItchNames,
   createProductHuntNames,
+  githubName,
   createShowHnNames,
   gamePhrase,
   modelPhrase,
@@ -185,6 +187,63 @@ describe("showHnName", () => {
     expect(showHnName("Show HN: I made a game in a week")).toBeNull();
     expect(showHnName("Show HN: A faster way to read papers")).toBeNull();
     expect(showHnName("Show HN: My weekend project")).toBeNull();
+  });
+});
+
+describe("product names", () => {
+  it("drops the platform it runs in and puts the maker first", () => {
+    expect(showHnName("Floot in ChatGPT")).toBe("floot");
+    expect(showHnName("Sheetify for Google Sheets")).toBe("sheetify");
+    expect(showHnName("MCP Server by XWiki")).toBe("xwiki mcp server");
+    expect(showHnName("Notes for students")).toBe("notes for students");
+  });
+});
+
+describe("githubName", () => {
+  it("makes a search phrase from a repository, not from lists and courses", () => {
+    expect(githubName("someone/unslop")).toBe("unslop");
+    expect(githubName("acme/open-lovable_v2")).toBe("open lovable v2");
+    expect(githubName("x/awesome-mcp-servers")).toBeNull();
+    expect(githubName("x/llm-course")).toBeNull();
+    expect(githubName("x/dotfiles")).toBeNull();
+  });
+
+  it("reads repositories created in the last week by stars, with the token", async () => {
+    const seen: { url: string; init: RequestInit }[] = [];
+    const gh = createGitHubNames({
+      token: "t",
+      now: () => new Date("2026-11-01T00:00:00Z"),
+      fetch: (async (url: string, init: RequestInit) => {
+        seen.push({ url, init });
+        return Response.json({
+          items: [
+            {
+              full_name: "a/unslop",
+              stargazers_count: 2400,
+              created_at: "2026-10-28T00:00:00Z",
+            },
+            {
+              full_name: "b/awesome-things",
+              stargazers_count: 900,
+              created_at: "2026-10-28T00:00:00Z",
+            },
+            {
+              full_name: "c/tiny-agent",
+              stargazers_count: 300,
+              created_at: "2026-10-29T00:00:00Z",
+            },
+          ],
+        });
+      }) as unknown as typeof fetch,
+    });
+    expect(await gh.names(10)).toEqual([
+      { name: "unslop", heat: 3, releasedAt: "2026-10-28T00:00:00Z" },
+      { name: "tiny agent", heat: 2, releasedAt: "2026-10-29T00:00:00Z" },
+    ]);
+    expect(decodeURIComponent(seen[0].url)).toContain("created:>2026-10-25");
+    expect(new Headers(seen[0].init.headers).get("authorization")).toBe(
+      "Bearer t",
+    );
   });
 });
 

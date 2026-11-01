@@ -59,6 +59,7 @@ import {
   serpMix,
 } from "./new-word-origin";
 import {
+  type BuildAs,
   type CurveFacts,
   curveFacts,
   dedicatedPages,
@@ -220,13 +221,18 @@ const SOURCE_CATEGORY: Record<string, NewWordCategory> = {
   "source:itch_io": "game",
   "source:show_hn": "tool",
   "source:product_hunt": "tool",
+  "source:github": "tool",
 };
-/** A name released longer ago than this is not new: it is not added (S75). */
-export const MAX_NAME_AGE_DAYS = 60;
+/** A name released longer ago than this is not new: it is not added (S75; 30 since S76). */
+export const MAX_NAME_AGE_DAYS = 30;
+/** Long tails kept for a crowded word. */
+const LONG_TAILS = 15;
+/** Each other kind of source a word shows up in adds 1, up to this (S76). */
+const MAX_SOURCE_BONUS = 2;
 
 /**
- * Freshness from the release time (S75): 3 within a week, 2 within two, 1 within a month,
- * 0 within MAX_NAME_AGE_DAYS; null when older. Unknown is 1.
+ * Freshness from the release time (S75): 3 within a week, 2 within two, 1 within
+ * MAX_NAME_AGE_DAYS; null when older. Unknown is 1.
  */
 export function freshness(releasedAt: string | null, at: Date) {
   if (!releasedAt) return 1;
@@ -234,7 +240,7 @@ export function freshness(releasedAt: string | null, at: Date) {
   if (Number.isNaN(t)) return 1;
   const days = (at.getTime() - t) / DAY_MS;
   if (days > MAX_NAME_AGE_DAYS) return null;
-  return days <= 7 ? 3 : days <= 14 ? 2 : days <= 30 ? 1 : 0;
+  return days <= 7 ? 3 : days <= 14 ? 2 : 1;
 }
 
 /** A rising query's heat from its growth: breakout (5000%+) 3, 500%+ 2, else 1. */
@@ -512,14 +518,15 @@ export function createNewWords(deps: {
         lastSeenAt: now(),
         nextCheckAt: now(),
         priority: rank.priority,
+        basePriority: rank.priority,
         releasedOn: rank.releasedOn ?? null,
       })
       .onConflictDoUpdate({
         target: newWords.phrase,
         set: {
           lastSeenAt: now(),
-          // The highest seen: a name hot on a second source moves up.
-          priority: sql`greatest(coalesce(${newWords.priority}, 0), excluded.priority)`,
+          // The highest one source gave; the bonus for more sources is added below.
+          basePriority: sql`greatest(coalesce(${newWords.basePriority}, 0), excluded.base_priority)`,
           releasedOn: sql`coalesce(${newWords.releasedOn}, excluded.released_on)`,
         },
       })
@@ -533,6 +540,16 @@ export function createNewWords(deps: {
         target: [newWordRoots.wordId, newWordRoots.root],
         set: { growth, seenAt: now() },
       });
+    // Seen in more kinds of places (a list, Trending Now, a rising root, a suggestion):
+    // more likely to be a real new search.
+    await database.execute(sql`
+      update ${newWords} set priority = coalesce(base_priority, 0) + least(${MAX_SOURCE_BONUS}, greatest(0, (
+        select count(distinct case
+          when root like 'source:%' then root
+          when root like 'suggest:%' then 'suggest'
+          else 'rising' end) - 1
+        from ${newWordRoots} where word_id = ${word.id})))
+      where id = ${word.id}`);
   }
 
   /** The roots scanned longest ago (never scanned first), in list order on a tie. */
@@ -654,6 +671,29 @@ export function createNewWords(deps: {
     report.suggestions = added;
   }
 
+  /**
+   * Google's suggestions for a crowded word, and for its comparisons, pricing and how-tos:
+   * the long tails a site can still win (S76). Free; empty without suggestions.
+   */
+  async function longTails(phrase: string) {
+    const suggest = deps.autocomplete;
+    if (!suggest) return [];
+    const found = new Set<string>();
+    for (const q of [
+      phrase,
+      `${phrase} vs`,
+      `${phrase} price`,
+      `how to use ${phrase}`,
+    ]) {
+      for (const p of await suggest(q).catch(() => [] as string[])) {
+        const tail = normalizePhrase(p);
+        if (tail && tail !== phrase && tail.includes(phrase)) found.add(tail);
+      }
+      if (deps.suggestDelayMs) await sleep(deps.suggestDelayMs);
+    }
+    return [...found].slice(0, LONG_TAILS);
+  }
+
   async function newSitesOf(serp: SerpItem[]) {
     if (!deps.rdap) return null;
     const domains = [
@@ -678,7 +718,7 @@ export function createNewWords(deps: {
     round: PoolRound,
     word: NewWord,
     serp: SerpItem[],
-    buildAs: "new_site" | "inner_page" | null,
+    buildAs: BuildAs | null,
   ) {
     const { analyst, budget } = deps;
     if (!analyst || !budget) return null;
@@ -831,6 +871,8 @@ export function createNewWords(deps: {
       spike: facts.spike,
     });
     const newSites = await newSitesOf(serp);
+    const tails =
+      verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     const analysis = word.about
       ? null
       : await analyse(round, word, serp, verdict.buildAs);
@@ -848,6 +890,7 @@ export function createNewWords(deps: {
           title,
         })),
         ...(newSites && { newSites }),
+        ...(tails && { tails }),
         verdict: verdict.verdict,
         buildAs: verdict.buildAs,
         reasons: verdict.reasons,
@@ -882,10 +925,18 @@ export function createNewWords(deps: {
           words.map((w) => w.id),
         ),
       );
+    // A one-word name may be a common word ("radar"): the AI decides, told its source.
+    const oneWord = new Set(
+      words.filter((w) => !w.phrase.includes(" ")).map((w) => w.id),
+    );
     const bySource = new Map<string, NewWordCategory>();
+    const sourceOf = new Map<string, string>();
     for (const r of roots) {
       const category = SOURCE_CATEGORY[r.root];
-      if (category && !bySource.has(r.wordId)) bySource.set(r.wordId, category);
+      if (!category) continue;
+      if (!sourceOf.has(r.wordId)) sourceOf.set(r.wordId, r.root.slice(7));
+      if (!oneWord.has(r.wordId) && !bySource.has(r.wordId))
+        bySource.set(r.wordId, category);
     }
     for (const [id, category] of bySource) {
       await database
@@ -908,7 +959,13 @@ export function createNewWords(deps: {
           operation: "classify",
           maxCostMicros: classifier.maxCostMicros,
         },
-        () => classifier.classify(batch.map((w) => w.phrase)),
+        () =>
+          classifier.classify(
+            batch.map((w) => ({
+              phrase: w.phrase,
+              source: sourceOf.get(w.id) ?? null,
+            })),
+          ),
       );
       if (!charged) break;
       const parsed = newWordClassesSchema.safeParse(charged.value);

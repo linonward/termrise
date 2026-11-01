@@ -82,6 +82,9 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
         },
       ],
       originCheckedAt: new Date(),
+      direction: "tool",
+      copyrightRisk: true,
+      tails: [`${phrase} vs photoshop`],
       serp: [
         {
           rank: 1,
@@ -128,6 +131,8 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   await expect(row).toContainText("起因：2026-10-14 Hugging Face 上发布");
   await expect(row).toContainText("10/12 出现 · 10/14 起量");
   await expect(row).toContainText("自身近 7 天 +3,450%");
+  await expect(row).toContainText("方向：在线工具");
+  await expect(row).toContainText("版权风险");
   await page.goto(`/discover/${word.id}`);
   await expect(
     page.getByRole("heading", { level: 2, name: "起因" }),
@@ -135,6 +140,10 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   await expect(page.getByText("做在线试用页。")).toBeVisible();
   // The model's own page on Hugging Face is listed, not counted as competition.
   await expect(page.getByText("官方或平台，不算竞争")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 3, name: /可以做的长尾/ }),
+  ).toBeVisible();
+  await expect(page.getByText(`${phrase} vs photoshop`)).toBeVisible();
   for (const name of ["热度与走势", "竞争", "承接"])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
   await expect(

@@ -19,6 +19,7 @@ import { createFakeSeedExtractor } from "@repo/research/adapters/fake-seeds";
 import { createGoogleAutocomplete } from "@repo/research/adapters/google-autocomplete";
 import {
   createHuggingFaceNames,
+  createGitHubNames,
   createItchNames,
   createProductHuntNames,
   createShowHnNames,
@@ -134,6 +135,7 @@ export function createNameSources(env: WorkerEnv) {
         createHuggingFaceNames(),
         createItchNames(),
         createShowHnNames(),
+        createGitHubNames({ token: env.GITHUB_TOKEN }),
         createTrendingNow(),
         ...(env.PRODUCT_HUNT_TOKEN
           ? [createProductHuntNames({ token: env.PRODUCT_HUNT_TOKEN })]

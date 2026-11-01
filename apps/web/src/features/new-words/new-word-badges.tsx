@@ -16,6 +16,19 @@ export function WordTags({ word }: { word: NewWordDto }) {
       {word.origin?.type && word.origin.type !== "unknown" && (
         <Tag tone="brand">{t(`origin.${word.origin.type}`)}</Tag>
       )}
+      {word.direction && (
+        <Tag>
+          {t("directionTag", { direction: t(`direction.${word.direction}`) })}
+        </Tag>
+      )}
+      {word.copyrightRisk && (
+        <span
+          title={t("copyrightRiskNote")}
+          className="inline-flex h-5 items-center rounded-full bg-warning-soft px-2 text-xs font-semibold text-warning"
+        >
+          {t("copyrightRisk")}
+        </span>
+      )}
       {word.isNew && <Tag tone="brand">{t("tagNew")}</Tag>}
       {word.rising && (
         <span className="inline-flex h-5 items-center rounded-full bg-success-soft px-2 text-xs font-semibold text-success">

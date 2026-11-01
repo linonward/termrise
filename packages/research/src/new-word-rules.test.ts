@@ -257,3 +257,25 @@ it("judges a screened-out word without search results, and caps a spike at try",
     }),
   ).toMatchObject({ verdict: "try", buildAs: "inner_page" });
 });
+
+it("leaves a hot word that is already crowded to its long tails", () => {
+  const crowded = newWordVerdict({
+    phrase: "gemini 4 carbon",
+    ratio: 0.8,
+    dedicated: 9,
+    rising: true,
+    isNew: true,
+  });
+  expect(crowded).toMatchObject({ verdict: "try", buildAs: "long_tail" });
+  expect(crowded.reasons).toContainEqual({ code: "crowded" });
+  // Not when it no longer rises.
+  expect(
+    newWordVerdict({
+      phrase: "x",
+      ratio: 0.8,
+      dedicated: 9,
+      rising: false,
+      isNew: false,
+    }).verdict,
+  ).toBe("skip");
+});

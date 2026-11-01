@@ -215,10 +215,13 @@ it("keeps the burst day of the first measurement while the peak grows", async ()
   expect(before.word.burstDay).toBe("2026-10-28");
   // The next day the word jumps: 10% of the new peak is reached only on 10-30,
   // which a fresh reading would take as the burst.
-  provider.trendCompare = async () => ({
+  // Each compared word gets a column; only this one jumps, the reference is last.
+  provider.trendCompare = async (phrases) => ({
     value: Array.from({ length: 30 }, (_, i) => ({
       at: new Date(Date.UTC(2026, 9, 2 + i)).toISOString().slice(0, 10),
-      values: [i < 26 ? 0 : i < 28 ? 1 : 100, 40],
+      values: phrases.map((p) =>
+        p === "gpts" ? 40 : p === phrase ? (i < 26 ? 0 : i < 28 ? 1 : 100) : 0,
+      ),
     })),
     costMicros: 10_000,
   });
@@ -361,7 +364,7 @@ it("screens up to four words per comparison and deep-checks only those that pass
     verdict: "skip",
     dedicatedPages: null,
     serp: null,
-    rules: "newword-v3",
+    rules: "newword-v4",
   });
   expect(cold.reasons).toEqual(
     expect.arrayContaining([expect.objectContaining({ code: "cold" })]),
@@ -754,7 +757,7 @@ it("screens the hottest and newest names first, and leaves out names released lo
       {
         name: "hugging_face",
         names: async () => [
-          name("old model", 3, 90),
+          name("old model", 3, 40),
           name("cold new", 1, 1),
           name("hot week", 3, 10),
           name("hot new", 3, 1),
@@ -804,10 +807,12 @@ it("drops people, matches and news before paying for the screen", async () => {
         ],
       },
       {
-        // A launch is a product by its source, whatever its name says.
+        // A launch is a product by its source, whatever its name says; a one-word name
+        // goes to the classifier, which can tell a common word.
         name: "show_hn",
         names: async () => [
           { name: "parade planner", heat: 2, releasedAt: null },
+          { name: "radar", heat: 3, releasedAt: null },
         ],
       },
     ],
@@ -816,7 +821,10 @@ it("drops people, matches and news before paying for the screen", async () => {
   });
   await w.scheduleDaily(0);
   const done = await w.run((await w.claim())!);
-  expect(done.report).toMatchObject({ classified: 3, dropped: 1, screened: 2 });
+  expect(done.report).toMatchObject({ classified: 4, dropped: 2, screened: 2 });
+  expect(
+    (await w.list({ stage: "skip" })).items.map((i) => i.word.phrase).sort(),
+  ).toEqual(["nyc halloween parade", "radar"]);
   const { items } = await w.list({});
   const parade = items.find((i) => i.word.phrase === "nyc halloween parade")!;
   expect(parade.word).toMatchObject({
@@ -831,4 +839,98 @@ it("drops people, matches and news before paying for the screen", async () => {
   const usage = await db.select().from(apiUsage);
   expect(usage.filter((u) => u.operation === "classify")).toHaveLength(1);
   expect(usage.filter((u) => u.operation === "compare")).toHaveLength(1);
+});
+
+it("ranks a word seen in more kinds of places higher", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    nameSources: [
+      {
+        name: "product_hunt",
+        names: async () => [
+          { name: "floot", heat: 2, releasedAt: null },
+          { name: "solo", heat: 2, releasedAt: null },
+        ],
+      },
+      {
+        name: "show_hn",
+        names: async () => [{ name: "floot", heat: 1, releasedAt: null }],
+      },
+      {
+        name: "trending_now",
+        names: async () => [{ name: "floot", heat: 1, releasedAt: null }],
+      },
+    ],
+    screensPerDay: 0,
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const { items } = await w.list({});
+  const of = (p: string) => items.find((i) => i.word.phrase === p)!.word;
+  // Its best source gave 3 (heat 2, unknown date 1); two more kinds of place add 2.
+  expect(of("floot")).toMatchObject({ basePriority: 3, priority: 5 });
+  expect(of("solo")).toMatchObject({ basePriority: 3, priority: 3 });
+});
+
+it("gives a hot word that is already crowded its long tails to build", async () => {
+  const provider = stub();
+  provider.serp = async (phrase, _m, depth) => ({
+    value: Array.from({ length: depth ?? 10 }, (_, i) => ({
+      rank: i + 1,
+      url: `https://media${i}.com/${phrase.replaceAll(" ", "-")}`,
+      site: `media${i}.com`,
+      title: `${phrase} review`,
+      type: "organic",
+    })),
+    costMicros: 10_000,
+  });
+  const asked: string[] = [];
+  const w = createNewWords({
+    database: db,
+    provider,
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai"],
+    autocomplete: async (q) => {
+      asked.push(q);
+      return q.endsWith(" vs")
+        ? [`${q} chatgpt`, `${q} claude`]
+        : q.startsWith("how to use")
+          ? [q]
+          : [];
+    },
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const word = (await w.list({})).items.find(
+    (i) => i.word.phrase === "ai impacts theoretical computer science",
+  )!.word;
+  expect(word).toMatchObject({
+    verdict: "try",
+    buildAs: "long_tail",
+    direction: "comparison",
+    copyrightRisk: false,
+  });
+  expect(word.tails).toEqual([
+    "ai impacts theoretical computer science vs chatgpt",
+    "ai impacts theoretical computer science vs claude",
+    "how to use ai impacts theoretical computer science",
+  ]);
+  expect(asked).toContain("ai impacts theoretical computer science price");
 });
