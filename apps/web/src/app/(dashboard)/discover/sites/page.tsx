@@ -1,15 +1,18 @@
 import { Globe, SearchX } from "lucide-react";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { LaunchSiteDto } from "@repo/research/launch-site-dto";
 import { Tag } from "@repo/ui/components/badge";
-import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { DiscoverHeader } from "@/features/discover/discover-header";
+import {
+  FilterChips,
+  RoundDot,
+  TabIntro,
+} from "@/features/discover/filter-chips";
 import { HideSite } from "@/features/launch-sites/hide-site";
-import { DiscoverTabs } from "@/features/new-words/discover-tabs";
 import { apiGet } from "@/server/api/api";
 
 const MOTIVES = [
@@ -55,41 +58,12 @@ export default async function LaunchSitesPage({
     });
     return `/discover/sites${p.size ? `?${p}` : ""}`;
   };
-  const tab = (key: Motive | undefined, label: string, n: number) => (
-    <Link
-      key={key ?? "all"}
-      href={href({ motive: key })}
-      aria-current={motive === key ? "page" : undefined}
-      className={cn(
-        "shrink-0 border-b-2 px-1 pb-2 text-[15px] whitespace-nowrap",
-        motive === key
-          ? "border-brand font-semibold text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label} <span className="font-mono text-[13px] tabular-nums">{n}</span>
-    </Link>
-  );
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("sitesTitle")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">
-          {t("sitesSubtitle")}
-        </p>
-        <p className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-          <span
-            aria-hidden="true"
-            className={cn(
-              "size-2 rounded-full",
-              data.lastRound?.status === "completed"
-                ? "bg-success"
-                : "bg-warning",
-            )}
-          />
+      <DiscoverHeader current="sites">
+        <TabIntro intro={t("sitesIntro")}>
+          <RoundDot ok={data.lastRound?.status === "completed"} />
           {t("sitesSchedule")}
           {data.lastRound && (
             <>
@@ -100,17 +74,19 @@ export default async function LaunchSitesPage({
           )}
           {" · "}
           {t("sitesTotal", { n: all })}
-        </p>
-      </header>
-      <DiscoverTabs current="sites" />
+        </TabIntro>
+      </DiscoverHeader>
 
-      <nav
-        aria-label={t("motiveFilter")}
-        className="-mx-5 flex gap-6 overflow-x-auto px-5 md:mx-0 md:px-0"
-      >
-        {tab(undefined, t("all"), all)}
-        {MOTIVES.map((m) => tab(m, t(`motive.${m}`), data.counts[m] ?? 0))}
-      </nav>
+      <FilterChips
+        label={t("motiveFilter")}
+        chips={[undefined, ...MOTIVES].map((m) => ({
+          key: m ?? "all",
+          label: m ? t(`motive.${m}`) : t("all"),
+          n: m ? (data.counts[m] ?? 0) : all,
+          href: href({ motive: m }),
+          active: motive === m,
+        }))}
+      />
 
       <form role="search" className="flex flex-wrap items-center gap-3">
         {motive && <input type="hidden" name="motive" value={motive} />}

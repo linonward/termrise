@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 
 import { createCreditService } from "@repo/credits/credit-service";
 import {
+  newWordRoots,
   newWords,
   platformSiteMonths,
   poolChecks,
@@ -83,11 +84,33 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
       originCheckedAt: new Date(),
     })
     .returning();
+  const fresh = `fresh name ${randomUUID().slice(0, 6)}`;
+  const [unscreened] = await testDb()
+    .insert(newWords)
+    .values({ phrase: fresh })
+    .returning();
+  await testDb()
+    .insert(newWordRoots)
+    .values({ wordId: unscreened.id, root: "source:itch_io" });
   await page.goto("/discover");
-  await page
-    .getByRole("navigation", { name: "按起因筛选" })
-    .getByRole("link", { name: "新模型" })
-    .click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "发现" }),
+  ).toBeVisible();
+  const stages = page.getByRole("navigation", { name: "按阶段筛选" });
+  // Words waiting for a decision come first; the rest of the pipeline is a click away.
+  await expect(stages.getByRole("link", { name: /待你决定/ })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await stages.getByRole("link", { name: /待初筛/ }).click();
+  await expect(page).toHaveURL(/stage=screen/);
+  await expect(
+    page.getByTestId("new-word-row").filter({ hasText: fresh }),
+  ).toContainText("来自 itch.io 新游戏");
+  await stages.getByRole("link", { name: /待你决定/ }).click();
+  await expect(page).toHaveURL(/\/discover$/);
+  await page.getByLabel("按起因筛选").selectOption("model_release");
+  await page.getByRole("button", { name: "应用" }).click();
   await expect(page).toHaveURL(/origin=model_release/);
   const row = page.getByTestId("new-word-row").filter({ hasText: phrase });
   await expect(row).toContainText("起因：2026-10-14 Hugging Face 上发布");
@@ -98,6 +121,14 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
     page.getByRole("heading", { level: 2, name: "起因" }),
   ).toBeVisible();
   await expect(page.getByText("做在线试用页。")).toBeVisible();
+  for (const name of ["热度与走势", "竞争", "承接"])
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "在谷歌趋势里打开" }),
+  ).toHaveAttribute("href", /^https:\/\/trends\.google\.com\/explore\?q=/);
+  await page.getByRole("link", { name: "新词 · 待你决定" }).click();
+  await expect(page).toHaveURL(/\/discover$/);
+  await page.goto(`/discover/${word.id}`);
   const evidence = page.getByTestId("origin-evidence");
   await expect(evidence).toContainText("最早");
   await expect(evidence).toContainText("1,200 赞");
@@ -174,11 +205,16 @@ test("platform sites list monthly visits and can be hidden", async ({
     .insert(platformSiteMonths)
     .values({ siteId: site.id, month, etv: 987_654 });
   await page.goto("/discover");
-  await page.getByRole("link", { name: "平台站" }).click();
+  await page
+    .getByRole("navigation", { name: "发现分类" })
+    .getByRole("link", { name: /平台站/ })
+    .click();
   await expect(page).toHaveURL(/\/discover\/platforms$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "平台站" }),
-  ).toBeVisible();
+    page
+      .getByRole("navigation", { name: "发现分类" })
+      .getByRole("link", { name: /平台站/ }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("columnheader", { name: month })).toBeVisible();
   const row = page.getByTestId("platform-site-row").filter({ hasText: name });
   await expect(row).toContainText("cipher decoder");

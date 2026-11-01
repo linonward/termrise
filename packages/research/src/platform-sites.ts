@@ -563,5 +563,19 @@ export function createPlatformSites(deps: {
     return site;
   }
 
-  return { scheduleEvery, failStale, claim, run, list, hide };
+  /** What the discover tab counts: sites with traffic, not hidden. */
+  async function visibleCount() {
+    const [{ n }] = await database
+      .select({ n: count() })
+      .from(platformSites)
+      .where(
+        and(
+          isNull(platformSites.hiddenAt),
+          gte(platformSites.etv, PLATFORM_MIN_ETV),
+        ),
+      );
+    return n;
+  }
+
+  return { scheduleEvery, failStale, claim, run, list, hide, visibleCount };
 }

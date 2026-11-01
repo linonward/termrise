@@ -322,3 +322,39 @@ it("queues a recheck of one keyword", async () => {
     (await send("POST", "/api/pool/keywords/not-a-uuid/recheck", {})).status,
   ).toBe(404);
 });
+
+it("counts what each discover tab shows", async () => {
+  const { testDb } = await import("@repo/db/testing/db");
+  const { launchSites, newWords, platformSites } =
+    await import("@repo/db/schema");
+  const db = testDb();
+  await db
+    .insert(newWords)
+    .values([
+      { phrase: "cipher decoder" },
+      { phrase: "old word", hiddenAt: new Date() },
+    ]);
+  await db.insert(launchSites).values({
+    source: "hacker_news",
+    sourceId: "102",
+    sourceUrl: "https://news.ycombinator.com/item?id=102",
+    site: "cursedcam.com",
+    url: "https://cursedcam.com",
+    postTitle: "Cursed Cam",
+  });
+  await db.insert(platformSites).values([
+    {
+      host: "a.vercel.app",
+      platform: "vercel.app",
+      firstCrawl: "C",
+      etv: 1800,
+    },
+    // No traffic yet: not on the tab.
+    { host: "b.vercel.app", platform: "vercel.app", firstCrawl: "C", etv: 0 },
+  ]);
+  expect(await (await send("GET", "/api/pool/discover")).json()).toEqual({
+    words: 1,
+    sites: 1,
+    platforms: 1,
+  });
+});

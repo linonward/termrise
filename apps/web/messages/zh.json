@@ -1065,8 +1065,6 @@
   },
   "newWords": {
     "metaTitle": "新词",
-    "title": "新词",
-    "subtitle": "刚在 Google 上冒头的词：和 GPTs 比热度，看前两页有没有人专门做，判断值不值得做、做新站还是做内页。",
     "filter": "按结论筛选",
     "all": "全部",
     "hidden": "已隐藏",
@@ -1213,9 +1211,53 @@
     "spike": "单日尖峰",
     "nameSource": {
       "hugging_face": "Hugging Face 热门模型",
-      "itch_io": "itch.io 新游戏"
+      "itch_io": "itch.io 新游戏",
+      "trending_now": "Google Trending Now"
     },
-    "originAnswer": "搜索结论"
+    "originAnswer": "搜索结论",
+    "stageFilter": "按阶段筛选",
+    "stage": {
+      "decide": "待你决定",
+      "check": "待深查",
+      "screen": "待初筛",
+      "skip": "不建议",
+      "hidden": "已隐藏"
+    },
+    "stageHint": {
+      "decide": "结论为值得做或可以试试的词，值得做在前。选定一个就去建站。",
+      "check": "初筛通过，等着查谷歌前两页和搜索量。每天按深查额度查，热度高的先查。",
+      "screen": "刚从各来源扫到，还没和 GPTs 比过热度。每天按初筛额度，新扫到的先筛。",
+      "skip": "初筛或深查没通过：太冷、已经不再上升，或者前两页已经有人专门做。",
+      "hidden": "你隐藏的词，不在其他阶段里出现。"
+    },
+    "stageEmpty": {
+      "decide": "还没有待你决定的词",
+      "check": "没有等着深查的词",
+      "screen": "没有等着初筛的词",
+      "skip": "没有不建议的词",
+      "hidden": "没有隐藏的词"
+    },
+    "stageEmptyBody": "Worker 会继续扫描和检查，有新的会出现在这里。",
+    "searchPlaceholder": "搜新词",
+    "search": "搜索",
+    "apply": "应用",
+    "noMatchTitle": "没有匹配的词",
+    "noMatchBody": "请换一个搜索词或起因。",
+    "lastRound": "最近一轮",
+    "fromSources": "来自 {sources}",
+    "pages": "分页",
+    "prev": "上一页",
+    "next": "下一页",
+    "pageOf": "第 {page} 页，共 {pages} 页",
+    "discover": "发现",
+    "tabWords": "新词",
+    "heatTitle": "热度与走势",
+    "competitionTitle": "竞争",
+    "competitionBody": "谷歌前两页有没有人专门做、首页有没有新站、搜索量多少",
+    "captureTitle": "承接",
+    "captureBody": "一个词做一个页面：它的长尾做内页，它冒出来的词根下的站也可以加内页",
+    "rootSuggest": "{root} 的谷歌联想",
+    "rootRising": "{root} 的上升词"
   },
   "research": {
     "metaTitle": "研究",
@@ -1706,8 +1748,6 @@
       "platforms": "平台站"
     },
     "sitesMetaTitle": "新站",
-    "sitesTitle": "新站",
-    "sitesSubtitle": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
     "sitesSchedule": "每 6 小时抓一次",
     "sitesLastRound": "最近一次",
     "sitesTotal": "共 {n} 个",
@@ -1753,8 +1793,6 @@
     "show": "重新显示 {site}",
     "hideFailed": "没有成功，请再试一次",
     "platformsMetaTitle": "平台站",
-    "platformsTitle": "平台站",
-    "platformsSubtitle": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。",
     "platformsSchedule": "每天查一批",
     "platformsProgress": "已收录 {known} 个子站，查过 {checked} 个",
     "platformFilter": "按平台筛选",
@@ -1775,6 +1813,11 @@
     "prev": "上一页",
     "next": "下一页",
     "pageOf": "第 {page} 页，共 {pages} 页",
-    "noTitle": "没有标题"
+    "noTitle": "没有标题",
+    "title": "发现",
+    "subtitle": "刚在 Google 上冒头的词、作者刚发布的新站、免费平台上已经有自然流量的站。",
+    "wordsIntro": "刚冒头的词：先和 GPTs 比热度（初筛），通过的再看谷歌前两页有没有人专门做（深查），最后给出结论。",
+    "sitesIntro": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
+    "platformsIntro": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。"
   }
 }

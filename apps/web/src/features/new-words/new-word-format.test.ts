@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   discoveryLag,
@@ -6,8 +6,11 @@ import {
   lagMessage,
   linePoints,
   monthDay,
+  rootSource,
   times,
+  trendsUrl,
   verdictReason,
+  wordStage,
 } from "./new-word-format";
 
 it("formats heat, dates and ages", () => {
@@ -47,4 +50,39 @@ it("writes the 7-day growth as a percent", () => {
   expect(growthPct(34.5)).toBe("+3,450%");
   expect(growthPct(-0.25)).toBe("-25%");
   expect(growthPct(0)).toBe("+0%");
+});
+
+describe("wordStage", () => {
+  const word = (w: Partial<Parameters<typeof wordStage>[0]>) => ({
+    verdict: null,
+    ratio: null,
+    hidden: false,
+    ...w,
+  });
+  it("puts a word where the list shows it", () => {
+    expect(wordStage(word({}))).toBe("screen");
+    expect(wordStage(word({ ratio: 0.4 }))).toBe("check");
+    expect(wordStage(word({ ratio: 0.4, verdict: "worth" }))).toBe("decide");
+    expect(wordStage(word({ ratio: 0.4, verdict: "try" }))).toBe("decide");
+    expect(wordStage(word({ verdict: "skip" }))).toBe("skip");
+    expect(wordStage(word({ verdict: "worth", hidden: true }))).toBe("hidden");
+  });
+});
+
+describe("rootSource", () => {
+  it("names the free lists and keeps search roots as they are", () => {
+    expect(rootSource("source:trending_now")).toEqual({
+      source: "trending_now",
+    });
+    expect(rootSource("calculator")).toEqual({ root: "calculator" });
+    expect(rootSource("suggest:calculator")).toEqual({ suggest: "calculator" });
+  });
+});
+
+describe("trendsUrl", () => {
+  it("opens the word against gpts in the new Google Trends explore page", () => {
+    expect(trendsUrl("ai video")).toBe(
+      "https://trends.google.com/explore?q=ai%20video,gpts&geo=US",
+    );
+  });
 });

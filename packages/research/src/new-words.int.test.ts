@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { apiUsage, poolRounds } from "@repo/db/schema";
+import { apiUsage, newWords, poolRounds } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createFakeNewWordOriginAnalyst } from "./adapters/fake-new-word-origin";
@@ -659,4 +659,71 @@ it("adds a suggestion it has not seen before, after the root's first baseline", 
   const { items } = await w.list({});
   const added = items.find((i) => i.word.phrase === "qwen 3.8 flash ai")!;
   expect(added.roots.map((r) => r.root)).toEqual(["suggest:ai"]);
+});
+
+it("lists words by stage, with each stage's count, the origins found and a search", async () => {
+  const w = words(stub());
+  const day = (d: number) => new Date(Date.UTC(2026, 9, d));
+  await db.insert(newWords).values([
+    { phrase: "fresh name", firstSeenAt: day(30) },
+    { phrase: "passed screen", ratio: 0.4, firstSeenAt: day(29) },
+    {
+      phrase: "try word",
+      ratio: 0.3,
+      verdict: "try",
+      firstSeenAt: day(28),
+      originType: "seasonal",
+    },
+    {
+      phrase: "worth word",
+      ratio: 0.2,
+      verdict: "worth",
+      firstSeenAt: day(27),
+      originType: "open_source",
+    },
+    { phrase: "skipped word", ratio: 3, verdict: "skip", firstSeenAt: day(26) },
+    {
+      phrase: "hidden word",
+      verdict: "worth",
+      firstSeenAt: day(25),
+      hiddenAt: day(30),
+    },
+  ]);
+  const phrases = async (q: Record<string, string>) =>
+    (await w.list(q)).items.map((i) => i.word.phrase);
+
+  // Worth first, then try: the words waiting for the maintainer.
+  expect(await phrases({ stage: "decide" })).toEqual([
+    "worth word",
+    "try word",
+  ]);
+  expect(await phrases({ stage: "check" })).toEqual(["passed screen"]);
+  expect(await phrases({ stage: "screen" })).toEqual(["fresh name"]);
+  expect(await phrases({ stage: "skip" })).toEqual(["skipped word"]);
+  expect(await phrases({ stage: "hidden" })).toEqual(["hidden word"]);
+  // No stage: every word not hidden, newest first.
+  expect(await phrases({})).toHaveLength(5);
+
+  const all = await w.list({ stage: "decide" });
+  expect(all.counts).toEqual({
+    decide: 2,
+    check: 1,
+    screen: 1,
+    skip: 1,
+    hidden: 1,
+  });
+  expect(all.origins).toEqual({ open_source: 1, seasonal: 1 });
+
+  const found = await w.list({ stage: "decide", q: "WORTH" });
+  expect(found.items.map((i) => i.word.phrase)).toEqual(["worth word"]);
+  expect(found.counts).toEqual({
+    decide: 1,
+    check: 0,
+    screen: 0,
+    skip: 0,
+    hidden: 0,
+  });
+  expect(await phrases({ stage: "decide", origin: "seasonal" })).toEqual([
+    "try word",
+  ]);
 });

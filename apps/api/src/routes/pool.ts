@@ -108,6 +108,16 @@ export const poolRoutes = userRoutes()
   .get("/rounds/:id", async (c) =>
     c.json(toPoolRoundDto(await pool(c).getRound(c.req.param("id")))),
   )
+  // The discover tabs' counts (S74).
+  .get("/discover", async (c) => {
+    const database = c.var.db;
+    const [words, sites, platforms] = await Promise.all([
+      createNewWords({ database }).visibleCount(),
+      createLaunchSites({ database }).visibleCount(),
+      createPlatformSites({ database }).visibleCount(),
+    ]);
+    return c.json({ words, sites, platforms });
+  })
   .get("/new-words", async (c) => {
     const result = await words(c).list(c.req.query());
     return c.json({ ...result, items: result.items.map(toNewWordDto) });

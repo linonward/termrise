@@ -52,3 +52,53 @@ export function linePoints(values: number[], width: number, height: number) {
 /** The 7-day growth as a signed percent, e.g. 34.5 → "+3,450%". */
 export const growthPct = (growth: number) =>
   `${growth >= 0 ? "+" : ""}${Math.round(growth * 100).toLocaleString("en-US")}%`;
+
+export type WordStage = "decide" | "check" | "screen" | "skip" | "hidden";
+
+/** The list stage a word sits in, as the API filters it (packages/research new-words.ts). */
+export function wordStage(w: {
+  verdict: string | null;
+  ratio: number | null;
+  hidden: boolean;
+}): WordStage {
+  if (w.hidden) return "hidden";
+  if (w.verdict === "worth" || w.verdict === "try") return "decide";
+  if (w.verdict === "skip") return "skip";
+  return w.ratio == null ? "screen" : "check";
+}
+
+export const NAME_SOURCES = [
+  "hugging_face",
+  "itch_io",
+  "trending_now",
+] as const;
+
+/** A free list ("source:itch_io"), a root's Google suggestion ("suggest:x") or a rising root. */
+export function rootSource(
+  root: string,
+):
+  | { source: (typeof NAME_SOURCES)[number] }
+  | { suggest: string }
+  | { root: string } {
+  if (root.startsWith("suggest:")) return { suggest: root.slice(8) };
+  const key = root.startsWith("source:") ? root.slice(7) : null;
+  const source = NAME_SOURCES.find((s) => s === key);
+  return source ? { source } : { root };
+}
+
+/** The message that names where a word came from (newWords.nameSource, rootSuggest, rootRising). */
+export function rootMessage(root: string) {
+  const s = rootSource(root);
+  if ("source" in s)
+    return {
+      key: `nameSource.${s.source}` as const,
+      values: {} as Record<string, string>,
+    };
+  if ("suggest" in s)
+    return { key: "rootSuggest" as const, values: { root: s.suggest } };
+  return { key: "rootRising" as const, values: { root: s.root } };
+}
+
+/** The word against gpts in Google Trends' explore page (the new address since 2026). */
+export const trendsUrl = (phrase: string) =>
+  `https://trends.google.com/explore?q=${encodeURIComponent(phrase)},gpts&geo=US`;

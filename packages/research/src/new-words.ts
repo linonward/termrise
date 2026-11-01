@@ -12,6 +12,7 @@ import {
   lt,
   lte,
   sql,
+  type SQL,
 } from "drizzle-orm";
 import { z } from "zod";
 
@@ -229,7 +230,22 @@ export type NewWordsReport = {
 
 class BudgetStop extends Error {}
 
+/**
+ * Where a word stands in the pipeline (S74): waiting for the maintainer, waiting for a deep
+ * check, waiting for a screen, skipped, or hidden by the maintainer.
+ */
+export const NEW_WORD_STAGES = [
+  "decide",
+  "check",
+  "screen",
+  "skip",
+  "hidden",
+] as const;
+export type NewWordStage = (typeof NEW_WORD_STAGES)[number];
+
 const listQuery = z.object({
+  stage: z.enum(NEW_WORD_STAGES).optional().catch(undefined),
+  q: z.string().trim().max(100).optional().catch(undefined),
   verdict: z.enum(["worth", "try", "skip"]).optional().catch(undefined),
   category: z.string().max(20).optional().catch(undefined),
   origin: z.enum(NEW_WORD_ORIGINS).optional().catch(undefined),
@@ -1066,24 +1082,73 @@ export function createNewWords(deps: {
   const innerCandidates = sql<number>`(select count(*)::int from new_words c where c.id <> "new_words"."id" and (' ' || c.phrase || ' ') like ('% ' || "new_words"."phrase" || ' %'))`;
 
   async function list(query: Record<string, string | undefined>) {
-    const { verdict, category, origin, hidden, page } = listQuery.parse(query);
-    const where = and(
-      hidden
-        ? sql`${newWords.hiddenAt} is not null`
-        : isNull(newWords.hiddenAt),
-      verdict ? eq(newWords.verdict, verdict) : undefined,
+    const { stage, q, verdict, category, origin, hidden, page } =
+      listQuery.parse(query);
+    const visible = isNull(newWords.hiddenAt);
+    const stageWhere: Record<NewWordStage, SQL | undefined> = {
+      decide: and(visible, inArray(newWords.verdict, ["worth", "try"])),
+      check: and(
+        visible,
+        isNull(newWords.verdict),
+        sql`${newWords.ratio} is not null`,
+      ),
+      screen: and(visible, isNull(newWords.verdict), isNull(newWords.ratio)),
+      skip: and(visible, eq(newWords.verdict, "skip")),
+      hidden: sql`${newWords.hiddenAt} is not null`,
+    };
+    // The search and the origin narrow every stage, so the counts follow them.
+    const base = and(
+      q ? sql`${newWords.phrase} ilike ${`%${q}%`}` : undefined,
       category ? sql`${newWords.category} = ${category}` : undefined,
       origin ? eq(newWords.originType, origin) : undefined,
     );
-    const [rows, [{ total }]] = await Promise.all([
+    const where = and(
+      base,
+      stage ? stageWhere[stage] : hidden ? stageWhere.hidden : visible,
+      verdict ? eq(newWords.verdict, verdict) : undefined,
+    );
+    const order =
+      stage === "decide"
+        ? [
+            sql`case ${newWords.verdict} when 'worth' then 0 else 1 end`,
+            desc(newWords.firstSeenAt),
+          ]
+        : stage === "check"
+          ? [sql`${newWords.ratio} desc nulls last`, desc(newWords.firstSeenAt)]
+          : [desc(newWords.firstSeenAt), desc(newWords.ratio)];
+    const [rows, [{ total }], [counts], originRows] = await Promise.all([
       database
         .select({ word: newWords, innerCandidates })
         .from(newWords)
         .where(where)
-        .orderBy(desc(newWords.firstSeenAt), desc(newWords.ratio))
+        .orderBy(...order)
         .limit(NEW_WORDS_PAGE_SIZE)
         .offset((page - 1) * NEW_WORDS_PAGE_SIZE),
       database.select({ total: count() }).from(newWords).where(where),
+      database
+        .select(
+          Object.fromEntries(
+            NEW_WORD_STAGES.map((s) => [
+              s,
+              sql<number>`count(*) filter (where ${stageWhere[s]})`.mapWith(
+                Number,
+              ),
+            ]),
+          ) as Record<NewWordStage, SQL<number>>,
+        )
+        .from(newWords)
+        .where(base),
+      database
+        .select({ origin: newWords.originType, n: count() })
+        .from(newWords)
+        .where(
+          and(
+            visible,
+            q ? sql`${newWords.phrase} ilike ${`%${q}%`}` : undefined,
+            sql`${newWords.originType} is not null`,
+          ),
+        )
+        .groupBy(newWords.originType),
     ]);
     const ids = rows.map((r) => r.word.id);
     const rootRows = ids.length
@@ -1095,6 +1160,10 @@ export function createNewWords(deps: {
     return {
       total,
       page,
+      counts,
+      origins: Object.fromEntries(
+        originRows.map((r) => [r.origin as string, r.n]),
+      ) as Record<string, number>,
       items: rows.map((r) => ({
         ...r,
         roots: rootRows.filter((x) => x.wordId === r.word.id),
@@ -1149,7 +1218,17 @@ export function createNewWords(deps: {
     return word;
   }
 
+  /** What the discover tab counts: words not hidden. */
+  async function visibleCount() {
+    const [{ n }] = await database
+      .select({ n: count() })
+      .from(newWords)
+      .where(isNull(newWords.hiddenAt));
+    return n;
+  }
+
   return {
+    visibleCount,
     scheduleDaily,
     scheduleScan,
     failStale,

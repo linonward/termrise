@@ -4,12 +4,16 @@ import { getTranslations } from "next-intl/server";
 
 import type { PlatformSiteDto } from "@repo/research/platform-site-dto";
 import { Tag } from "@repo/ui/components/badge";
-import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { DiscoverHeader } from "@/features/discover/discover-header";
+import {
+  FilterChips,
+  RoundDot,
+  TabIntro,
+} from "@/features/discover/filter-chips";
 import { HideSite } from "@/features/launch-sites/hide-site";
-import { DiscoverTabs } from "@/features/new-words/discover-tabs";
 import { count } from "@/features/pool/pool-format";
 import { apiGet } from "@/server/api/api";
 
@@ -61,41 +65,12 @@ export default async function PlatformSitesPage({
     });
     return `/discover/platforms${p.size ? `?${p}` : ""}`;
   };
-  const tab = (key: Platform | undefined, label: string, n: number) => (
-    <Link
-      key={key ?? "all"}
-      href={href({ platform: key })}
-      aria-current={platform === key ? "page" : undefined}
-      className={cn(
-        "shrink-0 border-b-2 px-1 pb-2 text-[15px] whitespace-nowrap",
-        platform === key
-          ? "border-brand font-semibold text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label} <span className="font-mono text-[13px] tabular-nums">{n}</span>
-    </Link>
-  );
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("platformsTitle")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">
-          {t("platformsSubtitle")}
-        </p>
-        <p className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-          <span
-            aria-hidden="true"
-            className={cn(
-              "size-2 rounded-full",
-              data.lastRound?.status === "completed"
-                ? "bg-success"
-                : "bg-warning",
-            )}
-          />
+      <DiscoverHeader current="platforms">
+        <TabIntro intro={t("platformsIntro")}>
+          <RoundDot ok={data.lastRound?.status === "completed"} />
           {t("platformsSchedule")}
           {data.lastRound && (
             <>
@@ -109,17 +84,19 @@ export default async function PlatformSitesPage({
             known: count(data.known),
             checked: count(data.checked),
           })}
-        </p>
-      </header>
-      <DiscoverTabs current="platforms" />
+        </TabIntro>
+      </DiscoverHeader>
 
-      <nav
-        aria-label={t("platformFilter")}
-        className="-mx-5 flex gap-6 overflow-x-auto px-5 md:mx-0 md:px-0"
-      >
-        {tab(undefined, t("all"), all)}
-        {PLATFORMS.map((p) => tab(p, p, data.counts[p] ?? 0))}
-      </nav>
+      <FilterChips
+        label={t("platformFilter")}
+        chips={[undefined, ...PLATFORMS].map((p) => ({
+          key: p ?? "all",
+          label: p ?? t("all"),
+          n: p ? (data.counts[p] ?? 0) : all,
+          href: href({ platform: p }),
+          active: platform === p,
+        }))}
+      />
 
       <form role="search" className="flex flex-wrap items-center gap-3">
         {platform && <input type="hidden" name="platform" value={platform} />}

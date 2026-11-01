@@ -404,7 +404,16 @@ export function createLaunchSites(deps: {
     return site;
   }
 
-  return { scheduleEvery, failStale, claim, run, list, hide };
+  /** What the discover tab counts: sites not hidden. */
+  async function visibleCount() {
+    const [{ n }] = await database
+      .select({ n: count() })
+      .from(launchSites)
+      .where(isNull(launchSites.hiddenAt));
+    return n;
+  }
+
+  return { scheduleEvery, failStale, claim, run, list, hide, visibleCount };
 }
 
 /** A page's <title>, from the first 200 KB; null when it cannot be read. */
