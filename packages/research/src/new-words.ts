@@ -18,6 +18,7 @@ import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
 import {
+  type NEW_WORD_CATEGORIES,
   NEW_WORD_ORIGINS,
   newWordRoots,
   newWordRootScans,
@@ -211,6 +212,15 @@ export const SCAN_SOURCE = "scan";
 export const SCAN_HOURS = 3;
 /** Trending Now items taken per round, after dropping news categories. */
 const TRENDING_PER_ROUND = 50;
+type NewWordCategory = (typeof NEW_WORD_CATEGORIES)[number];
+
+/** The class a name list stands for: its names are not sent to the classifier. */
+const SOURCE_CATEGORY: Record<string, NewWordCategory> = {
+  "source:hugging_face": "ai",
+  "source:itch_io": "game",
+  "source:show_hn": "tool",
+  "source:product_hunt": "tool",
+};
 /** A name released longer ago than this is not new: it is not added (S75). */
 export const MAX_NAME_AGE_DAYS = 60;
 
@@ -860,9 +870,33 @@ export function createNewWords(deps: {
   ) {
     const dropped = new Set<string>();
     const { classifier, budget } = deps;
-    if (!classifier || !budget) return dropped;
-    for (let i = 0; i < words.length; i += CLASSIFY_BATCH) {
-      const batch = words.slice(i, i + CLASSIFY_BATCH);
+    if (!classifier || !budget || words.length === 0) return dropped;
+    // A name from a list of models, games or launches is that by its source: a bare
+    // product name tells the AI too little.
+    const roots = await database
+      .select({ wordId: newWordRoots.wordId, root: newWordRoots.root })
+      .from(newWordRoots)
+      .where(
+        inArray(
+          newWordRoots.wordId,
+          words.map((w) => w.id),
+        ),
+      );
+    const bySource = new Map<string, NewWordCategory>();
+    for (const r of roots) {
+      const category = SOURCE_CATEGORY[r.root];
+      if (category && !bySource.has(r.wordId)) bySource.set(r.wordId, category);
+    }
+    for (const [id, category] of bySource) {
+      await database
+        .update(newWords)
+        .set({ category })
+        .where(eq(newWords.id, id));
+      report.classified = (report.classified ?? 0) + 1;
+    }
+    const unsorted = words.filter((w) => !bySource.has(w.id));
+    for (let i = 0; i < unsorted.length; i += CLASSIFY_BATCH) {
+      const batch = unsorted.slice(i, i + CLASSIFY_BATCH);
       const charged = await budget.charge(
         {
           projectId: null,

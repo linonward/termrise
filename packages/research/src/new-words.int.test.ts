@@ -803,13 +803,20 @@ it("drops people, matches and news before paying for the screen", async () => {
           { name: "lumo game", heat: 2, releasedAt: null },
         ],
       },
+      {
+        // A launch is a product by its source, whatever its name says.
+        name: "show_hn",
+        names: async () => [
+          { name: "parade planner", heat: 2, releasedAt: null },
+        ],
+      },
     ],
     checksPerDay: 0,
     now,
   });
   await w.scheduleDaily(0);
   const done = await w.run((await w.claim())!);
-  expect(done.report).toMatchObject({ classified: 2, dropped: 1, screened: 1 });
+  expect(done.report).toMatchObject({ classified: 3, dropped: 1, screened: 2 });
   const { items } = await w.list({});
   const parade = items.find((i) => i.word.phrase === "nyc halloween parade")!;
   expect(parade.word).toMatchObject({
