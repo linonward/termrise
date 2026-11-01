@@ -70,9 +70,13 @@ export function VerdictReasons({
   as: "sentence" | "list";
 }) {
   const t = useTranslations("newWords.reason");
+  const tWords = useTranslations("newWords");
   const list = (Array.isArray(reasons) ? reasons : []) as VerdictReason[];
   const texts = list.map((r) => {
     const { key, values } = verdictReason(r);
+    // A class is named in Chinese, as on the word's tag.
+    if (r.code === "category" && r.category)
+      values.value = tWords(`category.${r.category as "news"}`);
     return t(key as Parameters<typeof t>[0], values);
   });
   if (as === "sentence")

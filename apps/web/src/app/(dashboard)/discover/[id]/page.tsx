@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { NewWordDto } from "@repo/research/new-word-dto";
+import { serpRole } from "@repo/research/new-word-rules";
 import { Tag } from "@repo/ui/components/badge";
 
 import { HideWord } from "@/features/new-words/hide-word";
@@ -47,11 +48,13 @@ export default async function NewWordPage({
   const { id } = await params;
   const t = await getTranslations("newWords");
   const w = await apiGet<Detail>(`/api/pool/new-words/${id}`);
-  const dedicated = (w.serp ?? []).filter((r) => {
-    const words = w.phrase.split(" ");
-    const text = `${r.title} ${decodeURIComponent(r.url)}`.toLowerCase();
-    return words.every((x) => text.includes(x));
+  // Pages made for the word: someone else's count as competition, the maker's own and
+  // platform listings are shown but not counted (newword-v3).
+  const pages = (w.serp ?? []).flatMap((r) => {
+    const role = serpRole(w.phrase, r, w.category);
+    return role ? [{ ...r, role }] : [];
   });
+  const dedicated = pages.filter((r) => r.role === "dedicated");
   const lag = discoveryLag(w.firstSeenAt, w.burstDay);
   const lagText =
     lag === null
@@ -220,13 +223,14 @@ export default async function NewWordPage({
             </span>
           </h3>
           <div className={card}>
-            {dedicated.length === 0 ? (
+            {dedicated.length === 0 && (
               <p className="text-[15px] text-muted-foreground">
                 {w.serp ? t("dedicatedNone") : t("notChecked")}
               </p>
-            ) : (
+            )}
+            {pages.length > 0 && (
               <ol className="divide-y divide-border">
-                {dedicated.map((r) => (
+                {pages.map((r) => (
                   <li key={r.rank} className="flex gap-4 py-3">
                     <span className="w-6 font-mono text-sm text-muted-foreground tabular-nums">
                       {r.rank}
@@ -243,6 +247,7 @@ export default async function NewWordPage({
                       <span className="block font-mono text-[12px] break-all text-muted-foreground">
                         {displayUrl(r.url) ?? t("viaGoogle", { site: r.site })}
                       </span>
+                      {r.role === "official" && <Tag>{t("officialTag")}</Tag>}
                     </span>
                   </li>
                 ))}

@@ -4,6 +4,8 @@ import {
   curveFacts,
   dedicatedPages,
   newWordVerdict,
+  officialPages,
+  serpRole,
   passesScreen,
   splitComparison,
 } from "./new-word-rules";
@@ -49,6 +51,59 @@ it("counts pages made for the phrase by title or address", () => {
     { url: "https://c.com/robot", title: "Robots" },
   ];
   expect(dedicatedPages("ragdoll robot boxing", results)).toBe(2);
+});
+
+it("does not count the maker's own page or a platform listing as competition", () => {
+  const phrase = "lumo edit";
+  const results = [
+    { url: "https://lumoedit.com/", title: "Lumo Edit" },
+    { url: "https://huggingface.co/lumo/Lumo-Edit", title: "lumo/Lumo-Edit" },
+    { url: "https://github.com/lumo/lumo-edit", title: "lumo-edit" },
+    {
+      url: "https://www.reddit.com/r/x/lumo_edit",
+      title: "Lumo Edit is great",
+    },
+    {
+      url: "https://aitools.com/lumo-edit-online",
+      title: "Lumo Edit online free",
+    },
+    { url: "https://huggingface.co/other/model", title: "Other model" },
+  ];
+  expect(results.map((r) => serpRole(phrase, r))).toEqual([
+    "official",
+    "official",
+    "official",
+    "official",
+    "dedicated",
+    null,
+  ]);
+  expect(dedicatedPages(phrase, results)).toBe(1);
+  expect(officialPages(phrase, results)).toBe(4);
+});
+
+it("takes a model maker's site as official only for names of things", () => {
+  const page = { url: "https://deepseek.com/v4", title: "DeepSeek V4 Flash" };
+  expect(serpRole("deepseek v4 flash", page, "ai")).toBe("official");
+  expect(serpRole("deepseek v4 flash", page)).toBe("dedicated");
+  // A tool search: a site named after its first word is a competitor.
+  const store = {
+    url: "https://store.com/stock",
+    title: "Store Stock Checker",
+  };
+  expect(serpRole("store stock checker", store, "tool")).toBe("dedicated");
+});
+
+it("says how many official pages it did not count", () => {
+  expect(
+    newWordVerdict({
+      phrase: "lumo edit",
+      ratio: 0.2,
+      dedicated: 0,
+      official: 3,
+      rising: true,
+      isNew: true,
+    }).reasons,
+  ).toContainEqual({ code: "official", value: 3 });
 });
 
 it("judges like the reference screens", () => {

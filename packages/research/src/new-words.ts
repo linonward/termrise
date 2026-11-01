@@ -30,7 +30,7 @@ import { logger } from "@repo/observability/logger";
 
 import type { WebOriginSearch } from "./adapters/claude-web-origin";
 import type { Autocomplete } from "./adapters/google-autocomplete";
-import type { NameSource } from "./adapters/name-sources";
+import type { NameItem, NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { RdapClient } from "./adapters/rdap";
 import { registrableDomain } from "./adapters/rdap";
@@ -42,7 +42,14 @@ import type {
   Market,
   SerpItem,
 } from "./keyword-provider";
-import { newWordAnalysisSchema, type NewWordAnalyst } from "./new-word-analyst";
+import {
+  BUILDABLE_CATEGORIES,
+  CLASSIFY_BATCH,
+  newWordAnalysisSchema,
+  newWordClassesSchema,
+  type NewWordAnalyst,
+  type NewWordClassifier,
+} from "./new-word-analyst";
 import {
   markEvidence,
   newWordOriginSchema,
@@ -57,6 +64,7 @@ import {
   NEW_SITE_DAYS,
   NEW_WORD_RULES,
   newWordVerdict,
+  officialPages,
   passesScreen,
   REFERENCE_TERM,
   splitComparison,
@@ -203,6 +211,27 @@ export const SCAN_SOURCE = "scan";
 export const SCAN_HOURS = 3;
 /** Trending Now items taken per round, after dropping news categories. */
 const TRENDING_PER_ROUND = 50;
+/** A name released longer ago than this is not new: it is not added (S75). */
+export const MAX_NAME_AGE_DAYS = 60;
+
+/**
+ * Freshness from the release time (S75): 3 within a week, 2 within two, 1 within a month,
+ * 0 within MAX_NAME_AGE_DAYS; null when older. Unknown is 1.
+ */
+export function freshness(releasedAt: string | null, at: Date) {
+  if (!releasedAt) return 1;
+  const t = Date.parse(releasedAt);
+  if (Number.isNaN(t)) return 1;
+  const days = (at.getTime() - t) / DAY_MS;
+  if (days > MAX_NAME_AGE_DAYS) return null;
+  return days <= 7 ? 3 : days <= 14 ? 2 : days <= 30 ? 1 : 0;
+}
+
+/** A rising query's heat from its growth: breakout (5000%+) 3, 500%+ 2, else 1. */
+export const risingHeat = (growth: number) =>
+  growth >= 5000 ? 3 : growth >= 500 ? 2 : 1;
+/** Rising queries and new suggestions rose in the last week: freshness 2. */
+const RECENT = 2;
 
 export type NewWord = typeof newWords.$inferSelect;
 
@@ -226,6 +255,11 @@ export type NewWordsReport = {
   names?: Record<string, number>;
   /** Sources that failed this round, e.g. github. */
   sourceFailures?: string[];
+  /** Words sorted before the screen, and those dropped as not built for (S75). */
+  classified?: number;
+  dropped?: number;
+  /** Names left out as released more than MAX_NAME_AGE_DAYS ago. */
+  tooOld?: number;
 };
 
 class BudgetStop extends Error {}
@@ -258,6 +292,8 @@ export function createNewWords(deps: {
   /** Needed to run rounds; the API only reads and queues. */
   provider?: KeywordProvider;
   analyst?: NewWordAnalyst;
+  /** Sorts just-found words before the screen; without it every word is screened. */
+  classifier?: NewWordClassifier;
   /** Free sources searched for a word's origin, and the analyst that reads them. */
   originSources?: OriginSource[];
   originAnalyst?: NewWordOriginAnalyst;
@@ -456,6 +492,7 @@ export function createNewWords(deps: {
     root: string,
     growth: number | null,
     report: NewWordsReport,
+    rank: { priority: number; releasedOn?: string | null },
   ) {
     const [word] = await database
       .insert(newWords)
@@ -464,10 +501,17 @@ export function createNewWords(deps: {
         firstSeenAt: now(),
         lastSeenAt: now(),
         nextCheckAt: now(),
+        priority: rank.priority,
+        releasedOn: rank.releasedOn ?? null,
       })
       .onConflictDoUpdate({
         target: newWords.phrase,
-        set: { lastSeenAt: now() },
+        set: {
+          lastSeenAt: now(),
+          // The highest seen: a name hot on a second source moves up.
+          priority: sql`greatest(coalesce(${newWords.priority}, 0), excluded.priority)`,
+          releasedOn: sql`coalesce(${newWords.releasedOn}, excluded.released_on)`,
+        },
       })
       // xmax = 0: the row was inserted, not updated.
       .returning({ id: newWords.id, inserted: sql<boolean>`(xmax = 0)` });
@@ -511,7 +555,9 @@ export function createNewWords(deps: {
           const phrase = normalizePhrase(q.query);
           if (!phrase || phrase.length > MAX_PHRASE || phrase === root)
             continue;
-          await record(phrase, root, Math.round(q.value), report);
+          await record(phrase, root, Math.round(q.value), report, {
+            priority: risingHeat(q.value) + RECENT,
+          });
         }
         await database
           .insert(newWordRootScans)
@@ -538,12 +584,20 @@ export function createNewWords(deps: {
             ...(report.sourceFailures ?? []),
             source.name,
           ];
-          return [];
+          return [] as NameItem[];
         });
-      for (const name of names) {
-        const phrase = normalizePhrase(name);
+      for (const item of names) {
+        const phrase = normalizePhrase(item.name);
         if (!phrase || phrase.length > MAX_PHRASE) continue;
-        await record(phrase, `source:${source.name}`, null, report);
+        const fresh = freshness(item.releasedAt, now());
+        if (fresh === null) {
+          report.tooOld = (report.tooOld ?? 0) + 1;
+          continue;
+        }
+        await record(phrase, `source:${source.name}`, null, report, {
+          priority: item.heat + fresh,
+          releasedOn: item.releasedAt?.slice(0, 10) ?? null,
+        });
       }
       report.names = { ...report.names, [source.name]: names.length };
     }
@@ -580,7 +634,9 @@ export function createNewWords(deps: {
         .returning({ phrase: newWordSuggestions.phrase });
       if (known.n > 0)
         for (const f of fresh) {
-          await record(f.phrase, `suggest:${root}`, null, report);
+          await record(f.phrase, `suggest:${root}`, null, report, {
+            priority: 1 + RECENT,
+          });
           added++;
         }
       if (deps.suggestDelayMs) await sleep(deps.suggestDelayMs);
@@ -741,7 +797,8 @@ export function createNewWords(deps: {
       { phrase: word.phrase, depth: SERP_DEPTH },
       () => provider.serp(word.phrase, US, SERP_DEPTH),
     );
-    const dedicated = dedicatedPages(word.phrase, serp);
+    const dedicated = dedicatedPages(word.phrase, serp, word.category);
+    const official = officialPages(word.phrase, serp, word.category);
     const suggestions = provider.suggestions?.bind(provider);
     const band = { minVolume: 0, limit: 1 };
     const ideas: KeywordIdea[] = suggestions
@@ -758,6 +815,7 @@ export function createNewWords(deps: {
       phrase: word.phrase,
       ratio: facts.ratio,
       dedicated,
+      official,
       rising: facts.rising,
       isNew: facts.isNew,
       spike: facts.spike,
@@ -790,6 +848,80 @@ export function createNewWords(deps: {
     return verdict.verdict;
   }
 
+  /**
+   * Sorts never-measured words before the screen (S75): people, matches, news and shopping
+   * stop here, as a skip, without paying for Trends. Returns the ids it dropped. Without a
+   * classifier or AI budget the words go on to the screen unsorted.
+   */
+  async function classify(
+    round: PoolRound,
+    words: NewWord[],
+    report: NewWordsReport,
+  ) {
+    const dropped = new Set<string>();
+    const { classifier, budget } = deps;
+    if (!classifier || !budget) return dropped;
+    for (let i = 0; i < words.length; i += CLASSIFY_BATCH) {
+      const batch = words.slice(i, i + CLASSIFY_BATCH);
+      const charged = await budget.charge(
+        {
+          projectId: null,
+          poolRoundId: round.id,
+          poolBudget: "new_words",
+          runId: null,
+          kind: "ai",
+          provider: classifier.name,
+          operation: "classify",
+          maxCostMicros: classifier.maxCostMicros,
+        },
+        () => classifier.classify(batch.map((w) => w.phrase)),
+      );
+      if (!charged) break;
+      const parsed = newWordClassesSchema.safeParse(charged.value);
+      if (!parsed.success) continue;
+      const classes = new Map(
+        parsed.data.items.map((x) => [
+          x.phrase.toLowerCase().trim(),
+          x.category,
+        ]),
+      );
+      for (const word of batch) {
+        const category = classes.get(word.phrase);
+        if (!category) continue;
+        report.classified = (report.classified ?? 0) + 1;
+        const buildable = (BUILDABLE_CATEGORIES as readonly string[]).includes(
+          category,
+        );
+        await database
+          .update(newWords)
+          .set(
+            buildable
+              ? { category }
+              : {
+                  category,
+                  verdict: "skip",
+                  buildAs: null,
+                  reasons: [{ code: "category", category }],
+                  rules: NEW_WORD_RULES,
+                  checkedAt: now(),
+                  checks: word.checks + 1,
+                  nextCheckAt: null,
+                },
+          )
+          .where(eq(newWords.id, word.id));
+        if (buildable) continue;
+        dropped.add(word.id);
+        report.dropped = (report.dropped ?? 0) + 1;
+        report.checked.push({
+          phrase: word.phrase,
+          verdict: "skip",
+          ratio: null,
+        });
+      }
+    }
+    return dropped;
+  }
+
   /** Screens the due words, then deep-checks the warmest that passed. */
   async function measure(round: PoolRound, report: NewWordsReport) {
     // The allowances are per day; scans every few hours share them.
@@ -799,17 +931,20 @@ export function createNewWords(deps: {
       (deps.screensPerDay ?? DEFAULT_SCREENS) - used.screened,
     );
     const deepLeft = Math.max(0, (deps.checksPerDay ?? 12) - used.deep);
+    // Never measured first, the hottest and newest on their source first (S75); then the
+    // rest by when they are due. More than a day's screens are read, as the classifier
+    // drops some before they are paid for.
     const due = await database
       .select()
       .from(newWords)
       .where(and(isNull(newWords.hiddenAt), lte(newWords.nextCheckAt, now())))
-      // Never measured first, newest first; then the rest by when they are due.
       .orderBy(
         sql`${newWords.checkedAt} is not null`,
+        sql`${newWords.priority} desc nulls last`,
         desc(newWords.firstSeenAt),
         asc(newWords.nextCheckAt),
       )
-      .limit(screens);
+      .limit(screens * 3);
     // Excluded words (downloads, shopping, offline) need no data at all.
     const excluded = due.filter((w) => autoExclude(w.phrase));
     for (const word of excluded) {
@@ -838,7 +973,13 @@ export function createNewWords(deps: {
         ratio: null,
       });
     }
-    const toScreen = due.filter((w) => !autoExclude(w.phrase));
+    const kept = due.filter((w) => !autoExclude(w.phrase));
+    const dropped = await classify(
+      round,
+      kept.filter((w) => w.checkedAt === null && w.category === null),
+      report,
+    );
+    const toScreen = kept.filter((w) => !dropped.has(w.id)).slice(0, screens);
     const facts = await screen(round, toScreen);
     const passed: NewWord[] = [];
     for (const word of toScreen) {
@@ -1115,7 +1256,12 @@ export function createNewWords(deps: {
           ]
         : stage === "check"
           ? [sql`${newWords.ratio} desc nulls last`, desc(newWords.firstSeenAt)]
-          : [desc(newWords.firstSeenAt), desc(newWords.ratio)];
+          : stage === "screen"
+            ? [
+                sql`${newWords.priority} desc nulls last`,
+                desc(newWords.firstSeenAt),
+              ]
+            : [desc(newWords.firstSeenAt), desc(newWords.ratio)];
     const [rows, [{ total }], [counts], originRows] = await Promise.all([
       database
         .select({ word: newWords, innerCandidates })

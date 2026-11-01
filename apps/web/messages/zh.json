@@ -1113,7 +1113,9 @@
       "falling": "已经不再上升",
       "new_word": "起量前几乎没有搜索，按新词算",
       "excluded": "不是网页工具或不合规（线下服务、购物或下载别人的内容），不做",
-      "spike": "近 7 天的量集中在一天，是单日尖峰，最多做内页"
+      "spike": "近 7 天的量集中在一天，是单日尖峰，最多做内页",
+      "official": "另有 {value} 个官方或平台页面（作者自己的站、Hugging Face、GitHub、应用商店等），不算竞争",
+      "category": "分类为「{value}」，不是模型、游戏或工具，不做"
     },
     "breadcrumb": "位置",
     "home": "首页",
@@ -1146,7 +1148,7 @@
     "volume": "月搜索量（美国）",
     "dataNote": "来自 DataForSEO（Labs），复核时查；新词常常还没有搜索量数据。",
     "dedicatedTitle": "谷歌前两页：专门做这个词的页面",
-    "dedicatedBody": "前 20 个结果里，标题或网址包含这个词的 · {n} / {total}",
+    "dedicatedBody": "前 20 个结果里，别人专门做这个词的页面 · {n} / {total}",
     "dedicatedNone": "前两页没有专门做这个词的页面，还没人认真做它",
     "newSitesTitle": "谷歌首页新站",
     "newSitesNone": "首页没有注册不到一年的网站",
@@ -1212,7 +1214,9 @@
     "nameSource": {
       "hugging_face": "Hugging Face 热门模型",
       "itch_io": "itch.io 新游戏",
-      "trending_now": "Google Trending Now"
+      "trending_now": "Google Trending Now",
+      "show_hn": "Show HN 新产品",
+      "product_hunt": "Product Hunt 新产品"
     },
     "originAnswer": "搜索结论",
     "stageFilter": "按阶段筛选",
@@ -1226,7 +1230,7 @@
     "stageHint": {
       "decide": "结论为值得做或可以试试的词，值得做在前。选定一个就去建站。",
       "check": "初筛通过，等着查谷歌前两页和搜索量。每天按深查额度查，热度高的先查。",
-      "screen": "刚从各来源扫到，还没和 GPTs 比过热度。每天按初筛额度，新扫到的先筛。",
+      "screen": "刚从各来源扫到，还没和 GPTs 比过热度。按优先级排：来源上的热度加新鲜度，高的先筛；人名、比赛和新闻在初筛前就分出去。",
       "skip": "初筛或深查没通过：太冷、已经不再上升，或者前两页已经有人专门做。",
       "hidden": "你隐藏的词，不在其他阶段里出现。"
     },
@@ -1257,7 +1261,10 @@
     "captureTitle": "承接",
     "captureBody": "一个词做一个页面：它的长尾做内页，它冒出来的词根下的站也可以加内页",
     "rootSuggest": "{root} 的谷歌联想",
-    "rootRising": "{root} 的上升词"
+    "rootRising": "{root} 的上升词",
+    "priority": "优先级 {n}",
+    "released": "{date} 发布",
+    "officialTag": "官方或平台，不算竞争"
   },
   "research": {
     "metaTitle": "研究",

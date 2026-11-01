@@ -34,3 +34,32 @@ export interface NewWordAnalyst {
   /** Raw output; the caller validates it with newWordAnalysisSchema. */
   analyze(context: NewWordContext): Promise<Charged<unknown>>;
 }
+
+/** Classes worth a screen: names of models and games, and tools (S75). */
+export const BUILDABLE_CATEGORIES = ["ai", "game", "tool"] as const;
+
+export const newWordClassesSchema = z.object({
+  items: z.array(
+    z.object({
+      phrase: z.string(),
+      category: z.enum(NEW_WORD_CATEGORIES),
+    }),
+  ),
+});
+
+/**
+ * Port for sorting just-found words before the paid screen (S75): a person, a match or a
+ * news event is not built for, so it stops before Trends is paid for.
+ */
+export interface NewWordClassifier {
+  name: "fake" | "deepseek";
+  model: string | null;
+  promptVersion: string;
+  /** The most one batch of up to CLASSIFY_BATCH phrases can cost. */
+  maxCostMicros: number;
+  /** Raw output; the caller validates it with newWordClassesSchema. */
+  classify(phrases: string[]): Promise<Charged<unknown>>;
+}
+
+/** Phrases sorted in one call. */
+export const CLASSIFY_BATCH = 50;

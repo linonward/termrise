@@ -82,12 +82,21 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
         },
       ],
       originCheckedAt: new Date(),
+      serp: [
+        {
+          rank: 1,
+          url: "https://huggingface.co/lumo/Lumo-Edit",
+          title: phrase,
+          site: "huggingface.co",
+          type: "organic",
+        },
+      ],
     })
     .returning();
   const fresh = `fresh name ${randomUUID().slice(0, 6)}`;
   const [unscreened] = await testDb()
     .insert(newWords)
-    .values({ phrase: fresh })
+    .values({ phrase: fresh, priority: 5, releasedOn: "2026-10-30" })
     .returning();
   await testDb()
     .insert(newWordRoots)
@@ -106,7 +115,10 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
   await expect(page).toHaveURL(/stage=screen/);
   await expect(
     page.getByTestId("new-word-row").filter({ hasText: fresh }),
-  ).toContainText("来自 itch.io 新游戏");
+  ).toContainText("来自 itch.io 新游戏 · 10/30 发布");
+  await expect(
+    page.getByTestId("new-word-row").filter({ hasText: fresh }),
+  ).toContainText("优先级 5");
   await stages.getByRole("link", { name: /待你决定/ }).click();
   await expect(page).toHaveURL(/\/discover$/);
   await page.getByLabel("按起因筛选").selectOption("model_release");
@@ -121,6 +133,8 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
     page.getByRole("heading", { level: 2, name: "起因" }),
   ).toBeVisible();
   await expect(page.getByText("做在线试用页。")).toBeVisible();
+  // The model's own page on Hugging Face is listed, not counted as competition.
+  await expect(page.getByText("官方或平台，不算竞争")).toBeVisible();
   for (const name of ["热度与走势", "竞争", "承接"])
     await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
   await expect(

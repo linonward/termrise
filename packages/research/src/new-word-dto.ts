@@ -25,6 +25,8 @@ export function toNewWordDto(row: {
     burstDay: w.burstDay,
     peakDay: w.peakDay,
     firstDay: w.firstDay,
+    priority: w.priority,
+    releasedOn: w.releasedOn,
     growth7: w.growth7,
     spike: w.spike === "yes",
     isNew: w.isNew === "yes",

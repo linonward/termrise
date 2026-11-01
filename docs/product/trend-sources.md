@@ -11,6 +11,8 @@
 | 根词的谷歌自动补全，新出现的建议                                     | `suggestqueries.google.com`，和上次比                  | 每 3 小时 | 免费，按 IP 限频          |
 | Hugging Face 热门模型                                                | `huggingface.co/api/models?sort=trendingScore`         | 每 3 小时 | 免费                      |
 | itch.io 新游戏                                                       | `itch.io/games/new-and-popular.xml`                    | 每 3 小时 | 免费                      |
+| Show HN 新产品（S75）                                                | `hn.algolia.com/api/v1/search_by_date?tags=show_hn`    | 每 3 小时 | 免费                      |
+| Product Hunt 新产品（S75）                                           | 官方 GraphQL API v2，`PRODUCT_HUNT_TOKEN`              | 每 3 小时 | 免费；商用需和他们联系    |
 | 起因证据：Hacker News、Hugging Face、GitHub，Claude 网页搜索         | 见 keyword-pool.md#origins                             | 每轮追溯  | 网页搜索约 0.034 美元一次 |
 
 ## 开源项目

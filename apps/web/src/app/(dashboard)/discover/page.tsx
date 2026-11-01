@@ -209,7 +209,10 @@ export default async function NewWordsPage({
                           .slice(0, 3)
                           .join("、"),
                       }),
+                    w.releasedOn &&
+                      t("released", { date: monthDay(w.releasedOn) }),
                     t("found", { date: monthDay(w.firstSeenAt) }),
+                    w.priority != null && t("priority", { n: w.priority }),
                   ]
                     .filter(Boolean)
                     .join(" · ")}

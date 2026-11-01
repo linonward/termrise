@@ -6,7 +6,8 @@ import { autoExclude } from "./pool-rules";
 import { isDedicated } from "./serp-competition";
 
 // v2 (S68): heat is the last 7 days' average; a one-day spike is at most worth a try.
-export const NEW_WORD_RULES = "newword-v2";
+// v3 (S75): the maker's own page and platform listings are not competition.
+export const NEW_WORD_RULES = "newword-v3";
 /** The reference term: a word's heat is its search interest as a multiple of this one's. */
 export const REFERENCE_TERM = "gpts";
 /** Heat at or above this, with at most WORTH_MAX_DEDICATED dedicated pages: worth a new site. */
@@ -40,7 +41,11 @@ export type VerdictReason = {
     | "falling"
     | "new_word"
     | "spike"
-    | "excluded";
+    | "excluded"
+    | "official"
+    | "category";
+  /** For "category": the class that is not built for (news, entertainment...). */
+  category?: string;
   value?: number;
 };
 
@@ -149,20 +154,99 @@ export function passesScreen(input: {
   );
 }
 
-/** Pages in the results made for this phrase: its words in the title or the address. */
+// Hosts where a name is listed or talked about, not a site built to compete for it.
+const PLATFORM_HOSTS = [
+  "huggingface.co",
+  "github.com",
+  "github.io",
+  "itch.io",
+  "apps.apple.com",
+  "play.google.com",
+  "store.steampowered.com",
+  "steamcommunity.com",
+  "producthunt.com",
+  "npmjs.com",
+  "pypi.org",
+  "chromewebstore.google.com",
+  "chrome.google.com",
+  "roblox.com",
+  "news.ycombinator.com",
+  "reddit.com",
+  "x.com",
+  "twitter.com",
+  "youtube.com",
+  "tiktok.com",
+  "instagram.com",
+  "facebook.com",
+  "linkedin.com",
+  "discord.com",
+  "wikipedia.org",
+];
+/** Categories that name a thing (a model, a game), whose maker's site is official. */
+const NAMED = new Set(["ai", "game"]);
+
+const compact = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+function hostOf(url: string) {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * What a result is for this phrase (S75): "official" (the maker's own site, or a listing on
+ * a platform), "dedicated" (someone else's page made for the phrase), or null.
+ */
+export function serpRole(
+  phrase: string,
+  result: { url: string; title: string },
+  category?: string | null,
+): "official" | "dedicated" | null {
+  const host = hostOf(result.url);
+  const label = host.split(".").at(-2) ?? "";
+  const name = compact(phrase);
+  const first = compact(phrase.split(/\s+/)[0] ?? "");
+  const ownSite =
+    (name.length >= 4 && compact(label).includes(name)) ||
+    (!!category &&
+      NAMED.has(category) &&
+      first.length >= 4 &&
+      compact(label) === first);
+  const slug = phrase.toLowerCase().split(/\s+/);
+  const path = decodeURIComponent(result.url.toLowerCase()).replace(
+    /[^a-z0-9]+/g,
+    " ",
+  );
+  const madeFor =
+    isDedicated(result.title, phrase) || slug.every((w) => path.includes(w));
+  if (ownSite) return "official";
+  if (!madeFor) return null;
+  const platform = PLATFORM_HOSTS.some(
+    (p) => host === p || host.endsWith(`.${p}`),
+  );
+  return platform ? "official" : "dedicated";
+}
+
+/** Pages in the results made for this phrase by someone else than its maker or a platform. */
 export function dedicatedPages(
   phrase: string,
   results: { url: string; title: string }[],
+  category?: string | null,
 ) {
-  const slug = phrase.toLowerCase().split(/\s+/);
-  return results.filter((r) => {
-    if (isDedicated(r.title, phrase)) return true;
-    const path = decodeURIComponent(r.url.toLowerCase()).replace(
-      /[^a-z0-9]+/g,
-      " ",
-    );
-    return slug.every((w) => path.includes(w));
-  }).length;
+  return results.filter((r) => serpRole(phrase, r, category) === "dedicated")
+    .length;
+}
+
+/** The maker's pages and platform listings for this phrase: not counted as competition. */
+export function officialPages(
+  phrase: string,
+  results: { url: string; title: string }[],
+  category?: string | null,
+) {
+  return results.filter((r) => serpRole(phrase, r, category) === "official")
+    .length;
 }
 
 /** Whether a new word is worth a page, and which kind. */
@@ -171,11 +255,13 @@ export function newWordVerdict(input: {
   ratio: number | null;
   /** Null when the word did not pass the screen: its results were not checked. */
   dedicated: number | null;
+  /** Official and platform pages left out of `dedicated`. */
+  official?: number;
   rising: boolean;
   isNew: boolean;
   spike?: boolean;
 }): { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] } {
-  const { ratio, dedicated, rising, isNew, spike } = input;
+  const { ratio, dedicated, official, rising, isNew, spike } = input;
   // The evergreen exclusions hold here too: offline services, shopping, someone else's downloads.
   const excluded = autoExclude(input.phrase);
   if (excluded)
@@ -198,6 +284,7 @@ export function newWordVerdict(input: {
                   : ("many_dedicated" as const),
             value: dedicated,
           },
+          ...(official ? [{ code: "official" as const, value: official }] : []),
         ]),
     {
       code: heat >= WORTH_RATIO ? "hot" : heat >= TRY_RATIO ? "warm" : "cold",

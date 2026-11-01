@@ -8,7 +8,7 @@ import {
   type TrendingNowOptions,
 } from "google-trends-now";
 
-import type { NameSource } from "./name-sources";
+import type { NameItem, NameSource } from "./name-sources";
 
 /** Trending Now categories that are news, not a need a tool or a page can meet. */
 const NEWS_CATEGORIES = new Set([
@@ -29,6 +29,35 @@ export function trendingPhrases(items: TrendingNowItem[]) {
     )
     .map((i) => i.query.toLowerCase().trim())
     .filter((q) => q.length > 1);
+}
+
+/** Searches a trend needs for each heat: 100K+ is 3, 20K+ is 2. */
+const volumeHeat = (volume: number | string | null): 1 | 2 | 3 => {
+  const n = typeof volume === "number" ? volume : Number(volume) || 0;
+  return n >= 100_000 ? 3 : n >= 20_000 ? 2 : 1;
+};
+
+/** The trends worth measuring, rated by their search volume and dated from their start. */
+export function trendingNames(items: TrendingNowItem[]): NameItem[] {
+  const seen = new Set<string>();
+  return items
+    .filter(
+      (i) =>
+        i.categories.length === 0 ||
+        !i.categories.some((c) => NEWS_CATEGORIES.has(c.name)),
+    )
+    .flatMap((i) => {
+      const name = i.query.toLowerCase().trim();
+      if (name.length <= 1 || seen.has(name)) return [];
+      seen.add(name);
+      return [
+        {
+          name,
+          heat: volumeHeat(i.search_volume),
+          releasedAt: i.started_at,
+        },
+      ];
+    });
 }
 
 export function createTrendingNow(
@@ -52,7 +81,9 @@ export function createTrendingNow(
       const out = await fetchTrendingNow(options);
       if (out.fetch_status === "manual_review_required")
         throw new Error(`Trending Now: ${out.error ?? "unavailable"}`);
-      return [...new Set(trendingPhrases(out.items))].slice(0, limit);
+      return trendingNames(out.items)
+        .toSorted((a, b) => b.heat - a.heat)
+        .slice(0, limit);
     },
   };
 }

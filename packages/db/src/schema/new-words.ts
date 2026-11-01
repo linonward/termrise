@@ -87,6 +87,13 @@ export const newWords = pgTable(
     checkedAt: timestamp({ withTimezone: true }),
     nextCheckAt: timestamp({ withTimezone: true }),
     checks: integer().notNull().default(0),
+    /**
+     * The screen's order (S75): heat on the source (1 to 3) plus freshness (0 to 3), the
+     * highest seen. Null for words found before S75.
+     */
+    priority: integer(),
+    /** When the named thing was released, from its source; null when unknown. */
+    releasedOn: date(),
     hiddenAt: timestamp({ withTimezone: true }),
     /** The maintainer chose to build for it (S62); a product starts with it. */
     selectedAt: timestamp({ withTimezone: true }),

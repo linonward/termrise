@@ -4,6 +4,7 @@ import { afterAll, beforeEach, expect, it } from "vitest";
 import { apiUsage, newWords, poolRounds } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
+import { createFakeNewWordClassifier } from "./adapters/fake-new-word-classes";
 import { createFakeNewWordOriginAnalyst } from "./adapters/fake-new-word-origin";
 import { createFakeNewWordOrigin } from "./adapters/fake-new-word-origin-sources";
 import { createFakeNewWordAnalyst } from "./adapters/fake-new-words";
@@ -360,7 +361,7 @@ it("screens up to four words per comparison and deep-checks only those that pass
     verdict: "skip",
     dedicatedPages: null,
     serp: null,
-    rules: "newword-v2",
+    rules: "newword-v3",
   });
   expect(cold.reasons).toEqual(
     expect.arrayContaining([expect.objectContaining({ code: "cold" })]),
@@ -464,7 +465,13 @@ it("adds names from the free lists, and goes on when one fails", async () => {
     }),
     roots: [],
     nameSources: [
-      { name: "hugging_face", names: async () => ["liquid lfm3", "Qwen3.8"] },
+      {
+        name: "hugging_face",
+        names: async () => [
+          { name: "liquid lfm3", heat: 3, releasedAt: null },
+          { name: "Qwen3.8", heat: 2, releasedAt: null },
+        ],
+      },
       {
         name: "itch_io",
         names: async () => {
@@ -726,4 +733,95 @@ it("lists words by stage, with each stage's count, the origins found and a searc
   expect(await phrases({ stage: "decide", origin: "seasonal" })).toEqual([
     "try word",
   ]);
+});
+
+it("screens the hottest and newest names first, and leaves out names released long ago", async () => {
+  const name = (n: string, heat: 1 | 2 | 3, daysAgo: number) => ({
+    name: n,
+    heat,
+    releasedAt: new Date(clock.getTime() - daysAgo * 86_400_000).toISOString(),
+  });
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    nameSources: [
+      {
+        name: "hugging_face",
+        names: async () => [
+          name("old model", 3, 90),
+          name("cold new", 1, 1),
+          name("hot week", 3, 10),
+          name("hot new", 3, 1),
+        ],
+      },
+    ],
+    screensPerDay: 2,
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ added: 3, tooOld: 1, screened: 2 });
+  const { items } = await w.list({});
+  const byPhrase = new Map(items.map((i) => [i.word.phrase, i.word]));
+  expect(byPhrase.has("old model")).toBe(false);
+  expect(byPhrase.get("hot new")).toMatchObject({ priority: 6 });
+  expect(byPhrase.get("hot week")).toMatchObject({ priority: 5 });
+  expect(byPhrase.get("cold new")).toMatchObject({
+    priority: 4,
+    checkedAt: null,
+  });
+  expect(byPhrase.get("hot new")!.checkedAt).not.toBeNull();
+  expect(byPhrase.get("hot week")!.checkedAt).not.toBeNull();
+  expect(
+    (await w.list({ stage: "screen" })).items.map((i) => i.word.phrase),
+  ).toEqual(["cold new"]);
+});
+
+it("drops people, matches and news before paying for the screen", async () => {
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    classifier: createFakeNewWordClassifier(),
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    nameSources: [
+      {
+        name: "trending_now",
+        names: async () => [
+          { name: "nyc halloween parade", heat: 3, releasedAt: null },
+          { name: "lumo game", heat: 2, releasedAt: null },
+        ],
+      },
+    ],
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ classified: 2, dropped: 1, screened: 1 });
+  const { items } = await w.list({});
+  const parade = items.find((i) => i.word.phrase === "nyc halloween parade")!;
+  expect(parade.word).toMatchObject({
+    category: "news",
+    verdict: "skip",
+    ratio: null,
+    reasons: [{ code: "category", category: "news" }],
+  });
+  expect(items.find((i) => i.word.phrase === "lumo game")!.word).toMatchObject({
+    category: "game",
+  });
+  const usage = await db.select().from(apiUsage);
+  expect(usage.filter((u) => u.operation === "classify")).toHaveLength(1);
+  expect(usage.filter((u) => u.operation === "compare")).toHaveLength(1);
 });

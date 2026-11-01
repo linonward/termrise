@@ -95,6 +95,8 @@ const schema = z
     PLATFORM_SITES_ENABLED: z.literal("1").optional(),
     /** Optional: raises GitHub's search limit for new-word origins (10 a minute without). */
     GITHUB_TOKEN: z.string().min(1).optional(),
+    /** Product Hunt API token: its launches become new-word names (S75). */
+    PRODUCT_HUNT_TOKEN: z.string().min(1).optional(),
     /** What platform-site rounds may spend on data per day: $2 a month by default. */
     PLATFORM_SITES_DAILY_DATA_BUDGET_USD: z.coerce
       .number()
