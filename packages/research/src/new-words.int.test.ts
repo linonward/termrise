@@ -815,16 +815,24 @@ it("drops people, matches and news before paying for the screen", async () => {
           { name: "radar", heat: 3, releasedAt: null },
         ],
       },
+      {
+        // New repositories always go to the classifier: many have pinyin names.
+        name: "github",
+        names: async () => [
+          { name: "tongjiang lab", heat: 3, releasedAt: null },
+          { name: "tiny agent", heat: 2, releasedAt: null },
+        ],
+      },
     ],
     checksPerDay: 0,
     now,
   });
   await w.scheduleDaily(0);
   const done = await w.run((await w.claim())!);
-  expect(done.report).toMatchObject({ classified: 4, dropped: 2, screened: 2 });
+  expect(done.report).toMatchObject({ classified: 6, dropped: 3, screened: 3 });
   expect(
     (await w.list({ stage: "skip" })).items.map((i) => i.word.phrase).sort(),
-  ).toEqual(["nyc halloween parade", "radar"]);
+  ).toEqual(["nyc halloween parade", "radar", "tongjiang lab"]);
   const { items } = await w.list({});
   const parade = items.find((i) => i.word.phrase === "nyc halloween parade")!;
   expect(parade.word).toMatchObject({

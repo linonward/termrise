@@ -215,13 +215,16 @@ export const SCAN_HOURS = 3;
 const TRENDING_PER_ROUND = 50;
 type NewWordCategory = (typeof NEW_WORD_CATEGORIES)[number];
 
-/** The class a name list stands for: its names are not sent to the classifier. */
-const SOURCE_CATEGORY: Record<string, NewWordCategory> = {
+/**
+ * The class a name list stands for: its names are not sent to the classifier. GitHub's
+ * are (null): many new repositories are for the Chinese market, with pinyin names.
+ */
+const SOURCE_CATEGORY: Record<string, NewWordCategory | null> = {
   "source:hugging_face": "ai",
   "source:itch_io": "game",
   "source:show_hn": "tool",
   "source:product_hunt": "tool",
-  "source:github": "tool",
+  "source:github": null,
 };
 /** A name released longer ago than this is not new: it is not added (S75; 30 since S76). */
 export const MAX_NAME_AGE_DAYS = 30;
@@ -932,10 +935,10 @@ export function createNewWords(deps: {
     const bySource = new Map<string, NewWordCategory>();
     const sourceOf = new Map<string, string>();
     for (const r of roots) {
+      if (!(r.root in SOURCE_CATEGORY)) continue;
       const category = SOURCE_CATEGORY[r.root];
-      if (!category) continue;
       if (!sourceOf.has(r.wordId)) sourceOf.set(r.wordId, r.root.slice(7));
-      if (!oneWord.has(r.wordId) && !bySource.has(r.wordId))
+      if (category && !oneWord.has(r.wordId) && !bySource.has(r.wordId))
         bySource.set(r.wordId, category);
     }
     for (const [id, category] of bySource) {
