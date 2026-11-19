@@ -44,12 +44,17 @@ export function parseRdap(body: unknown): {
   };
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export function createDomains(deps: {
   database: Database;
   fetch?: typeof fetch;
+  /** Pause between lookups; tests pass 0. */
+  pauseMs?: number;
 }) {
   const db = deps.database;
   const get = deps.fetch ?? fetch;
+  const pauseMs = deps.pauseMs ?? 1_000;
 
   /** Registrable domains of the live sites. */
   async function wanted() {
@@ -69,29 +74,42 @@ export function createDomains(deps: {
           await db
             .select({ domain: domains.domain })
             .from(domains)
+            // A failed lookup is tried again on the next sync.
             .where(
-              gte(
-                domains.checkedAt,
-                new Date(now.getTime() - DOMAIN_CHECK_EVERY_MS),
+              and(
+                isNull(domains.error),
+                gte(
+                  domains.checkedAt,
+                  new Date(now.getTime() - DOMAIN_CHECK_EVERY_MS),
+                ),
               ),
             )
         ).map((r) => r.domain),
       );
       let checked = 0;
       let failed = 0;
-      for (const domain of all.filter((d) => !fresh.has(d))) {
+      const due = all.filter((d) => !fresh.has(d));
+      for (const [i, domain] of due.entries()) {
+        // RDAP servers drop bursts of requests; space them out.
+        if (i > 0 && pauseMs) await sleep(pauseMs);
         let values: {
           expiresAt: Date | null;
           registrar: string | null;
           error: string | null;
         };
         try {
-          const response = await get(`${RDAP}${domain}`, {
-            headers: {
-              accept: "application/rdap+json",
-              "user-agent": "termrise-workbench/1.0",
-            },
-            signal: AbortSignal.timeout(20_000),
+          const lookup = () =>
+            get(`${RDAP}${domain}`, {
+              headers: {
+                accept: "application/rdap+json",
+                "user-agent": "termrise-workbench/1.0",
+              },
+              signal: AbortSignal.timeout(20_000),
+            });
+          // A dropped connection (fetch throws) gets one more try.
+          const response = await lookup().catch(async () => {
+            if (pauseMs) await sleep(pauseMs * 2);
+            return lookup();
           });
           if (!response.ok)
             values = {
