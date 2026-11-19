@@ -14,6 +14,8 @@ export interface JobPayloads {
    * one queued round (packages/research pool-round.ts). Scheduled.
    */
   "pool.scan": Record<string, never>;
+  /** Copies site-ops's export (sites, daily numbers, uptime) into the workbench. Scheduled. */
+  "sites.sync": Record<string, never>;
   /** Collects one public source into the radar (packages/research radar.ts). Scheduled. */
   "trend.ingest": { provider: "hacker_news" | "google_trends" };
 }

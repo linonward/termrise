@@ -88,6 +88,8 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 | `DEEPSEEK_MODEL`                                   | `ANALYST_PROVIDER=deepseek` 时必填，必须是价格表（`deepseek-prices.ts`）中的模型，例如 `deepseek-flash`                                                      |
 | `MONTHLY_DATA_BUDGET_USD`、`MONTHLY_AI_BUDGET_USD` | 本服务每个自然月（UTC）付费调用的硬限额，全部项目合计，默认 10 和 2（美元）；达到后任何项目都不能再做付费调用，直到下个月，见 data-model.md 的 Budget Ledger |
 | `ALLOW_FAKE_PROVIDERS`                             | `1` 时允许 fake Provider（编造数据），只用于测试和本地开发                                                                                                   |
+| `SITES_SYNC_ENABLED`                               | `1` 时每 `SITES_SYNC_INTERVAL_MS`（默认 900000，15 分钟）从 site-ops 同步站点、每日数据和在线状态，见 data-model.md 的 Sites；需要下面两个变量               |
+| `SITE_OPS_EXPORT_URL`、`SITE_OPS_EXPORT_TOKEN`     | site-ops 的导出地址（`https://site-ops.linonward.workers.dev/export`）和它的令牌（site-ops 的 `EXPORT_TOKEN`，至少 32 个字符）；只放在 Worker 的环境中       |
 
 校验错误只包含变量名和规则，不输出值。没有可用的 Worker 时，研究运行停在「排队中」。
 

@@ -4,18 +4,21 @@ import { processExampleEcho } from "./processors/example.processor";
 import { poolProcessors } from "./processors/pool.processor";
 import { radarProcessors } from "./processors/radar.processor";
 import { researchProcessors } from "./processors/research.processor";
+import { sitesProcessors } from "./processors/sites.processor";
 
 // Every job name the worker handles, mapped to its processor.
 export function createHandlers(
   deps: Parameters<typeof researchProcessors>[0] &
     Parameters<typeof radarProcessors>[0] &
-    Parameters<typeof poolProcessors>[0],
+    Parameters<typeof poolProcessors>[0] &
+    Parameters<typeof sitesProcessors>[0],
 ): JobHandlers {
   return {
     "example.echo": processExampleEcho,
     ...researchProcessors(deps),
     ...radarProcessors(deps),
     ...poolProcessors(deps),
+    ...sitesProcessors(deps),
   };
 }
 

@@ -13,6 +13,7 @@ const links = [
   { href: "/keywords", key: "keywords" },
   { href: "/opportunities", key: "opportunities" },
   { href: "/products", key: "products" },
+  { href: "/sites", key: "sites" },
   ...(product.billingEnabled
     ? [{ href: "/billing", key: "billing" } as const]
     : []),

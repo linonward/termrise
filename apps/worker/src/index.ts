@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { hostname } from "node:os";
 
 import { createDb } from "@repo/db/client";
+import { createSites, fetchSiteOpsExport } from "@repo/execution/sites";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
 import { createCommonCrawl } from "@repo/research/adapters/common-crawl";
@@ -118,6 +119,19 @@ async function main() {
         pageTitle: (url) => fetchPageTitle(url),
       })
     : undefined;
+  const siteSync =
+    env.SITES_SYNC_ENABLED &&
+    env.SITE_OPS_EXPORT_URL &&
+    env.SITE_OPS_EXPORT_TOKEN
+      ? {
+          fetch: () =>
+            fetchSiteOpsExport({
+              url: env.SITE_OPS_EXPORT_URL!,
+              token: env.SITE_OPS_EXPORT_TOKEN!,
+            }),
+          sync: createSites({ database }).sync,
+        }
+      : undefined;
   const newWordsHourUtc = env.NEW_WORDS_ENABLED
     ? env.NEW_WORDS_HOUR_UTC
     : undefined;
@@ -162,9 +176,13 @@ async function main() {
             : undefined,
           launchSites,
           platformSites,
+          siteSync,
         }),
       ),
     );
+    if (siteSync)
+      await queue.schedule("sites.sync", env.SITES_SYNC_INTERVAL_MS);
+    else await queue.unschedule("sites.sync");
     await queue.schedule("research.scan", env.SCAN_INTERVAL_MS);
     await queue.schedule("pool.scan", env.POOL_SCAN_INTERVAL_MS);
     // One schedule per source; a source turned off loses its schedule. The schedule

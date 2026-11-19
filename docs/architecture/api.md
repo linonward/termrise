@@ -115,6 +115,8 @@ GET /api/execution/projects（当前用户的产品，新的在前；?opportunit
 POST /api/execution/projects（{ opportunityId, name? }：开始 Go 机会的产品，返回 201；同一个机会再次请求返回同一个产品；机会不是 go 时 409 EXECUTION_NEEDS_GO；见 data-model.md 的 Execution and Revenue）
 
 GET /api/execution/projects/:id（产品、events、revenue 与 totals；不属于当前用户或不存在时 404 EXECUTION_PROJECT_NOT_FOUND）
+GET /api/sites（{ items, heartbeats }：没有被移除的站点，按域名排序，每个带 24 小时在线、报警状态和汇总；向 site-ops 发心跳的机器；见 data-model.md 的 Sites）
+GET /api/sites/:domain（一个站点加 removedAt 和最近 35 天的 days，新的在前，每天一个对象，键为来源；不存在时 404 NOT_FOUND）
 
 PATCH /api/execution/projects/:id（{ name?, status?, launchedOn?, domain?, repoUrl? }；launched / measuring 没有上线日期时 400 INVALID_INPUT）
 
