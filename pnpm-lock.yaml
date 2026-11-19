@@ -411,6 +411,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/execution':
+        specifier: workspace:*
+        version: link:../../packages/execution
       '@repo/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs

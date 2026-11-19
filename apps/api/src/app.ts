@@ -16,6 +16,7 @@ import { poolRoutes } from "./routes/pool";
 import { radarRoutes } from "./routes/radar";
 import { researchRoutes } from "./routes/research";
 import { settingsRoutes } from "./routes/settings";
+import { siteRoutes } from "./routes/sites";
 import { tasks } from "./routes/tasks";
 import { todayRoutes } from "./routes/today";
 import { uploads } from "./routes/uploads";
@@ -40,6 +41,7 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/pool", poolRoutes)
     .route("/today", todayRoutes)
     .route("/execution", executionRoutes)
+    .route("/sites", siteRoutes)
     .route("/settings", settingsRoutes)
     .route("/webhooks", webhooks)
     .route("/admin", adminRoutes)

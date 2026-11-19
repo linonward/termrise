@@ -93,6 +93,18 @@ const schema = z
     LAUNCH_SITES_ENABLED: z.literal("1").optional(),
     /** 1: find sites with Google traffic on vercel.app, github.io and pages.dev once a day (platform-sites.ts). */
     PLATFORM_SITES_ENABLED: z.literal("1").optional(),
+    /**
+     * 1: copy site-ops's export every SITES_SYNC_INTERVAL_MS (docs/architecture/data-model.md#sites).
+     * Needs SITE_OPS_EXPORT_URL and SITE_OPS_EXPORT_TOKEN.
+     */
+    SITES_SYNC_ENABLED: z.literal("1").optional(),
+    SITE_OPS_EXPORT_URL: z.url().optional(),
+    SITE_OPS_EXPORT_TOKEN: z.string().min(32).optional(),
+    SITES_SYNC_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .min(60_000)
+      .default(900_000),
     /** Optional: raises GitHub's search limit for new-word origins (10 a minute without). */
     GITHUB_TOKEN: z.string().min(1).optional(),
     /** Product Hunt API token: its launches become new-word names (S75). */

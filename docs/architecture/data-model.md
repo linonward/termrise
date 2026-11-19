@@ -784,6 +784,18 @@ S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，�
 
 ---
 
+## Sites
+
+维护者正在运营的网站（S79）。站点清单、每天的数字和在线检查都在 site-ops（Cloudflare 上的运营后台）：它持有 pvuv、Search Console 服务账号和各工具站后台接口的密钥，每 5 分钟检查一次各站是否在线，每天存一份数字。工作台不持有这些密钥，只读 site-ops 的导出（`GET /export`，带 `EXPORT_TOKEN`）。
+
+- **同步**：Worker 的 `sites.sync` 任务每 15 分钟拉一次导出（`packages/execution/src/sites.ts` 的 `fetchSiteOpsExport`、`createSites().sync`），在一个事务里写入。导出先用 zod 校验，不认识的每日数据来源丢掉。
+- **`sites`**：每个站一行（`domain` 主键）：名字、类型（tool、web、gefeisites、other）、模板、仓库目录、pvuv 站点 ID、最近 24 小时的检查数、在线数、平均响应时间、最近一次检查、site-ops 的报警状态（连续两次失败为 down）。站点清单以 site-ops 的 `src/sites.ts` 为准：不在导出里的站标上 `removed_at`，回到清单时清除；不删行，它的每日数据还在。
+- **`site_daily_metrics`**：每个站、日期（UTC）、来源一行，`data` 是 site-ops 当天存的 JSON：`pvuv`（当天的概况：`pv`、`uv` 等）、`gsc`（Search Console 截至当天的 28 天合计：`clicks`、`impressions`、`ctr`、`position`）、`admin`（工具站后台的指标：`orders.paid`、`orders.revenue`（`{ currency, amount }` 数组，amount 是最小货币单位）等）。重复同步覆盖同一行。不在站点清单里的站的数据不写。
+- **`ops_heartbeats`**：向 site-ops 发心跳的机器（目前只有本机工作台 `termrise`，见 environment.md 的 Always On）的状态和原因。
+- **汇总**（`summarize`）：访客和浏览是最近 7 天 pvuv 的 `uv`、`pv` 之和；Google 取最近一天的 28 天合计；订单和收入是最近 30 天 `admin` 的 `orders.paid` 之和和按币种的收入之和。没有数据的项为 null，页面写「—」。
+
+---
+
 ## rate_limits
 
 ```sql
