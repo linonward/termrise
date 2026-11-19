@@ -67,6 +67,7 @@ it("reads each registrable domain once a day and keeps the last date when a look
 
   const failing = createDomains({
     database: db,
+    pauseMs: 0,
     fetch: (async () =>
       new Response("", { status: 503 })) as typeof globalThis.fetch,
   });
@@ -178,4 +179,31 @@ it("refuses a payment that is not valid", async () => {
     await expect(e.add("a", body)).rejects.toMatchObject({
       code: "INVALID_INPUT",
     });
+});
+
+it("tries a dropped connection once more, and a failed lookup again on the next sync", async () => {
+  let calls = 0;
+  const flaky = (async () => {
+    calls += 1;
+    if (calls % 2 === 1) throw new TypeError("fetch failed");
+    return rdap("2027-01-01T00:00:00Z");
+  }) as typeof globalThis.fetch;
+  const d = createDomains({ database: db, fetch: flaky, pauseMs: 0 });
+  expect(await d.refresh(now)).toEqual({ checked: 2, failed: 0 });
+  expect(calls).toBe(4);
+
+  const down = createDomains({
+    database: db,
+    pauseMs: 0,
+    fetch: (async () => {
+      throw new TypeError("fetch failed");
+    }) as typeof globalThis.fetch,
+  });
+  const later = new Date(now.getTime() + 21 * 3_600_000);
+  expect(await down.refresh(later)).toEqual({ checked: 2, failed: 2 });
+  // Failed rows are not fresh: the next sync, minutes later, tries them again.
+  expect(await d.refresh(new Date(later.getTime() + 900_000))).toEqual({
+    checked: 2,
+    failed: 0,
+  });
 });

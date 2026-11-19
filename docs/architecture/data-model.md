@@ -794,7 +794,7 @@ S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，�
 - **`site_daily_metrics`**：每个站、日期（UTC）、来源一行，`data` 是 site-ops 当天存的 JSON：`pvuv`（当天的概况：`pv`、`uv` 等）、`gsc`（Search Console 截至当天的 28 天合计：`clicks`、`impressions`、`ctr`、`position`）、`admin`（工具站后台的指标：`orders.paid`、`orders.revenue`（`{ currency, amount }` 数组，amount 是最小货币单位）等）。重复同步覆盖同一行。不在站点清单里的站的数据不写。
 - **`ops_heartbeats`**：向 site-ops 发心跳的机器（目前只有本机工作台 `termrise`，见 environment.md 的 Always On）的状态和原因。
 - **汇总**（`summarize`）：访客和浏览是最近 7 天 pvuv 的 `uv`、`pv` 之和；Google 取最近一天的 28 天合计；订单和收入是最近 30 天 `admin` 的 `orders.paid` 之和和按币种的收入之和。没有数据的项为 null，页面写「—」。
-- **`domains`**（S81）：站点用到的每个可注册域名一行（取主机名的最后两段，vivclip.com 和 radio.vivclip.com 共用一行；站点只用 .com、.org 这类单段后缀，co.uk 这类需要改规则）：到期时间、注册商、最近查询时间、最近一次失败的原因。`sites.sync` 写完后查 RDAP（`https://rdap.org/domain/<域名>`，RFC 9083 的 `events` 里 `eventAction` 为 `expiration` 的日期，`entities` 里角色为 `registrar` 的 `fn`），20 小时内查过的不再查；查询失败不让同步失败，保留上次的日期，记下原因。
+- **`domains`**（S81）：站点用到的每个可注册域名一行（取主机名的最后两段，vivclip.com 和 radio.vivclip.com 共用一行；站点只用 .com、.org 这类单段后缀，co.uk 这类需要改规则）：到期时间、注册商、最近查询时间、最近一次失败的原因。`sites.sync` 写完后查 RDAP（`https://rdap.org/domain/<域名>`，RFC 9083 的 `events` 里 `eventAction` 为 `expiration` 的日期，`entities` 里角色为 `registrar` 的 `fn`），20 小时内查成功过的不再查；每次查询间隔 1 秒，连接被断开时马上再试一次；查询失败不让同步失败，保留上次的日期，记下原因，下一次同步（15 分钟后）再查。
 
 ## Expenses
 
