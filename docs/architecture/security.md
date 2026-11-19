@@ -122,6 +122,18 @@ Better Auth `lastLoginMethod()` 插件在登录成功后写入 Cookie `better-au
 
 ---
 
+## Agent Tokens
+
+维护者的 AI agent（例如本机的 Claude Code）用令牌调用 API，读写和网页相同的数据（S78）。
+
+- 令牌在 `/settings/agents` 创建：`trk_` 加 32 个随机字节（base64url）。数据库只存整串令牌的 SHA-256 和前 12 个字符（`agent_tokens`，见 data-model.md 的 Agent Tokens）；完整令牌只在创建后显示一次。
+- 请求带 `Authorization: Bearer trk_…` 时，`session` middleware（`apps/api/src/middleware/session.ts`）用令牌找到它的主人，设置 `c.var.user`，之后的路由、权限检查和限流与网页登录完全相同；没有带令牌时照旧检查会话 cookie。令牌不存在、格式不对或已撤销时返回 401 `UNAUTHORIZED`。
+- 令牌请求不带 cookie，所以不受 CSRF 影响；`webCsrf` 只拦截表单类请求，agent 发 JSON。CORS 只约束浏览器，agent 不经过它。
+- 每次验证成功记下最近使用时间。撤销后立即失效；删除账号时删除该用户的全部令牌（`apps/api/src/product-data.ts`）。
+- 令牌等同于主人的登录：管理员的令牌也能调用 `/api/admin/*`。只发给自己的 agent，存在本机，不进仓库和对话。
+
+---
+
 ## Security Headers
 
 `apps/web/next.config.ts` 对所有路径返回：

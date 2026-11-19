@@ -1,4 +1,5 @@
 import type { ProductData } from "@repo/admin/account-service";
+import { eraseAgentTokens } from "@repo/auth/agent-tokens";
 import type { Database } from "@repo/db/client";
 import {
   eraseExecutionData,
@@ -29,5 +30,6 @@ export const productData = {
     await eraseExecutionData(database, userId);
     await eraseResearchData(database, userId);
     await eraseRadarFavorites(database, userId);
+    await eraseAgentTokens(database, userId);
   },
 } satisfies ProductData;

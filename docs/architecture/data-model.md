@@ -630,6 +630,12 @@ processed_at = now()
 
 ---
 
+## Agent Tokens
+
+`agent_tokens`（`packages/db/src/schema/agent-tokens.ts`，`packages/auth/src/agent-tokens.ts`，S78）：AI agent 调用 API 用的令牌，规则见 security.md 的 Agent Tokens。每行：主人（`user_id`，删除用户时级联删除）、名字（1 到 60 个字符）、`token_hash`（整串令牌的十六进制 SHA-256，唯一）、`preview`（前 12 个字符）、创建时间、最近使用时间、撤销时间。不存令牌本身。账号删除是匿名化而不是删行，所以 `productData.erase` 显式删除这些行。
+
+---
+
 ## Worker Heartbeats
 
 S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，长青词的开关、每几天一轮和每天数据上限，新词的开关、每天数据和 AI 上限、每天复核个数。设置页用它显示「已用 / 上限」。

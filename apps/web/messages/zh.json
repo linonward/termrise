@@ -124,7 +124,8 @@
     "discover": "发现",
     "keywords": "选词",
     "opportunityTabs": "机会分类",
-    "researchProjects": "研究项目"
+    "researchProjects": "研究项目",
+    "agentTokens": "Agent 令牌"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -743,6 +744,26 @@
       "researchLink": "研究项目",
       "note": "上限来自 Worker 的环境变量（POOL_*、NEW_WORDS_*、MONTHLY_*），日期按 UTC 计。用量含已结算的费用和还在占用的预留额。"
     }
+  },
+  "agentTokens": {
+    "metaTitle": "Agent 令牌",
+    "title": "Agent 令牌",
+    "subtitle": "给替你干活的 AI agent（例如 Claude Code）用的令牌。带上令牌，agent 可以读写和网页相同的数据：今天的汇总、词库、产品。令牌等同于你的登录，只给你自己的 agent。",
+    "nameLabel": "名字",
+    "namePlaceholder": "例如：Claude Code（本机）",
+    "create": "创建令牌",
+    "createdOnce": "这是令牌的完整内容，只显示这一次。现在复制，存到 agent 能读到的地方；离开这个页面后无法再看到。",
+    "usage": "调用 API 时放在请求头里：Authorization: Bearer <令牌>。",
+    "emptyTitle": "还没有令牌",
+    "emptyText": "创建一个令牌，给你的 agent 用。",
+    "colName": "名字",
+    "colToken": "令牌",
+    "colCreated": "创建时间",
+    "colLastUsed": "最近使用",
+    "colActions": "操作",
+    "neverUsed": "没用过",
+    "revoke": "撤销",
+    "revoked": "已撤销"
   },
   "favorites": {
     "star": "收藏 {name}",
