@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^3.0.61",
-    "ai": "^7.0.130",
-    "zod": "^4.6.5"
+    "@ai-sdk/deepseek": "^3.0.88",
+    "ai": "^7.0.176",
+    "zod": "^4.6.7"
   }
 }
