@@ -120,3 +120,21 @@ CI（`.github/workflows/ci.yml`）只设置 `TEST_DATABASE_URL`（`app_test_ci` 
 - web 运行 `next build` 的结果，`NEXT_PUBLIC_API_URL` 在构建时写入页面；修改它或代码后重新运行 `pnpm local:up`。
 - `apps/worker/.env` 设置了真实 Provider（`KEYWORD_PROVIDER=dataforseo`、`ANALYST_PROVIDER=deepseek`）时，容器中的 Worker 同样会产生付费调用。
 - 改用本机进程（`pnpm dev` 等）前先运行 `pnpm local:down`，否则端口冲突。
+
+### Always On
+
+Termrise 是维护者的个人工作台，常驻在维护者的电脑上（这台电脑基本不关机）：`pnpm local:up` 启动的服务和数据库一直运行，每日选词、新词扫描、新站和平台站按 Worker 的定时排队。
+
+- **自动恢复**：Docker 用 OrbStack，设置为登录时启动（`orbctl config set app.start_at_login true`）。`/docker-compose.yml` 的 PostgreSQL、Redis、SeaweedFS 和 `infra/local/compose.yml` 的服务都是 `restart: unless-stopped`，重启电脑或更新 OrbStack 后自动恢复。`/docker-compose.yml` 的项目名保留模板的 `saas-starter`：改名会新建空的数据卷，`termrise_local` 在 `saas-starter_postgres-data` 里。
+- **心跳**：`infra/local/watch.sh` 每 10 分钟检查 web、API、Worker 的健康检查、最近 36 小时内有没有跑完的轮次、最近一次备份是否在 36 小时内，把结果发给 site-ops（`POST https://site-ops.linonward.workers.dev/heartbeat`，令牌在 `~/.config/termrise/watch.env` 的 `SITE_OPS_HEARTBEAT_TOKEN`，不进仓库）。site-ops 30 分钟收不到心跳，或心跳报告失败时，给维护者发邮件；恢复后再发一封。
+- **备份**：`infra/local/backup.sh` 每天用 `pg_dump -Fc` 导出 `termrise_local`，上传到私有 R2 存储桶 `termrise-backups` 的 `termrise_local/<日期>.dump`；存储桶的生命周期规则 30 天后删除。
+- **安装**：在主仓库目录（不是 worktree）运行 `infra/local/install-agents.sh`，安装两个 launchd agent：`com.termrise.watch`（600 秒）和 `com.termrise.backup`（86,400 秒），日志在 `~/Library/Logs/com.termrise.*.log`。`--uninstall` 删除它们。
+- **恢复**：
+
+  ```bash
+  cd apps/api && pnpm exec wrangler r2 object get termrise-backups/termrise_local/<日期>.dump --file /tmp/restore.dump --remote
+  docker cp /tmp/restore.dump saas-starter-postgres-1:/tmp/restore.dump
+  docker exec saas-starter-postgres-1 sh -c "dropdb -U postgres termrise_local && createdb -U postgres termrise_local && pg_restore -U postgres -d termrise_local --no-owner /tmp/restore.dump"
+  ```
+
+  先 `pnpm local:down`，恢复后 `pnpm local:up`。

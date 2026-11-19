@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template for infra/local/install-agents.sh: __LABEL__, __SCRIPT__, __INTERVAL__, __PATH__, __LOG__ are filled in. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>__LABEL__</string>
+  <key>ProgramArguments</key><array><string>/bin/bash</string><string>__SCRIPT__</string></array>
+  <key>StartInterval</key><integer>__INTERVAL__</integer>
+  <key>RunAtLoad</key><true/>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>__PATH__</string></dict>
+  <key>StandardOutPath</key><string>__LOG__</string>
+  <key>StandardErrorPath</key><string>__LOG__</string>
+</dict>
+</plist>
