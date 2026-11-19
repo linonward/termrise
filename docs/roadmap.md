@@ -83,6 +83,7 @@
 | S74   | 「发现」的信息架构（维护者 2026-11-01 选「按流程分阶段」）：统一页头和带数量的三个标签；新词按阶段（待你决定、待深查、待初筛、不建议、已隐藏）分，默认待你决定，搜索、只列有词的起因、分页；新站和平台站用同样的筛选按钮；新词详情页按结论、热度、起因、竞争、承接排；谷歌趋势链接换成新版 Explore；来源显示补上 Trending Now 和谷歌联想                                                                                                                                                                                                                                                               | 集成测试覆盖按阶段筛选、计数随搜索和起因变化、三个标签的计数；单元测试覆盖阶段判断、来源名称、趋势链接；端到端测试覆盖阶段切换、待初筛的来源、起因筛选、详情页分组和面包屑                                                                                       | 已完成 |
 | S75   | 新词的优先级、分类和官方页（维护者 2026-11-01 同意，参考一份按新鲜度、平台热度、竞争打分的新词流程）：名字来源带上热度和发布时间，发布超过 60 天的不收，初筛按优先级排；初筛前 AI 分类，人名、比赛、新闻、购物不花 Trends 的钱；作者自己的站和平台页不算专门页面（`newword-v3`）；新来源 Show HN 和 Product Hunt（`PRODUCT_HUNT_TOKEN`）；migration `0037_new_word_priority`                                                                                                                                                                                                                           | 单元测试覆盖各来源的热度和日期、Show HN 和 Product Hunt 的名字、官方页判断；集成测试覆盖优先级排序、老名字不收、分类后跳过、AI 记账；端到端测试覆盖待初筛的优先级和发布日、详情页的官方页标记                                                                    | 已完成 |
 | S76   | 新词流程补齐（维护者 2026-11-01 同意，参考同一份新词流程的完整版）：多来源加分（`base_priority`）；GitHub 近 7 天新仓库；Trending Now 加英国、加拿大、澳大利亚、印度的科技类；名字超过 30 天不收；产品名去掉平台后缀、"X by Y"改为"Y X"；一个词的名字由 AI 判断是不是普通单词；热度高但已被占满的词改为"只做长尾"并取谷歌联想（`newword-v4`）；AI 给出建站方向和版权风险；网页补上 Show HN、Product Hunt、GitHub 的来源名；GitHub 的名字一律交给 AI 分类，拼音名和面向中文市场的项目跳过；migration `0038_new_word_direction`                                                                          | 单元测试覆盖名字清理、GitHub 和多国家 Trending Now、只做长尾的规则；集成测试覆盖多来源加分、普通词跳过、长尾和方向；端到端测试覆盖方向、版权风险和长尾列表                                                                                                       | 已完成 |
+| S77   | 本地常驻（维护者 2026-11-19 定：Termrise 是个人工作台，在本机常驻；它从 2026-11-01 起因 PostgreSQL 和 Redis 容器停了而没跑，没人发现）：`/docker-compose.yml` 的服务 `restart: unless-stopped`，OrbStack 登录时启动；`infra/local/watch.sh` 每 10 分钟向 site-ops 发心跳（服务健康、36 小时内有跑完的轮次、36 小时内有备份），site-ops 收不到或报告失败时发邮件；`infra/local/backup.sh` 每天把 `termrise_local` 导出到 R2 `termrise-backups`，保留 30 天；`infra/local/install-agents.sh` 安装两个 launchd agent。见 [Always On](architecture/environment.md#always-on)                               |
 
 ## Confirmed Decisions
 
@@ -147,6 +148,7 @@
   - S56 选词简报：导出为 site-starter 的 `docs/keyword-brief.md` 格式。
   - S57 导入 keyword-lab 的词库和历史，SOP 移入 `docs/`，keyword-lab 归档。
   - S58 site-starter 去掉与 Termrise 重叠的部分：`analyze-keywords` 和 `analyze-competitors` 读选词简报，不再重新拉主词的数据；上线后的 Search Console 新词作为词库的词源。
+- 2026-11-19：Termrise 改为维护者的**个人工作台**：选词（词库、新词、新站、平台站）之外，站群的数据、统计和监测也逐步移进来（站点登记、访客数、Search Console、各站后台数据、审查记录、花费），只有维护者一个用户，不对外。部署为本地常驻（[Always On](architecture/environment.md#always-on)）：维护者的电脑基本不关机，不另租服务器；只有探测网站是否在线、发报警仍由 Cloudflare 上的 site-ops 做，因为本机断网时无法判断。按 S77 到 S81 分期。
 
 ## Open Questions
 

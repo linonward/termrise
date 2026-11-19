@@ -1,11 +1,16 @@
 # Local services. One shared set of containers for all worktrees.
+# The project keeps the template's name: renaming it would start new, empty
+# volumes, and postgres-data holds termrise_local, the workbench's data
+# (docs/architecture/environment.md#always-on). Every service restarts with
+# Docker, so a reboot or an OrbStack update brings the workbench back.
 name: saas-starter
 
 services:
-  # PostgreSQL for automated tests only (docs/architecture/testing.md);
-  # each worktree uses its own database.
+  # PostgreSQL for the automated tests (docs/architecture/testing.md; each worktree
+  # uses its own database) and for termrise_local, the workbench's own data.
   postgres:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -24,6 +29,7 @@ services:
   # Creates the app-dev bucket on start; local-only credentials.
   storage:
     image: chrislusf/seaweedfs:4.48
+    restart: unless-stopped
     command: ["mini", "-s3.allowedOrigins=http://localhost:3000"]
     environment:
       AWS_ACCESS_KEY_ID: local
@@ -38,6 +44,7 @@ services:
   # Tests use database 1 (TEST_REDIS_URL), local development database 0.
   redis:
     image: redis:8-alpine
+    restart: unless-stopped
     ports:
       - "63790:6379"
     healthcheck:
