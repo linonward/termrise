@@ -90,6 +90,9 @@ GET /api/pool/platform-sites（平台站：有流量的站，每页 50 个，按
 PUT / DELETE /api/pool/platform-sites/:id/hide（隐藏 / 重新显示）
 
 GET /api/settings/providers（{ worker, radar, usage }：Worker 的服务配置与是否在线（没有时为 null）、Radar 条目数与最近采集时间、当前用户的项目按服务和预算类型的调用数、失败数、spentUsd、heldUsd、最近一次调用的时间和状态；见 data-model.md 的 Worker Heartbeats）
+GET /api/settings/agent-tokens（{ items }：当前用户的 agent 令牌：id、name、preview、createdAt、lastUsedAt、revokedAt；不含令牌本身）
+POST /api/settings/agent-tokens（{ name }，201：同上加 token，完整令牌只返回这一次）
+DELETE /api/settings/agent-tokens/:id（204；不是自己的或已撤销：404 NOT_FOUND）
 
 GET /api/opportunities（当前用户的当前机会，分数高的在前；?projectId= 只列一个项目，不属于当前用户时返回空列表；见 data-model.md 的 Opportunities）
 

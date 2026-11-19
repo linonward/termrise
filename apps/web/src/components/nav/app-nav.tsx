@@ -136,6 +136,13 @@ function MobileMenu({
           >
             {t("providers")}
           </Link>
+          <Link
+            href="/settings/agents"
+            onClick={() => setOpen(false)}
+            className="block text-[15px] font-medium"
+          >
+            {t("agentTokens")}
+          </Link>
           <ChoiceGroup
             label={t("theme")}
             value={theme}
@@ -202,6 +209,9 @@ export function AppNav({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/settings/providers">{t("providers")}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/agents">{t("agentTokens")}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>

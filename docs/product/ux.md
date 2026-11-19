@@ -471,6 +471,20 @@ Checkout 跳回 `?checkout=success` 且最新购买为 Pending 或 Paid 时，�
 
 ---
 
+## Agent Tokens
+
+`/settings/agents`（S78，无设计稿；入口在账号菜单和移动端抽屉中，「服务」下面）：维护者给自己的 AI agent 创建令牌，规则见 security.md 的 Agent Tokens。
+
+```text
+标题 + 说明（令牌等同于你的登录，只给自己的 agent）
+创建：名字（例如 Claude Code（本机））+ 创建按钮
+  创建成功：完整令牌只显示这一次，下面一行写怎么用（Authorization: Bearer <令牌>）
+列表：名字、令牌前 12 个字符、创建时间、最近使用（没用过）、撤销按钮（已撤销的显示「已撤销」）
+没有令牌时：空状态
+```
+
+---
+
 ## Admin
 
 `/admin`（用户搜索）和 `/admin/users/:id`（用户详情），只做桌面端，noindex。非管理员访问返回 404。访问规则见 [Admin Access](../architecture/security.md#admin-access)。

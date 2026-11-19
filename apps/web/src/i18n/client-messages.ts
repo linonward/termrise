@@ -7,6 +7,7 @@ type Messages = typeof messages;
 // (client-messages.test.ts checks the list against the components).
 export const CLIENT_NAMESPACES = [
   "admin",
+  "agentTokens",
   "auth",
   "billing",
   "brief",
