@@ -13,6 +13,20 @@ allowBuilds:
   unrs-resolver: false
   workerd: true
 
+# Fixed versions for one path each, where the upper package hasn't shipped the fix yet
+# (docs/runbook.md#update-dependencies). Remove each once the upper package depends on it.
+overrides:
+  # GHSA-xjj6-f33q-929c, GHSA-4w7w-5xrc-9h26, GHSA-2m5v-pch6-74hx, GHSA-qrxm-fqhp-jwvm (2026-11-19):
+  # wrangler 4.165.0's miniflare still pins undici below 7.30.1. Dev only (wrangler dev and deploy).
+  "miniflare>undici": "^7.30.1"
+  # GHSA-587h-7wmj-h5pm (2026-11-19): better-auth 1.7 lists vitest, which pulls vite below 8.3.3.
+  "vitest>vite": "^8.3.3"
+  # GHSA-3f7j-7jwc-fxfj (2026-11-19): the shadcn CLI's dotenvx pulls systeminformation below
+  # 5.33.16. Dev only.
+  "@dotenvx/dotenvx>systeminformation": "^5.33.16"
+  # Same undici advisories as above (2026-11-19), through the shadcn CLI's dotenvx. Dev only.
+  "@dotenvx/dotenvx>undici": "^7.30.1"
+
 # Advisories accepted after review (docs/runbook.md#update-dependencies). Remove each when a fix ships.
 auditConfig:
   ignoreGhsas:
