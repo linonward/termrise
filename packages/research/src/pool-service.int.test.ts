@@ -249,3 +249,79 @@ it("refuses pool calls without a daily cap", async () => {
     ),
   ).toBeNull();
 });
+
+it("saves a vet record: verdict to status, no automatic recheck, review on the next date", async () => {
+  const watched = await pool.vet("a", {
+    phrase: "  ApkStart ",
+    verdict: "watch",
+    score: { total: 54, max: 90 },
+    summary: "Watch: US volume about 300 a month and falling.",
+    markdown: "# 选词简报：apkstart\n\n结论：观察",
+    recheck: ["2026-12-16", "2026-10-01", "2026-12-02"],
+    vettedOn: "2026-10-30",
+  });
+  expect(watched).toMatchObject({
+    phrase: "apkstart",
+    status: "watch",
+    sources: ["vet"],
+    nextCheckAt: null,
+    reviewAt: new Date("2026-12-02T00:00:00Z"),
+  });
+  const { checks } = await pool.get(watched.id);
+  expect(checks[0]).toMatchObject({
+    kind: "vet",
+    status: "watch",
+    reviewerId: "a",
+    createdAt: new Date("2026-10-30T12:00:00Z"),
+    data: {
+      verdict: "watch",
+      score: { total: 54, max: 90 },
+      recheck: ["2026-12-16", "2026-10-01", "2026-12-02"],
+    },
+  });
+  // Rounds never pick it up; Today does once the date is within reach.
+  clock = day(60);
+  expect(await pool.due(10)).toEqual([]);
+  expect((await pool.reviewsDue(clock)).map((k) => k.phrase)).toEqual([
+    "apkstart",
+  ]);
+
+  const dropped = await pool.vet("a", {
+    phrase: "hotel lobby ai",
+    verdict: "drop",
+    summary: "Drop: knockout 4.",
+    recheck: ["2027-01-01"],
+  });
+  expect(dropped).toMatchObject({ status: "dropped", reviewAt: null });
+  expect(
+    (await pool.vet("a", { phrase: "x", verdict: "build", summary: "s" }))
+      .status,
+  ).toBe("selected");
+  expect(
+    (await pool.vet("a", { phrase: "y", verdict: "inner", summary: "s" }))
+      .status,
+  ).toBe("selected");
+});
+
+it("refuses a vet record that is not valid", async () => {
+  for (const body of [
+    { phrase: "a", verdict: "maybe", summary: "s" },
+    { phrase: "a", verdict: "watch", summary: "" },
+    { phrase: "a", verdict: "watch", summary: "s", recheck: ["12/02"] },
+    {
+      phrase: "a",
+      verdict: "watch",
+      summary: "s",
+      score: { total: 91, max: 90 },
+    },
+    {
+      phrase: "a",
+      verdict: "watch",
+      summary: "s",
+      markdown: "x".repeat(60_001),
+    },
+  ])
+    await expect(pool.vet("a", body)).rejects.toMatchObject({
+      code: "INVALID_INPUT",
+    });
+});

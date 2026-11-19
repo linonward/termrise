@@ -35,6 +35,7 @@ const keyword = {
   firstSeenAt: at,
   lastCheckedAt: at,
   nextCheckAt: null,
+  reviewAt: null,
   updatedAt: at,
 } satisfies PoolKeyword;
 const check = (
