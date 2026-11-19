@@ -138,9 +138,11 @@ export default async function SitesPage() {
                     <td className="py-3 pr-4 text-right tabular-nums">
                       {s.summary.orders30d === null
                         ? "—"
-                        : `${n(s.summary.orders30d)} · ${money(s.summary.revenue30d)}`}
+                        : s.summary.revenue30d.length
+                          ? `${n(s.summary.orders30d)} · ${money(s.summary.revenue30d)}`
+                          : n(s.summary.orders30d)}
                     </td>
-                    <td className="py-3 text-[13px] text-muted-foreground">
+                    <td className="py-3 align-top text-[13px] text-muted-foreground">
                       {s.template ?? "—"}
                     </td>
                   </tr>

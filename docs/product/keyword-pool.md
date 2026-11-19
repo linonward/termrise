@@ -69,6 +69,15 @@ Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的�
 
 候选词和选定的词，在详情页可以复制或下载**选词简报**（`GET /api/pool/keywords/:id/brief.md`，`pool-brief.ts`），存为 site-starter 新网站的 `docs/keyword-brief.md`。格式沿用 keyword-lab SOP 的附录 D：结论、数据（搜索量、KD、CPC、变种数、趋势和基线、强对手数、内页数）、合并的说法、联想词、合规和变现、前 10 名、AI 改造点、交给建站时要注意。简报只用已保存的数据：没查过的项写"—"或"待确认"，并列在"交给建站时要注意"里。
 
+## Vet
+
+审查记录（S80）：用 `vet-keyword` 技能审查一个词后，维护者或 AI agent 把结论写进词库（`POST /api/pool/keywords/vet`，agent 用 [Agent 令牌](../architecture/security.md#agent-tokens)）。
+
+- 一条记录是一次 `vet` 检查：结论（做新站 `build`、只做主站内页 `inner`、观察 `watch`、放弃 `drop`）、总分、一句话摘要、完整 Markdown 和复查日期。
+- 结论决定词的状态：做新站和只做主站内页为已选定，观察为观察，放弃为已放弃。
+- 审查过的词不再由自动轮次复查（`next_check_at` 为空），因为它的判断按 `vet-keyword` 的关卡做，不按工具站的自动规则。复查由维护者按 `review_at` 自己做：「今天」页列出 7 天内到期的词，复查后再写一条审查记录，`review_at` 改为下一个复查日。
+- 词详情页在检查记录上方显示最新一条审查记录，完整 Markdown 可以展开。
+
 ## keyword-lab
 
 keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目录>` 导入（`pool-import.ts`）：`research/pool.csv` 给每个词的状态、来源、首次加入、最近检查和下次检查日期，`research/keyword-research-*.csv` 给最近一次的搜索量、KD、CPC、变种数、强对手数和内页数。keyword-lab 的原因文字原样保留（规则 `imported`）。每个词一条 `import` 检查；导入过的词再运行时跳过。keyword-lab 每天花费的记录（`spend.csv`）不导入预算账本。

@@ -10,6 +10,7 @@ import { VerdictLine, WordTags } from "@/features/new-words/new-word-badges";
 import { times } from "@/features/new-words/new-word-format";
 import { PoolStatusBadge, RoundStatusBadge } from "@/features/pool/pool-badges";
 import { count, usd } from "@/features/pool/pool-format";
+import { SiteState } from "@/features/sites/site-state";
 import { apiGet } from "@/server/api/api";
 
 type Today = {
@@ -33,11 +34,30 @@ type Today = {
       evergreenEveryDays: number | null;
     } | null;
   } | null;
+  sites: {
+    total: number;
+    down: {
+      domain: string;
+      name: string;
+      since: string | null;
+      lastStatus: number | null;
+    }[];
+    syncedAt: string | null;
+  };
+  heartbeats: { source: string; state: "up" | "down"; reason: string }[];
+  reviews: {
+    id: string;
+    phrase: string;
+    status: PoolKeywordDto["status"];
+    reviewAt: string;
+    due: boolean;
+  }[];
 };
 
 const card = "space-y-4 rounded-lg border border-border bg-card p-6";
 
-// What needs the maintainer today: new words, keywords to decide, rounds, money.
+// What needs the maintainer today: new words, keywords to decide, sites that are down,
+// keywords to look at again, rounds, money.
 export async function TodayView() {
   const t = await getTranslations("today");
   const d = await apiGet<Today>("/api/today");
@@ -159,6 +179,100 @@ export async function TodayView() {
                       volume: count(k.searchVolume),
                       kd: k.keywordDifficulty ?? "—",
                       strong: k.strongCompetitors ?? "—",
+                    })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section aria-labelledby="today-sites" className={card}>
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 id="today-sites" className="font-heading text-xl font-semibold">
+              {t("sitesTitle")}
+            </h2>
+            <Link
+              href="/sites"
+              className="text-[13px] text-muted-foreground hover:underline"
+            >
+              {t("sitesAll", { n: d.sites.total })}
+            </Link>
+          </div>
+          {d.sites.syncedAt === null ? (
+            <p className="text-[15px] text-muted-foreground">
+              {t("sitesNever")}
+            </p>
+          ) : d.sites.down.length === 0 ? (
+            <p className="text-[15px]" data-testid="today-sites-ok">
+              {t("sitesAllUp", { n: d.sites.total })}
+            </p>
+          ) : (
+            <ul className="divide-y divide-border" data-testid="today-down">
+              {d.sites.down.map((s) => (
+                <li
+                  key={s.domain}
+                  className="flex flex-wrap items-center gap-3 py-3"
+                >
+                  <Link
+                    href={`/sites/${encodeURIComponent(s.domain)}`}
+                    className="font-semibold hover:underline"
+                  >
+                    {s.name}
+                  </Link>
+                  <SiteState state="down" />
+                  {s.since && (
+                    <span className="text-[13px] text-muted-foreground sm:ml-auto">
+                      {t("downSince")} <LocalDateTime iso={s.since} />
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ul className="space-y-1 text-[13px] text-muted-foreground">
+            {d.heartbeats.map((h) => (
+              <li key={h.source} data-testid="today-heartbeat">
+                {h.state === "up"
+                  ? t("heartbeatUp", { source: h.source })
+                  : t("heartbeatDown", { source: h.source, reason: h.reason })}
+              </li>
+            ))}
+            {d.sites.syncedAt && (
+              <li>
+                {t("sitesSynced")} <LocalDateTime iso={d.sites.syncedAt} />
+              </li>
+            )}
+          </ul>
+        </section>
+
+        <section aria-labelledby="today-reviews" className={card}>
+          <h2 id="today-reviews" className="font-heading text-xl font-semibold">
+            {t("reviewsTitle")}
+          </h2>
+          {d.reviews.length === 0 ? (
+            <p className="text-[15px] text-muted-foreground">
+              {t("reviewsEmpty")}
+            </p>
+          ) : (
+            <ul className="divide-y divide-border" data-testid="today-reviews">
+              {d.reviews.map((k) => (
+                <li
+                  key={k.id}
+                  className="flex flex-wrap items-center gap-3 py-3"
+                >
+                  <Link
+                    href={`/keywords/${k.id}`}
+                    className="font-semibold hover:underline"
+                  >
+                    {k.phrase}
+                  </Link>
+                  <PoolStatusBadge status={k.status} />
+                  <span className="text-[13px] text-muted-foreground tabular-nums sm:ml-auto">
+                    {t(k.due ? "reviewDue" : "reviewOn", {
+                      day: k.reviewAt.slice(0, 10),
                     })}
                   </span>
                 </li>

@@ -70,6 +70,17 @@ export default async function PoolKeywordPage({
       : null;
   const trend = trendSummary(k.trend as TrendCheck | null);
   const deep = k.checks.find((c) => c.kind === "deep");
+  // The latest vetting record (the vet-keyword skill), written by the maintainer or an agent.
+  const vetCheck = k.checks.find((c) => c.kind === "vet");
+  const vet = vetCheck
+    ? (vetCheck.data as {
+        verdict: "build" | "inner" | "watch" | "drop";
+        score: { total: number; max: number } | null;
+        summary: string;
+        markdown: string | null;
+        recheck: string[];
+      })
+    : null;
   const serp =
     (
       deep?.data as
@@ -143,6 +154,12 @@ export default async function PoolKeywordPage({
             <>
               {" · "}
               {t("nextCheck")} <LocalDateTime iso={k.nextCheckAt} />
+            </>
+          )}
+          {k.reviewAt && (
+            <>
+              {" · "}
+              {t("reviewAt")} {k.reviewAt.slice(0, 10)}
             </>
           )}
         </p>
@@ -328,6 +345,43 @@ export default async function PoolKeywordPage({
                 </p>
               </div>
               <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />
+            </section>
+          )}
+
+          {vet && vetCheck && (
+            <section
+              aria-labelledby="vet-title"
+              className="space-y-3"
+              data-testid="vet-record"
+            >
+              <h2 id="vet-title" className="font-heading text-xl font-semibold">
+                {t("vetTitle")}
+              </h2>
+              <div className="flex flex-wrap items-center gap-3 text-[13px]">
+                <LocalDateTime iso={vetCheck.createdAt} />
+                <Tag>{t(`vetVerdict.${vet.verdict}`)}</Tag>
+                {vet.score && (
+                  <span className="tabular-nums">
+                    {t("vetScore", vet.score)}
+                  </span>
+                )}
+                {vet.recheck.length > 0 && (
+                  <span className="text-muted-foreground tabular-nums">
+                    {t("vetRecheck", { days: vet.recheck.join("、") })}
+                  </span>
+                )}
+              </div>
+              <p className="text-[15px]">{vet.summary}</p>
+              {vet.markdown && (
+                <details className="rounded-lg border border-border bg-card">
+                  <summary className="cursor-pointer px-4 py-3 text-[13px] font-medium">
+                    {t("vetMarkdown")}
+                  </summary>
+                  <pre className="max-h-[32rem] overflow-auto border-t border-border px-4 py-3 font-mono text-[13px] leading-relaxed break-words whitespace-pre-wrap">
+                    {vet.markdown}
+                  </pre>
+                </details>
+              )}
             </section>
           )}
 

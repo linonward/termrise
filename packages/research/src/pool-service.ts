@@ -82,6 +82,7 @@ export type KeywordFields = Partial<{
   strongCompetitors: number | null;
   innerPages: number | null;
   trend: TrendCheck | null;
+  reviewAt: Date | null;
 }>;
 
 export type CheckInput = {
@@ -122,6 +123,39 @@ const reviewSchema = z.discriminatedUnion("action", [
     aiAngle: note.optional(),
   }),
 ]);
+/**
+ * A vetting record (the vet-keyword skill): build a new site, only an inner page of a
+ * main site, watch, or drop. Written by the maintainer or an agent with an agent token.
+ */
+export const VET_VERDICTS = ["build", "inner", "watch", "drop"] as const;
+export type VetVerdict = (typeof VET_VERDICTS)[number];
+const VET_STATUS: Record<VetVerdict, PoolStatus> = {
+  build: "selected",
+  inner: "selected",
+  watch: "watch",
+  drop: "dropped",
+};
+export const VET_MARKDOWN_MAX_LENGTH = 60_000;
+const day = z.iso.date();
+const vetSchema = z.object({
+  phrase,
+  verdict: z.enum(VET_VERDICTS),
+  score: z
+    .object({
+      total: z.number().int().min(0).max(100),
+      max: z.number().int().min(1).max(100),
+    })
+    .refine((s) => s.total <= s.max)
+    .optional(),
+  summary: z.string().trim().min(1).max(POOL_NOTE_MAX_LENGTH),
+  markdown: z.string().max(VET_MARKDOWN_MAX_LENGTH).optional(),
+  /** Dates (YYYY-MM-DD) to look again; the first is shown on Today when it comes. */
+  recheck: z.array(day).max(6).default([]),
+  /** The day the vetting was done; default today. */
+  vettedOn: day.optional(),
+  source: z.string().trim().min(1).max(100).default("vet"),
+});
+
 const listQuery = z.object({
   /** review: what waits for the maintainer (candidate and watch); all: everything. */
   status: z
@@ -313,6 +347,55 @@ export function createKeywordPool(deps: {
       .limit(limit);
   }
 
+  /**
+   * Saves a vetting record as a "vet" check. Its verdict sets the status; rounds never
+   * recheck it on their own (nextCheckAt null), the maintainer does on reviewAt.
+   */
+  async function vet(userId: string, body: unknown) {
+    const input = parse(vetSchema, body);
+    const at = input.vettedOn ? new Date(`${input.vettedOn}T12:00:00Z`) : now();
+    const today = now().toISOString().slice(0, 10);
+    const upcoming = [...input.recheck].sort().find((d) => d >= today);
+    return record({
+      phrase: input.phrase,
+      source: input.source,
+      status: VET_STATUS[input.verdict],
+      reasons: [],
+      kind: "vet",
+      reviewerId: userId,
+      at,
+      nextCheckAt: null,
+      fields: {
+        reviewAt:
+          input.verdict === "drop" || !upcoming
+            ? null
+            : new Date(`${upcoming}T00:00:00Z`),
+      },
+      data: {
+        verdict: input.verdict,
+        score: input.score ?? null,
+        summary: input.summary,
+        markdown: input.markdown ?? null,
+        recheck: input.recheck,
+      },
+    });
+  }
+
+  /** Keywords the maintainer said to look at again by `until`, earliest first. */
+  async function reviewsDue(until: Date, limit = 10) {
+    return database
+      .select()
+      .from(poolKeywords)
+      .where(
+        and(
+          isNotNull(poolKeywords.reviewAt),
+          lte(poolKeywords.reviewAt, until),
+        ),
+      )
+      .orderBy(asc(poolKeywords.reviewAt), asc(poolKeywords.phrase))
+      .limit(limit);
+  }
+
   /** The maintainer's decision or answers; each is kept as a review check. */
   async function review(userId: string, id: string, body: unknown) {
     const input = parse(reviewSchema, body);
@@ -491,6 +574,8 @@ export function createKeywordPool(deps: {
     get,
     due,
     review,
+    vet,
+    reviewsDue,
     requestRound,
     requestRecheck,
     rounds,

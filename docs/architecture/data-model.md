@@ -685,7 +685,8 @@ S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，�
 词库（[keyword-pool.md](../product/keyword-pool.md)，`packages/research/src/pool-service.ts`）。
 
 - `pool_keywords`：每个词一行（`phrase` 小写、单空格、唯一），记来源（`sources`，第一个来源在前，同一来源只记一次）、最新状态和原因、最新数据（搜索量、KD、CPC、合并的说法、变种数、强对手数、内页数、趋势）、维护者的回答（变现、合规、AI 改造点）、最近检查时间和下次检查时间。
-- `pool_checks`：只追加。每次初筛（`screen`）、深查（`deep`）、维护者操作（`review`）和导入（`import`）一行，记状态、原因、数据、规则版本和操作人。删除用户时操作人置空，检查保留。
+- `pool_keywords.review_at`（S80）：维护者自己再看一次的日期，来自审查记录的复查日；自动轮次不看它，「今天」页列出 7 天内到期的词。
+- `pool_checks`：只追加。每次初筛（`screen`）、深查（`deep`）、维护者操作（`review`）、导入（`import`）和审查记录（`vet`，S80；`data` 存 verdict、score、summary、markdown、recheck）一行，记状态、原因、数据、规则版本和操作人。删除用户时操作人置空，检查保留。
 - `new_words` 的起因（S67）：`origin_type`（新模型、开源项目等，或 `unknown`）、`origin_summary`、`origin_capture`（怎么承接）、`origin_evidence`（jsonb：各来源在起量前后找到的条目，带 `cited` 和 `first`）、`origin_checked_at`（为空表示还没追溯）。
 - `pool_rounds`：一轮：`daily` 或 `manual`（长青词）、`new_words`（新词）、`launch_sites`（新站）、`platform_sites`（平台站），词源，状态，报告和时间。同一时间每种最多一轮排队或运行。
 - 每日预算按轮次类型分三份（`budget.ts`）：长青词（`daily`、`manual`，`POOL_DAILY_DATA_BUDGET_USD`）、发现（`new_words`、`launch_sites`，`NEW_WORDS_DAILY_*`）、平台站（`platform_sites`，`PLATFORM_SITES_DAILY_DATA_BUDGET_USD`，只有数据预算）。设置页和「今天」的花费按同样的分组统计。
