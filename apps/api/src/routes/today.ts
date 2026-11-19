@@ -1,3 +1,8 @@
+import {
+  createDomains,
+  createExpenses,
+  expiringWithin,
+} from "@repo/execution/money";
 import { createSites } from "@repo/execution/sites";
 import { toNewWordDto } from "@repo/research/new-word-dto";
 import { toPoolKeywordDto, toPoolRoundDto } from "@repo/research/pool-dto";
@@ -9,15 +14,20 @@ import { userRoutes } from "./user-routes";
 // The Today page (docs/product/ux.md#today): one read for the signed-in maintainer.
 export const todayRoutes = userRoutes().get("/", async (c) => {
   const now = new Date();
-  const [s, siteList, heartbeats, reviews] = await Promise.all([
-    createToday({ database: c.var.db }).summary(),
-    createSites({ database: c.var.db }).list(now),
-    createSites({ database: c.var.db }).heartbeats(),
-    // What the maintainer said to look at again within a week (vet records).
-    createKeywordPool({ database: c.var.db }).reviewsDue(
-      new Date(now.getTime() + 7 * 86_400_000),
-    ),
-  ]);
+  const [s, siteList, heartbeats, reviews, domains, expenses] =
+    await Promise.all([
+      createToday({ database: c.var.db }).summary(),
+      createSites({ database: c.var.db }).list(now),
+      createSites({ database: c.var.db }).heartbeats(),
+      // What the maintainer said to look at again within a week (vet records).
+      createKeywordPool({ database: c.var.db }).reviewsDue(
+        new Date(now.getTime() + 7 * 86_400_000),
+      ),
+      createDomains({ database: c.var.db }).list(now),
+      createExpenses({ database: c.var.db }).totals(
+        now.toISOString().slice(0, 7),
+      ),
+    ]);
   const round = (r: typeof s.evergreenRound) =>
     r ? toPoolRoundDto({ round: r, spentMicros: 0 }) : null;
   return c.json({
@@ -59,6 +69,13 @@ export const todayRoutes = userRoutes().get("/", async (c) => {
       state: h.state,
       reason: h.reason,
     })),
+    // Domains that expire within 30 days, and this month's recorded payments (S81).
+    domainsExpiring: expiringWithin(domains).map((d) => ({
+      domain: d.domain,
+      expiresAt: d.expiresAt!.toISOString(),
+      daysLeft: d.daysLeft,
+    })),
+    expenses: expenses,
     reviews: reviews.map((k) => ({
       id: k.id,
       phrase: k.phrase,

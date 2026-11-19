@@ -47,7 +47,7 @@ PUT / DELETE /api/radar/items/:id/star（收藏 / 取消收藏，返回 { starre
 
 GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
 
-GET /api/today（「今天」页面：近两天的新词、待确认的长青词、新词与长青词最新一轮、本月各部分花费、Worker 是否在线；S80 起加上 `sites`（{ total, down: [{ domain, name, since, lastStatus }], syncedAt }，down 为 site-ops 报告掉线的站）、`heartbeats`（[{ source, state, reason }]）和 `reviews`（7 天内要复查的词：[{ id, phrase, status, reviewAt, due }]，来自审查记录））
+GET /api/today（「今天」页面：近两天的新词、待确认的长青词、新词与长青词最新一轮、本月各部分花费、Worker 是否在线；S80 起加上 `sites`（{ total, down: [{ domain, name, since, lastStatus }], syncedAt }，down 为 site-ops 报告掉线的站）、`heartbeats`（[{ source, state, reason }]）、`domainsExpiring`（S81，30 天内到期的域名：[{ domain, expiresAt, daysLeft }]）、`expenses`（S81，本月记账的各币种合计）和 `reviews`（7 天内要复查的词：[{ id, phrase, status, reviewAt, due }]，来自审查记录））
 
 GET /api/pool/keywords（词库，每页 50 个；?status= 按状态（review 为候选和观察，all 为全部），?q= 按词搜索，?sort=updated（默认）| volume | next（下次检查早的在前）；返回 { items, total, page, counts }，counts 为每个状态的词数；任何登录用户看到同样的词库；见 data-model.md 的 Keyword Pool）
 
@@ -118,7 +118,12 @@ POST /api/execution/projects（{ opportunityId, name? }：开始 Go 机会的产
 
 GET /api/execution/projects/:id（产品、events、revenue 与 totals；不属于当前用户或不存在时 404 EXECUTION_PROJECT_NOT_FOUND）
 GET /api/sites（{ items, heartbeats }：没有被移除的站点，按域名排序，每个带 24 小时在线、报警状态和汇总；向 site-ops 发心跳的机器；见 data-model.md 的 Sites）
+GET /api/sites/domains（{ items }：站点用到的域名，到期早的在前，没查到的在后；每个带 expiresAt、daysLeft、registrar、checkedAt、error；见 data-model.md 的 Sites）
 GET /api/sites/:domain（一个站点加 removedAt 和最近 35 天的 days，新的在前，每天一个对象，键为来源；不存在时 404 NOT_FOUND）
+
+GET /api/expenses（?month=YYYY-MM，默认本月（UTC），格式不对时也用本月；返回 { month, items, totals }：这个月的花费，日期新的在前；totals 为每个币种的合计 [{ currency, amountMinor }]；见 data-model.md 的 Expenses）
+POST /api/expenses（{ paidOn: "YYYY-MM-DD", amountMinor（正整数，最小货币单位）, currency（3 个字母）, category: "domain" | "hosting" | "data" | "ai" | "tool" | "other", note?（≤ 200 字）, domain? }；维护者或 agent（Agent 令牌）；返回 201 和这笔花费；不合法时 400 INVALID_INPUT）
+DELETE /api/expenses/:id（204；不存在时 404 EXPENSE_NOT_FOUND）
 
 PATCH /api/execution/projects/:id（{ name?, status?, launchedOn?, domain?, repoUrl? }；launched / measuring 没有上线日期时 400 INVALID_INPUT）
 

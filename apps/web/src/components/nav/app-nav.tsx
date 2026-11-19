@@ -137,6 +137,13 @@ function MobileMenu({
             {t("providers")}
           </Link>
           <Link
+            href="/settings/expenses"
+            onClick={() => setOpen(false)}
+            className="block text-[15px] font-medium"
+          >
+            {t("expenses")}
+          </Link>
+          <Link
             href="/settings/agents"
             onClick={() => setOpen(false)}
             className="block text-[15px] font-medium"
@@ -209,6 +216,9 @@ export function AppNav({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/settings/providers">{t("providers")}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/expenses">{t("expenses")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/settings/agents">{t("agentTokens")}</Link>

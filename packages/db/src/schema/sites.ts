@@ -72,3 +72,14 @@ export const opsHeartbeats = pgTable("ops_heartbeats", {
   reason: text().notNull(),
   syncedAt: timestamp({ withTimezone: true }).notNull(),
 });
+
+// Registration of each registrable domain the sites use (S81), read from RDAP once a day.
+// vivclip.com and radio.vivclip.com share one row.
+export const domains = pgTable("domains", {
+  domain: text().primaryKey(),
+  expiresAt: timestamp({ withTimezone: true }),
+  registrar: text(),
+  checkedAt: timestamp({ withTimezone: true }).notNull(),
+  /** Why the last lookup failed (http status or "no expiration"); null when it worked. */
+  error: text(),
+});

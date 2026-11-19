@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { hostname } from "node:os";
 
 import { createDb } from "@repo/db/client";
+import { createDomains } from "@repo/execution/money";
 import { createSites, fetchSiteOpsExport } from "@repo/execution/sites";
 import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
@@ -130,6 +131,8 @@ async function main() {
               token: env.SITE_OPS_EXPORT_TOKEN!,
             }),
           sync: createSites({ database }).sync,
+          // Domain expiry from RDAP, at most once a day per domain (S81).
+          refreshDomains: () => createDomains({ database }).refresh(),
         }
       : undefined;
   const newWordsHourUtc = env.NEW_WORDS_ENABLED

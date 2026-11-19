@@ -1,3 +1,4 @@
+import { createDomains } from "@repo/execution/money";
 import { createSites } from "@repo/execution/sites";
 import { AppError } from "@repo/observability/errors";
 
@@ -28,6 +29,20 @@ export const siteRoutes = userRoutes()
         state: h.state,
         reason: h.reason,
         syncedAt: h.syncedAt.toISOString(),
+      })),
+    });
+  })
+  // Registration expiry of the domains the sites use, read from RDAP (S81).
+  .get("/domains", async (c) => {
+    const items = await createDomains({ database: c.var.db }).list();
+    return c.json({
+      items: items.map((d) => ({
+        domain: d.domain,
+        expiresAt: iso(d.expiresAt),
+        daysLeft: d.daysLeft,
+        registrar: d.registrar,
+        checkedAt: d.checkedAt.toISOString(),
+        error: d.error,
       })),
     });
   })

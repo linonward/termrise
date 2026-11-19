@@ -25,6 +25,7 @@ export const ERROR_STATUS = {
   EXECUTION_RECORD_NOT_FOUND: 404,
   RADAR_ITEM_NOT_FOUND: 404,
   POOL_KEYWORD_NOT_FOUND: 404,
+  EXPENSE_NOT_FOUND: 404,
   POOL_REVIEW_INVALID: 409,
   POOL_ROUND_NOT_FOUND: 404,
   NEW_WORD_NOT_FOUND: 404,
@@ -75,6 +76,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   EXECUTION_RECORD_NOT_FOUND: "Record not found.",
   RADAR_ITEM_NOT_FOUND: "Radar item not found.",
   POOL_KEYWORD_NOT_FOUND: "Pool keyword not found.",
+  EXPENSE_NOT_FOUND: "Expense not found.",
   POOL_REVIEW_INVALID:
     "This review is not possible from the keyword's current status.",
   POOL_ROUND_NOT_FOUND: "Pool round not found.",

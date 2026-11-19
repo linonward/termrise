@@ -26,3 +26,18 @@ it("lets a failed fetch fail the job without writing", async () => {
   );
   expect(siteSync.sync).not.toHaveBeenCalled();
 });
+
+it("refreshes domain expiry after the sync, and a failure there does not fail the job", async () => {
+  const exp = { sites: [] } as never;
+  const refreshDomains = vi.fn(async () => {
+    throw new Error("rdap down");
+  });
+  const siteSync = {
+    fetch: vi.fn(async () => exp),
+    sync: vi.fn(async () => ({ sites: 0, daily: 0 })),
+    refreshDomains,
+  };
+  await sitesProcessors({ siteSync })["sites.sync"]();
+  expect(siteSync.sync).toHaveBeenCalledWith(exp);
+  expect(refreshDomains).toHaveBeenCalledOnce();
+});
