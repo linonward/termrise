@@ -47,11 +47,13 @@ PUT / DELETE /api/radar/items/:id/star（收藏 / 取消收藏，返回 { starre
 
 GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条）；不存在时 404 RADAR_ITEM_NOT_FOUND）
 
-GET /api/today（「今天」页面：近两天的新词、待确认的长青词、新词与长青词最新一轮、本月各部分花费、Worker 是否在线）
+GET /api/today（「今天」页面：近两天的新词、待确认的长青词、新词与长青词最新一轮、本月各部分花费、Worker 是否在线；S80 起加上 `sites`（{ total, down: [{ domain, name, since, lastStatus }], syncedAt }，down 为 site-ops 报告掉线的站）、`heartbeats`（[{ source, state, reason }]）和 `reviews`（7 天内要复查的词：[{ id, phrase, status, reviewAt, due }]，来自审查记录））
 
 GET /api/pool/keywords（词库，每页 50 个；?status= 按状态（review 为候选和观察，all 为全部），?q= 按词搜索，?sort=updated（默认）| volume | next（下次检查早的在前）；返回 { items, total, page, counts }，counts 为每个状态的词数；任何登录用户看到同样的词库；见 data-model.md 的 Keyword Pool）
 
 POST /api/pool/keywords（{ phrases, source? }：加入新词，状态 new，最多 100 个；已在词库中的词不变，列在 existing 中；返回 201 { added, existing }）
+
+POST /api/pool/keywords/vet（审查记录，维护者或 agent 写入（agent 带 `Authorization: Bearer trk_…`）：{ phrase, verdict: "build" | "inner" | "watch" | "drop", summary（≤ 500 字）, score?: { total, max }, markdown?（完整记录，≤ 60,000 字）, recheck?: ["YYYY-MM-DD"]（最多 6 个）, vettedOn?: "YYYY-MM-DD", source?（默认 "vet"） }；词不在词库时加入；结论决定状态（build 和 inner 为 selected，watch 为 watch，drop 为 dropped），自动轮次不再复查它（nextCheckAt 为空），reviewAt 为今天及以后最早的复查日（drop 时为空）；返回 201 和词；不合法时 400 INVALID_INPUT；见 keyword-pool.md 的 Vet）
 
 GET /api/pool/keywords/:id（词与检查记录（新的在前，最多 100 条）；不存在时 404 POOL_KEYWORD_NOT_FOUND）
 

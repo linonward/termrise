@@ -149,7 +149,9 @@ export default async function SitePage({
                     data-testid="site-day"
                     className="border-b border-border tabular-nums"
                   >
-                    <td className="py-2 pr-4">{d.day}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap tabular-nums">
+                      {d.day}
+                    </td>
                     <td className="py-2 pr-4 text-right">{n(d.pvuv?.uv)}</td>
                     <td className="py-2 pr-4 text-right">{n(d.pvuv?.pv)}</td>
                     <td className="py-2 pr-4 text-right">{n(d.gsc?.clicks)}</td>

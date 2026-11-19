@@ -30,7 +30,15 @@ export const POOL_STATUSES = [
   "selected",
   "dropped",
 ] as const;
-export const POOL_CHECK_KINDS = ["screen", "deep", "review", "import"] as const;
+// vet: a keyword-vetting record written by the maintainer or an agent (the vet-keyword
+// skill); its markdown and verdict are kept in data.
+export const POOL_CHECK_KINDS = [
+  "screen",
+  "deep",
+  "review",
+  "import",
+  "vet",
+] as const;
 // new_words: one day's discovery and checks of new words (new-words.ts).
 export const POOL_ROUND_KINDS = [
   "daily",
@@ -113,11 +121,14 @@ export const poolKeywords = pgTable(
     firstSeenAt: createdAt(),
     lastCheckedAt: timestamp({ withTimezone: true }),
     nextCheckAt: timestamp({ withTimezone: true }),
+    /** When the maintainer looks again by hand (a vet record's recheck); rounds ignore it. */
+    reviewAt: timestamp({ withTimezone: true }),
     updatedAt: createdAt(),
   },
   (t) => [
     index("pool_keywords_status_idx").on(t.status),
     index("pool_keywords_next_check_idx").on(t.nextCheckAt),
+    index("pool_keywords_review_at_idx").on(t.reviewAt),
     check(
       "pool_keywords_status_valid",
       sql`${t.status} in (${inList(POOL_STATUSES)})`,

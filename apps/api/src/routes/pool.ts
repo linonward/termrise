@@ -44,6 +44,11 @@ export const poolRoutes = userRoutes()
     );
     return c.json({ added: added.map(toPoolKeywordDto), existing }, 201);
   })
+  // A vetting record from the maintainer or an agent (docs/product/keyword-pool.md#vet).
+  .post("/keywords/vet", rateLimit("research"), async (c) => {
+    const keyword = await pool(c).vet(c.var.user.id, await readJson(c));
+    return c.json(toPoolKeywordDto(keyword), 201);
+  })
   .get("/keywords/:id", async (c) => {
     const { keyword, checks } = await pool(c).get(c.req.param("id"));
     return c.json({

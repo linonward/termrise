@@ -945,7 +945,8 @@
       "screen": "初筛",
       "deep": "深查",
       "review": "操作",
-      "import": "旧数据导入"
+      "import": "旧数据导入",
+      "vet": "审查记录"
     },
     "review": {
       "title": "你的判断",
@@ -1083,7 +1084,18 @@
     "autocompleteTitle": "谷歌自动补全",
     "autocompleteBody": "在谷歌美国输入这个词时的下拉建议：用户想接着搜什么，常能看出痛点（比如“not working”）和主流说法。",
     "kdReference": "KD（参考）",
-    "kdHint": "DataForSEO 的关键词难度。在我们的数据里它和实际竞争对不上（不少月搜过万的词 KD 为 0），判断竞争请看强对手和前 10 名。"
+    "kdHint": "DataForSEO 的关键词难度。在我们的数据里它和实际竞争对不上（不少月搜过万的词 KD 为 0），判断竞争请看强对手和前 10 名。",
+    "vetTitle": "审查记录",
+    "vetVerdict": {
+      "build": "做新站",
+      "inner": "只做主站内页",
+      "watch": "观察",
+      "drop": "放弃"
+    },
+    "vetScore": "{total}/{max} 分",
+    "vetRecheck": "复查：{days}",
+    "vetMarkdown": "完整记录",
+    "reviewAt": "下次复查"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -1800,7 +1812,7 @@
   },
   "today": {
     "title": "今天",
-    "subtitle": "每天先看这里：值得做的新词、等你确认的词、最近两轮和本月花费。",
+    "subtitle": "每天先看这里：值得做的新词、等你确认的词、站点状态、该复查的词、最近两轮和本月花费。",
     "workerOnline": "Worker 在线",
     "workerOffline": "Worker 离线，最后一次在 {at}（UTC）",
     "workerNever": "Worker 还没有运行过",
@@ -1825,7 +1837,19 @@
     "newWordsScanSchedule": "每 {hours} 小时扫一次，付费飙升词每天 8 点",
     "evergreenDaily": "每天 8 点",
     "evergreenEveryDays": "每 {days} 天一次",
-    "scheduleOff": "未开启"
+    "scheduleOff": "未开启",
+    "sitesTitle": "站点",
+    "sitesAll": "全部 {n} 个",
+    "sitesNever": "还没有同步过站点。Worker 开启 SITES_SYNC_ENABLED 后每 15 分钟从 site-ops 同步一次。",
+    "sitesAllUp": "{n} 个站全部在线。",
+    "downSince": "离线自",
+    "heartbeatUp": "本机工作台（{source}）的心跳：正常。",
+    "heartbeatDown": "本机工作台（{source}）的心跳：异常，{reason}。",
+    "sitesSynced": "最近同步：",
+    "reviewsTitle": "该复查的词",
+    "reviewsEmpty": "7 天内没有要复查的词。审查记录写了复查日期的词会出现在这里。",
+    "reviewDue": "{day} 到期",
+    "reviewOn": "{day} 复查"
   },
   "discover": {
     "tabs": "发现分类",

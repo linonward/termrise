@@ -22,6 +22,7 @@ export function toPoolKeywordDto(k: PoolKeyword) {
     firstSeenAt: k.firstSeenAt.toISOString(),
     lastCheckedAt: k.lastCheckedAt?.toISOString() ?? null,
     nextCheckAt: k.nextCheckAt?.toISOString() ?? null,
+    reviewAt: k.reviewAt?.toISOString() ?? null,
     updatedAt: k.updatedAt.toISOString(),
   };
 }

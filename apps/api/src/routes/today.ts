@@ -1,12 +1,23 @@
+import { createSites } from "@repo/execution/sites";
 import { toNewWordDto } from "@repo/research/new-word-dto";
 import { toPoolKeywordDto, toPoolRoundDto } from "@repo/research/pool-dto";
+import { createKeywordPool } from "@repo/research/pool-service";
 import { createToday } from "@repo/research/today";
 
 import { userRoutes } from "./user-routes";
 
 // The Today page (docs/product/ux.md#today): one read for the signed-in maintainer.
 export const todayRoutes = userRoutes().get("/", async (c) => {
-  const s = await createToday({ database: c.var.db }).summary();
+  const now = new Date();
+  const [s, siteList, heartbeats, reviews] = await Promise.all([
+    createToday({ database: c.var.db }).summary(),
+    createSites({ database: c.var.db }).list(now),
+    createSites({ database: c.var.db }).heartbeats(),
+    // What the maintainer said to look at again within a week (vet records).
+    createKeywordPool({ database: c.var.db }).reviewsDue(
+      new Date(now.getTime() + 7 * 86_400_000),
+    ),
+  ]);
   const round = (r: typeof s.evergreenRound) =>
     r ? toPoolRoundDto({ round: r, spentMicros: 0 }) : null;
   return c.json({
@@ -26,5 +37,34 @@ export const todayRoutes = userRoutes().get("/", async (c) => {
           schedule: s.worker.schedule,
         }
       : null,
+    // The live sites from site-ops: how many, which are down, when last synced.
+    sites: {
+      total: siteList.length,
+      down: siteList
+        .filter((x) => x.alertState === "down")
+        .map((x) => ({
+          domain: x.domain,
+          name: x.name,
+          since: x.alertSince?.toISOString() ?? null,
+          lastStatus: x.lastStatus,
+        })),
+      syncedAt: siteList.length
+        ? new Date(
+            Math.max(...siteList.map((x) => x.syncedAt.getTime())),
+          ).toISOString()
+        : null,
+    },
+    heartbeats: heartbeats.map((h) => ({
+      source: h.source,
+      state: h.state,
+      reason: h.reason,
+    })),
+    reviews: reviews.map((k) => ({
+      id: k.id,
+      phrase: k.phrase,
+      status: k.status,
+      reviewAt: k.reviewAt!.toISOString(),
+      due: k.reviewAt! <= now,
+    })),
   });
 });

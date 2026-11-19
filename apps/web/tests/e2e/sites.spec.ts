@@ -88,6 +88,12 @@ test("lists the sites with their numbers and opens one", async ({
     page.getByRole("heading", { level: 1, name: "Up Site" }),
   ).toBeVisible();
   await expect(page.getByTestId("site-day")).toHaveCount(1);
+
+  // Today shows the site that is down and the heartbeat.
+  await page.goto("/today");
+  await expect(page.getByTestId("today-down")).toContainText("Down Site");
+  await expect(page.getByTestId("today-down")).not.toContainText("Up Site");
+  await expect(page.getByTestId("today-heartbeat")).toContainText("正常");
 });
 
 test("an unknown site is a 404, and sites need a session", async ({
