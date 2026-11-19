@@ -125,6 +125,7 @@
     "keywords": "选词",
     "opportunityTabs": "机会分类",
     "researchProjects": "研究项目",
+    "expenses": "花费和续费",
     "agentTokens": "Agent 令牌",
     "sites": "站点"
   },
@@ -531,7 +532,8 @@
     "POOL_ROUND_NOT_FOUND": "这一轮选词不存在。",
     "NEW_WORD_NOT_FOUND": "这个新词不存在。",
     "RESEARCH_RUN_NOT_FOUND": "这次运行不存在。",
-    "RESEARCH_RUN_FINISHED": "运行已经结束。"
+    "RESEARCH_RUN_FINISHED": "运行已经结束。",
+    "EXPENSE_NOT_FOUND": "没有这笔花费，可能已经删除。"
   },
   "errorPage": {
     "title": "出错了",
@@ -1849,7 +1851,10 @@
     "reviewsTitle": "该复查的词",
     "reviewsEmpty": "7 天内没有要复查的词。审查记录写了复查日期的词会出现在这里。",
     "reviewDue": "{day} 到期",
-    "reviewOn": "{day} 复查"
+    "reviewOn": "{day} 复查",
+    "expensesLine": "本月记账 {total}。",
+    "expensesLink": "花费和续费",
+    "domainExpiring": "{domain}：{day} 到期，还剩 {days} 天"
   },
   "discover": {
     "tabs": "发现分类",
@@ -1930,5 +1935,44 @@
     "wordsIntro": "刚冒头的词：先和 GPTs 比热度（初筛），通过的再看谷歌前两页有没有人专门做（深查），最后给出结论。",
     "sitesIntro": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
     "platformsIntro": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。"
+  },
+  "expenses": {
+    "metaTitle": "花费和续费",
+    "title": "花费和续费",
+    "subtitle": "记下 API 账本以外的钱：域名续费、托管、数据充值、订阅。AI agent 也可以用令牌写入。数据和 AI 接口的花费在",
+    "apiLink": "预算与用量",
+    "monthTitle": "{month}",
+    "prev": "上个月",
+    "next": "下个月",
+    "monthTotal": "本月记账合计 {total}",
+    "paidOn": "日期",
+    "amount": "金额",
+    "currency": "币种",
+    "category": "类别",
+    "note": "说明",
+    "notePlaceholder": "例如 Cloudflare 续费 1 年",
+    "domain": "域名（可选）",
+    "add": "记一笔",
+    "remove": "删除",
+    "actions": "操作",
+    "emptyTitle": "这个月还没有记账",
+    "emptyText": "付了钱就在上面记一笔，「今天」页会显示本月合计。",
+    "categories": {
+      "domain": "域名",
+      "hosting": "托管",
+      "data": "数据",
+      "ai": "AI",
+      "tool": "工具订阅",
+      "other": "其他"
+    },
+    "domainsTitle": "域名到期",
+    "domainsNote": "站点用到的域名，每天从 RDAP 查一次到期日，30 天内到期的标红，也会出现在「今天」页。",
+    "domainsEmpty": "还没有查过。开启站点同步后，Worker 会在同步后查询。",
+    "colDomain": "域名",
+    "colExpires": "到期日",
+    "colDaysLeft": "剩余天数",
+    "colRegistrar": "注册商",
+    "colChecked": "最近查询",
+    "lookupFailed": "查询失败（{error}），保留上次的日期"
   }
 }

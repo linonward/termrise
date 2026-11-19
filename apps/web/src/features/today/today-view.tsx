@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { NewWordDto } from "@repo/research/new-word-dto";
 import type { PoolKeywordDto, PoolRoundDto } from "@repo/research/pool-dto";
@@ -45,6 +45,8 @@ type Today = {
     syncedAt: string | null;
   };
   heartbeats: { source: string; state: "up" | "down"; reason: string }[];
+  domainsExpiring: { domain: string; expiresAt: string; daysLeft: number }[];
+  expenses: { currency: string; amountMinor: number }[];
   reviews: {
     id: string;
     phrase: string;
@@ -60,6 +62,7 @@ const card = "space-y-4 rounded-lg border border-border bg-card p-6";
 // keywords to look at again, rounds, money.
 export async function TodayView() {
   const t = await getTranslations("today");
+  const format = await getFormatter();
   const d = await apiGet<Today>("/api/today");
   const spent = (bucket: Today["spend"][number]["bucket"]) =>
     d.spend
@@ -240,6 +243,19 @@ export async function TodayView() {
                   : t("heartbeatDown", { source: h.source, reason: h.reason })}
               </li>
             ))}
+            {d.domainsExpiring.map((x) => (
+              <li
+                key={x.domain}
+                className="font-medium text-destructive"
+                data-testid="today-domain"
+              >
+                {t("domainExpiring", {
+                  domain: x.domain,
+                  day: x.expiresAt.slice(0, 10),
+                  days: x.daysLeft,
+                })}
+              </li>
+            ))}
             {d.sites.syncedAt && (
               <li>
                 {t("sitesSynced")} <LocalDateTime iso={d.sites.syncedAt} />
@@ -354,6 +370,26 @@ export async function TodayView() {
             className="underline underline-offset-4"
           >
             {t("spendLink")}
+          </Link>
+        </p>
+        <p data-testid="today-expenses">
+          {t("expensesLine", {
+            total: d.expenses.length
+              ? d.expenses
+                  .map((x) =>
+                    format.number(x.amountMinor / 100, {
+                      style: "currency",
+                      currency: x.currency,
+                    }),
+                  )
+                  .join(" + ")
+              : usd(0),
+          })}{" "}
+          <Link
+            href="/settings/expenses"
+            className="underline underline-offset-4"
+          >
+            {t("expensesLink")}
           </Link>
         </p>
       </section>

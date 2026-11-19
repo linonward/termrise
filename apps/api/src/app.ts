@@ -10,6 +10,7 @@ import { billing } from "./routes/billing";
 import { checkout } from "./routes/checkout";
 import { credits } from "./routes/credits";
 import { executionRoutes } from "./routes/execution";
+import { expenseRoutes } from "./routes/expenses";
 import { health } from "./routes/health";
 import { opportunityRoutes } from "./routes/opportunities";
 import { poolRoutes } from "./routes/pool";
@@ -42,6 +43,7 @@ export function createApp(deps: AuthDeps = {}) {
     .route("/today", todayRoutes)
     .route("/execution", executionRoutes)
     .route("/sites", siteRoutes)
+    .route("/expenses", expenseRoutes)
     .route("/settings", settingsRoutes)
     .route("/webhooks", webhooks)
     .route("/admin", adminRoutes)
