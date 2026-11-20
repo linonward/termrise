@@ -5,15 +5,16 @@ import { cn } from "@repo/ui/utils";
 
 import { apiGet } from "@/server/api/api";
 
-type Tab = "words" | "sites" | "platforms";
+type Tab = "words" | "sites" | "platforms" | "watch";
 const TABS: [Tab, string][] = [
   ["words", "/discover"],
   ["sites", "/discover/sites"],
   ["platforms", "/discover/platforms"],
+  ["watch", "/discover/watch"],
 ];
 
 /**
- * The discover section (S74): one heading, then its three tabs with what each shows. The
+ * The discover section (S74): one heading, then its tabs (watch since S83) with what each shows. The
  * tab's own intro and status come as children, under the tabs.
  */
 export async function DiscoverHeader({

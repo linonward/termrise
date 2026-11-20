@@ -1256,7 +1256,8 @@
       "trending_now": "Google Trending Now",
       "show_hn": "Show HN 新产品",
       "product_hunt": "Product Hunt 新产品",
-      "github": "GitHub 新仓库"
+      "github": "GitHub 新仓库",
+      "site_watch": "盯的站新加的页面"
     },
     "originAnswer": "搜索结论",
     "stageFilter": "按阶段筛选",
@@ -1865,7 +1866,8 @@
     "tab": {
       "words": "新词",
       "sites": "新站",
-      "platforms": "平台站"
+      "platforms": "平台站",
+      "watch": "盯站"
     },
     "sitesMetaTitle": "新站",
     "sitesSchedule": "每 6 小时抓一次",
@@ -1938,7 +1940,28 @@
     "subtitle": "刚在 Google 上冒头的词、作者刚发布的新站、免费平台上已经有自然流量的站。",
     "wordsIntro": "刚冒头的词：先和 GPTs 比热度（初筛），通过的再看谷歌前两页有没有人专门做（深查），最后给出结论。",
     "sitesIntro": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
-    "platformsIntro": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。"
+    "platformsIntro": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。",
+    "watchMetaTitle": "盯站",
+    "watchIntro": "盯住同类站的一个栏目（如 imagelayered.com/tools/、一个博客分类），它新加的页面会变成新词，自动走新词的检查。第一次只记下已有的页面；之后每次新词扫描（约 3 小时）查一遍。读 RSS、sitemap 和页面都免费。",
+    "watchAddLabel": "栏目地址",
+    "watchAdd": "开始盯",
+    "watchRemove": "不盯了",
+    "watchSourcesTitle": "盯的栏目",
+    "watchPagesTitle": "新加的页面",
+    "watchEmpty": "还没有盯任何栏目。",
+    "watchPagesEmpty": "还没有发现新页面。第一次检查只记下已有的页面，之后新加的才会出现在这里。",
+    "watchMethod": {
+      "feed": "RSS",
+      "sitemap": "sitemap",
+      "links": "页面链接",
+      "pending": "待检查"
+    },
+    "watchPagesKnown": "已知 {n} 页",
+    "watchChecked": "检查于",
+    "watchError": "失败：{error}",
+    "watchPhrase": "提取的词",
+    "watchNewWord": "看新词",
+    "watchNoPhrase": "没提取出词"
   },
   "expenses": {
     "metaTitle": "花费和续费",
