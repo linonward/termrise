@@ -75,7 +75,7 @@ GET /api/pool/new-words（新词，每页 50 个，新的在前；?stage=decide 
 
 POST /api/pool/new-words/rounds（排队一轮新词，201；已有一轮在排队或运行时返回它，200）
 
-GET /api/pool/new-words/:id（新词与它的长尾 children；不存在时 404 NEW_WORD_NOT_FOUND）
+GET /api/pool/new-words/:id（新词与它的长尾 children；S85 起带 gates：自动关卡，深查过的词才有，见 keyword-pool.md 的 Gates；不存在时 404 NEW_WORD_NOT_FOUND）
 
 POST /api/pool/new-words/:id/select（选定新词并开始它的产品，返回 { productId }；再次选定返回同一个产品）
 

@@ -33,7 +33,7 @@ import type { WebOriginSearch } from "./adapters/claude-web-origin";
 import type { Autocomplete } from "./adapters/google-autocomplete";
 import type { NameItem, NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
-import type { RdapClient } from "./adapters/rdap";
+import type { DomainAge, RdapClient } from "./adapters/rdap";
 import { registrableDomain } from "./adapters/rdap";
 import type { Budget } from "./budget";
 import type {
@@ -66,6 +66,9 @@ import {
   NEW_SITE_DAYS,
   NEW_WORD_RULES,
   newWordVerdict,
+  applyGates,
+  exactDomainsOf,
+  gateFacts,
   officialPages,
   passesScreen,
   REFERENCE_TERM,
@@ -195,7 +198,12 @@ export const MIN_GROWTH = 200;
 export const MAX_CHECKS = 7;
 export const STALE_ROUND_MS = 30 * 60 * 1000;
 export const NEW_WORDS_PAGE_SIZE = 50;
-const SERP_DEPTH = 20;
+/** Top 30 since S85: the vet-keyword teardown counts new sites over three pages. */
+const SERP_DEPTH = 30;
+/** The rule for dedicated and official pages still reads the top 20. */
+const DEDICATED_DEPTH = 20;
+/** RDAP lookups are spaced out: registries drop bursts (seen on rdap.org, 2026-11-19). */
+const RDAP_PAUSE_MS = 250;
 /** Labs for one keyword: $0.012 + $0.00012, reserved with room to spare. */
 export const ONE_KEYWORD_RESERVE = 20_000;
 const DAY_MS = 86_400_000;
@@ -319,6 +327,8 @@ export function createNewWords(deps: {
   /** A paid web search, only for words the free sources found nothing on. */
   webOrigin?: WebOriginSearch;
   rdap?: RdapClient;
+  /** Pause between RDAP lookups; tests pass 0. */
+  rdapPauseMs?: number;
   budget?: Budget;
   roots?: string[];
   /** Roots scanned per round, the longest unscanned first. */
@@ -697,8 +707,32 @@ export function createNewWords(deps: {
     return [...found].slice(0, LONG_TAILS);
   }
 
-  async function newSitesOf(serp: SerpItem[]) {
+  /**
+   * Registration days of the top 30's domains and of the word's own .com, .net, .org,
+   * one lookup each, a little apart. Null without an RDAP client.
+   */
+  async function agesOf(phrase: string, serp: SerpItem[]) {
     if (!deps.rdap) return null;
+    const domains = [
+      ...new Set([
+        ...serp
+          .slice(0, SERP_DEPTH)
+          .map((r) => r.site)
+          .filter((s) => /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(s))
+          .map(registrableDomain),
+        ...exactDomainsOf(phrase),
+      ]),
+    ];
+    const ages = new Map<string, DomainAge>();
+    for (const [i, d] of domains.entries()) {
+      if (i > 0 && deps.rdapPauseMs !== 0)
+        await sleep(deps.rdapPauseMs ?? RDAP_PAUSE_MS);
+      ages.set(d, await deps.rdap.registeredOn(d));
+    }
+    return ages;
+  }
+
+  function newSitesOf(serp: SerpItem[], ages: Map<string, DomainAge>) {
     const domains = [
       ...new Set(
         serp
@@ -708,13 +742,16 @@ export function createNewWords(deps: {
           .map(registrableDomain),
       ),
     ];
-    const ages = await Promise.all(
-      domains.map((d) => deps.rdap!.registeredOn(d)),
-    );
+    const found = domains.flatMap((d) => {
+      const a = ages.get(d);
+      return a ? [a] : [];
+    });
     const since = new Date(now().getTime() - NEW_SITE_DAYS * DAY_MS)
       .toISOString()
       .slice(0, 10);
-    return ages.filter((a) => a.registeredOn && a.registeredOn >= since);
+    return found
+      .filter((a) => a.registeredOn && a.registeredOn >= since)
+      .map(({ domain, registeredOn }) => ({ domain, registeredOn }));
   }
 
   async function analyse(
@@ -844,14 +881,19 @@ export function createNewWords(deps: {
   // the same word costs little.
   async function deepCheck(round: PoolRound, word: NewWord, facts: CurveFacts) {
     const provider = providerOf();
-    const serp = await paid(
+    const page = await paid(
       round,
       "serp",
-      { phrase: word.phrase, depth: SERP_DEPTH },
-      () => provider.serp(word.phrase, US, SERP_DEPTH),
+      { phrase: word.phrase, depth: SERP_DEPTH, features: true },
+      () => provider.serp(word.phrase, US, SERP_DEPTH, { features: true }),
     );
-    const dedicated = dedicatedPages(word.phrase, serp, word.category);
-    const official = officialPages(word.phrase, serp, word.category);
+    const serp = page.filter((r) => r.type === "organic");
+    const features = page
+      .filter((r) => r.type !== "organic")
+      .map((r) => r.type);
+    const top20 = serp.slice(0, DEDICATED_DEPTH);
+    const dedicated = dedicatedPages(word.phrase, top20, word.category);
+    const official = officialPages(word.phrase, top20, word.category);
     const suggestions = provider.suggestions?.bind(provider);
     const band = { minVolume: 0, limit: 1 };
     const ideas: KeywordIdea[] = suggestions
@@ -864,7 +906,21 @@ export function createNewWords(deps: {
         )
       : [];
     const metrics = ideas.find((i) => i.phrase === word.phrase)?.metrics;
-    const verdict = newWordVerdict({
+    const ages = await agesOf(word.phrase, serp);
+    // The gates need registration days; without RDAP they are left out, not guessed.
+    const gates = ages
+      ? gateFacts({
+          phrase: word.phrase,
+          ratio: facts.ratio,
+          days: facts.days,
+          organic: serp,
+          features,
+          ages,
+          registrable: registrableDomain,
+          today: now().toISOString().slice(0, 10),
+        })
+      : null;
+    const base = newWordVerdict({
       phrase: word.phrase,
       ratio: facts.ratio,
       dedicated,
@@ -873,7 +929,8 @@ export function createNewWords(deps: {
       isNew: facts.isNew,
       spike: facts.spike,
     });
-    const newSites = await newSitesOf(serp);
+    const verdict = gates ? applyGates(base, gates) : base;
+    const newSites = ages ? newSitesOf(serp, ages) : null;
     const tails =
       verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     const analysis = word.about
@@ -893,6 +950,7 @@ export function createNewWords(deps: {
           title,
         })),
         ...(newSites && { newSites }),
+        ...(gates && { gates }),
         ...(tails && { tails }),
         verdict: verdict.verdict,
         buildAs: verdict.buildAs,

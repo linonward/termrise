@@ -7,7 +7,7 @@ import type { PoolKeywordDto, PoolRoundDto } from "@repo/research/pool-dto";
 import { TrackView } from "@/components/analytics/track";
 import { LocalDateTime } from "@/components/local-date-time";
 import { VerdictLine, WordTags } from "@/features/new-words/new-word-badges";
-import { times } from "@/features/new-words/new-word-format";
+import { monthlyOf, times } from "@/features/new-words/new-word-format";
 import { PoolStatusBadge, RoundStatusBadge } from "@/features/pool/pool-badges";
 import { count, usd } from "@/features/pool/pool-format";
 import { SiteState } from "@/features/sites/site-state";
@@ -63,6 +63,7 @@ const card = "space-y-4 rounded-lg border border-border bg-card p-6";
 export async function TodayView() {
   const t = await getTranslations("today");
   const format = await getFormatter();
+  const tWords = await getTranslations("newWords");
   const d = await apiGet<Today>("/api/today");
   const spent = (bucket: Today["spend"][number]["bucket"]) =>
     d.spend
@@ -135,6 +136,8 @@ export async function TodayView() {
                     <WordTags word={w} />
                     <span className="font-mono text-[13px] tabular-nums sm:ml-auto">
                       GPTs {times(w.ratio)}
+                      {monthlyOf(w.ratio) !== null &&
+                        ` · ${tWords("monthlyShort", { n: format.number(monthlyOf(w.ratio)!) })}`}
                     </span>
                   </div>
                   <VerdictLine word={w} />

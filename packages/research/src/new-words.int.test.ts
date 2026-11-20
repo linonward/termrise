@@ -124,6 +124,7 @@ const words = (
     originSources,
     originAnalyst: createFakeNewWordOriginAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,
@@ -170,6 +171,24 @@ it("collects rising queries, measures them against gpts and judges them", async 
   });
   // The last 7 days' average: (22/3 + 44/3 + 22) against 7 × 40.
   expect(ai.word.ratio).toBeCloseTo(44 / 280);
+  // The automatic gates (S85): the ratio as US monthly searches, still rising, its own
+  // .com, .net and .org looked up (the fake registry answers for every domain).
+  expect(ai.word.gates).toMatchObject({
+    monthly: Math.round((44 / 280) * 5400),
+    peakDrop: 0,
+    top10New: 1,
+    clustered: false,
+    knockouts: [],
+  });
+  expect(
+    (ai.word.gates as { exactDomains: { domain: string }[] }).exactDomains.map(
+      (d) => d.domain,
+    ),
+  ).toEqual([
+    "aiimpactstheoreticalcomputerscience.com",
+    "aiimpactstheoreticalcomputerscience.net",
+    "aiimpactstheoreticalcomputerscience.org",
+  ]);
   expect(ai.word).toMatchObject({ firstDay: "2026-10-28", growth7: null });
   expect(ai.roots.map((r) => [r.root, r.growth])).toEqual([["ai", 13950]]);
   const boxing = await w.get(
@@ -313,6 +332,7 @@ it("keeps words untraced when the AI budget is out", async () => {
     originSources: createFakeNewWordOrigin([]),
     originAnalyst: createFakeNewWordOriginAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,
@@ -407,6 +427,7 @@ it("leaves words that passed beyond the day's deep checks for tomorrow", async (
     provider: stub(),
     analyst: createFakeNewWordAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,
@@ -559,6 +580,7 @@ it("searches the web only for words the free sources found nothing on", async ()
     },
     originAnalyst: createFakeNewWordOriginAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,
@@ -621,6 +643,7 @@ it("shares the day's screens across rounds", async () => {
     provider: stub(),
     analyst: createFakeNewWordAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,
@@ -907,6 +930,7 @@ it("gives a hot word that is already crowded its long tails to build", async () 
     provider,
     analyst: createFakeNewWordAnalyst(),
     rdap,
+    rdapPauseMs: 0,
     budget: createBudget({
       database: db,
       now,

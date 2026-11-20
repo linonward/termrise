@@ -2,6 +2,7 @@
 import type { newWordRoots } from "@repo/db/schema";
 
 import type { StoredEvidence } from "./new-word-origin";
+import type { Gates } from "./new-word-rules";
 import type { NewWord } from "./new-words";
 
 type Root = typeof newWordRoots.$inferSelect;
@@ -47,6 +48,7 @@ export function toNewWordDto(row: {
       { rank: number; site: string; url: string; title: string }[] | null,
     newSites: (w.newSites ?? null) as
       { domain: string; registeredOn: string }[] | null,
+    gates: (w.gates ?? null) as Gates | null,
     verdict: w.verdict,
     buildAs: w.buildAs,
     reasons: w.reasons,

@@ -376,7 +376,7 @@ export function createDataForSeoProvider(deps: {
             value.set(item.keyword, item.keyword_difficulty);
       return { value, costMicros: charged.costMicros };
     },
-    async serp(phrase, market, depth = 10) {
+    async serp(phrase, market, depth = 10, options) {
       const charged = await post(
         "serp/google/organic/live/advanced",
         { keyword: phrase, ...location(market), device: "desktop", depth },
@@ -392,8 +392,20 @@ export function createDataForSeoProvider(deps: {
               title: item.title ?? "",
               type: item.type,
             });
+      const organic = items.sort((a, b) => a.rank - b.rank).slice(0, depth);
+      const features = options?.features
+        ? [
+            ...new Set(
+              charged.value.flatMap((r) =>
+                (r.items ?? [])
+                  .map((i) => i.type)
+                  .filter((type) => type !== "organic"),
+              ),
+            ),
+          ].map((type) => ({ rank: 0, url: "", site: "", title: "", type }))
+        : [];
       return {
-        value: items.sort((a, b) => a.rank - b.rank).slice(0, depth),
+        value: [...organic, ...features],
         costMicros: charged.costMicros,
       };
     },
