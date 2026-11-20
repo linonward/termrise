@@ -38,6 +38,7 @@ test("lists watched sections and their new pages, and adds and removes one", asy
   await page.goto("/discover/watch");
   const row = page.getByTestId("watch-source").filter({ hasText: host });
   await expect(row).toContainText("sitemap");
+  await expect(row).toContainText("主信号");
   await expect(row).toContainText("已知 12 页");
   await expect(
     page.getByTestId("watch-page").filter({ hasText: host }),
@@ -48,6 +49,8 @@ test("lists watched sections and their new pages, and adds and removes one", asy
   await page.getByRole("button", { name: "开始盯" }).click();
   const newRow = page.getByTestId("watch-source").filter({ hasText: added });
   await expect(newRow).toContainText("待检查");
+  await newRow.getByRole("button", { name: "改为交叉验证" }).click();
+  await expect(newRow).toContainText("交叉验证");
   await newRow.getByRole("button", { name: "不盯了" }).click();
   await expect(newRow).toHaveCount(0);
 });

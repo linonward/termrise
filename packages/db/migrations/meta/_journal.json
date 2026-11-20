@@ -309,6 +309,13 @@
       "when": 1795162386561,
       "tag": "0043_site_watch",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1795172449718,
+      "tag": "0044_watch_roles",
+      "breakpoints": true
     }
   ]
 }

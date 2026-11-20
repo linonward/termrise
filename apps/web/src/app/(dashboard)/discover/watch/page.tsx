@@ -3,16 +3,20 @@ import { getTranslations } from "next-intl/server";
 
 import { Tag } from "@repo/ui/components/badge";
 
-import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
 import { DiscoverHeader } from "@/features/discover/discover-header";
 import { TabIntro } from "@/features/discover/filter-chips";
-import { AddWatch, RemoveWatch } from "@/features/site-watch/watch-actions";
+import {
+  AddWatch,
+  RemoveWatch,
+  SwitchRole,
+} from "@/features/site-watch/watch-actions";
 import { apiGet } from "@/server/api/api";
 
 type Source = {
   id: string;
   prefix: string;
+  role: "signal" | "confirm";
   method: "feed" | "sitemap" | "links" | null;
   lastCheckedAt: string | null;
   lastError: string | null;
@@ -27,6 +31,7 @@ type Page = {
   publishedAt: string | null;
   firstSeenAt: string;
   newWordId: string | null;
+  alsoOn: string[];
 };
 
 export async function generateMetadata() {
@@ -43,6 +48,12 @@ export default async function WatchPage() {
     pages: Page[];
   }>("/api/pool/watch");
   const prefixOf = new Map(sources.map((s) => [s.id, short(s.prefix)]));
+  // Signals first, then cross-checks; each by address.
+  const ordered = [...sources].sort(
+    (a, b) =>
+      Number(a.role === "confirm") - Number(b.role === "confirm") ||
+      a.prefix.localeCompare(b.prefix),
+  );
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:py-16">
       <DiscoverHeader current="watch">
@@ -58,7 +69,7 @@ export default async function WatchPage() {
           <p className="text-[15px] text-muted-foreground">{t("watchEmpty")}</p>
         ) : (
           <ul className="divide-y divide-border border-y border-border">
-            {sources.map((s) => (
+            {ordered.map((s) => (
               <li
                 key={s.id}
                 data-testid="watch-source"
@@ -72,6 +83,7 @@ export default async function WatchPage() {
                 >
                   {short(s.prefix)}
                 </a>
+                <Tag>{t(`watchRole.${s.role}`)}</Tag>
                 <Tag>{t(`watchMethod.${s.method ?? "pending"}`)}</Tag>
                 <span className="text-[13px] text-muted-foreground tabular-nums">
                   {t("watchPagesKnown", { n: s.pagesKnown })}
@@ -86,7 +98,8 @@ export default async function WatchPage() {
                     {t("watchError", { error: s.lastError })}
                   </span>
                 )}
-                <span className="sm:ml-auto">
+                <span className="flex gap-2 sm:ml-auto">
+                  <SwitchRole id={s.id} role={s.role} />
                   <RemoveWatch id={s.id} />
                 </span>
               </li>
@@ -100,10 +113,9 @@ export default async function WatchPage() {
           {t("watchPagesTitle")}
         </h2>
         {pages.length === 0 ? (
-          <EmptyState
-            title={t("watchPagesTitle")}
-            body={t("watchPagesEmpty")}
-          />
+          <p className="text-[15px] text-muted-foreground">
+            {t("watchPagesEmpty")}
+          </p>
         ) : (
           <ul className="divide-y divide-border border-y border-border">
             {pages.map((p) => (
@@ -127,6 +139,11 @@ export default async function WatchPage() {
                     >
                       {t("watchNewWord")}
                     </Link>
+                  )}
+                  {p.alsoOn.length > 0 && (
+                    <Tag>
+                      {t("watchAlsoOn", { sites: p.alsoOn.join("、") })}
+                    </Tag>
                   )}
                   <span className="text-[13px] text-muted-foreground sm:ml-auto">
                     <LocalDateTime iso={p.publishedAt ?? p.firstSeenAt} />

@@ -41,13 +41,26 @@ it("adds a section once, lists it, counts it and removes it", async () => {
     await call("/api/pool/watch", { headers: { cookie } })
   ).json();
   expect(list).toMatchObject({
-    sources: [{ id, prefix, method: null, pagesKnown: 0 }],
+    sources: [{ id, prefix, role: "signal", method: null, pagesKnown: 0 }],
     pages: [],
   });
+  const patched = await call(`/api/pool/watch/${id}`, {
+    method: "PATCH",
+    headers: {
+      cookie,
+      Origin: TEST_APP_URL,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ role: "confirm" }),
+  });
+  expect(await patched.json()).toEqual({ id, prefix, role: "confirm" });
+  const confirm = await post({ url: "renoise.ai", role: "confirm" });
+  expect(confirm.status).toBe(201);
+
   const counts = await (
     await call("/api/pool/discover", { headers: { cookie } })
   ).json();
-  expect(counts.watch).toBe(1);
+  expect(counts.watch).toBe(2);
 
   const removed = await call(`/api/pool/watch/${id}`, {
     method: "DELETE",

@@ -181,6 +181,7 @@ export const poolRoutes = userRoutes()
       sources: sources.map((s) => ({
         id: s.id,
         prefix: s.prefix,
+        role: s.role,
         method: s.method,
         lastCheckedAt: iso(s.lastCheckedAt),
         lastError: s.lastError,
@@ -202,6 +203,13 @@ export const poolRoutes = userRoutes()
       { id: source.id, prefix: source.prefix },
       created ? 201 : 200,
     );
+  })
+  .patch("/watch/:id", rateLimit("research"), async (c) => {
+    const s = await createSiteWatch({ database: c.var.db }).setRole(
+      c.req.param("id"),
+      await readJson(c),
+    );
+    return c.json({ id: s.id, prefix: s.prefix, role: s.role });
   })
   .delete("/watch/:id", rateLimit("research"), async (c) => {
     await createSiteWatch({ database: c.var.db }).remove(c.req.param("id"));

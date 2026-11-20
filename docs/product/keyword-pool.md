@@ -152,14 +152,16 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 「发现 → 盯站」（`/discover/watch`，S83，维护者 2026-11-20 定）：盯住同类站的一个栏目，它新加的页面往往说明一个词刚开始有量（find-keywords 的"老站加内页"信号）。例子：imagelayered.com 在 2026-11-17 加了 `/tools/goodbye-gta-5-ai-video-generator`，lightxeditor.com 的 AI 博客在 11-18 写了同一个词的教程。
 
 - **栏目**：一个网址前缀，如 `imagelayered.com/tools/`、`lightxeditor.com/blog/ai/`，在页面上加（agent 也可以调接口加），最多 50 个。
+- **用途**（S84，维护者 2026-11-20 定）：**主信号**栏目新加的页面会变成新词；**交叉验证**栏目不产生新词，只用来核对：主信号页面的词在交叉验证栏目（或另一个主信号栏目）也有页面时，不管那个页面是新是旧，热度都更高，页面上写「也出现在 ××」。可以随时切换。维护者 2026-11-20 的分工：主信号是 media.io 的 `/ai/explore/zone/`、imageat.com 的 `/trends/`、aireel.net 的 `/ai-effects/`、fuzana.com 的 `/en/use-cases/` 和每日趋势 `/en/blog/trend-of-the-day/`；交叉验证是 mitte.ai、easemate.ai、renoise.ai（整站）。
+- **同一个趋势**：两个词去掉通用词（ai、video、image、effect、generator、template、prompt、trend 等）后，剩下的词一样，或者少的那组全在多的那组里、而且至少两个（goodbye gta 5 ai video 和 gta 5 goodbye farewell video 算同一个；ai gta style 和 gta 6 loading effect 不算）。
 - **读法**（第一次检查时自动选，都免费）：
   1. 栏目自己的 RSS（`<栏目>/feed/`，WordPress 的分类都有）或页面声明的 RSS、Atom：栏目自己的 feed 里同一个站的文章都算（博客分类 `/blog/ai/` 的文章在 `/blog/<文章>/`），页面声明的 feed 只算栏目下面的网址；
   2. sitemap（robots.txt 里列的，没有就 `/sitemap.xml`；sitemap 索引最多展开 30 个子 sitemap），只算栏目下面的网址；
   3. 栏目页上指向栏目下面的链接。
      分页、feed、标签、分类、作者页不算页面。
 - **第一次检查**只记下已有的页面（`baseline`），不当作新页面。之后每次比对，新出现的网址就是新页面。没有标题的新页面读一次标题，每个栏目每次最多 20 个。
-- **提取的词**（规则，不用 AI）：取网址最后一段，网址是编号时取标题（`|`、`-`、`:` 之前的部分）；去掉开头的 how to make、what is、best、top N、free、effects，去掉结尾的 generator、maker、online、free、tool、app、guide、prompts、年份等，结尾的词和前面重复时去掉，最后的随机编号去掉；超过 8 个词不要。例：`goodbye-gta-5-ai-video-generator` → goodbye gta 5 ai video，`how-to-make-goodbye-gta-5-ai-video` → goodbye gta 5 ai video，`effects-gta-5-inspired-goodbye-scene` → gta 5 inspired goodbye scene。
-- **交给新词**：盯站是新词的一个名字来源（`source:site_watch`），每次新词扫描（约 3 小时一次，见 New Words 的频率）时先检查所有栏目，再把还没交过的新页面的词交出去（每轮最多 20 个）。热度：同一个词在 2 个以上的栏目里新出现为 3，否则为 2；发布时间用源上的日期，没有时用第一次见到的时间。之后和其他名字一样：AI 分类、Trends 对比 gpts、前 20 个结果、结论。
+- **提取的词**（规则，不用 AI）：取栏目下面第一个像名字的目录（两个词以上，跳过 jp、ko、pt-br 这类语言目录，所以 `/trends/<名字>/watch` 取 `<名字>`，`/showcase/<名字>` 取 `<名字>`），不在栏目下面时取网址最后一段，网址是编号时取标题（`|`、`-`、`:` 之前的部分）；去掉开头的 how to make、what is、best、top N、free、effects、awesome，去掉结尾的 generator、maker、online、free、tool、app、guide、prompts、年份等，结尾的词和前面重复时去掉，最后的随机编号去掉；超过 10 个词不要（S84 从 8 放宽，梗名常常很长）。每个页面（包括第一次检查时的旧页面）都提取词，用来交叉验证；主信号栏目的新页面另外读标题。例：`goodbye-gta-5-ai-video-generator` → goodbye gta 5 ai video，`how-to-make-goodbye-gta-5-ai-video` → goodbye gta 5 ai video，`effects-gta-5-inspired-goodbye-scene` → gta 5 inspired goodbye scene。
+- **交给新词**：盯站是新词的一个名字来源（`source:site_watch`），每次新词扫描（约 3 小时一次，见 New Words 的频率）时先检查所有栏目，再把还没交过的新页面的词交出去（每轮最多 20 个）。只交主信号栏目的新页面。热度：其他盯的栏目也有同一个趋势的页面（新旧都算）为 3，否则为 2；发布时间用源上的日期，没有时用第一次见到的时间。之后和其他名字一样：AI 分类、Trends 对比 gpts、前 20 个结果、结论。
 - **页面**：上面是盯的栏目（读法、已知页数、最近检查、失败原因、不盯了），下面是新加的页面（提取的词、看新词、日期、栏目、页面标题和链接），最新的在前。
 - 需要 Worker 的 `NEW_WORDS_ENABLED=1`（盯站跟着新词扫描跑）。某个栏目读取失败时记下原因，不影响其他栏目，下次再试。
 

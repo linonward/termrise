@@ -9,6 +9,7 @@ import {
   parseSitemap,
   phraseFromPage,
   sectionLinks,
+  samePhrase,
 } from "./site-watch";
 
 it("normalizes a section address", () => {
@@ -135,4 +136,50 @@ it("turns a page into the search it targets", () => {
   ];
   for (const [url, title, want] of cases)
     expect(phraseFromPage(url, title), url).toBe(want);
+});
+
+it("names a page by the first folder under its section, skipping language folders", () => {
+  const cases: [string, string, string | null][] = [
+    [
+      "https://imageat.com/trends/gta-5-goodbye-farewell-video/watch",
+      "https://imageat.com/trends/",
+      "gta 5 goodbye farewell video",
+    ],
+    [
+      "https://www.easemate.ai/jp/higgsfield-genjutsu-ai-alternative",
+      "https://easemate.ai/",
+      "higgsfield genjutsu ai alternative",
+    ],
+    [
+      "https://renoise.ai/showcase/awesome-seedance-prompts",
+      "https://renoise.ai/",
+      "seedance",
+    ],
+    [
+      "https://fuzana.com/en/blog/trend-of-the-day/balcony-dj-trend",
+      "https://fuzana.com/en/blog/trend-of-the-day/",
+      "balcony dj trend",
+    ],
+    [
+      "https://imageat.com/trends/you-met-me-at-a-very-chinese-time-ai",
+      "https://imageat.com/trends/",
+      "you met me at a very chinese time ai",
+    ],
+  ];
+  for (const [url, prefix, want] of cases)
+    expect(phraseFromPage(url, null, prefix), url).toBe(want);
+});
+
+it("tells when two phrases name the same trend", () => {
+  expect(
+    samePhrase("goodbye gta 5 ai video", "gta 5 goodbye farewell video"),
+  ).toBe(true);
+  expect(
+    samePhrase("goodbye gta 5 ai video", "gta 5 inspired goodbye scene"),
+  ).toBe(true);
+  expect(samePhrase("seaart ai video", "seaart")).toBe(true);
+  expect(samePhrase("ai age", "ai age filter")).toBe(true);
+  // One shared telling word is not enough.
+  expect(samePhrase("ai gta style", "gta 6 loading effect")).toBe(false);
+  expect(samePhrase("ai video", "ai image")).toBe(false);
 });

@@ -128,3 +128,53 @@ it("adds a section once and removes it with its pages", async () => {
     code: "NOT_FOUND",
   });
 });
+
+it("a cross-check site makes a signal word hotter, old pages too, and makes no words", async () => {
+  web.set("https://c.com/robots.txt", "Sitemap: https://c.com/sitemap.xml");
+  web.set("https://c.com/", "<html></html>");
+  const cSitemap = (paths: string[]) =>
+    `<urlset>${paths.map((p) => `<url><loc>https://c.com${p}</loc></url>`).join("")}</urlset>`;
+  // c.com already has a page on the trend before anyone watches it.
+  web.set(
+    "https://c.com/sitemap.xml",
+    cSitemap(["/app/gta-5-goodbye-farewell"]),
+  );
+  const w = watch();
+  await w.add({ url: "a.com/tools/" });
+  const c = await w.add({ url: "c.com/", role: "confirm" });
+  expect(c.source.role).toBe("confirm");
+  await w.scan();
+
+  web.set(
+    "https://a.com/sitemap.xml",
+    sitemap([
+      "/",
+      "/tools/old-tool-maker",
+      "/tools/goodbye-gta-5-ai-video-generator",
+      "/tools/seaart-ai-video-generator",
+    ]),
+  );
+  web.set(
+    "https://c.com/sitemap.xml",
+    cSitemap(["/app/gta-5-goodbye-farewell", "/app/brand-new-thing"]),
+  );
+  const names = await w.names(20);
+  expect(names.map((n) => [n.name, n.heat]).sort()).toEqual([
+    ["goodbye gta 5 ai video", 3],
+    ["seaart ai video", 2],
+  ]);
+  const { pages } = await w.overview();
+  expect(pages.map((p) => [p.phrase, p.alsoOn]).sort()).toEqual([
+    ["goodbye gta 5 ai video", ["c.com"]],
+    ["seaart ai video", []],
+  ]);
+
+  // A section can switch roles.
+  const switched = await w.setRole(c.source.id, { role: "signal" });
+  expect(switched.role).toBe("signal");
+  await expect(w.setRole(c.source.id, { role: "maybe" })).rejects.toMatchObject(
+    {
+      code: "INVALID_INPUT",
+    },
+  );
+});
