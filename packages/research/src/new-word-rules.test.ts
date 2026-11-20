@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   curveFacts,
@@ -8,6 +8,9 @@ import {
   serpRole,
   passesScreen,
   splitComparison,
+  applyGates,
+  gateFacts,
+  peakDrop,
 } from "./new-word-rules";
 
 // 30 days of [word, gpts]: nothing for 26 days, then a burst.
@@ -278,4 +281,105 @@ it("leaves a hot word that is already crowded to its long tails", () => {
       isNew: false,
     }).verdict,
   ).toBe("skip");
+});
+
+describe("gates (S85)", () => {
+  const day = (i: number, value: number) => ({
+    day: new Date(Date.UTC(2026, 9, 1) + i * 86_400_000)
+      .toISOString()
+      .slice(0, 10),
+    value,
+  });
+  const ages = (entries: [string, string | null, boolean?][]) =>
+    new Map(entries.map(([d, r, free]) => [d, { registeredOn: r, free }]));
+  const base = {
+    phrase: "goodbye gta 5",
+    ratio: 0.2,
+    days: [] as { day: string; value: number }[],
+    features: [] as string[],
+    registrable: (h: string) => h.replace(/^www\./, ""),
+    today: "2026-11-20",
+  };
+
+  it("measures the drop from the peak week to the latest week", () => {
+    const rising = Array.from({ length: 21 }, (_, i) => day(i, i));
+    expect(peakDrop(rising)).toBe(0);
+    const fell = [
+      ...Array.from({ length: 7 }, (_, i) => day(i, 2)),
+      ...Array.from({ length: 7 }, (_, i) => day(i + 7, 10)),
+      ...Array.from({ length: 7 }, (_, i) => day(i + 14, 4)),
+    ];
+    expect(peakDrop(fell)).toBeCloseTo(0.6);
+    expect(peakDrop(rising.slice(0, 10))).toBeNull();
+  });
+
+  it("counts new sites over the top 30, crowding, brands and an old exact match", () => {
+    const organic = [
+      { site: "goodbyegta5.com" },
+      { site: "www.canva.com" },
+      { site: "picsart.com" },
+      { site: "media.io" },
+      ...Array.from({ length: 26 }, (_, i) => ({ site: `s${i}.com` })),
+    ];
+    const g = gateFacts({
+      ...base,
+      organic,
+      ages: ages([
+        ["goodbyegta5.com", "2020-01-01"],
+        ["canva.com", "2012-01-01"],
+        ["picsart.com", "2011-01-01"],
+        ["media.io", "2009-01-01"],
+        // five young sites below the top 10: crowded, but no new site on page one
+        ...Array.from(
+          { length: 26 },
+          (_, i) =>
+            [`s${i}.com`, i >= 10 && i < 15 ? "2025-06-01" : "2015-01-01"] as [
+              string,
+              string,
+            ],
+        ),
+        ["goodbyegta5.net", null, true],
+        ["goodbyegta5.org", null],
+      ]),
+    });
+    expect(g).toMatchObject({
+      monthly: 1080,
+      top10New: 0,
+      top30Under12: 0,
+      top30Under24: 5,
+      clustered: true,
+      brandsTop10: 3,
+      oldExactTop5: "goodbyegta5.com",
+      knockouts: ["brands_no_new", "old_exact_top5"],
+    });
+    expect(g.exactDomains).toEqual([
+      { domain: "goodbyegta5.com", registeredOn: "2020-01-01", free: false },
+      { domain: "goodbyegta5.net", registeredOn: null, free: true },
+      { domain: "goodbyegta5.org", registeredOn: null, free: false },
+    ]);
+  });
+
+  it("a knockout makes a skip; crowding takes away the new site", () => {
+    const worth = {
+      verdict: "worth" as const,
+      buildAs: "new_site" as const,
+      reasons: [],
+    };
+    const g = gateFacts({ ...base, organic: [], ages: ages([]) });
+    expect(applyGates(worth, g)).toEqual(worth);
+    expect(
+      applyGates(worth, { ...g, knockouts: ["window_closed"], peakDrop: 0.62 }),
+    ).toEqual({
+      verdict: "skip",
+      buildAs: null,
+      reasons: [{ code: "window_closed", value: 62 }],
+    });
+    expect(
+      applyGates(worth, { ...g, clustered: true, top30Under24: 7 }),
+    ).toEqual({
+      verdict: "try",
+      buildAs: "inner_page",
+      reasons: [{ code: "clustered", value: 7 }],
+    });
+  });
 });
