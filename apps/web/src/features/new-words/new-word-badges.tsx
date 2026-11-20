@@ -39,7 +39,7 @@ export function WordTags({ word }: { word: NewWordDto }) {
   );
 }
 
-/** "值得做" or "可以试试", and the kind of page in bold. */
+/** "优先审查" or "可以审查", and the kind of page in bold. */
 export function VerdictLine({
   word,
   children,

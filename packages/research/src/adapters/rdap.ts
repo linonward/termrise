@@ -1,7 +1,12 @@
 // When a domain was registered, from RDAP (the registries' public protocol, RFC 9083),
 // through the rdap.org bootstrap redirect. Free and keyless; a lookup that fails is
 // null, never a guess.
-export type DomainAge = { domain: string; registeredOn: string | null };
+export type DomainAge = {
+  domain: string;
+  registeredOn: string | null;
+  /** The registry answered 404: nobody has registered it (S85). */
+  free?: boolean;
+};
 
 /** The registrable part of a host: example.co.uk stays, www.example.com → example.com. */
 export function registrableDomain(host: string) {
@@ -33,6 +38,8 @@ export function createRdapClient(
             signal: AbortSignal.timeout(deps.timeoutMs ?? 10_000),
           },
         );
+        if (res.status === 404)
+          return { domain, registeredOn: null, free: true };
         if (!res.ok) return { domain, registeredOn: null };
         const body = (await res.json()) as {
           events?: { eventAction?: string; eventDate?: string }[];

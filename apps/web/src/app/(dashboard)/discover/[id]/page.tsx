@@ -1,8 +1,9 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { NewWordDto } from "@repo/research/new-word-dto";
+import { NEW_SITE_MIN_MONTHLY } from "@repo/research/new-word-rules";
 import { serpRole } from "@repo/research/new-word-rules";
 import { Tag } from "@repo/ui/components/badge";
 
@@ -17,6 +18,7 @@ import {
   growthPct,
   lagMessage,
   rootMessage,
+  monthlyOf,
   times,
   trendsUrl,
   wordStage,
@@ -47,6 +49,7 @@ export default async function NewWordPage({
 }: PageProps<"/discover/[id]">) {
   const { id } = await params;
   const t = await getTranslations("newWords");
+  const format = await getFormatter();
   const w = await apiGet<Detail>(`/api/pool/new-words/${id}`);
   // Pages made for the word: someone else's count as competition, the maker's own and
   // platform listings are shown but not counted (newword-v3).
@@ -65,6 +68,13 @@ export default async function NewWordPage({
       t("heatFull"),
       times(w.ratio),
       w.ratioDay ? t("measuredOn", { date: w.ratioDay }) : null,
+    ],
+    [
+      t("monthly"),
+      monthlyOf(w.ratio) === null
+        ? "—"
+        : t("monthlyShort", { n: format.number(monthlyOf(w.ratio)!) }),
+      t("monthlyNote"),
     ],
     [t("firstDay"), w.firstDay ?? "—", null],
     [t("burstDay"), w.burstDay ?? "—", null],
@@ -258,6 +268,101 @@ export default async function NewWordPage({
             )}
           </div>
         </section>
+        {w.gates && (
+          <section
+            aria-labelledby="gates"
+            className="space-y-3"
+            data-testid="word-gates"
+          >
+            <h3 id="gates" className="text-[15px] font-semibold">
+              {t("gatesTitle")}
+            </h3>
+            <div className={`${card} space-y-3`}>
+              <dl className="grid gap-3 text-[15px] md:grid-cols-2">
+                {(
+                  [
+                    [
+                      t("gateMonthly"),
+                      w.gates.monthly === null
+                        ? "—"
+                        : t(
+                            w.gates.monthly >= NEW_SITE_MIN_MONTHLY
+                              ? "gateMonthlyOk"
+                              : "gateMonthlyLow",
+                            { n: format.number(w.gates.monthly) },
+                          ),
+                    ],
+                    [
+                      t("gatePeakDrop"),
+                      w.gates.peakDrop === null
+                        ? "—"
+                        : t("gatePeakDropValue", {
+                            pct: Math.round(w.gates.peakDrop * 100),
+                          }),
+                    ],
+                    [
+                      t("gateTop30"),
+                      t(
+                        w.gates.clustered
+                          ? "gateTop30Clustered"
+                          : "gateTop30Value",
+                        {
+                          top10: w.gates.top10New,
+                          under12: w.gates.top30Under12,
+                          under24: w.gates.top30Under24,
+                          unknown: w.gates.top30Unknown,
+                        },
+                      ),
+                    ],
+                    [t("gateBrands"), t("count", { n: w.gates.brandsTop10 })],
+                    [t("gateOldExact"), w.gates.oldExactTop5 ?? t("gateNone")],
+                    [
+                      t("gateFeatures"),
+                      w.gates.features.length
+                        ? w.gates.features
+                            .map((f) => t(`feature.${f}`))
+                            .join("、")
+                        : t("gateNone"),
+                    ],
+                    [
+                      t("gateExactDomains"),
+                      w.gates.exactDomains
+                        .map((d) =>
+                          t(
+                            d.free
+                              ? "domainFree"
+                              : d.registeredOn
+                                ? "domainTaken"
+                                : "domainUnknown",
+                            { domain: d.domain, date: d.registeredOn ?? "" },
+                          ),
+                        )
+                        .join("；") || "—",
+                    ],
+                    [
+                      t("gateKnockouts"),
+                      w.gates.knockouts.length
+                        ? w.gates.knockouts
+                            .map((k) => t(`knockout.${k}`))
+                            .join("；")
+                        : t("gateNone"),
+                    ],
+                  ] as const
+                ).map(([label, value]) => (
+                  <div key={label} className="space-y-1">
+                    <dt className="text-[13px] text-muted-foreground">
+                      {label}
+                    </dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="text-[13px] text-muted-foreground">
+                {t("gatesNote")}
+              </p>
+            </div>
+          </section>
+        )}
         <section aria-labelledby="new-sites" className="space-y-3">
           <h3 id="new-sites" className="text-[15px] font-semibold">
             {t("newSitesTitle")}

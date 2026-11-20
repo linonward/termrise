@@ -1,4 +1,7 @@
-import type { VerdictReason } from "@repo/research/new-word-rules";
+import {
+  GPTS_US_MONTHLY,
+  type VerdictReason,
+} from "@repo/research/new-word-rules";
 
 // Formatting for new words (docs/product/keyword-pool.md#new-words).
 
@@ -106,3 +109,11 @@ export function rootMessage(root: string) {
 /** The word against gpts in Google Trends' explore page (the new address since 2026). */
 export const trendsUrl = (phrase: string) =>
   `https://trends.google.com/explore?q=${encodeURIComponent(phrase)},gpts&geo=US`;
+
+/**
+ * A word's US monthly searches estimated from its GPTs ratio (vet-keyword's yardstick,
+ * gpts ≈ 5,400 a month in 2026-11). Null without a ratio.
+ */
+export function monthlyOf(ratio: number | null) {
+  return ratio == null ? null : Math.round(ratio * GPTS_US_MONTHLY);
+}

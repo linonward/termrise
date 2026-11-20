@@ -1131,13 +1131,13 @@
       "generic": "普通词"
     },
     "verdict": {
-      "worth": "值得做",
-      "try": "可以试试",
+      "worth": "优先审查",
+      "try": "可以审查",
       "skip": "不建议"
     },
     "buildAs": {
-      "new_site": "新站首页",
-      "inner_page": "做内页",
+      "new_site": "新站候选",
+      "inner_page": "内页候选",
       "long_tail": "只做长尾"
     },
     "reason": {
@@ -1154,7 +1154,11 @@
       "spike": "近 7 天的量集中在一天，是单日尖峰，最多做内页",
       "official": "另有 {value} 个官方或平台页面（作者自己的站、Hugging Face、GitHub、应用商店等），不算竞争",
       "category": "分类为「{value}」，不是模型、游戏或工具，不做",
-      "crowded": "这个词本身已被大站占满，但它的价格、对比、怎么用这些长尾还可以做"
+      "crowded": "这个词本身已被大站占满，但它的价格、对比、怎么用这些长尾还可以做",
+      "window_closed": "热度已从顶点回落 {value}%，窗口已关（vet-keyword 一票否决 4）",
+      "brands_no_new": "第一页有 {value} 个大品牌页面，没有新站（一票否决 1）",
+      "old_exact_top5": "前 5 名有注册超过 12 个月的完全匹配域名，没有新站（一票否决 2）",
+      "clustered": "前 30 名有 {value} 个注册不到 24 个月的站，已经扎堆，不开新站"
     },
     "breadcrumb": "位置",
     "home": "首页",
@@ -1216,7 +1220,7 @@
     "originCapture": "怎么承接",
     "originEvidence": "证据（{n} 条，起量前 30 天到后 7 天）",
     "originNone": "Hacker News、Hugging Face 和 GitHub 里没有找到相关条目。",
-    "originPending": "还没追溯。值得做和可以试试的词，每轮追溯 8 个。",
+    "originPending": "还没追溯。优先审查和可以审查的词，每轮追溯 8 个。",
     "originSkip": "结论为跳过的词不追溯起因。",
     "originChecked": "{date} 追溯。来源：Hacker News、Hugging Face、GitHub、谷歌前 10 名；前三者都没有结果时，再用 Claude 搜一次网页。",
     "originFirst": "最早",
@@ -1269,7 +1273,7 @@
       "hidden": "已隐藏"
     },
     "stageHint": {
-      "decide": "结论为值得做或可以试试的词，值得做在前。选定一个就去建站。",
+      "decide": "结论为优先审查或可以审查的词，优先审查在前。选定一个就去建站。",
       "check": "初筛通过，等着查谷歌前两页和搜索量。每天按深查额度查，热度高的先查。",
       "screen": "刚从各来源扫到，还没和 GPTs 比过热度。按优先级排：来源上的热度加新鲜度，高的先筛；人名、比赛和新闻在初筛前就分出去。",
       "skip": "初筛或深查没通过：太冷、已经不再上升，或者前两页已经有人专门做。",
@@ -1319,7 +1323,43 @@
     "copyrightRisk": "版权风险",
     "copyrightRiskNote": "可能涉及版权：模拟器、游戏移植、破解或别人的内容。做之前先确认。",
     "longTailsTitle": "可以做的长尾",
-    "longTailsBody": "这个词本身竞争大，从谷歌联想里取它的对比、价格、怎么用"
+    "longTailsBody": "这个词本身竞争大，从谷歌联想里取它的对比、价格、怎么用",
+    "monthlyShort": "约 {n}/月",
+    "monthly": "估算月量（美国）",
+    "monthlyNote": "GPTs 倍数 × gpts 的月量（5,400，2026-11），和 vet-keyword 用同一把尺子",
+    "gatesTitle": "自动关卡",
+    "gatesNote": "vet-keyword 里能自动查的部分。真实外链、对手页面的流量、契合、变现和动手前三句话仍要在 vet-keyword 里人工做；这里的「优先审查」不等于可以开新站。",
+    "gateMonthly": "量（开新站要 5,000/月）",
+    "gateMonthlyOk": "约 {n}/月，满足",
+    "gateMonthlyLow": "约 {n}/月，不满足",
+    "gatePeakDrop": "从顶点回落",
+    "gatePeakDropValue": "{pct}%（50% 以上为窗口已关）",
+    "gateTop30": "前 30 名新站",
+    "gateTop30Value": "第一页新站 {top10} 个；前 30 名 12 个月内 {under12} 个、24 个月内 {under24} 个；查不到注册日期 {unknown} 个；没扎堆",
+    "gateTop30Clustered": "第一页新站 {top10} 个；前 30 名 12 个月内 {under12} 个、24 个月内 {under24} 个；查不到注册日期 {unknown} 个；扎堆",
+    "gateBrands": "第一页大品牌页面",
+    "gateOldExact": "前 5 名的老完全匹配域名",
+    "gateFeatures": "抢点击的结果",
+    "gateExactDomains": "同名域名",
+    "gateKnockouts": "一票否决",
+    "gateNone": "无",
+    "domainFree": "{domain} 未注册",
+    "domainTaken": "{domain} 已注册（{date}）",
+    "domainUnknown": "{domain} 查不到",
+    "feature": {
+      "ai_overview": "AI 概览",
+      "video": "视频",
+      "short_videos": "短视频",
+      "images": "图片",
+      "people_also_ask": "People also ask",
+      "featured_snippet": "精选摘要",
+      "answer_box": "直接答案"
+    },
+    "knockout": {
+      "window_closed": "窗口已关",
+      "brands_no_new": "大品牌占第一页、没有新站",
+      "old_exact_top5": "前 5 名有老完全匹配域名、没有新站"
+    }
   },
   "research": {
     "metaTitle": "研究",
@@ -1819,13 +1859,13 @@
   },
   "today": {
     "title": "今天",
-    "subtitle": "每天先看这里：值得做的新词、等你确认的词、站点状态、该复查的词、最近两轮和本月花费。",
+    "subtitle": "每天先看这里：值得审查的新词、等你确认的词、站点状态、该复查的词、最近两轮和本月花费。",
     "workerOnline": "Worker 在线",
     "workerOffline": "Worker 离线，最后一次在 {at}（UTC）",
     "workerNever": "Worker 还没有运行过",
     "wordsTitle": "新词",
     "wordsAll": "全部新词",
-    "wordsCounts": "近两天：值得做 {worth} 个，可以试试 {try} 个",
+    "wordsCounts": "近两天：优先审查 {worth} 个，可以审查 {try} 个",
     "wordsEmpty": "近两天没有值得看的新词。每天早上 8 点找一轮。",
     "keywordsTitle": "等你确认",
     "keywordsAll": "全部 {n} 个",

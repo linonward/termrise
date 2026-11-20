@@ -1,6 +1,6 @@
 import { SearchX, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { NewWordDto } from "@repo/research/new-word-dto";
 import type { PoolRoundDto } from "@repo/research/pool-dto";
@@ -25,6 +25,7 @@ import {
   lagMessage,
   monthDay,
   rootMessage,
+  monthlyOf,
   times,
   type WordStage,
 } from "@/features/new-words/new-word-format";
@@ -60,6 +61,7 @@ export default async function NewWordsPage({
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const page = Math.max(1, Number(params.page) || 1);
   const t = await getTranslations("newWords");
+  const format = await getFormatter();
   const [list, rounds] = await Promise.all([
     apiGet<{
       items: NewWordDto[];
@@ -275,6 +277,13 @@ export default async function NewWordsPage({
                       <span className="font-mono font-semibold tabular-nums">
                         {times(w.ratio)}
                       </span>
+                      {monthlyOf(w.ratio) !== null && (
+                        <span className="block text-muted-foreground tabular-nums">
+                          {t("monthlyShort", {
+                            n: format.number(monthlyOf(w.ratio)!),
+                          })}
+                        </span>
+                      )}
                     </dd>
                   </div>
                   <div>

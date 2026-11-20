@@ -92,11 +92,16 @@ export interface KeywordProvider {
     phrases: string[],
     market: Market,
   ): Promise<Charged<Map<string, number>>>;
-  /** The top organic results on desktop: 10, or `depth` up to 20. */
+  /**
+   * The top organic results on desktop: 10, or `depth` up to 30. With `features`, one
+   * extra item per kind of other result on the page (ai_overview, video...), rank 0 and
+   * no url, after the organic ones (S85).
+   */
   serp(
     phrase: string,
     market: Market,
     depth?: number,
+    options?: { features?: boolean },
   ): Promise<Charged<SerpItem[]>>;
   /**
    * Keywords that contain the seed, in a search-volume band, biggest first, with

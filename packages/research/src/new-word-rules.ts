@@ -45,7 +45,12 @@ export type VerdictReason = {
     | "excluded"
     | "official"
     | "category"
-    | "crowded";
+    | "crowded"
+    // S85, gates from the vet-keyword method (docs/product/keyword-pool.md#gates):
+    | "window_closed"
+    | "brands_no_new"
+    | "old_exact_top5"
+    | "clustered";
   /** For "category": the class that is not built for (news, entertainment...). */
   category?: string;
   value?: number;
@@ -315,4 +320,210 @@ export function newWordVerdict(input: {
       reasons: [...reasons, { code: "crowded" }],
     };
   return { verdict: "skip", buildAs: null, reasons };
+}
+
+// --- Gates (S85): the automatic part of the vet-keyword method, so a word that would be
+// stopped there is stopped here, and the rest arrive with their facts written down.
+
+/** gpts's US monthly searches (Semrush, 2026-11): the yardstick that turns a ratio into searches. */
+export const GPTS_US_MONTHLY = 5_400;
+/** A new site needs this many US monthly searches (Gate 6, condition 2). */
+export const NEW_SITE_MIN_MONTHLY = 5_000;
+/** Down this much from the peak week: the hot word's window has closed (knockout 4). */
+export const WINDOW_CLOSED_DROP = 0.5;
+/** Top 30 domains under 24 months old from this many on: the word is crowded. */
+export const CLUSTER_MIN = 5;
+/** Big-brand pages on page one, with no new site there: knockout 1. */
+export const BRANDS_KNOCKOUT = 3;
+/** The vet-keyword list of big brands, SaaS and guide brands (serp-teardown.md). */
+const BRANDS =
+  /(^|\.)(canva|picsart|adobe|piccollage|creativefabrica|commoninja|fotor|kapwing|miro|capcut|dreamina|media\.io|pollo|game8|prydwen|icy-veins|mobalytics|wowhead|maxroll|gamefaqs)\./;
+/** Results that take clicks away from page one (DataForSEO item types). */
+export const CLICK_FEATURES = [
+  "ai_overview",
+  "video",
+  "short_videos",
+  "images",
+  "people_also_ask",
+  "featured_snippet",
+  "answer_box",
+] as const;
+export type ClickFeature = (typeof CLICK_FEATURES)[number];
+const EXACT_TLDS = ["com", "net", "org"] as const;
+
+export type Gates = {
+  /** Estimated US monthly searches: the ratio times gpts's. */
+  monthly: number | null;
+  /** How far the latest week is below the peak week (0 to 1); null without a curve. */
+  peakDrop: number | null;
+  top10New: number;
+  top30Under12: number;
+  top30Under24: number;
+  /** Domains the registry did not answer for. */
+  top30Unknown: number;
+  clustered: boolean;
+  brandsTop10: number;
+  /** An exact-match domain in the top 5 registered more than 12 months ago. */
+  oldExactTop5: string | null;
+  features: ClickFeature[];
+  /** The word's own .com, .net, .org: registered on a day, free, or unknown. */
+  exactDomains: {
+    domain: string;
+    registeredOn: string | null;
+    free: boolean;
+  }[];
+  knockouts: ("window_closed" | "brands_no_new" | "old_exact_top5")[];
+};
+
+/** The word as a domain label: letters and digits only ("goodbye gta 5" → goodbyegta5). */
+export const exactLabel = (phrase: string) =>
+  phrase.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** The domains to look up for a word's own exact match. */
+export const exactDomainsOf = (phrase: string) =>
+  exactLabel(phrase).length >= 3
+    ? EXACT_TLDS.map((tld) => `${exactLabel(phrase)}.${tld}`)
+    : [];
+
+/** The latest week's peak below the highest week's peak, from a daily curve. */
+export function peakDrop(days: { day: string; value: number }[]) {
+  if (days.length < 14) return null;
+  const weeks: number[] = [];
+  for (let end = days.length; end > 0; end -= 7)
+    weeks.unshift(
+      Math.max(...days.slice(Math.max(0, end - 7), end).map((d) => d.value)),
+    );
+  const top = Math.max(...weeks);
+  if (top <= 0) return null;
+  return Math.max(0, 1 - weeks.at(-1)! / top);
+}
+
+/**
+ * The gates for a checked word. `organic` is the top 30 in order; `ages` has the
+ * registration day of each registrable domain (null: unknown, `free`: not registered).
+ */
+export function gateFacts(input: {
+  phrase: string;
+  ratio: number | null;
+  days: { day: string; value: number }[];
+  organic: { site: string }[];
+  features: string[];
+  ages: Map<string, { registeredOn: string | null; free?: boolean }>;
+  registrable: (host: string) => string;
+  today: string;
+}): Gates {
+  const monthsOld = (registeredOn: string | null) =>
+    registeredOn
+      ? (Date.parse(input.today) - Date.parse(registeredOn)) /
+        (30.44 * 86_400_000)
+      : null;
+  const domains = input.organic.map((r) =>
+    /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(r.site)
+      ? input.registrable(r.site)
+      : null,
+  );
+  const ageAt = (i: number) => {
+    const d = domains[i];
+    return d ? monthsOld(input.ages.get(d)?.registeredOn ?? null) : null;
+  };
+  const distinct = (from: number, to: number, test: (m: number) => boolean) => {
+    const seen = new Set<string>();
+    for (let i = from; i < Math.min(to, domains.length); i++) {
+      const d = domains[i];
+      const m = ageAt(i);
+      if (d && m !== null && test(m)) seen.add(d);
+    }
+    return seen.size;
+  };
+  const top30 = new Set(domains.slice(0, 30).filter(Boolean) as string[]);
+  const top30Unknown = [...top30].filter(
+    (d) => !input.ages.get(d)?.registeredOn,
+  ).length;
+  const top10New = distinct(0, 10, (m) => m < 12);
+  const top30Under12 = distinct(0, 30, (m) => m < 12);
+  const top30Under24 = distinct(0, 30, (m) => m < 24);
+  const brandsTop10 = new Set(
+    domains
+      .slice(0, 10)
+      .filter((d): d is string => !!d && BRANDS.test(`${d}.`)),
+  ).size;
+  const label = exactLabel(input.phrase);
+  let oldExactTop5: string | null = null;
+  for (let i = 0; i < Math.min(5, domains.length); i++) {
+    const d = domains[i];
+    const m = ageAt(i);
+    if (
+      d &&
+      label.length >= 3 &&
+      d.split(".")[0] === label &&
+      m !== null &&
+      m >= 12
+    )
+      oldExactTop5 = d;
+  }
+  const drop = peakDrop(input.days);
+  const knockouts: Gates["knockouts"] = [];
+  if (drop !== null && drop >= WINDOW_CLOSED_DROP)
+    knockouts.push("window_closed");
+  if (brandsTop10 >= BRANDS_KNOCKOUT && top10New === 0)
+    knockouts.push("brands_no_new");
+  if (oldExactTop5 && top10New === 0) knockouts.push("old_exact_top5");
+  return {
+    monthly:
+      input.ratio === null ? null : Math.round(input.ratio * GPTS_US_MONTHLY),
+    peakDrop: drop === null ? null : Math.round(drop * 100) / 100,
+    top10New,
+    top30Under12,
+    top30Under24,
+    top30Unknown,
+    clustered: top30Under24 >= CLUSTER_MIN,
+    brandsTop10,
+    oldExactTop5,
+    features: input.features.filter((f): f is ClickFeature =>
+      (CLICK_FEATURES as readonly string[]).includes(f),
+    ),
+    exactDomains: exactDomainsOf(input.phrase).map((domain) => {
+      const a = input.ages.get(domain);
+      return {
+        domain,
+        registeredOn: a?.registeredOn ?? null,
+        free: !!a?.free,
+      };
+    }),
+    knockouts,
+  };
+}
+
+/**
+ * The verdict after the gates: a knockout makes it a skip (vet-keyword would drop it);
+ * a crowded top 30 is no new site, only an inner page.
+ */
+export function applyGates(
+  v: { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] },
+  gates: Gates,
+): { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] } {
+  if (v.verdict === "skip") return v;
+  if (gates.knockouts.length)
+    return {
+      verdict: "skip",
+      buildAs: null,
+      reasons: [
+        ...v.reasons,
+        ...gates.knockouts.map((code) => ({
+          code,
+          ...(code === "window_closed" && gates.peakDrop !== null
+            ? { value: Math.round(gates.peakDrop * 100) }
+            : code === "brands_no_new"
+              ? { value: gates.brandsTop10 }
+              : {}),
+        })),
+      ],
+    };
+  if (gates.clustered && v.buildAs === "new_site")
+    return {
+      verdict: "try",
+      buildAs: "inner_page",
+      reasons: [...v.reasons, { code: "clustered", value: gates.top30Under24 }],
+    };
+  return v;
 }

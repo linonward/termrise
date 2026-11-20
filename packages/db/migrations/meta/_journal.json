@@ -316,6 +316,13 @@
       "when": 1795172449718,
       "tag": "0044_watch_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1795175108955,
+      "tag": "0045_new_word_gates",
+      "breakpoints": true
     }
   ]
 }
