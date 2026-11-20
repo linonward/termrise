@@ -9,9 +9,20 @@ import {
   type SiteDto,
 } from "@/features/sites/site-dto";
 import { SiteState } from "@/features/sites/site-state";
+import { SiteStats } from "@/features/sites/site-stats";
 import { apiRequest } from "@/server/api/api";
 
-type Detail = SiteDto & { removedAt: string | null; days: SiteDayDto[] };
+type Detail = SiteDto & {
+  removedAt: string | null;
+  days: SiteDayDto[];
+  product: {
+    id: string;
+    name: string;
+    status: string;
+    poolKeywordId: string | null;
+    newWordId: string | null;
+  } | null;
+};
 
 async function load(domain: string) {
   const response = await apiRequest(`/api/sites/${encodeURIComponent(domain)}`);
@@ -76,45 +87,40 @@ export default async function SitePage({
           <p className="text-[13px] text-destructive">{t("removed")}</p>
         )}
       </header>
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg bg-surface px-6 py-5">
-          <h2 className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-            {t("statVisitors")}
-          </h2>
-          <p className="font-heading text-3xl font-semibold tabular-nums">
-            {n(site.summary.visitors7d)}
-          </p>
-        </div>
-        <div className="rounded-lg bg-surface px-6 py-5">
-          <h2 className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-            {t("statSearch")}
-          </h2>
-          <p className="font-heading text-3xl font-semibold tabular-nums">
-            {site.summary.search ? n(site.summary.search.clicks) : "—"}
-          </p>
-          {site.summary.search && (
-            <p className="text-[13px] text-muted-foreground">
-              {t("searchDetail", {
-                impressions: format.number(site.summary.search.impressions),
-                position:
-                  site.summary.search.position === null
-                    ? "—"
-                    : format.number(site.summary.search.position, {
-                        maximumFractionDigits: 1,
-                      }),
-              })}
-            </p>
+      {site.product && (
+        <p className="text-[15px]" data-testid="site-product">
+          {t("fromProduct")}{" "}
+          <Link
+            href={`/products/${site.product.id}`}
+            className="font-medium underline underline-offset-4"
+          >
+            {site.product.name}
+          </Link>
+          {site.product.poolKeywordId && (
+            <>
+              {" · "}
+              <Link
+                href={`/keywords/${site.product.poolKeywordId}`}
+                className="underline underline-offset-4"
+              >
+                {t("keywordRecord")}
+              </Link>
+            </>
           )}
-        </div>
-        <div className="rounded-lg bg-surface px-6 py-5">
-          <h2 className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-            {t("statOrders")}
-          </h2>
-          <p className="font-heading text-3xl font-semibold tabular-nums">
-            {n(site.summary.orders30d)}
-          </p>
-        </div>
-      </section>
+          {site.product.newWordId && (
+            <>
+              {" · "}
+              <Link
+                href={`/discover/${site.product.newWordId}`}
+                className="underline underline-offset-4"
+              >
+                {t("keywordRecord")}
+              </Link>
+            </>
+          )}
+        </p>
+      )}
+      <SiteStats summary={site.summary} />
       <section className="space-y-3">
         <h2 className="font-heading text-xl font-semibold">{t("daysTitle")}</h2>
         {site.days.length === 0 ? (

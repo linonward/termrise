@@ -32,6 +32,8 @@ test("lists the sites with their numbers and opens one", async ({
           kind: "tool",
           template: "tool-starter",
         },
+        // product-site.spec.ts syncs the same list, so neither removes the other's site.
+        { domain: "linked.example", name: "Linked Site", kind: "tool" },
       ],
       daily: [
         {
@@ -72,7 +74,7 @@ test("lists the sites with their numbers and opens one", async ({
 
   await signIn(context);
   await page.goto("/sites");
-  await expect(page.getByText("2 个站，1 个掉线")).toBeVisible();
+  await expect(page.getByText("3 个站，1 个掉线")).toBeVisible();
   await expect(page.getByTestId("heartbeat-termrise")).toContainText("正常");
   const upRow = page.getByTestId("site-row").filter({ hasText: "Up Site" });
   await expect(upRow).toContainText("在线");

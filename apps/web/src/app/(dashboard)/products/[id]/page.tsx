@@ -13,6 +13,9 @@ import {
   RevenueForm,
 } from "@/features/products/product-forms";
 import { ProductStatus, SourceBadge } from "@/features/products/product-status";
+import type { SiteDto } from "@/features/sites/site-dto";
+import { SiteState } from "@/features/sites/site-state";
+import { SiteStats } from "@/features/sites/site-stats";
 import { apiRequest } from "@/server/api/api";
 
 async function loadProduct(id: string) {
@@ -22,7 +25,9 @@ async function loadProduct(id: string) {
   if (response.status === 404) notFound();
   if (!response.ok)
     throw new Error(`API /api/execution/projects failed: ${response.status}`);
-  return (await response.json()) as ExecutionDetailDto;
+  return (await response.json()) as ExecutionDetailDto & {
+    site: SiteDto | null;
+  };
 }
 
 export async function generateMetadata({
@@ -60,6 +65,10 @@ export default async function ProductPage({
       format.number(value, { style: "currency", currency })
     );
   const base = `/api/execution/projects/${p.id}`;
+  // A product whose domain is a live site shows the site's numbers; recording them by
+  // hand is only for products that are not a site yet (S82).
+  const site = p.site;
+  const showRecords = !site || p.revenue.length > 0 || p.events.length > 0;
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-10 md:py-16">
       <header className="space-y-4">
@@ -102,105 +111,133 @@ export default async function ProductPage({
         )}
       </header>
       <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
-        <section
-          aria-labelledby="results-title"
-          className="min-w-0 flex-1 space-y-4"
-        >
-          <h2
-            id="results-title"
-            className="font-heading text-2xl font-semibold"
+        {site ? (
+          <section
+            aria-labelledby="results-title"
+            className="min-w-0 flex-1 space-y-4"
+            data-testid="product-site"
           >
-            {t("resultsTitle")}
-          </h2>
-          <dl className="grid grid-cols-2 gap-4 rounded-lg bg-surface p-6">
-            {(
-              [
-                ["visitors", p.totals.visitors],
-                ["activations", p.totals.activations],
-              ] as const
-            ).map(([key, value]) => (
-              <div key={key} className="space-y-1">
-                <dt className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-                  {t(`metric.${key}`)}
-                </dt>
-                <dd
-                  className="font-mono text-2xl font-semibold tabular-nums"
-                  data-testid={`total-${key}`}
-                >
-                  {format.number(value)}
-                </dd>
+            <h2
+              id="results-title"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("siteTitle")}
+            </h2>
+            <p className="flex flex-wrap items-center gap-3 text-[15px] text-muted-foreground">
+              <Link
+                href={`/sites/${encodeURIComponent(site.domain)}`}
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                {site.domain}
+              </Link>
+              <SiteState state={site.alertState} />
+            </p>
+            <SiteStats summary={site.summary} />
+            <p className="text-[13px] text-muted-foreground">{t("siteNote")}</p>
+          </section>
+        ) : (
+          <section
+            aria-labelledby="results-title"
+            className="min-w-0 flex-1 space-y-4"
+          >
+            <h2
+              id="results-title"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("resultsTitle")}
+            </h2>
+            <dl className="grid grid-cols-2 gap-4 rounded-lg bg-surface p-6">
+              {(
+                [
+                  ["visitors", p.totals.visitors],
+                  ["activations", p.totals.activations],
+                ] as const
+              ).map(([key, value]) => (
+                <div key={key} className="space-y-1">
+                  <dt className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+                    {t(`metric.${key}`)}
+                  </dt>
+                  <dd
+                    className="font-mono text-2xl font-semibold tabular-nums"
+                    data-testid={`total-${key}`}
+                  >
+                    {format.number(value)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {p.totals.revenue.length === 0 ? (
+              <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
+                {t("revenueEmpty")}
               </div>
-            ))}
-          </dl>
-          {p.totals.revenue.length === 0 ? (
-            <div className="rounded-lg border border-border p-6 text-[15px] text-muted-foreground">
-              {t("revenueEmpty")}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-[15px]">
-                <thead>
-                  <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
-                    {(
-                      [
-                        "currency",
-                        "orders",
-                        "verified",
-                        "gross",
-                        "refund",
-                        "fees",
-                        "net",
-                      ] as const
-                    ).map((key) => (
-                      <th
-                        key={key}
-                        className={
-                          key === "currency"
-                            ? "pr-4 pb-3 font-semibold"
-                            : "pr-4 pb-3 text-right font-semibold"
-                        }
-                      >
-                        {t(`total.${key}`)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {p.totals.revenue.map((r) => (
-                    <tr
-                      key={r.currency}
-                      data-testid="revenue-total"
-                      className="border-b border-border"
-                    >
-                      <td className="py-3.5 pr-4 font-semibold">
-                        {r.currency}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
-                        {r.orders}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
-                        {r.verifiedOrders}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
-                        {money(r.gross, r.currency)}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
-                        {money(r.refund, r.currency)}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
-                        {money(r.fees, r.currency)}
-                      </td>
-                      <td className="py-3.5 pr-4 text-right font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
-                        {money(r.net, r.currency)}
-                      </td>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[15px]">
+                  <thead>
+                    <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
+                      {(
+                        [
+                          "currency",
+                          "orders",
+                          "verified",
+                          "gross",
+                          "refund",
+                          "fees",
+                          "net",
+                        ] as const
+                      ).map((key) => (
+                        <th
+                          key={key}
+                          className={
+                            key === "currency"
+                              ? "pr-4 pb-3 font-semibold"
+                              : "pr-4 pb-3 text-right font-semibold"
+                          }
+                        >
+                          {t(`total.${key}`)}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <p className="text-[13px] text-muted-foreground">{t("totalsNote")}</p>
-        </section>
+                  </thead>
+                  <tbody>
+                    {p.totals.revenue.map((r) => (
+                      <tr
+                        key={r.currency}
+                        data-testid="revenue-total"
+                        className="border-b border-border"
+                      >
+                        <td className="py-3.5 pr-4 font-semibold">
+                          {r.currency}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
+                          {r.orders}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium tabular-nums">
+                          {r.verifiedOrders}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
+                          {money(r.gross, r.currency)}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
+                          {money(r.refund, r.currency)}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-medium whitespace-nowrap tabular-nums">
+                          {money(r.fees, r.currency)}
+                        </td>
+                        <td className="py-3.5 pr-4 text-right font-mono text-sm font-semibold whitespace-nowrap tabular-nums">
+                          {money(r.net, r.currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p className="text-[13px] text-muted-foreground">
+              {t("totalsNote")}
+            </p>
+          </section>
+        )}
         <section
           aria-labelledby="product-title"
           className="space-y-5 rounded-lg border border-border p-6 md:w-100"
@@ -211,91 +248,103 @@ export default async function ProductPage({
           <ProductForm product={p} />
         </section>
       </div>
-      <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
-        <section
-          aria-labelledby="revenue-title"
-          className="min-w-0 flex-1 space-y-4"
-        >
-          <h2
-            id="revenue-title"
-            className="font-heading text-2xl font-semibold"
+      {showRecords && (
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
+          <section
+            aria-labelledby="revenue-title"
+            className="min-w-0 flex-1 space-y-4"
           >
-            {t("revenueTitle")}
-          </h2>
-          {p.revenue.length > 0 && (
-            <ul className="divide-y divide-border rounded-lg border border-border">
-              {p.revenue.map((r) => (
-                <li
-                  key={r.id}
-                  data-testid="revenue-row"
-                  className="flex flex-wrap items-start justify-between gap-3 px-6 py-4 text-[15px]"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {r.occurredOn} · {t("ordersCount", { count: r.orders })} ·{" "}
-                      {money(r.gross, r.currency)}
-                    </p>
-                    <p className="text-[13px] text-muted-foreground">
-                      {t("total.refund")} {money(r.refund, r.currency)} ·{" "}
-                      {t("total.fees")} {money(r.fees, r.currency)}
-                      {r.evidence && ` · ${r.evidence}`}
-                    </p>
-                    <SourceBadge source={r.source} />
-                  </div>
-                  {r.source === "manual" && (
-                    <DeleteRecord path={`${base}/revenue/${r.id}`} />
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          <details className="rounded-lg border border-border">
-            <summary className="cursor-pointer px-6 py-4 text-[15px] font-semibold">
-              {t("addRevenue")}
-            </summary>
-            <div className="border-t border-border p-6">
-              <RevenueForm productId={p.id} />
-            </div>
-          </details>
-        </section>
-        <section aria-labelledby="events-title" className="space-y-4 md:w-100">
-          <h2 id="events-title" className="font-heading text-2xl font-semibold">
-            {t("eventsTitle")}
-          </h2>
-          {p.events.length > 0 && (
-            <ul className="divide-y divide-border rounded-lg border border-border">
-              {p.events.map((e) => (
-                <li
-                  key={e.id}
-                  data-testid="event-row"
-                  className="flex items-start justify-between gap-3 px-6 py-4 text-[15px]"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {t(`metric.${e.metric}`)}: {format.number(e.count)}
-                    </p>
-                    <p className="text-[13px] text-muted-foreground tabular-nums">
-                      {e.periodStart} – {e.periodEnd}
-                    </p>
-                    <SourceBadge source={e.source} />
-                  </div>
-                  {e.source === "manual" && (
-                    <DeleteRecord path={`${base}/events/${e.id}`} />
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          <details className="rounded-lg border border-border">
-            <summary className="cursor-pointer px-6 py-4 text-[15px] font-semibold">
-              {t("addEvent")}
-            </summary>
-            <div className="border-t border-border p-6">
-              <EventForm productId={p.id} />
-            </div>
-          </details>
-        </section>
-      </div>
+            <h2
+              id="revenue-title"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("revenueTitle")}
+            </h2>
+            {p.revenue.length > 0 && (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {p.revenue.map((r) => (
+                  <li
+                    key={r.id}
+                    data-testid="revenue-row"
+                    className="flex flex-wrap items-start justify-between gap-3 px-6 py-4 text-[15px]"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {r.occurredOn} · {t("ordersCount", { count: r.orders })}{" "}
+                        · {money(r.gross, r.currency)}
+                      </p>
+                      <p className="text-[13px] text-muted-foreground">
+                        {t("total.refund")} {money(r.refund, r.currency)} ·{" "}
+                        {t("total.fees")} {money(r.fees, r.currency)}
+                        {r.evidence && ` · ${r.evidence}`}
+                      </p>
+                      <SourceBadge source={r.source} />
+                    </div>
+                    {r.source === "manual" && (
+                      <DeleteRecord path={`${base}/revenue/${r.id}`} />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!site && (
+              <details className="rounded-lg border border-border">
+                <summary className="cursor-pointer px-6 py-4 text-[15px] font-semibold">
+                  {t("addRevenue")}
+                </summary>
+                <div className="border-t border-border p-6">
+                  <RevenueForm productId={p.id} />
+                </div>
+              </details>
+            )}
+          </section>
+          <section
+            aria-labelledby="events-title"
+            className="space-y-4 md:w-100"
+          >
+            <h2
+              id="events-title"
+              className="font-heading text-2xl font-semibold"
+            >
+              {t("eventsTitle")}
+            </h2>
+            {p.events.length > 0 && (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {p.events.map((e) => (
+                  <li
+                    key={e.id}
+                    data-testid="event-row"
+                    className="flex items-start justify-between gap-3 px-6 py-4 text-[15px]"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {t(`metric.${e.metric}`)}: {format.number(e.count)}
+                      </p>
+                      <p className="text-[13px] text-muted-foreground tabular-nums">
+                        {e.periodStart} – {e.periodEnd}
+                      </p>
+                      <SourceBadge source={e.source} />
+                    </div>
+                    {e.source === "manual" && (
+                      <DeleteRecord path={`${base}/events/${e.id}`} />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!site && (
+              <details className="rounded-lg border border-border">
+                <summary className="cursor-pointer px-6 py-4 text-[15px] font-semibold">
+                  {t("addEvent")}
+                </summary>
+                <div className="border-t border-border p-6">
+                  <EventForm productId={p.id} />
+                </div>
+              </details>
+            )}
+          </section>
+        </div>
+      )}
       {brief?.markdown && (
         <section aria-labelledby="product-brief" className="space-y-4">
           <div className="space-y-1">

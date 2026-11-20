@@ -7,9 +7,11 @@ import {
   toRevenueEventDto,
 } from "@repo/execution/execution-dto";
 import { createExecutionService } from "@repo/execution/execution-service";
+import { createSites } from "@repo/execution/sites";
 
 import type { AppEnv } from "../env";
 import { readJson } from "../http";
+import { toSiteDto } from "./sites";
 import { userRoutes } from "./user-routes";
 import { rateLimit } from "../middleware/rate-limit";
 
@@ -34,13 +36,17 @@ export const executionRoutes = userRoutes()
       201,
     ),
   )
-  .get("/projects/:id", async (c) =>
-    c.json(
-      toExecutionDetailDto(
-        await execution(c).get(c.var.user.id, c.req.param("id")),
-      ),
-    ),
-  )
+  // A product whose domain is a live site carries the site's numbers (S82).
+  .get("/projects/:id", async (c) => {
+    const detail = await execution(c).get(c.var.user.id, c.req.param("id"));
+    const site = detail.project.domain
+      ? await createSites({ database: c.var.db }).item(detail.project.domain)
+      : null;
+    return c.json({
+      ...toExecutionDetailDto(detail),
+      site: site ? toSiteDto(site) : null,
+    });
+  })
   .patch("/projects/:id", rateLimit("research"), async (c) =>
     c.json(
       toExecutionProjectDto(
