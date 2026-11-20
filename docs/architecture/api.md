@@ -116,10 +116,10 @@ GET /api/execution/projects（当前用户的产品，新的在前；?opportunit
 
 POST /api/execution/projects（{ opportunityId, name? }：开始 Go 机会的产品，返回 201；同一个机会再次请求返回同一个产品；机会不是 go 时 409 EXECUTION_NEEDS_GO；见 data-model.md 的 Execution and Revenue）
 
-GET /api/execution/projects/:id（产品、events、revenue 与 totals；不属于当前用户或不存在时 404 EXECUTION_PROJECT_NOT_FOUND）
+GET /api/execution/projects/:id（S82 起带 site：域名是在运营的站时为站点的列表项（在线、报警、汇总），否则为 null；产品、events、revenue 与 totals；不属于当前用户或不存在时 404 EXECUTION_PROJECT_NOT_FOUND）
 GET /api/sites（{ items, heartbeats }：没有被移除的站点，按域名排序，每个带 24 小时在线、报警状态和汇总；向 site-ops 发心跳的机器；见 data-model.md 的 Sites）
 GET /api/sites/domains（{ items }：站点用到的域名，到期早的在前，没查到的在后；每个带 expiresAt、daysLeft、registrar、checkedAt、error；见 data-model.md 的 Sites）
-GET /api/sites/:domain（一个站点加 removedAt 和最近 35 天的 days，新的在前，每天一个对象，键为来源；不存在时 404 NOT_FOUND）
+GET /api/sites/:domain（S82 起带 product：当前用户域名相同（忽略 www.）的产品 { id, name, status, poolKeywordId, newWordId }，没有时为 null；一个站点加 removedAt 和最近 35 天的 days，新的在前，每天一个对象，键为来源；不存在时 404 NOT_FOUND）
 
 GET /api/expenses（?month=YYYY-MM，默认本月（UTC），格式不对时也用本月；返回 { month, items, totals }：这个月的花费，日期新的在前；totals 为每个币种的合计 [{ currency, amountMinor }]；见 data-model.md 的 Expenses）
 POST /api/expenses（{ paidOn: "YYYY-MM-DD", amountMinor（正整数，最小货币单位）, currency（3 个字母）, category: "domain" | "hosting" | "data" | "ai" | "tool" | "other", note?（≤ 200 字）, domain? }；维护者或 agent（Agent 令牌）；返回 201 和这笔花费；不合法时 400 INVALID_INPUT）

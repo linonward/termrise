@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
@@ -223,6 +223,23 @@ export function createExecutionService(deps: { database: Database }) {
     return { project, events, revenue };
   }
 
+  /** The user's product for a site's domain ("www." ignored), newest first; null when none. */
+  async function byDomain(userId: string, domain: string) {
+    const key = domain.toLowerCase().replace(/^www\./, "");
+    const [project] = await database
+      .select()
+      .from(executionProjects)
+      .where(
+        and(
+          eq(executionProjects.userId, userId),
+          inArray(executionProjects.domain, [key, `www.${key}`]),
+        ),
+      )
+      .orderBy(desc(executionProjects.createdAt))
+      .limit(1);
+    return project ?? null;
+  }
+
   /** A launched or measuring product needs its launch date. */
   async function update(userId: string, id: string, body: unknown) {
     const input = parse(updateSchema, body);
@@ -303,6 +320,7 @@ export function createExecutionService(deps: { database: Database }) {
     startFromKeyword,
     list,
     get,
+    byDomain,
     update,
     addEvent,
     addRevenue,

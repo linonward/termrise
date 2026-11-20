@@ -1,3 +1,4 @@
+import { createExecutionService } from "@repo/execution/execution-service";
 import { createDomains } from "@repo/execution/money";
 import { createSites } from "@repo/execution/sites";
 import { AppError } from "@repo/observability/errors";
@@ -7,7 +8,7 @@ import { userRoutes } from "./user-routes";
 const iso = (d: Date | null) => d?.toISOString() ?? null;
 
 type Item = Awaited<ReturnType<ReturnType<typeof createSites>["list"]>>[number];
-const toDto = (s: Item) => ({
+export const toSiteDto = (s: Item) => ({
   ...s,
   lastCheckAt: iso(s.lastCheckAt),
   alertSince: iso(s.alertSince),
@@ -23,7 +24,7 @@ export const siteRoutes = userRoutes()
       sites.heartbeats(),
     ]);
     return c.json({
-      items: items.map(toDto),
+      items: items.map(toSiteDto),
       heartbeats: heartbeats.map((h) => ({
         source: h.source,
         state: h.state,
@@ -51,8 +52,21 @@ export const siteRoutes = userRoutes()
       c.req.param("domain"),
     );
     if (!detail) throw new AppError("NOT_FOUND", "Site not found");
+    // The product this site was built as, when the maintainer gave it the domain (S82).
+    const product = await createExecutionService({
+      database: c.var.db,
+    }).byDomain(c.var.user.id, detail.domain);
     return c.json({
-      ...toDto(detail),
+      product: product
+        ? {
+            id: product.id,
+            name: product.name,
+            status: product.status,
+            poolKeywordId: product.poolKeywordId,
+            newWordId: product.newWordId,
+          }
+        : null,
+      ...toSiteDto(detail),
       removedAt: iso(detail.removedAt),
       days: detail.days,
     });

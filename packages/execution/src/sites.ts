@@ -310,6 +310,21 @@ export function createSites(deps: { database: Database }) {
       );
     },
 
+    /**
+     * One live site's list item (uptime, alert and headline numbers) for a product's
+     * domain; "www." is ignored. Null when the domain is not a live site.
+     */
+    async item(domain: string, now = new Date()) {
+      const key = domain.toLowerCase().replace(/^www\./, "");
+      const [s] = await db
+        .select()
+        .from(sites)
+        .where(and(eq(sites.domain, key), isNull(sites.removedAt)));
+      if (!s) return null;
+      const today = now.toISOString().slice(0, 10);
+      return toItem(s, await rowsFor([key], dayBefore(today, 35)), today);
+    },
+
     /** One site with its last 35 days, newest first; null when unknown. */
     async detail(domain: string, now = new Date()) {
       const today = now.toISOString().slice(0, 10);
