@@ -1942,12 +1942,12 @@
     "sitesIntro": "作者刚发布的新网站：从 Hacker News 的 Show HN 读原话，写清它是干什么的、为什么做、冲着哪个词。",
     "platformsIntro": "部署在 vercel.app、github.io、pages.dev 上、已经有谷歌自然流量的站。这类子域名没有自己的权重还能排上去，说明那个词的竞争弱。",
     "watchMetaTitle": "盯站",
-    "watchIntro": "盯住同类站的一个栏目（如 imagelayered.com/tools/、一个博客分类），它新加的页面会变成新词，自动走新词的检查。第一次只记下已有的页面；之后每次新词扫描（约 3 小时）查一遍。读 RSS、sitemap 和页面都免费。",
+    "watchIntro": "盯住同类站的一个栏目（如 media.io/ai/explore/zone/、一个博客分类）。主信号栏目新加的页面会变成新词，自动走新词的检查；交叉验证栏目不产生新词，但主信号页面的词在这里也有页面（新旧都算）时，热度更高。第一次只记下已有的页面；之后每次新词扫描（约 3 小时）查一遍。读 RSS、sitemap 和页面都免费。",
     "watchAddLabel": "栏目地址",
     "watchAdd": "开始盯",
     "watchRemove": "不盯了",
     "watchSourcesTitle": "盯的栏目",
-    "watchPagesTitle": "新加的页面",
+    "watchPagesTitle": "主信号栏目新加的页面",
     "watchEmpty": "还没有盯任何栏目。",
     "watchPagesEmpty": "还没有发现新页面。第一次检查只记下已有的页面，之后新加的才会出现在这里。",
     "watchMethod": {
@@ -1961,7 +1961,17 @@
     "watchError": "失败：{error}",
     "watchPhrase": "提取的词",
     "watchNewWord": "看新词",
-    "watchNoPhrase": "没提取出词"
+    "watchNoPhrase": "没提取出词",
+    "watchRoleLabel": "用途",
+    "watchRole": {
+      "signal": "主信号",
+      "confirm": "交叉验证"
+    },
+    "watchMakeRole": {
+      "signal": "改为主信号",
+      "confirm": "改为交叉验证"
+    },
+    "watchAlsoOn": "也出现在 {sites}"
   },
   "expenses": {
     "metaTitle": "花费和续费",

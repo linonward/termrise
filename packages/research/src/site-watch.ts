@@ -6,7 +6,12 @@ import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Database } from "@repo/db/client";
-import { newWords, watchPages, watchSources } from "@repo/db/schema";
+import {
+  newWords,
+  WATCH_ROLES,
+  watchPages,
+  watchSources,
+} from "@repo/db/schema";
 import { AppError } from "@repo/observability/errors";
 import { logger } from "@repo/observability/logger";
 
@@ -18,7 +23,7 @@ const TITLES_PER_SCAN = 20;
 /** Child sitemaps read from a sitemap index. */
 const MAX_CHILD_SITEMAPS = 30;
 export const MAX_WATCH_SOURCES = 50;
-const MAX_PHRASE_WORDS = 8;
+const MAX_PHRASE_WORDS = 10;
 
 export type WatchedPage = {
   url: string;
@@ -201,24 +206,46 @@ const LEADING = [
   /^top \d+ /,
   /^free /,
   /^effects? /,
+  /^awesome /,
 ];
 const TRAILING =
   /( (generator|maker|creator|editor|online|free|tool|tools|app|guide|tutorial|prompts?|template|templates|for free|in \d+ steps?|\d{4}))+$/;
 
+/** A language folder such as "jp", "ko" or "pt-br": not part of a page's name. */
+const LOCALE = /^[a-z]{2}(-[a-z]{2,4})?$/i;
+
 /**
- * The search a page targets, from the last part of its address ("goodbye-gta-5-ai-video-
- * generator" → "goodbye gta 5 ai video"), or from its title when the address is an id.
- * Lower case; null when nothing usable is left.
+ * The search a page targets, from its address ("goodbye-gta-5-ai-video-generator" →
+ * "goodbye gta 5 ai video"), or from its title when the address is an id. Under a
+ * section, the first folder after it names the page (/trends/<name>/watch); language
+ * folders are skipped. Lower case; null when nothing usable is left.
  */
-export function phraseFromPage(url: string, title: string | null) {
+export function phraseFromPage(
+  url: string,
+  title: string | null,
+  prefix?: string,
+) {
   let path = "";
   try {
     path = new URL(url).pathname;
   } catch {
     path = url;
   }
+  const segments = path.split("/").filter(Boolean);
+  let below: string[] = [];
+  if (
+    prefix &&
+    bare(url).toLowerCase().startsWith(bare(prefix).toLowerCase())
+  ) {
+    const depth = new URL(prefix).pathname.split("/").filter(Boolean).length;
+    below = segments.slice(depth).filter((x) => !LOCALE.test(x));
+  }
   const slug = decodeURIComponent(
-    path.split("/").filter(Boolean).pop() ?? "",
+    // The first folder that reads as a name (two words or more): /showcase/ and /app/
+    // are folders, the page's name is below them.
+    below.find((x) => x.split(/[-_+]/).filter(Boolean).length >= 2) ??
+      segments.filter((x) => !LOCALE.test(x)).pop() ??
+      "",
   ).replace(/\.(html?|php|aspx?)$/i, "");
   const words = slug.split(/[-_+\s]+/).filter(Boolean);
   const fromSlug =
@@ -243,6 +270,31 @@ export function phraseFromPage(url: string, title: string | null) {
   const n = phrase.split(" ").filter(Boolean).length;
   if (n < 1 || n > MAX_PHRASE_WORDS || phrase.length < 3) return null;
   return phrase;
+}
+
+/** Words that every effect page shares: they say nothing about which trend it is. */
+const GENERIC = new Set(
+  "ai video videos image images photo photos picture effect effects generator maker free online the a an to of and with in for on your my inspired style filter template templates prompt prompts trend trends app tool".split(
+    " ",
+  ),
+);
+const tokens = (phrase: string) =>
+  new Set(phrase.split(" ").filter((w) => w && !GENERIC.has(w)));
+
+/**
+ * Two phrases name the same trend: their telling words are the same, or one's are all in
+ * the other's and there are at least two ("goodbye gta 5 ai video" and "gta 5 goodbye
+ * farewell video"). One telling word must match exactly.
+ */
+export function samePhrase(a: string, b: string) {
+  return sameTokens(tokens(a), tokens(b));
+}
+
+function sameTokens(ta: Set<string>, tb: Set<string>) {
+  if (!ta.size || !tb.size) return false;
+  const [small, big] = ta.size <= tb.size ? [ta, tb] : [tb, ta];
+  for (const w of small) if (!big.has(w)) return false;
+  return small.size >= 2 || small.size === big.size;
 }
 
 type Fetcher = typeof fetch;
@@ -358,7 +410,12 @@ async function read(
   return sectionLinks(await getText(fetcher, source.prefix), source.prefix);
 }
 
-const addSchema = z.object({ url: z.string().min(3).max(500) });
+const addSchema = z.object({
+  url: z.string().min(3).max(500),
+  role: z.enum(WATCH_ROLES).default("signal"),
+});
+const roleSchema = z.object({ role: z.enum(WATCH_ROLES) });
+const host = (prefix: string) => bare(prefix).replace(/\/$/, "");
 
 export function createSiteWatch(deps: {
   database: Database;
@@ -397,6 +454,9 @@ export function createSiteWatch(deps: {
               publishedAt: p.publishedAt,
               firstSeenAt: at,
               baseline: first,
+              // Every page gets its phrase from its address, so other sections can be
+              // checked against it; new pages of a signal section get a title below.
+              phrase: phraseFromPage(p.url, p.title, s.prefix),
             })),
           )
           .onConflictDoNothing()
@@ -405,15 +465,36 @@ export function createSiteWatch(deps: {
     let fresh = 0;
     if (!first)
       for (const [i, page] of inserted.entries()) {
-        const title =
-          page.title ??
-          (i < TITLES_PER_SCAN ? await titleOf(fetcher, page.url) : null);
+        fresh += 1;
+        if (s.role !== "signal" || page.title || i >= TITLES_PER_SCAN) continue;
+        const title = await titleOf(fetcher, page.url);
+        if (!title) continue;
         await db
           .update(watchPages)
-          .set({ title, phrase: phraseFromPage(page.url, title) })
+          .set({
+            title,
+            phrase: phraseFromPage(page.url, title, s.prefix) ?? page.phrase,
+          })
           .where(eq(watchPages.id, page.id));
-        fresh += 1;
       }
+    // Pages recorded before phrases were kept for every page (S83) get theirs now.
+    const missing = await db
+      .select({
+        id: watchPages.id,
+        url: watchPages.url,
+        title: watchPages.title,
+      })
+      .from(watchPages)
+      .where(and(eq(watchPages.sourceId, s.id), isNull(watchPages.phrase)))
+      .limit(5_000);
+    for (const page of missing) {
+      const phrase = phraseFromPage(page.url, page.title, s.prefix);
+      if (phrase)
+        await db
+          .update(watchPages)
+          .set({ phrase })
+          .where(eq(watchPages.id, page.id));
+    }
     const [{ n }] = await db
       .select({ n: count() })
       .from(watchPages)
@@ -461,6 +542,40 @@ export function createSiteWatch(deps: {
     return { sources: sources.length, fresh, failed };
   }
 
+  /**
+   * For each phrase, the other sections with a page on the same trend (old or new), by
+   * host. A signal page's own section does not count.
+   */
+  async function alsoOn(items: { phrase: string; sourceId: string }[]) {
+    const out = new Map<string, Set<string>>();
+    if (!items.length) return out;
+    const [sources, pages] = await Promise.all([
+      db.select().from(watchSources),
+      db
+        .selectDistinct({
+          sourceId: watchPages.sourceId,
+          phrase: watchPages.phrase,
+        })
+        .from(watchPages)
+        .where(sql`${watchPages.phrase} is not null`),
+    ]);
+    const hostOf = new Map(sources.map((x) => [x.id, host(x.prefix)]));
+    const known = pages.map((p) => ({
+      sourceId: p.sourceId,
+      toks: tokens(p.phrase!),
+    }));
+    for (const item of items) {
+      const key = `${item.sourceId}|${item.phrase}`;
+      const found = new Set<string>();
+      const mine = tokens(item.phrase);
+      for (const p of known)
+        if (p.sourceId !== item.sourceId && sameTokens(mine, p.toks))
+          found.add(hostOf.get(p.sourceId) ?? "");
+      out.set(key, found);
+    }
+    return out;
+  }
+
   return {
     scan,
 
@@ -470,39 +585,32 @@ export function createSiteWatch(deps: {
     },
 
     /**
-     * The new words' name source: scans, then hands over new pages' phrases not handed
-     * over yet, oldest first. A phrase new on two or more sites is hotter.
+     * The new words' name source: scans, then hands over signal sections' new pages'
+     * phrases not handed over yet, oldest first. A phrase another watched site also has
+     * a page for (a cross-check) is hotter.
      */
     async names(limit: number): Promise<NameItem[]> {
       await scan();
-      const rows = await db
-        .select()
-        .from(watchPages)
-        .where(
-          and(
-            eq(watchPages.baseline, false),
-            isNull(watchPages.sentAt),
-            sql`${watchPages.phrase} is not null`,
-          ),
-        )
-        .orderBy(asc(watchPages.firstSeenAt))
-        .limit(limit);
+      const rows = (
+        await db
+          .select({ page: watchPages })
+          .from(watchPages)
+          .innerJoin(watchSources, eq(watchSources.id, watchPages.sourceId))
+          .where(
+            and(
+              eq(watchSources.role, "signal"),
+              eq(watchPages.baseline, false),
+              isNull(watchPages.sentAt),
+              sql`${watchPages.phrase} is not null`,
+            ),
+          )
+          .orderBy(asc(watchPages.firstSeenAt))
+          .limit(limit)
+      ).map((r) => r.page);
       if (!rows.length) return [];
-      const phrases = [...new Set(rows.map((r) => r.phrase!))];
-      const spread = await db
-        .select({
-          phrase: watchPages.phrase,
-          sites: sql<number>`count(distinct ${watchPages.sourceId})::int`,
-        })
-        .from(watchPages)
-        .where(
-          and(
-            eq(watchPages.baseline, false),
-            inArray(watchPages.phrase, phrases),
-          ),
-        )
-        .groupBy(watchPages.phrase);
-      const sites = new Map(spread.map((r) => [r.phrase, r.sites]));
+      const cross = await alsoOn(
+        rows.map((r) => ({ phrase: r.phrase!, sourceId: r.sourceId })),
+      );
       await db
         .update(watchPages)
         .set({ sentAt: now() })
@@ -517,7 +625,8 @@ export function createSiteWatch(deps: {
         if (!items.has(r.phrase!))
           items.set(r.phrase!, {
             name: r.phrase!,
-            heat: (sites.get(r.phrase) ?? 1) >= 2 ? 3 : 2,
+            // Another watched site has a page on it too: hotter.
+            heat: cross.get(`${r.sourceId}|${r.phrase}`)?.size ? 3 : 2,
             releasedAt: (r.publishedAt ?? r.firstSeenAt).toISOString(),
           });
       return [...items.values()];
@@ -526,13 +635,14 @@ export function createSiteWatch(deps: {
     async add(body: unknown) {
       const parsed = addSchema.safeParse(body);
       const prefix = parsed.success ? normalizePrefix(parsed.data.url) : null;
+      const role = parsed.success ? parsed.data.role : "signal";
       if (!prefix) throw new AppError("INVALID_INPUT", "Not a site address");
       const [{ n }] = await db.select({ n: count() }).from(watchSources);
       if (n >= MAX_WATCH_SOURCES)
         throw new AppError("INVALID_INPUT", "Too many watched sites");
       const [row] = await db
         .insert(watchSources)
-        .values({ prefix, createdAt: now() })
+        .values({ prefix, role, createdAt: now() })
         .onConflictDoNothing()
         .returning();
       if (row) return { source: row, created: true };
@@ -541,6 +651,21 @@ export function createSiteWatch(deps: {
         .from(watchSources)
         .where(eq(watchSources.prefix, prefix));
       return { source: existing, created: false };
+    },
+
+    /** Turns a section into a signal or a cross-check. */
+    async setRole(id: string, body: unknown) {
+      const parsed = roleSchema.safeParse(body);
+      if (!parsed.success) throw new AppError("INVALID_INPUT", "Invalid role");
+      if (!z.uuid().safeParse(id).success)
+        throw new AppError("NOT_FOUND", "Watched site not found");
+      const [row] = await db
+        .update(watchSources)
+        .set({ role: parsed.data.role })
+        .where(eq(watchSources.id, id))
+        .returning();
+      if (!row) throw new AppError("NOT_FOUND", "Watched site not found");
+      return row;
     },
 
     async remove(id: string) {
@@ -553,7 +678,10 @@ export function createSiteWatch(deps: {
       if (!row) throw new AppError("NOT_FOUND", "Watched site not found");
     },
 
-    /** The watched sections, and their newest new pages with the new word each became. */
+    /**
+     * The watched sections, and the signal sections' newest new pages with the new word
+     * each became and the other watched sites that have the same trend.
+     */
     async overview(limit = 100) {
       const [sources, pages] = await Promise.all([
         db.select().from(watchSources).orderBy(asc(watchSources.prefix)),
@@ -569,12 +697,31 @@ export function createSiteWatch(deps: {
             newWordId: newWords.id,
           })
           .from(watchPages)
+          .innerJoin(watchSources, eq(watchSources.id, watchPages.sourceId))
           .leftJoin(newWords, eq(newWords.phrase, watchPages.phrase))
-          .where(eq(watchPages.baseline, false))
+          .where(
+            and(
+              eq(watchPages.baseline, false),
+              eq(watchSources.role, "signal"),
+            ),
+          )
           .orderBy(desc(watchPages.firstSeenAt), asc(watchPages.url))
           .limit(limit),
       ]);
-      return { sources, pages };
+      const cross = await alsoOn(
+        pages.flatMap((p) =>
+          p.phrase ? [{ phrase: p.phrase, sourceId: p.sourceId }] : [],
+        ),
+      );
+      return {
+        sources,
+        pages: pages.map((p) => ({
+          ...p,
+          alsoOn: p.phrase
+            ? [...(cross.get(`${p.sourceId}|${p.phrase}`) ?? [])].sort()
+            : [],
+        })),
+      };
     },
   };
 }

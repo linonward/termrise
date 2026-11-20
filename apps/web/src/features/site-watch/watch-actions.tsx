@@ -23,6 +23,7 @@ export function AddWatch() {
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const [url, setUrl] = useState("");
+  const [role, setRole] = useState<"signal" | "confirm">("signal");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
   return (
@@ -36,7 +37,7 @@ export function AddWatch() {
         const r = await send("/api/pool/watch", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url, role }),
         });
         setPending(false);
         if (!r.ok) return setError(tErrors(r.code));
@@ -53,6 +54,17 @@ export function AddWatch() {
           placeholder="imagelayered.com/tools/"
           className="h-10 w-full rounded-md border border-border-strong bg-background px-3 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
         />
+      </label>
+      <label className="space-y-2 text-[13px] font-medium">
+        <span>{t("watchRoleLabel")}</span>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value as "signal" | "confirm")}
+          className="h-10 rounded-md border border-border-strong bg-background px-3 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+        >
+          <option value="signal">{t("watchRole.signal")}</option>
+          <option value="confirm">{t("watchRole.confirm")}</option>
+        </select>
       </label>
       <Button type="submit" className="h-10 px-4" disabled={pending}>
         {t("watchAdd")}
@@ -84,6 +96,40 @@ export function RemoveWatch({ id }: { id: string }) {
       }}
     >
       {t("watchRemove")}
+    </Button>
+  );
+}
+
+/** Switches a section between a signal and a cross-check. */
+export function SwitchRole({
+  id,
+  role,
+}: {
+  id: string;
+  role: "signal" | "confirm";
+}) {
+  const t = useTranslations("discover");
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const next = role === "signal" ? "confirm" : "signal";
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="h-8 px-3"
+      disabled={pending}
+      onClick={async () => {
+        setPending(true);
+        await send(`/api/pool/watch/${id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ role: next }),
+        });
+        setPending(false);
+        router.refresh();
+      }}
+    >
+      {t(`watchMakeRole.${next}`)}
     </Button>
   );
 }
