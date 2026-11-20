@@ -302,6 +302,13 @@
       "when": 1795099935597,
       "tag": "0042_money",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1795162386561,
+      "tag": "0043_site_watch",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,7 @@ import {
   toPoolRoundDto,
 } from "@repo/research/pool-dto";
 import { createKeywordPool } from "@repo/research/pool-service";
+import { createSiteWatch } from "@repo/research/site-watch";
 
 import type { AppEnv } from "../env";
 import { readJson } from "../http";
@@ -116,12 +117,13 @@ export const poolRoutes = userRoutes()
   // The discover tabs' counts (S74).
   .get("/discover", async (c) => {
     const database = c.var.db;
-    const [words, sites, platforms] = await Promise.all([
+    const [words, sites, platforms, watch] = await Promise.all([
       createNewWords({ database }).visibleCount(),
       createLaunchSites({ database }).visibleCount(),
       createPlatformSites({ database }).visibleCount(),
+      createSiteWatch({ database }).sourceCount(),
     ]);
-    return c.json({ words, sites, platforms });
+    return c.json({ words, sites, platforms, watch });
   })
   .get("/new-words", async (c) => {
     const result = await words(c).list(c.req.query());
@@ -167,6 +169,43 @@ export const poolRoutes = userRoutes()
   .delete("/new-words/:id/hide", rateLimit("research"), async (c) => {
     await words(c).hide(c.req.param("id"), false);
     return c.json({ hidden: false });
+  })
+  // Watched sites (docs/product/keyword-pool.md#site-watch, S83): sections of other sites
+  // whose new pages become new words. The worker scans them with the new words' scans.
+  .get("/watch", async (c) => {
+    const { sources, pages } = await createSiteWatch({
+      database: c.var.db,
+    }).overview();
+    const iso = (d: Date | null) => d?.toISOString() ?? null;
+    return c.json({
+      sources: sources.map((s) => ({
+        id: s.id,
+        prefix: s.prefix,
+        method: s.method,
+        lastCheckedAt: iso(s.lastCheckedAt),
+        lastError: s.lastError,
+        pagesKnown: s.pagesKnown,
+        baselineAt: iso(s.baselineAt),
+      })),
+      pages: pages.map((p) => ({
+        ...p,
+        publishedAt: iso(p.publishedAt),
+        firstSeenAt: p.firstSeenAt.toISOString(),
+      })),
+    });
+  })
+  .post("/watch", rateLimit("research"), async (c) => {
+    const { source, created } = await createSiteWatch({
+      database: c.var.db,
+    }).add(await readJson(c));
+    return c.json(
+      { id: source.id, prefix: source.prefix },
+      created ? 201 : 200,
+    );
+  })
+  .delete("/watch/:id", rateLimit("research"), async (c) => {
+    await createSiteWatch({ database: c.var.db }).remove(c.req.param("id"));
+    return c.body(null, 204);
   })
   .get("/launch-sites", async (c) => {
     const result = await createLaunchSites({ database: c.var.db }).list(

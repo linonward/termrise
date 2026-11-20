@@ -22,6 +22,7 @@ import { createProviderStatus } from "@repo/research/provider-status";
 import { createRadar } from "@repo/research/radar";
 import { createResearchRunner } from "@repo/research/research-runner";
 import { createSeedSuggester } from "@repo/research/seed-suggestions";
+import { createSiteWatch } from "@repo/research/site-watch";
 
 import { createBullQueue } from "./bullmq";
 import { workerEnv } from "./env";
@@ -95,7 +96,14 @@ async function main() {
     budget,
     roots: env.NEW_WORD_ROOTS,
     rootsPerDay: env.NEW_WORD_ROOTS_PER_DAY,
-    nameSources: createNameSources(env),
+    // Watched sites' new pages join the free lists (S83); a scan with no sites is a no-op.
+    nameSources: [
+      ...createNameSources(env),
+      {
+        name: "site_watch" as const,
+        names: (limit: number) => createSiteWatch({ database }).names(limit),
+      },
+    ],
     autocomplete: createSuggestions(env),
     suggestDelayMs: 500,
     screensPerDay: env.NEW_WORDS_SCREENS,

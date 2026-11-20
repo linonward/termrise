@@ -17,6 +17,7 @@ export * from "./research";
 export * from "./seed-suggestions";
 export * from "./signals";
 export * from "./expenses";
+export * from "./site-watch";
 export * from "./sites";
 export * from "./tasks";
 export * from "./users";

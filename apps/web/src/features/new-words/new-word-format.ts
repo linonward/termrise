@@ -74,6 +74,7 @@ export const NAME_SOURCES = [
   "show_hn",
   "product_hunt",
   "github",
+  "site_watch",
 ] as const;
 
 /** A free list ("source:itch_io"), a root's Google suggestion ("suggest:x") or a rising root. */

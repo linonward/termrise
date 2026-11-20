@@ -69,7 +69,7 @@ POST /api/pool/rounds（{ source? }：source 为 `suffix:<词>` 或 `ranked:<网
 
 GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 POOL_ROUND_NOT_FOUND）
 
-GET /api/pool/discover（「发现」三个标签的数量：words 不含隐藏的新词，sites 不含隐藏的新站，platforms 有流量、没隐藏的平台站）
+GET /api/pool/discover（「发现」各标签的数量：words 不含隐藏的新词，sites 不含隐藏的新站，platforms 有流量、没隐藏的平台站，watch 盯的栏目数（S83））
 
 GET /api/pool/new-words（新词，每页 50 个，新的在前；?stage=decide | check | screen | skip | hidden 按阶段（decide 值得做在前，check 热度高的在前），?q= 搜词，?verdict=worth | try | skip，?category=，?origin= 起因类型，?hidden=1 只看隐藏的；返回 counts（各阶段的数量，跟着 q 和 origin 变）和 origins（没隐藏的词里各起因的数量）；每个词带根词、内页候选数和 origin（没追溯时为 null：type、summary、capture、evidence、checkedAt））
 
@@ -88,6 +88,10 @@ GET /api/pool/launch-sites（新站，每页 50 个，新发布的在前；?moti
 PUT / DELETE /api/pool/launch-sites/:id/hide（隐藏 / 重新显示）
 
 GET /api/pool/platform-sites（平台站：有流量的站，每页 50 个，按最新月访问量从大到小；?platform=vercel.app|github.io|pages.dev、?q= 搜子站、标题和核心词，?hidden=1 只看隐藏的；返回 months（最近 6 个月，旧的在前）、每个站的 monthly（月份 → 访问量）、counts（每个平台有流量的站数）、known（已收录的子站数）、checked（已查过流量的子站数）和 lastRound）
+
+GET /api/pool/watch（盯站，S83：{ sources, pages }；sources 为盯的栏目（prefix、method：feed | sitemap | links | null（待检查）、lastCheckedAt、lastError、pagesKnown、baselineAt），pages 为第一次检查之后新加的页面，最新的 100 个（url、title、phrase、publishedAt、firstSeenAt、newWordId：同名新词的 id，没有时为 null）；见 keyword-pool.md 的 Site Watch）
+POST /api/pool/watch（{ url }：栏目地址，可以不带 https；规范成 `https://<host>/<path>/`；新加 201，已有 200，返回 { id, prefix }；不是网址或超过 50 个时 400 INVALID_INPUT；维护者或 agent）
+DELETE /api/pool/watch/:id（不盯了，连同记下的页面一起删除；204；不存在时 404）
 
 PUT / DELETE /api/pool/platform-sites/:id/hide（隐藏 / 重新显示）
 

@@ -35,7 +35,7 @@ Rules:
   politics, events, weather, crimes, lotteries. shopping: a product to buy or a deal.
   other: everything else, such as health facts or places.
   generic: a common dictionary word that names no one thing (lantern, radar, ski).
-- An item with a source (product_hunt, show_hn, github, hugging_face, itch_io) is the
+- An item with a source (product_hunt, show_hn, github, hugging_face, itch_io, site_watch) is the
   name of something just launched there: answer tool, ai or game unless the name is a
   common dictionary word, then generic.
 - A github name written in pinyin, or a project for the Chinese market (Chinese
