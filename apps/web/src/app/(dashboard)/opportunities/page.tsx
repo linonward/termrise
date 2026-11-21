@@ -79,7 +79,7 @@ export default async function OpportunitiesPage({
         />
       ) : (
         <form action="/opportunities/compare" className="space-y-4">
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-[15px]">
               <thead>
                 <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">

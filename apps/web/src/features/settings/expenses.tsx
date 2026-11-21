@@ -185,7 +185,7 @@ export function Expenses({
       {items.length === 0 ? (
         <EmptyState title={t("emptyTitle")} body={t("emptyText")} />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full text-left text-[13px]">
             <thead className="text-muted-foreground">
               <tr className="border-b border-border">

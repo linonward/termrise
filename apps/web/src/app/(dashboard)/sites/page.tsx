@@ -78,7 +78,7 @@ export default async function SitesPage() {
           body={t("emptyBody")}
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           {/* On a phone each row is a two-column block: site and state, then the numbers
               with their labels; from md up it is the table (S92). */}
           <table className="block w-full text-left text-[15px] md:table">

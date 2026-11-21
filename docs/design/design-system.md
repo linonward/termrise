@@ -34,6 +34,7 @@ token 或组件有变化时，同步更新本文件和 `packages/ui/src/styles/t
 ## Layout Notes
 
 - `body` 是纵向 flex，`globals.css` 给它的直接子元素加 `min-width: 0`：否则宽表格会把整页撑宽，外面的 `overflow-x-auto` 不起作用（S92）。
+- 包表格的横向滚动容器写成 `relative overflow-x-auto`：表格里只给读屏的文字（`sr-only`）是绝对定位，容器不定位时它不受裁剪，会把整页撑宽（S92，平台站在 375 宽时撑到 665）。
 - 列表页的筛选栏统一一种写法：搜索框（标签只给读屏）、带左侧标签的下拉、描边的「应用」按钮，高度都是 44（`h-11`），一行放不下时换行（S92）。
 
 ## Principles
