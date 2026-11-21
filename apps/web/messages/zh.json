@@ -898,7 +898,9 @@
     "search": "搜索词",
     "sortLabel": "排序",
     "sort": {
-      "updated": "最近更新",
+      "updated": "最近变动",
+      "checked": "更新时间",
+      "seen": "发现时间",
       "volume": "搜索量",
       "next": "下次检查"
     },
@@ -1097,7 +1099,8 @@
     "vetScore": "{total}/{max} 分",
     "vetRecheck": "复查：{days}",
     "vetMarkdown": "完整记录",
-    "reviewAt": "下次复查"
+    "reviewAt": "下次复查",
+    "seenChecked": "发现 {seen} · 更新 {checked}"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -2030,7 +2033,15 @@
       "signal": "改为主信号",
       "confirm": "改为交叉验证"
     },
-    "watchAlsoOn": "也出现在 {sites}"
+    "watchAlsoOn": "也出现在 {sites}",
+    "sitesSortLabel": "排序",
+    "sitesSort": {
+      "posted": "发布时间",
+      "seen": "发现时间",
+      "registered": "域名注册"
+    },
+    "sitesPosted": "发布",
+    "sitesSeen": "发现"
   },
   "expenses": {
     "metaTitle": "花费和续费",

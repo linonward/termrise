@@ -161,3 +161,56 @@ it("ignores hosts that are not one site", () => {
   expect(siteOf("https://www.Example.com/x")).toBe("example.com");
   expect(siteOf("ftp://x.com")).toBeNull();
 });
+
+it("sorts launch sites by the post, by when they were found or by registration", async () => {
+  const { launchSites } = await import("@repo/db/schema");
+  const day = 86_400_000;
+  const base = Date.parse("2026-11-20T00:00:00Z");
+  await testDb()
+    .insert(launchSites)
+    .values([
+      {
+        source: "hacker_news",
+        sourceId: "a",
+        sourceUrl: "https://news.ycombinator.com/item?id=a",
+        url: "https://a.example",
+        site: "a.example",
+        postTitle: "A",
+        postedAt: new Date(base - 3 * day),
+        firstSeenAt: new Date(base),
+        registeredOn: "2026-01-01",
+      },
+      {
+        source: "hacker_news",
+        sourceId: "b",
+        sourceUrl: "https://news.ycombinator.com/item?id=b",
+        url: "https://b.example",
+        site: "b.example",
+        postTitle: "B",
+        postedAt: new Date(base - 1 * day),
+        firstSeenAt: new Date(base - 2 * day),
+        registeredOn: "2026-10-01",
+      },
+      {
+        source: "hacker_news",
+        sourceId: "c",
+        sourceUrl: "https://news.ycombinator.com/item?id=c",
+        url: "https://c.example",
+        site: "c.example",
+        postTitle: "C",
+        postedAt: new Date(base - 2 * day),
+        firstSeenAt: new Date(base - 1 * day),
+        registeredOn: null,
+      },
+    ]);
+  const s = createLaunchSites({ database: testDb() });
+  const order = async (sort?: string) =>
+    (await s.list(sort ? { sort } : {})).items.map((i) => i.site);
+  expect(await order()).toEqual(["b.example", "c.example", "a.example"]);
+  expect(await order("seen")).toEqual(["a.example", "c.example", "b.example"]);
+  expect(await order("registered")).toEqual([
+    "b.example",
+    "a.example",
+    "c.example",
+  ]);
+});

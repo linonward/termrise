@@ -66,6 +66,8 @@ const listQuery = z.object({
   category: z.string().max(20).optional().catch(undefined),
   q: z.string().trim().max(100).optional().catch(undefined),
   hidden: z.literal("1").optional().catch(undefined),
+  /** S90: posted (the maker's post, default), seen (when Termrise found it), registered. */
+  sort: z.enum(["posted", "seen", "registered"]).catch("posted"),
   page: z.coerce.number().int().min(1).max(1000).catch(1),
 });
 
@@ -346,7 +348,7 @@ export function createLaunchSites(deps: {
   }
 
   async function list(query: Record<string, string | undefined>) {
-    const { motive, category, q, hidden, page } = listQuery.parse(query);
+    const { motive, category, q, hidden, page, sort } = listQuery.parse(query);
     const base = and(
       hidden
         ? sql`${launchSites.hiddenAt} is not null`
@@ -365,7 +367,14 @@ export function createLaunchSites(deps: {
         .select()
         .from(launchSites)
         .where(where)
-        .orderBy(desc(launchSites.postedAt))
+        .orderBy(
+          sort === "seen"
+            ? desc(launchSites.firstSeenAt)
+            : sort === "registered"
+              ? sql`${launchSites.registeredOn} desc nulls last`
+              : sql`${launchSites.postedAt} desc nulls last`,
+          desc(launchSites.firstSeenAt),
+        )
         .limit(LAUNCH_PAGE_SIZE)
         .offset((page - 1) * LAUNCH_PAGE_SIZE),
       database.select({ total: count() }).from(launchSites).where(where),
