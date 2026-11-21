@@ -108,3 +108,21 @@ test("an unknown site is a 404, and sites need a session", async ({
   const response = await page.goto("/sites/nope.example");
   expect(response?.status()).toBe(404);
 });
+
+// A wide table scrolls inside its own box and never widens the page (S92).
+test("wide lists do not widen the page", async ({ page, context }) => {
+  await signIn(context);
+  for (const path of [
+    "/sites",
+    "/discover/platforms",
+    "/keywords",
+    "/discover",
+  ]) {
+    await page.goto(path);
+    const [scroll, inner] = await page.evaluate(() => [
+      document.documentElement.scrollWidth,
+      window.innerWidth,
+    ]);
+    expect(scroll, path).toBeLessThanOrEqual(inner);
+  }
+});

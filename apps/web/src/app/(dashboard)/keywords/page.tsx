@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { PoolKeywordDto, PoolRoundDto } from "@repo/research/pool-dto";
-import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
@@ -162,27 +161,26 @@ export default async function PoolPage({
         ))}
       </nav>
 
-      <form
-        role="search"
-        className="flex flex-wrap items-end gap-3 md:flex-nowrap md:gap-4"
-      >
+      {/* The same filter bar as the find section's other tabs (S92). */}
+      <form role="search" className="flex flex-wrap items-center gap-3">
         {status && <input type="hidden" name="status" value={status} />}
-        <label className="block flex-1 basis-full space-y-2 text-[13px] font-medium md:basis-auto">
-          <span>{t("search")}</span>
+        <label className="block flex-1 basis-64">
+          <span className="sr-only">{t("search")}</span>
           <input
             name="q"
             type="search"
             defaultValue={q}
             maxLength={100}
+            placeholder={t("searchPlaceholder")}
             className="h-11 w-full rounded-md border border-border-strong bg-background px-4 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
           />
         </label>
-        <label className="block flex-1 space-y-2 text-[13px] font-medium md:w-48 md:flex-none">
-          <span>{t("sortLabel")}</span>
+        <label className="flex items-center gap-2 text-[15px]">
+          <span className="text-muted-foreground">{t("sortLabel")}</span>
           <select
             name="sort"
             defaultValue={sort}
-            className="h-11 w-full rounded-md border border-border-strong bg-background px-4 text-[15px] focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+            className="h-11 rounded-md border border-border-strong bg-background px-3 text-[15px]"
           >
             {SORTS.map((s) => (
               <option key={s} value={s}>
@@ -191,9 +189,12 @@ export default async function PoolPage({
             ))}
           </select>
         </label>
-        <Button type="submit" variant="outline" className="h-11 px-4">
+        <button
+          type="submit"
+          className="h-11 rounded-md border border-border-strong px-4 text-[15px]"
+        >
           {t("apply")}
-        </Button>
+        </button>
       </form>
 
       {list.items.length === 0 ? (

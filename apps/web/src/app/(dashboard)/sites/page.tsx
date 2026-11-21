@@ -79,8 +79,10 @@ export default async function SitesPage() {
         />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-[15px]">
-            <thead className="text-[13px] text-muted-foreground">
+          {/* On a phone each row is a two-column block: site and state, then the numbers
+              with their labels; from md up it is the table (S92). */}
+          <table className="block w-full text-left text-[15px] md:table">
+            <thead className="hidden text-[13px] text-muted-foreground md:table-header-group">
               <tr className="border-b border-border">
                 <th className="py-2 pr-4 font-medium">{t("colSite")}</th>
                 <th className="py-2 pr-4 font-medium">{t("colState")}</th>
@@ -96,16 +98,16 @@ export default async function SitesPage() {
                 <th className="py-2 font-medium">{t("colTemplate")}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="block md:table-row-group">
               {items.map((s) => {
                 const up = uptimePercent(s.uptime24h);
                 return (
                   <tr
                     key={s.domain}
                     data-testid="site-row"
-                    className="border-b border-border align-top"
+                    className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-b border-border py-3 align-top md:table-row md:py-0"
                   >
-                    <td className="py-3 pr-4">
+                    <td className="md:table-cell md:py-3 md:pr-4">
                       <Link
                         href={`/sites/${s.domain}`}
                         className="font-medium hover:underline"
@@ -116,16 +118,22 @@ export default async function SitesPage() {
                         {s.domain}
                       </div>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="text-right md:table-cell md:py-3 md:pr-4 md:text-left">
                       <SiteState state={s.alertState} />
                       <div className="mt-1 text-[13px] text-muted-foreground tabular-nums">
                         {up === null ? "—" : t("uptime", { percent: up })}
                       </div>
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="col-span-2 text-[13px] tabular-nums md:table-cell md:py-3 md:pr-4 md:text-right md:text-[15px]">
+                      <span className="text-muted-foreground md:hidden">
+                        {t("colVisitors")}{" "}
+                      </span>
                       {n(s.summary.visitors7d)}
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="col-span-2 text-[13px] tabular-nums md:table-cell md:py-3 md:pr-4 md:text-right md:text-[15px]">
+                      <span className="text-muted-foreground md:hidden">
+                        {t("colSearch")}{" "}
+                      </span>
                       {s.summary.search
                         ? t("searchLine", {
                             clicks: s.summary.search.clicks,
@@ -135,14 +143,17 @@ export default async function SitesPage() {
                           })
                         : "—"}
                     </td>
-                    <td className="py-3 pr-4 text-right tabular-nums">
+                    <td className="col-span-2 text-[13px] tabular-nums md:table-cell md:py-3 md:pr-4 md:text-right md:text-[15px]">
+                      <span className="text-muted-foreground md:hidden">
+                        {t("colOrders")}{" "}
+                      </span>
                       {s.summary.orders30d === null
                         ? "—"
                         : s.summary.revenue30d.length
                           ? `${n(s.summary.orders30d)} · ${money(s.summary.revenue30d)}`
                           : n(s.summary.orders30d)}
                     </td>
-                    <td className="py-3 align-top text-[13px] text-muted-foreground">
+                    <td className="hidden py-3 align-top text-[13px] text-muted-foreground md:table-cell">
                       {s.template ?? "—"}
                     </td>
                   </tr>
