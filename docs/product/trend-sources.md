@@ -4,18 +4,19 @@
 
 ## 已接入
 
-| 来源                                                                 | 方式                                                   | 频率      | 费用                      |
-| -------------------------------------------------------------------- | ------------------------------------------------------ | --------- | ------------------------- |
-| Google Trends 飙升查询（约 110 个根词轮换）                          | DataForSEO `google_trends/explore`，一次一个根词       | 每天一次  | 每个根词 0.011 美元       |
-| Google Trends Trending Now（美国，去掉体育、政治、法律、娱乐、天气） | `google-trends-now`（Google 页面数据，失败时退回 RSS） | 每 3 小时 | 免费                      |
-| 根词的谷歌自动补全，新出现的建议                                     | `suggestqueries.google.com`，和上次比                  | 每 3 小时 | 免费，按 IP 限频          |
-| Hugging Face 热门模型                                                | `huggingface.co/api/models?sort=trendingScore`         | 每 3 小时 | 免费                      |
-| itch.io 新游戏                                                       | `itch.io/games/new-and-popular.xml`                    | 每 3 小时 | 免费                      |
-| Show HN 新产品（S75）                                                | `hn.algolia.com/api/v1/search_by_date?tags=show_hn`    | 每 3 小时 | 免费                      |
-| Product Hunt 新产品（S75）                                           | 官方 GraphQL API v2，`PRODUCT_HUNT_TOKEN`              | 每 3 小时 | 免费；商用需和他们联系    |
-| GitHub 近 7 天新建的仓库（S76）                                      | `api.github.com/search/repositories?q=created:>…`      | 每 3 小时 | 免费，用 `GITHUB_TOKEN`   |
-| Trending Now 英国、加拿大、澳大利亚、印度的科技类（S76）             | `google-trends-now`，category 18                       | 每 3 小时 | 免费                      |
-| 起因证据：Hacker News、Hugging Face、GitHub，Claude 网页搜索         | 见 keyword-pool.md#origins                             | 每轮追溯  | 网页搜索约 0.034 美元一次 |
+| 来源                                                                 | 方式                                                          | 频率      | 费用                        |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- | --------- | --------------------------- |
+| Google Trends 飙升查询（约 110 个根词轮换；S86 起默认关）            | DataForSEO `google_trends/explore`，一次一个根词              | 每天一次  | 每个根词 0.011 美元         |
+| 新词初筛的 Trends 曲线（S86）                                        | 直连 trends.google.com 的 Explore 接口；被拒时退回 DataForSEO | 每轮      | 免费；退回时 0.011 美元一批 |
+| Google Trends Trending Now（美国，去掉体育、政治、法律、娱乐、天气） | `google-trends-now`（Google 页面数据，失败时退回 RSS）        | 每 3 小时 | 免费                        |
+| 根词的谷歌自动补全，新出现的建议                                     | `suggestqueries.google.com`，和上次比                         | 每 3 小时 | 免费，按 IP 限频            |
+| Hugging Face 热门模型                                                | `huggingface.co/api/models?sort=trendingScore`                | 每 3 小时 | 免费                        |
+| itch.io 新游戏                                                       | `itch.io/games/new-and-popular.xml`                           | 每 3 小时 | 免费                        |
+| Show HN 新产品（S75）                                                | `hn.algolia.com/api/v1/search_by_date?tags=show_hn`           | 每 3 小时 | 免费                        |
+| Product Hunt 新产品（S75）                                           | 官方 GraphQL API v2，`PRODUCT_HUNT_TOKEN`                     | 每 3 小时 | 免费；商用需和他们联系      |
+| GitHub 近 7 天新建的仓库（S76）                                      | `api.github.com/search/repositories?q=created:>…`             | 每 3 小时 | 免费，用 `GITHUB_TOKEN`     |
+| Trending Now 英国、加拿大、澳大利亚、印度的科技类（S76）             | `google-trends-now`，category 18                              | 每 3 小时 | 免费                        |
+| 起因证据：Hacker News、Hugging Face、GitHub，Claude 网页搜索         | 见 keyword-pool.md#origins                                    | 每轮追溯  | 网页搜索约 0.034 美元一次   |
 
 ## 开源项目
 
