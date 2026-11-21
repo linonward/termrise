@@ -21,6 +21,10 @@ import {
   toPoolRoundDto,
 } from "@repo/research/pool-dto";
 import { createKeywordPool } from "@repo/research/pool-service";
+import {
+  templateForNewWord,
+  templateForPoolKeyword,
+} from "@repo/research/site-template";
 import { createSiteWatch } from "@repo/research/site-watch";
 
 import type { AppEnv } from "../env";
@@ -67,6 +71,8 @@ export const poolRoutes = userRoutes()
     return c.body(markdown, 200, {
       "Content-Type": "text/markdown; charset=utf-8",
       "Content-Disposition": `attachment; filename="${keywordBriefFileName(keyword)}"`,
+      // The template the page names (S87).
+      "X-Site-Template": templateForPoolKeyword().template,
     });
   })
   .post("/keywords/:id/review", rateLimit("research"), async (c) => {
@@ -160,6 +166,7 @@ export const poolRoutes = userRoutes()
     return c.body(buildNewWordBrief(word, roots, children), 200, {
       "Content-Type": "text/markdown; charset=utf-8",
       "Content-Disposition": `attachment; filename="${newWordBriefFileName(word)}"`,
+      "X-Site-Template": templateForNewWord(word).template,
     });
   })
   .put("/new-words/:id/hide", rateLimit("research"), async (c) => {

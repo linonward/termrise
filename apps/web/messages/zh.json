@@ -1049,7 +1049,7 @@
     "deepEmpty": "这一轮没有深查。",
     "recheck": "复查（之前：{from}）",
     "briefTitle": "选词简报",
-    "briefBody": "交给 site-starter：复制或下载后，存为新网站的 docs/keyword-brief.md。",
+    "briefBody": "交给 {template}：复制或下载后，存为新网站的 docs/keyword-brief.md。简报里写了为什么用这个模板，以及建站命令。",
     "reviewEmptyTitle": "没有等你确认的词",
     "reviewEmptyBody": "新的候选会在每周一轮后出现在这里。看全部词库请点「全部」。",
     "reviewTab": "待确认",
@@ -1811,7 +1811,7 @@
     "keywordLink": "来自选词：{name}",
     "newWordLink": "来自新词：{name}",
     "briefTitle": "选词简报",
-    "briefBody": "存为 site-starter 新网站的 docs/keyword-brief.md。",
+    "briefBody": "存为 {template} 新网站的 docs/keyword-brief.md；简报里有为什么用这个模板和建站命令。",
     "siteTitle": "站点数字",
     "siteNote": "这个产品的域名就是一个在运营的站，数字每 15 分钟从 site-ops 同步，不用手填。要看最近 35 天，点上面的域名。"
   },

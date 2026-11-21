@@ -55,7 +55,7 @@ export default async function PoolKeywordPage({
   const { id } = await params;
   const t = await getTranslations("pool");
   const k = await apiGet<Detail>(`/api/pool/keywords/${id}`);
-  // The brief is for keywords worth handing to site-starter.
+  // The brief is for keywords worth handing to a new site, with its template (S87).
   const brief =
     k.status === "candidate" || k.status === "selected"
       ? await apiRequest(
@@ -66,6 +66,7 @@ export default async function PoolKeywordPage({
             /filename="([^"]+)"/.exec(
               r.headers.get("Content-Disposition") ?? "",
             )?.[1] ?? "keyword-brief.md",
+          template: r.headers.get("X-Site-Template") ?? "tool-starter",
         }))
       : null;
   const trend = trendSummary(k.trend as TrendCheck | null);
@@ -341,7 +342,7 @@ export default async function PoolKeywordPage({
                   {t("briefTitle")}
                 </h2>
                 <p className="text-[15px] text-muted-foreground">
-                  {t("briefBody")}
+                  {t("briefBody", { template: brief.template })}
                 </p>
               </div>
               <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />

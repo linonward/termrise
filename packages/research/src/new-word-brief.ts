@@ -3,6 +3,7 @@
 import type { newWordRoots } from "@repo/db/schema";
 
 import type { NewWord } from "./new-words";
+import { templateForNewWord, templateLine } from "./site-template";
 
 const num = (n: number | null | undefined) =>
   n == null ? "—" : n.toLocaleString("en-US");
@@ -29,19 +30,25 @@ export function buildNewWordBrief(
     domain: string;
     registeredOn: string;
   }[];
+  // The words of S85: Termrise says what to vet first, vet-keyword says what to build.
   const verdict =
-    { worth: "值得做", try: "可以试试", skip: "不建议" }[w.verdict ?? "skip"] ??
-    "—";
+    { worth: "优先审查", try: "可以审查", skip: "不建议" }[
+      w.verdict ?? "skip"
+    ] ?? "—";
   const build =
     w.buildAs === "new_site"
-      ? "新站首页"
+      ? "新站候选"
       : w.buildAs === "inner_page"
-        ? "做内页"
-        : "—";
+        ? "内页候选"
+        : w.buildAs === "long_tail"
+          ? "只做长尾"
+          : "—";
   return [
     `# 选词简报：${w.phrase}（新词）`,
     "",
     `选定日期：${w.selectedAt?.toISOString().slice(0, 10) ?? "—"} · 来源：Termrise 新词（规则 ${w.rules ?? "newword-v1"}）· 冒出来的根词：${roots.map((r) => SOURCE_NAMES[r.root] ?? r.root).join("、") || "—"}`,
+    "",
+    templateLine(templateForNewWord(w)),
     "",
     "## 结论",
     "",

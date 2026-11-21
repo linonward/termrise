@@ -57,7 +57,7 @@ POST /api/pool/keywords/vet（审查记录，维护者或 agent 写入（agent �
 
 GET /api/pool/keywords/:id（词与检查记录（新的在前，最多 100 条）；不存在时 404 POOL_KEYWORD_NOT_FOUND）
 
-GET /api/pool/keywords/:id/brief.md（选词简报，Markdown 附件 `keyword-brief-<词>.md`；见 keyword-pool.md 的 Brief）
+GET /api/pool/keywords/:id/brief.md（选词简报，Markdown 附件 `keyword-brief-<词>.md`；响应头 `X-Site-Template` 为 tool-starter 或 web-starter（S87）；见 keyword-pool.md 的 Brief）
 
 POST /api/pool/keywords/:id/review（维护者的操作：{ action: "select" }（只有 candidate 可以选定；选定后开始它的产品，响应带 productId）、{ action: "drop", note? }、{ action: "exclude", note? }、{ action: "restore" }（excluded、dropped、failed 改回 queued）、{ action: "answer", monetization?, compliance?, aiAngle? }（monetization、compliance 为 { ok, note }，ok 为 false 时词改为 failed）；状态不允许时 409 POOL_REVIEW_INVALID）
 
@@ -79,7 +79,7 @@ GET /api/pool/new-words/:id（新词与它的长尾 children；S85 起带 gates�
 
 POST /api/pool/new-words/:id/select（选定新词并开始它的产品，返回 { productId }；再次选定返回同一个产品）
 
-GET /api/pool/new-words/:id/brief.md（新词的选词简报，Markdown 附件）
+GET /api/pool/new-words/:id/brief.md（新词的选词简报，Markdown 附件；响应头 `X-Site-Template`，S87）
 
 PUT / DELETE /api/pool/new-words/:id/hide（隐藏 / 重新显示）
 

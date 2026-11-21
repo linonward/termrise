@@ -1,10 +1,11 @@
 // The keyword brief (docs/product/keyword-pool.md#brief): a chosen keyword handed to
-// site-starter as docs/keyword-brief.md. Built from saved data only; anything not
+// a new site as docs/keyword-brief.md, with the template to build it on (S87). Built from saved data only; anything not
 // checked says so, never a guess.
 import type { PoolCheck, PoolKeyword } from "./pool-service";
 import type { TrendCheck } from "./pool-trend";
 import { isHomepage } from "./serp-competition";
 import { isDedicated } from "./serp-competition";
+import { templateForPoolKeyword, templateLine } from "./site-template";
 
 type SerpRow = {
   rank: number;
@@ -70,6 +71,8 @@ export function buildKeywordBrief(
     `# 选词简报：${k.phrase}`,
     "",
     `${selected ? `选定日期：${selected.createdAt.toISOString().slice(0, 10)}` : `导出日期：${today}（状态：${k.status}）`} · 来源：Termrise 词库（规则 ${deep?.rules ?? screen?.rules ?? "tool-site-v1"}）· 词源：${k.sources.join("、") || "—"}`,
+    "",
+    templateLine(templateForPoolKeyword()),
     "",
     "## 结论",
     "",
