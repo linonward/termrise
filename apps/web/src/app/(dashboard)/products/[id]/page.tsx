@@ -54,6 +54,7 @@ export default async function ProductPage({
           /filename="([^"]+)"/.exec(
             r.headers.get("Content-Disposition") ?? "",
           )?.[1] ?? "keyword-brief.md",
+        template: r.headers.get("X-Site-Template") ?? "tool-starter",
       }))
     : null;
   const t = await getTranslations("products");
@@ -355,7 +356,7 @@ export default async function ProductPage({
               {t("briefTitle")}
             </h2>
             <p className="text-[15px] text-muted-foreground">
-              {t("briefBody")}
+              {t("briefBody", { template: brief.template })}
             </p>
           </div>
           <BriefPanel markdown={brief.markdown} fileName={brief.fileName} />

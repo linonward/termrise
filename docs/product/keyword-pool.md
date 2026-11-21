@@ -67,7 +67,7 @@ Worker 每 `POOL_SCAN_INTERVAL_MS`（默认 1 分钟）扫描一次：中断的�
 
 ## Brief
 
-候选词和选定的词，在详情页可以复制或下载**选词简报**（`GET /api/pool/keywords/:id/brief.md`，`pool-brief.ts`），存为 site-starter 新网站的 `docs/keyword-brief.md`。格式沿用 keyword-lab SOP 的附录 D：结论、数据（搜索量、KD、CPC、变种数、趋势和基线、强对手数、内页数）、合并的说法、联想词、合规和变现、前 10 名、AI 改造点、交给建站时要注意。简报只用已保存的数据：没查过的项写"—"或"待确认"，并列在"交给建站时要注意"里。
+候选词和选定的词，在详情页可以复制或下载**选词简报**（`GET /api/pool/keywords/:id/brief.md`，`pool-brief.ts`），存为新网站的 `docs/keyword-brief.md`。S87 起简报第三行写明用哪个模板和为什么，并给出 site-ops 的建站命令 `pnpm fleet:new <slug> --template <模板>`：长青词按工具站规则选出，一律 tool-starter；新词先看「只做长尾」（web-starter），再看建站方向（在线工具、计算器 → tool-starter；教程、对比、替代品、模板库、合集 → web-starter），没有方向时游戏类 web-starter、其余 tool-starter（`site-template.ts`，对应 vet-keyword Gate 6 的"想反复做一件事 → 工具站，想玩或了解 → 攻略或内容站"）。简报接口在响应头 `X-Site-Template` 里给出模板，页面写成「交给 tool-starter」或「交给 web-starter」。要不要建站仍以 vet-keyword 的结论为准。格式沿用 keyword-lab SOP 的附录 D：结论、数据（搜索量、KD、CPC、变种数、趋势和基线、强对手数、内页数）、合并的说法、联想词、合规和变现、前 10 名、AI 改造点、交给建站时要注意。简报只用已保存的数据：没查过的项写"—"或"待确认"，并列在"交给建站时要注意"里。
 
 ## Vet
 

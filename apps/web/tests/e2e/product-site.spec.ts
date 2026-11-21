@@ -67,6 +67,8 @@ test("a product and its site link to each other", async ({ page, context }) => {
   await expect(panel).toContainText(domain);
   await expect(panel.getByTestId("site-stats")).toContainText("23");
   await expect(page.getByText("记录收入")).toHaveCount(0);
+  // The brief names the template it goes to (S87): an evergreen keyword is a tool site.
+  await expect(page.getByText("存为 tool-starter 新网站")).toBeVisible();
 
   await panel.getByRole("link", { name: domain }).click();
   await expect(page).toHaveURL(
@@ -76,4 +78,7 @@ test("a product and its site link to each other", async ({ page, context }) => {
   await expect(back).toContainText("Linked Product");
   await back.getByRole("link", { name: "Linked Product" }).click();
   await expect(page).toHaveURL(new RegExp(`/products/${project.id}$`));
+
+  await page.goto(`/keywords/${keyword.id}`);
+  await expect(page.getByText("交给 tool-starter")).toBeVisible();
 });
