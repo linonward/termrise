@@ -499,7 +499,7 @@ Checkout 跳回 `?checkout=success` 且最新购买为 Pending 或 Paid 时，�
 
 ## Sites
 
-`/sites`（S79，无设计稿；主导航「产品」后面）：维护者正在运营的网站，数据从 site-ops 每 15 分钟同步（见 data-model.md 的 Sites）。
+`/sites`（S79，无设计稿；S91 起是「站群」的第一个标签）：手机上（md 以下）每行排成两栏的块：站名和域名、在线状态，下面是带小标签的访客、Google、订单，不显示模板（S92）。维护者正在运营的网站，数据从 site-ops 每 15 分钟同步（见 data-model.md 的 Sites）。
 
 ```text
 标题 + 一句话：N 个站，几个掉线；最近同步时间

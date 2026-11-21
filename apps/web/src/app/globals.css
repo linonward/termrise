@@ -5,3 +5,10 @@
 
 /* Components in the ui package use Tailwind classes too. */
 @source "../../../../packages/ui/src";
+
+/* The body is a flex column: without this a wide table sets the page's width and its
+   overflow-x-auto wrapper never scrolls (S92, seen on /sites and /discover/platforms at
+   375 wide). */
+body > * {
+  min-width: 0;
+}

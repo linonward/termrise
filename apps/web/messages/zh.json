@@ -1103,7 +1103,8 @@
     "vetRecheck": "复查：{days}",
     "vetMarkdown": "完整记录",
     "reviewAt": "下次复查",
-    "seenChecked": "发现 {seen} · 更新 {checked}"
+    "seenChecked": "发现 {seen} · 更新 {checked}",
+    "searchPlaceholder": "搜长青词"
   },
   "newWords": {
     "metaTitle": "新词",
@@ -1755,7 +1756,7 @@
   "products": {
     "metaTitle": "产品",
     "title": "产品",
-    "subtitle": "由 Go 机会开始的产品：状态、上线、访客和收入，都按你的记录显示。",
+    "subtitle": "选定的词（新词或长青词）和 Go 的机会会变成产品：状态、域名、上线日期。域名是在运营的站时，数字直接来自站点。",
     "emptyTitle": "还没有产品",
     "emptyBody": "先对一个机会做 Go 决策，再开始它的产品。",
     "emptyLink": "前往机会",
