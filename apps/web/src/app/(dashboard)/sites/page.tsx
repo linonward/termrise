@@ -4,6 +4,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { SectionHeader } from "@/components/section-header";
 import {
   uptimePercent,
   type HeartbeatDto,
@@ -44,33 +45,32 @@ export default async function SitesPage() {
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">
-          {synced ? (
-            <>
-              {t("subtitle", { count: items.length, down: down.length })}{" "}
-              {t("syncedAt")} <LocalDateTime iso={synced} />
-            </>
-          ) : (
-            t("subtitleEmpty")
-          )}
-        </p>
-        {heartbeats.map((h) => (
-          <p
-            key={h.source}
-            data-testid={`heartbeat-${h.source}`}
-            className="text-[13px] text-muted-foreground"
-          >
-            {t("heartbeat", { source: h.source })}{" "}
-            {h.state === "up"
-              ? t("heartbeatUp")
-              : t("heartbeatDown", { reason: h.reason })}
+      <SectionHeader section="fleet" current="sites">
+        <div className="space-y-2">
+          <p className="text-[15px] text-muted-foreground">
+            {synced ? (
+              <>
+                {t("subtitle", { count: items.length, down: down.length })}{" "}
+                {t("syncedAt")} <LocalDateTime iso={synced} />
+              </>
+            ) : (
+              t("subtitleEmpty")
+            )}
           </p>
-        ))}
-      </header>
+          {heartbeats.map((h) => (
+            <p
+              key={h.source}
+              data-testid={`heartbeat-${h.source}`}
+              className="text-[13px] text-muted-foreground"
+            >
+              {t("heartbeat", { source: h.source })}{" "}
+              {h.state === "up"
+                ? t("heartbeatUp")
+                : t("heartbeatDown", { reason: h.reason })}
+            </p>
+          ))}
+        </div>
+      </SectionHeader>
       {items.length === 0 ? (
         <EmptyState
           icon={Globe}

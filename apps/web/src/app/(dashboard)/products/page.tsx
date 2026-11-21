@@ -6,6 +6,7 @@ import type { ExecutionProjectDto } from "@repo/execution/execution-dto";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { SectionHeader } from "@/components/section-header";
 import { ProductStatus } from "@/features/products/product-status";
 import { apiGet } from "@/server/api/api";
 
@@ -21,12 +22,11 @@ export default async function ProductsPage() {
   );
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
-      </header>
+      <SectionHeader section="build" current="products">
+        <div className="space-y-2">
+          <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
+        </div>
+      </SectionHeader>
       {items.length === 0 ? (
         <EmptyState
           icon={Rocket}

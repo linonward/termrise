@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import { LocalDateTime } from "@/components/local-date-time";
+import { SectionHeader } from "@/components/section-header";
 import { type ExpenseItem, Expenses } from "@/features/settings/expenses";
 import { apiGet } from "@/server/api/api";
 
@@ -58,20 +59,19 @@ export default async function ExpensesPage({
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-10 px-5 py-8 md:py-12">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="max-w-[65ch] text-[15px] text-muted-foreground">
-          {t("subtitle")}{" "}
-          <Link
-            href="/settings/providers"
-            className="underline underline-offset-4"
-          >
-            {t("apiLink")}
-          </Link>
-        </p>
-      </header>
+      <SectionHeader section="fleet" current="expenses">
+        <div className="space-y-2">
+          <p className="max-w-[65ch] text-[15px] text-muted-foreground">
+            {t("subtitle")}{" "}
+            <Link
+              href="/settings/providers"
+              className="underline underline-offset-4"
+            >
+              {t("apiLink")}
+            </Link>
+          </p>
+        </div>
+      </SectionHeader>
 
       <section aria-labelledby="month-title" className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-4">

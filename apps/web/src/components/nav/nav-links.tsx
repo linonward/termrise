@@ -6,22 +6,20 @@ import { useTranslations } from "next-intl";
 
 import product from "@product";
 
-// No Billing link while the product does not charge (product.config.ts billingEnabled).
+// The workbench's sections (S91, docs/product/ux.md#navigation): each link is active on
+// every page of its section. No Billing link while the product does not charge.
 const links = [
-  { href: "/today", key: "today" },
-  { href: "/discover", key: "discover" },
-  { href: "/keywords", key: "keywords" },
-  { href: "/opportunities", key: "opportunities" },
-  { href: "/products", key: "products" },
-  { href: "/sites", key: "sites" },
+  { href: "/today", key: "today", match: ["/today"] },
+  { href: "/discover", key: "find", match: ["/discover", "/keywords"] },
+  { href: "/products", key: "build", match: ["/products", "/opportunities"] },
+  { href: "/sites", key: "fleet", match: ["/sites", "/settings/expenses"] },
   ...(product.billingEnabled
-    ? [{ href: "/billing", key: "billing" } as const]
+    ? [{ href: "/billing", key: "billing", match: ["/billing"] } as const]
     : []),
 ] as const;
 
-function isActive(pathname: string, href: string) {
-  if (href === "/today") return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string, match: readonly string[]) {
+  return match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
 }
 
 export function NavLinks({
@@ -40,8 +38,8 @@ export function NavLinks({
         layout === "bar" ? "h-full items-stretch gap-8" : "flex-col gap-1",
       )}
     >
-      {links.map(({ href, key }) => {
-        const active = isActive(pathname, href);
+      {links.map(({ href, key, match }) => {
+        const active = isActive(pathname, match);
         return (
           <li key={href} className="flex">
             <Link
