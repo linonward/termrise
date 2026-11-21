@@ -170,6 +170,7 @@ it("exports a keyword brief as Markdown", async () => {
   expect(res.headers.get("Content-Disposition")).toContain(
     "keyword-brief-cipher-decoder.md",
   );
+  expect(res.headers.get("X-Site-Template")).toBe("tool-starter");
   expect(await res.text()).toContain("# 选词简报：cipher decoder");
 });
 
@@ -225,6 +226,7 @@ it("starts a product when a keyword or a new word is selected, once", async () =
   ).json();
   expect(again.productId).toBe(first.productId);
   const brief = await send("GET", `/api/pool/new-words/${word.id}/brief.md`);
+  expect(brief.headers.get("X-Site-Template")).toMatch(/^(tool|web)-starter$/);
   expect(await brief.text()).toContain(
     "# 选词简报：store stock checker（新词）",
   );

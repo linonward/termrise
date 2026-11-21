@@ -27,7 +27,10 @@ it("writes a new word's brief from saved data", () => {
   } as unknown as NewWord;
   const md = buildNewWordBrief(word, [{ root: "checker" } as never], []);
   expect(md).toContain("# 选词简报：store stock checker（新词）");
-  expect(md).toContain("值得做，新站首页");
+  expect(md).toContain("优先审查，新站候选");
+  // No direction, an AI-or-tool word: tool-starter, with the command (S87).
+  expect(md).toContain("模板：**tool-starter**");
+  expect(md).toContain("pnpm fleet:new <slug> --template tool-starter");
   expect(md).toContain(
     "| 热度（GPTs 倍数，近 7 天平均） | ×0.108（截至 2026-10-30） |",
   );

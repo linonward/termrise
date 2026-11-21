@@ -86,6 +86,7 @@ it("writes the site-starter brief from saved data and says what is still open", 
     "2026-11-01",
   );
   expect(md).toContain("# 选词简报：cipher decoder");
+  expect(md).toContain("模板：**tool-starter**");
   expect(md).toContain("选定日期：2026-10-31");
   expect(md).toContain("| 美国月搜索量 | 14,800 |");
   expect(md).toContain("相对 -7%");
