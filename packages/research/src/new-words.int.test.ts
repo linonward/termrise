@@ -1041,3 +1041,64 @@ it("screens with Google Trends directly first, and pays DataForSEO only when Goo
       .length,
   ).toBeGreaterThan(0);
 });
+
+it("rechecks due decisions before a backlog of new names, and sends stale ones back", async () => {
+  const day = 86_400_000;
+  // A decision measured yesterday and due, one measured 10 days ago, and a backlog of
+  // never-measured names on top priority.
+  await db.insert(newWords).values([
+    {
+      phrase: "due worth word",
+      verdict: "worth",
+      buildAs: "new_site",
+      ratio: 0.2,
+      checks: 1,
+      checkedAt: new Date(clock.getTime() - day),
+      nextCheckAt: new Date(clock.getTime() - 60_000),
+    },
+    {
+      phrase: "stale try word",
+      verdict: "try",
+      buildAs: "inner_page",
+      ratio: 0.01,
+      checks: 1,
+      checkedAt: new Date(clock.getTime() - 10 * day),
+      nextCheckAt: new Date(clock.getTime() - 9 * day),
+    },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      phrase: `backlog name ${i}`,
+      priority: 6,
+      nextCheckAt: new Date(clock.getTime() - 60_000),
+    })),
+  ]);
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    rootsPerDay: 0,
+    screensPerDay: 4,
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ demoted: 1, rechecked: 2 });
+  const rows = await db.select().from(newWords);
+  const byPhrase = new Map(rows.map((r) => [r.phrase, r]));
+  // Both decisions were measured again today, ahead of the backlog.
+  for (const phrase of ["due worth word", "stale try word"])
+    expect(byPhrase.get(phrase)!.checkedAt!.getTime()).toBe(clock.getTime());
+  expect(byPhrase.get("due worth word")!.checks).toBe(2);
+  // Four screens a day: the two rechecks, then two names of the backlog.
+  expect(
+    rows.filter((r) => r.phrase.startsWith("backlog") && r.checkedAt).length,
+  ).toBe(2);
+});

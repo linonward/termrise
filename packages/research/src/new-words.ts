@@ -8,9 +8,12 @@ import {
   desc,
   eq,
   inArray,
+  isNotNull,
   isNull,
   lt,
   lte,
+  notInArray,
+  or,
   sql,
   type SQL,
 } from "drizzle-orm";
@@ -221,6 +224,10 @@ export const SCAN_SOURCE = "scan";
 export const SCAN_HOURS = 3;
 /** Trending Now items taken per round, after dropping news categories. */
 const TRENDING_PER_ROUND = 50;
+/** Screens a round gives first to rechecking decisions (S88). */
+export const RECHECK_SLOTS = 10;
+/** A decision this many days without a recheck goes back to the screen (S88). */
+export const STALE_DAYS = 7;
 type NewWordCategory = (typeof NEW_WORD_CATEGORIES)[number];
 
 /**
@@ -287,6 +294,9 @@ export type NewWordsReport = {
   dropped?: number;
   /** Names left out as released more than MAX_NAME_AGE_DAYS ago. */
   tooOld?: number;
+  /** Decisions sent back to the screen for being stale, and decisions rechecked (S88). */
+  demoted?: number;
+  rechecked?: number;
   /** Screen comparisons from Google Trends directly (free) and from DataForSEO (S86). */
   freeCompares?: number;
   paidCompares?: number;
@@ -1082,8 +1092,31 @@ export function createNewWords(deps: {
     return dropped;
   }
 
+  /**
+   * A worth or try verdict this old without a recheck is not shown as a decision (S88):
+   * its heat and trend are stale. It goes back to the screen, keeping its history.
+   */
+  async function demoteStale() {
+    const stale = await database
+      .update(newWords)
+      .set({ verdict: null, buildAs: null, ratio: null, nextCheckAt: now() })
+      .where(
+        and(
+          inArray(newWords.verdict, ["worth", "try"]),
+          lte(
+            newWords.checkedAt,
+            new Date(now().getTime() - STALE_DAYS * DAY_MS),
+          ),
+        ),
+      )
+      .returning({ id: newWords.id });
+    return stale.length;
+  }
+
   /** Screens the due words, then deep-checks the warmest that passed. */
   async function measure(round: PoolRound, report: NewWordsReport) {
+    const demoted = await demoteStale();
+    if (demoted) report.demoted = demoted;
     // The allowances are per day; scans every few hours share them.
     const used = await usedToday(round);
     const screens = Math.max(
@@ -1091,13 +1124,47 @@ export function createNewWords(deps: {
       (deps.screensPerDay ?? DEFAULT_SCREENS) - used.screened,
     );
     const deepLeft = Math.max(0, (deps.checksPerDay ?? 12) - used.deep);
-    // Never measured first, the hottest and newest on their source first (S75); then the
-    // rest by when they are due. More than a day's screens are read, as the classifier
-    // drops some before they are paid for.
-    const due = await database
+    // Rechecks of decisions come first (S88): worth and try words that are due, then
+    // words sent back for being stale, up to RECHECK_SLOTS a round. Without this a
+    // backlog of new names kept them from ever being measured again.
+    const rechecks = await database
       .select()
       .from(newWords)
-      .where(and(isNull(newWords.hiddenAt), lte(newWords.nextCheckAt, now())))
+      .where(
+        and(
+          isNull(newWords.hiddenAt),
+          lte(newWords.nextCheckAt, now()),
+          isNotNull(newWords.checkedAt),
+          or(
+            inArray(newWords.verdict, ["worth", "try"]),
+            and(isNull(newWords.verdict), isNull(newWords.ratio)),
+          ),
+        ),
+      )
+      .orderBy(
+        sql`case when ${newWords.verdict} = 'worth' then 0 when ${newWords.verdict} = 'try' then 1 else 2 end`,
+        asc(newWords.nextCheckAt),
+      )
+      .limit(Math.min(RECHECK_SLOTS, screens));
+    if (rechecks.length) report.rechecked = rechecks.length;
+    // Then never measured first, the hottest and newest on their source first (S75);
+    // then the rest by when they are due. More than a day's screens are read, as the
+    // classifier drops some before they are paid for.
+    const rest = await database
+      .select()
+      .from(newWords)
+      .where(
+        and(
+          isNull(newWords.hiddenAt),
+          lte(newWords.nextCheckAt, now()),
+          rechecks.length
+            ? notInArray(
+                newWords.id,
+                rechecks.map((w) => w.id),
+              )
+            : undefined,
+        ),
+      )
       .orderBy(
         sql`${newWords.checkedAt} is not null`,
         sql`${newWords.priority} desc nulls last`,
@@ -1105,6 +1172,7 @@ export function createNewWords(deps: {
         asc(newWords.nextCheckAt),
       )
       .limit(screens * 3);
+    const due = [...rechecks, ...rest];
     // Excluded words (downloads, shopping, offline) need no data at all.
     const excluded = due.filter((w) => autoExclude(w.phrase));
     for (const word of excluded) {
