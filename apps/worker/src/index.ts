@@ -8,6 +8,7 @@ import { createMemoryQueue } from "@repo/jobs/adapters/memory";
 import { logger } from "@repo/observability/logger";
 import { createCommonCrawl } from "@repo/research/adapters/common-crawl";
 import { createGoogleTrendsClient } from "@repo/research/adapters/google-trends";
+import { createDirectTrends } from "@repo/research/adapters/google-trends-direct";
 import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createRdapClient } from "@repo/research/adapters/rdap";
 import { createBudget } from "@repo/research/budget";
@@ -93,6 +94,11 @@ async function main() {
     originAnalyst: createNewWordOriginAnalyst(env),
     webOrigin: createWebOrigin(env),
     rdap: createRdapClient(),
+    // Google Trends directly for the screen (S86), one client so its cool-down holds.
+    freeTrends:
+      env.NEW_WORDS_FREE_TRENDS === "1" && env.KEYWORD_PROVIDER === "dataforseo"
+        ? createDirectTrends()
+        : undefined,
     budget,
     roots: env.NEW_WORD_ROOTS,
     rootsPerDay: env.NEW_WORD_ROOTS_PER_DAY,

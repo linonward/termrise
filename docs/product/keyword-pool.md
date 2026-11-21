@@ -88,6 +88,12 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 
 **频率**（S73，维护者 2026-11-01 定）：每天 UTC `NEW_WORDS_HOUR_UTC` 点一轮完整的（含付费飙升词）；另外每 `NEW_WORDS_SCAN_HOURS` 小时（默认 3）一轮**扫描**（`pool_rounds.source = 'scan'`），只用免费来源：Trending Now（美国，去掉体育、政治、法律、娱乐、天气类，每轮最多 50 个）、根词的谷歌自动补全里新出现的建议（和 `new_word_suggestions` 里见过的比，根词第一次只记基线；新词记在 `suggest:<根词>` 下）、Hugging Face 和 itch.io。初筛、深查和网页搜索的数量按天累计，所有轮次共用，所以每天的花费不随扫描次数增加。来源和可借鉴的开源项目见 [trend-sources.md](trend-sources.md)。
 
+**新词不走关键词数据那套流程**（S86，维护者 2026-11-21 定）：新词在关键词工具里头几周没有量，判断靠 Trends 曲线、交叉验证和搜索结果，不靠搜索量和 KD。所以：
+
+- **付费的飙升根词默认关掉**（`NEW_WORD_ROOTS_PER_DAY` 默认 0；要开时设成正数）。新词只从免费来源进来：盯站、名字来源、Trending Now、谷歌联想。下面「根词」一段是打开时的做法。
+- **初筛的 Trends 曲线先直连 Google**（`NEW_WORDS_FREE_TRENDS=1`，默认开，`adapters/google-trends-direct.ts`）：先取 trends.google.com 的 cookie，再用 Explore 接口拿时间序列的 token，最后取每日数据（美国、近 90 天，去掉还没过完的当天）。这两个接口没有文档，格式在 2026-11-21 实测确认。每两次请求至少间隔 8 秒；Google 返回 429 或请求失败时，30 分钟内不再直连，这期间的批次改走 DataForSEO（付费，0.011 美元一批）。一轮的报告记下免费和付费各几批（`freeCompares`、`paidCompares`）。
+- **深查不再查 Labs 的搜索量、KD、CPC**（每个词省约 0.012 美元）；量用自动关卡的估算月量（Gates）。深查的 SERP 仍走 DataForSEO：免费抓 Google 搜索结果不稳定，也违反 Google 的条款。
+
 **每天一轮**（`new-words.ts`，`pool_rounds` 的 `new_words` 类型）：
 
 1. **发现**（S69 起）：
@@ -175,7 +181,7 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
   3. 栏目页上指向栏目下面的链接。
      分页、feed、标签、分类、作者页不算页面。
 - **第一次检查**只记下已有的页面（`baseline`），不当作新页面。之后每次比对，新出现的网址就是新页面。没有标题的新页面读一次标题，每个栏目每次最多 20 个。
-- **提取的词**（规则，不用 AI）：取栏目下面第一个像名字的目录（两个词以上，跳过 jp、ko、pt-br 这类语言目录，所以 `/trends/<名字>/watch` 取 `<名字>`，`/showcase/<名字>` 取 `<名字>`），不在栏目下面时取网址最后一段，网址是编号时取标题（`|`、`-`、`:` 之前的部分）；去掉开头的 how to make、what is、best、top N、free、effects、awesome，去掉结尾的 generator、maker、online、free、tool、app、guide、prompts、年份等，结尾的词和前面重复时去掉，最后的随机编号去掉；超过 10 个词不要（S84 从 8 放宽，梗名常常很长）。每个页面（包括第一次检查时的旧页面）都提取词，用来交叉验证；主信号栏目的新页面另外读标题。例：`goodbye-gta-5-ai-video-generator` → goodbye gta 5 ai video，`how-to-make-goodbye-gta-5-ai-video` → goodbye gta 5 ai video，`effects-gta-5-inspired-goodbye-scene` → gta 5 inspired goodbye scene。
+- **提取的词**（规则，不用 AI）：取栏目下面第一个像名字的目录（两个词以上，跳过 jp、ko、pt-br 这类语言目录，所以 `/trends/<名字>/watch` 取 `<名字>`，`/showcase/<名字>` 取 `<名字>`），不在栏目下面时取网址最后一段，网址是编号时取标题（`|`、`-`、`:` 之前的部分）；去掉开头的 how to make、what is、best、top N、free、effects、awesome，去掉结尾的 generator、maker、online、free、tool、app、guide、prompts、trend（S86）、年份等，结尾的词和前面重复时去掉，最后的随机编号去掉；超过 10 个词不要（S84 从 8 放宽，梗名常常很长）。每个页面（包括第一次检查时的旧页面）都提取词，用来交叉验证；主信号栏目的新页面另外读标题。例：`goodbye-gta-5-ai-video-generator` → goodbye gta 5 ai video，`how-to-make-goodbye-gta-5-ai-video` → goodbye gta 5 ai video，`effects-gta-5-inspired-goodbye-scene` → gta 5 inspired goodbye scene。
 - **交给新词**：盯站是新词的一个名字来源（`source:site_watch`），每次新词扫描（约 3 小时一次，见 New Words 的频率）时先检查所有栏目，再把还没交过的新页面的词交出去（每轮最多 20 个）。只交主信号栏目的新页面。热度：其他盯的栏目也有同一个趋势的页面（新旧都算）为 3，否则为 2；发布时间用源上的日期，没有时用第一次见到的时间。之后和其他名字一样：AI 分类、Trends 对比 gpts、前 20 个结果、结论。
 - **页面**：上面是盯的栏目（读法、已知页数、最近检查、失败原因、不盯了），下面是新加的页面（提取的词、看新词、日期、栏目、页面标题和链接），最新的在前。
 - 需要 Worker 的 `NEW_WORDS_ENABLED=1`（盯站跟着新词扫描跑）。某个栏目读取失败时记下原因，不影响其他栏目，下次再试。

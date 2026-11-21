@@ -165,7 +165,8 @@ it("collects rising queries, measures them against gpts and judges them", async 
     isNew: "yes",
     rising: "yes",
     burstDay: "2026-10-28",
-    searchVolume: 1900,
+    // No Labs volume for a new word since S86: the gates estimate it from Trends.
+    searchVolume: null,
     category: "ai",
     newSites: [{ domain: "site1.com", registeredOn: "2026-09-01" }],
   });
@@ -965,4 +966,78 @@ it("gives a hot word that is already crowded its long tails to build", async () 
     "how to use ai impacts theoretical computer science",
   ]);
   expect(asked).toContain("ai impacts theoretical computer science price");
+});
+
+it("screens with Google Trends directly first, and pays DataForSEO only when Google refuses", async () => {
+  const provider = stub();
+  const paidCompare = provider.trendCompare!;
+  // Google answers the same curves for free.
+  const free = {
+    available: () => true,
+    compare: async (phrases: string[]) =>
+      (
+        await paidCompare(
+          phrases,
+          { locationCode: 2840, languageCode: "en" },
+          "past_90_days",
+        )
+      ).value,
+  };
+  const w = createNewWords({
+    database: db,
+    provider,
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    freeTrends: free,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ freeCompares: expect.any(Number) });
+  expect(done.report).not.toHaveProperty("paidCompares");
+  const compares = await db
+    .select()
+    .from(apiUsage)
+    .where(eq(apiUsage.operation, "compare"));
+  expect(compares).toEqual([]);
+
+  // Google refuses: the same words are measured through DataForSEO, paid.
+  await resetDb();
+  const refused = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    freeTrends: {
+      available: () => true,
+      compare: async () => {
+        throw new Error("Google Trends unavailable: http 429");
+      },
+    },
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await refused.scheduleDaily(0);
+  const paid = await refused.run((await refused.claim())!);
+  expect(paid.status).toBe("completed");
+  expect(paid.report).toMatchObject({ paidCompares: expect.any(Number) });
+  expect(
+    (await db.select().from(apiUsage).where(eq(apiUsage.operation, "compare")))
+      .length,
+  ).toBeGreaterThan(0);
 });

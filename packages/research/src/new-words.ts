@@ -31,6 +31,7 @@ import { logger } from "@repo/observability/logger";
 
 import type { WebOriginSearch } from "./adapters/claude-web-origin";
 import type { Autocomplete } from "./adapters/google-autocomplete";
+import type { DirectTrends } from "./adapters/google-trends-direct";
 import type { NameItem, NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { DomainAge, RdapClient } from "./adapters/rdap";
@@ -38,7 +39,6 @@ import { registrableDomain } from "./adapters/rdap";
 import type { Budget } from "./budget";
 import type {
   Charged,
-  KeywordIdea,
   KeywordProvider,
   Market,
   SerpItem,
@@ -287,6 +287,9 @@ export type NewWordsReport = {
   dropped?: number;
   /** Names left out as released more than MAX_NAME_AGE_DAYS ago. */
   tooOld?: number;
+  /** Screen comparisons from Google Trends directly (free) and from DataForSEO (S86). */
+  freeCompares?: number;
+  paidCompares?: number;
 };
 
 class BudgetStop extends Error {}
@@ -327,6 +330,8 @@ export function createNewWords(deps: {
   /** A paid web search, only for words the free sources found nothing on. */
   webOrigin?: WebOriginSearch;
   rdap?: RdapClient;
+  /** Google Trends directly, free, tried before the paid comparison (S86). */
+  freeTrends?: Pick<DirectTrends, "available" | "compare">;
   /** Pause between RDAP lookups; tests pass 0. */
   rdapPauseMs?: number;
   budget?: Budget;
@@ -795,13 +800,29 @@ export function createNewWords(deps: {
   const yes = (b: boolean) => (b ? "yes" : "no") as "yes" | "no";
 
   // Step 1, the screen: one Trends comparison measures four words against gpts over 90
-  // days ($0.011 for four). A word that is too cold, falling or excluded stops here.
-  async function screen(round: PoolRound, words: NewWord[]) {
+  // days. Google Trends directly first (free, S86); when Google refuses, DataForSEO
+  // ($0.011 for four). A word that is too cold, falling or excluded stops here.
+  async function screen(
+    round: PoolRound,
+    words: NewWord[],
+    report?: NewWordsReport,
+  ) {
     const provider = providerOf();
     const compare = provider.trendCompare?.bind(provider);
     const facts = new Map<string, CurveFacts>();
     const measure = async (batch: NewWord[]) => {
       const phrases = [...batch.map((w) => w.phrase), REFERENCE_TERM];
+      const free = deps.freeTrends;
+      if (free?.available())
+        try {
+          const value = await free.compare(phrases);
+          if (report) report.freeCompares = (report.freeCompares ?? 0) + 1;
+          return value;
+        } catch (error) {
+          logger.warn("newwords.free_trends_failed", { error });
+        }
+      if (compare && report)
+        report.paidCompares = (report.paidCompares ?? 0) + 1;
       return compare
         ? await paid(round, "compare", { phrases, range: "past_90_days" }, () =>
             compare(phrases, US, "past_90_days"),
@@ -894,18 +915,8 @@ export function createNewWords(deps: {
     const top20 = serp.slice(0, DEDICATED_DEPTH);
     const dedicated = dedicatedPages(word.phrase, top20, word.category);
     const official = officialPages(word.phrase, top20, word.category);
-    const suggestions = provider.suggestions?.bind(provider);
-    const band = { minVolume: 0, limit: 1 };
-    const ideas: KeywordIdea[] = suggestions
-      ? await paid(
-          round,
-          "suggestions",
-          { seed: word.phrase, ...band },
-          () => suggestions(word.phrase, US, band),
-          ONE_KEYWORD_RESERVE,
-        )
-      : [];
-    const metrics = ideas.find((i) => i.phrase === word.phrase)?.metrics;
+    // No Labs search volume for a new word (S86): keyword tools show 0 for weeks; the
+    // gates estimate its searches from Trends and gpts instead.
     const ages = await agesOf(word.phrase, serp);
     // The gates need registration days; without RDAP they are left out, not guessed.
     const gates = ages
@@ -939,9 +950,6 @@ export function createNewWords(deps: {
     await database
       .update(newWords)
       .set({
-        searchVolume: metrics?.searchVolume ?? null,
-        keywordDifficulty: metrics?.keywordDifficulty ?? null,
-        cpcMicros: metrics?.cpcMicros ?? null,
         dedicatedPages: dedicated,
         serp: serp.map(({ rank, site, url, title }) => ({
           rank,
@@ -1132,7 +1140,7 @@ export function createNewWords(deps: {
       report,
     );
     const toScreen = kept.filter((w) => !dropped.has(w.id)).slice(0, screens);
-    const facts = await screen(round, toScreen);
+    const facts = await screen(round, toScreen, report);
     const passed: NewWord[] = [];
     for (const word of toScreen) {
       const f = facts.get(word.id)!;

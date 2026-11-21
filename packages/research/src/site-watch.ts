@@ -209,7 +209,7 @@ const LEADING = [
   /^awesome /,
 ];
 const TRAILING =
-  /( (generator|maker|creator|editor|online|free|tool|tools|app|guide|tutorial|prompts?|template|templates|for free|in \d+ steps?|\d{4}))+$/;
+  /( (generator|maker|creator|editor|online|free|tool|tools|app|guide|tutorial|prompts?|template|templates|trends?|for free|in \d+ steps?|\d{4}))+$/;
 
 /** A language folder such as "jp", "ko" or "pt-br": not part of a page's name. */
 const LOCALE = /^[a-z]{2}(-[a-z]{2,4})?$/i;

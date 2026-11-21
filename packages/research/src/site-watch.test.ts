@@ -158,7 +158,7 @@ it("names a page by the first folder under its section, skipping language folder
     [
       "https://fuzana.com/en/blog/trend-of-the-day/balcony-dj-trend",
       "https://fuzana.com/en/blog/trend-of-the-day/",
-      "balcony dj trend",
+      "balcony dj",
     ],
     [
       "https://imageat.com/trends/you-met-me-at-a-very-chinese-time-ai",
