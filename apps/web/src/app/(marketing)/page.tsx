@@ -2,6 +2,7 @@ import { ArrowDown, FileText, ShieldCheck, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { serverEnv } from "@repo/config/env";
@@ -40,6 +41,8 @@ export default async function Home() {
   const pricing = await getTranslations("pricing");
   const env = serverEnv();
   const signedIn = Boolean(await getSession(await headers()));
+  // The maintainer's workbench (S91): signed in, the root opens Today.
+  if (signedIn) redirect("/today");
   return (
     <>
       <TrackView event="landing_viewed" />

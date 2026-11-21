@@ -126,3 +126,40 @@ test("marketing nav links the blog, and pricing while the product charges", asyn
   await nav.getByRole("link", { name: "定价" }).click();
   await expect(page).toHaveURL(/\/pricing$/);
 });
+
+// The workbench's sections (S91): four links, each active on every page of its section,
+// tabs inside each section, and the root opening Today when signed in.
+test("the nav has the workbench's sections, each with its tabs", async ({
+  page,
+  context,
+  isMobile,
+}) => {
+  await signIn(context);
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/today$/);
+
+  const cases: [string, string, string, string][] = [
+    ["/keywords", "找词", "找词分类", "长青词"],
+    ["/discover/watch", "找词", "找词分类", "盯站"],
+    ["/opportunities/research", "建站", "建站分类", "研究项目"],
+    ["/settings/expenses", "站群", "站群分类", "花费和续费"],
+  ];
+  for (const [path, section, tabs, tab] of cases) {
+    await page.goto(path);
+    await expect(
+      page.getByRole("heading", { level: 1, name: section }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByRole("navigation", { name: tabs })
+        .getByRole("link", { name: new RegExp(tab) }),
+    ).toHaveAttribute("aria-current", "page");
+    if (isMobile) await openMenu(page, isMobile);
+    await expect(
+      page
+        .getByRole("navigation", { name: "主导航" })
+        .getByRole("link", { name: section }),
+    ).toHaveAttribute("aria-current", "page");
+    if (isMobile) await page.keyboard.press("Escape");
+  }
+});

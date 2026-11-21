@@ -8,6 +8,7 @@ import { cn } from "@repo/ui/utils";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
+import { DiscoverHeader } from "@/features/discover/discover-header";
 import { AddIdeas } from "@/features/pool/add-ideas";
 import {
   PoolStatusBadge,
@@ -85,43 +86,42 @@ export default async function PoolPage({
 
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-            {t("title")}
-          </h1>
-          <p className="max-w-2xl text-[15px] text-muted-foreground">
-            {t("subtitle")}
-          </p>
-          {latest && (
-            <p className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-              {t("lastRound")}
-              <RoundStatusBadge status={latest.status} />
-              <Link
-                href={`/keywords/rounds/${latest.id}`}
-                className="font-medium text-foreground hover:underline hover:underline-offset-4"
-              >
-                {latest.source ?? t("roundNoSource")}
-              </Link>
-              <span>
-                <LocalDateTime iso={latest.createdAt} /> ·{" "}
-                {usd(latest.spentMicros, 3)}
-              </span>
+      <DiscoverHeader current="evergreen">
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <p className="max-w-2xl text-[15px] text-muted-foreground">
+              {t("subtitle")}
             </p>
-          )}
+            {latest && (
+              <p className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+                {t("lastRound")}
+                <RoundStatusBadge status={latest.status} />
+                <Link
+                  href={`/keywords/rounds/${latest.id}`}
+                  className="font-medium text-foreground hover:underline hover:underline-offset-4"
+                >
+                  {latest.source ?? t("roundNoSource")}
+                </Link>
+                <span>
+                  <LocalDateTime iso={latest.createdAt} /> ·{" "}
+                  {usd(latest.spentMicros, 3)}
+                </span>
+              </p>
+            )}
+          </div>
+          <div className="shrink-0 space-y-3 md:w-80">
+            <StartRound open={open} />
+            <details className="text-[13px]">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                {t("addTitle")}
+              </summary>
+              <div className="mt-3">
+                <AddIdeas />
+              </div>
+            </details>
+          </div>
         </div>
-        <div className="shrink-0 space-y-3 md:w-80">
-          <StartRound open={open} />
-          <details className="text-[13px]">
-            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-              {t("addTitle")}
-            </summary>
-            <div className="mt-3">
-              <AddIdeas />
-            </div>
-          </details>
-        </div>
-      </header>
+      </DiscoverHeader>
 
       <nav
         aria-label={t("statusFilter")}

@@ -8,12 +8,12 @@ import { Button } from "@repo/ui/components/button";
 
 import { EmptyState } from "@/components/empty-state";
 import { StarButton } from "@/components/favorites/star-button";
+import { SectionHeader } from "@/components/section-header";
 import { BuildAdviceBadge } from "@/features/opportunities/build-advice";
 import {
   NeedsReview,
   OpportunityStatus,
 } from "@/features/opportunities/opportunity-badges";
-import { OpportunityTabs } from "@/features/opportunities/opportunity-tabs";
 import { FixtureNotice } from "@/features/research/research-results";
 import { apiGet } from "@/server/api/api";
 
@@ -44,13 +44,11 @@ export default async function OpportunitiesPage({
   });
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
-      </header>
-      <OpportunityTabs current="opportunities" />
+      <SectionHeader section="build" current="opportunities">
+        <div className="space-y-2">
+          <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
+        </div>
+      </SectionHeader>
       {projectId && (
         <p className="text-[15px] text-muted-foreground">
           {t("projectFilter", { name: items[0]?.projectName ?? "—" })}{" "}

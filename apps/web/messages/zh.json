@@ -127,7 +127,10 @@
     "researchProjects": "研究项目",
     "expenses": "花费和续费",
     "agentTokens": "Agent 令牌",
-    "sites": "站点"
+    "sites": "站点",
+    "find": "找词",
+    "build": "建站",
+    "fleet": "站群"
   },
   "dashboard": {
     "welcome": "欢迎回来，{name}",
@@ -2081,5 +2084,38 @@
     "colRegistrar": "注册商",
     "colChecked": "最近查询",
     "lookupFailed": "查询失败（{error}），保留上次的日期"
+  },
+  "sections": {
+    "find": {
+      "title": "找词",
+      "subtitle": "刚冒头的新词、作者刚发布的新站、免费平台上有流量的站、同类站新加的页面，和按工具站规则选出的长青词。",
+      "tabs": "找词分类",
+      "tab": {
+        "words": "新词",
+        "sites": "新站",
+        "platforms": "平台站",
+        "watch": "盯站",
+        "evergreen": "长青词"
+      }
+    },
+    "build": {
+      "title": "建站",
+      "subtitle": "选定的词变成产品，从未开始走到上线；研究项目和机会是更早的找方向方式。",
+      "tabs": "建站分类",
+      "tab": {
+        "products": "产品",
+        "opportunities": "机会",
+        "research": "研究项目"
+      }
+    },
+    "fleet": {
+      "title": "站群",
+      "subtitle": "在运营的站：在线状态、访客、Google、订单，加上记账和域名到期。",
+      "tabs": "站群分类",
+      "tab": {
+        "sites": "站点",
+        "expenses": "花费和续费"
+      }
+    }
   }
 }

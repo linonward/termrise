@@ -7,7 +7,7 @@ import { normalizeSeeds } from "@repo/research/research-rules";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
-import { OpportunityTabs } from "@/features/opportunities/opportunity-tabs";
+import { SectionHeader } from "@/components/section-header";
 import { ProjectForm } from "@/features/research/project-form";
 import { ResearchStatus } from "@/features/research/research-status";
 import { apiGet } from "@/server/api/api";
@@ -37,13 +37,11 @@ export default async function ResearchPage({
   );
   return (
     <main className="mx-auto w-full max-w-310 space-y-8 px-5 py-8 md:space-y-12 md:py-16">
-      <header className="space-y-2">
-        <h1 className="font-heading text-[28px] font-semibold tracking-tight md:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
-      </header>
-      <OpportunityTabs current="research" />
+      <SectionHeader section="build" current="research">
+        <div className="space-y-2">
+          <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
+        </div>
+      </SectionHeader>
       <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
         <section
           aria-labelledby="projects-title"

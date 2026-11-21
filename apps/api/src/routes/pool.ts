@@ -123,13 +123,17 @@ export const poolRoutes = userRoutes()
   // The discover tabs' counts (S74).
   .get("/discover", async (c) => {
     const database = c.var.db;
-    const [words, sites, platforms, watch] = await Promise.all([
+    const [words, sites, platforms, watch, evergreen] = await Promise.all([
       createNewWords({ database }).visibleCount(),
       createLaunchSites({ database }).visibleCount(),
       createPlatformSites({ database }).visibleCount(),
       createSiteWatch({ database }).sourceCount(),
+      // Evergreen keywords waiting for the maintainer (S91: a tab of the find section).
+      createKeywordPool({ database })
+        .list({ status: "review" })
+        .then((r) => r.total),
     ]);
-    return c.json({ words, sites, platforms, watch });
+    return c.json({ words, sites, platforms, watch, evergreen });
   })
   .get("/new-words", async (c) => {
     const result = await words(c).list(c.req.query());
