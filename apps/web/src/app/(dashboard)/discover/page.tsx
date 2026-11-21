@@ -1,9 +1,15 @@
-import { SearchX, Sparkles } from "lucide-react";
+import { Clock, SearchX, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 
 import type { NewWordDto } from "@repo/research/new-word-dto";
+import {
+  DEFAULT_SORT,
+  isStale,
+  NEW_WORD_SORTS,
+} from "@repo/research/new-word-sorts";
 import type { PoolRoundDto } from "@repo/research/pool-dto";
+import { Badge } from "@repo/ui/components/badge";
 
 import { EmptyState } from "@/components/empty-state";
 import { LocalDateTime } from "@/components/local-date-time";
@@ -60,6 +66,9 @@ export default async function NewWordsPage({
   const origin = ORIGINS.find((o) => o === params.origin);
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const page = Math.max(1, Number(params.page) || 1);
+  // S89: the order and a window on its time; each stage has its default order.
+  const sort = NEW_WORD_SORTS.find((s) => s === params.sort);
+  const within = (["1", "3", "7"] as const).find((d) => d === params.within);
   const t = await getTranslations("newWords");
   const format = await getFormatter();
   const [list, rounds] = await Promise.all([
@@ -73,6 +82,8 @@ export default async function NewWordsPage({
         stage,
         ...(origin ? { origin } : {}),
         ...(q ? { q } : {}),
+        ...(sort ? { sort } : {}),
+        ...(within ? { within } : {}),
         ...(page > 1 ? { page: String(page) } : {}),
       })}`,
     ),
@@ -90,6 +101,8 @@ export default async function NewWordsPage({
       ...(next.stage && next.stage !== "decide" ? { stage: next.stage } : {}),
       ...(origin ? { origin } : {}),
       ...(q ? { q } : {}),
+      ...(sort && !next.stage ? { sort } : {}),
+      ...(within ? { within } : {}),
       ...(next.page && next.page > 1 ? { page: String(next.page) } : {}),
     });
     return `/discover${p.size ? `?${p}` : ""}`;
@@ -165,6 +178,35 @@ export default async function NewWordsPage({
               </select>
             </label>
           )}
+          <label className="flex items-center gap-2 text-[15px]">
+            <span className="text-muted-foreground">{t("sortLabel")}</span>
+            <select
+              name="sort"
+              defaultValue={sort ?? DEFAULT_SORT[stage]}
+              className="h-11 rounded-md border border-border-strong bg-background px-3 text-[15px]"
+            >
+              {NEW_WORD_SORTS.map((s) => (
+                <option key={s} value={s}>
+                  {t(`sort.${s}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-[15px]">
+            <span className="text-muted-foreground">{t("withinLabel")}</span>
+            <select
+              name="within"
+              defaultValue={within ?? ""}
+              className="h-11 rounded-md border border-border-strong bg-background px-3 text-[15px]"
+            >
+              <option value="">{t("withinAll")}</option>
+              {(["1", "3", "7"] as const).map((d) => (
+                <option key={d} value={d}>
+                  {t(`within.${d}`)}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="submit"
             className="h-11 rounded-md border border-border-strong px-4 text-[15px]"
@@ -238,6 +280,13 @@ export default async function NewWordsPage({
                       {w.phrase}
                     </Link>
                     <WordTags word={w} />
+                    {isStale(w) && (
+                      <span data-testid="stale">
+                        <Badge tone="warning" icon={Clock}>
+                          {t("stale")}
+                        </Badge>
+                      </span>
+                    )}
                   </div>
                   <p className="text-[13px] text-muted-foreground">
                     {[
@@ -255,6 +304,8 @@ export default async function NewWordsPage({
                         : w.growth7 != null &&
                           t("growth", { pct: growthPct(w.growth7) }),
                       w.spike && t("spike"),
+                      w.checkedAt &&
+                        t("updated", { date: monthDay(w.checkedAt) }),
                     ]
                       .filter(Boolean)
                       .join(" · ")}

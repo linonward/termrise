@@ -54,6 +54,7 @@ export function toNewWordDto(row: {
     reasons: w.reasons,
     rules: w.rules,
     checkedAt: w.checkedAt?.toISOString() ?? null,
+    verdictAt: w.verdictAt?.toISOString() ?? null,
     hidden: w.hiddenAt !== null,
     selectedAt: w.selectedAt?.toISOString() ?? null,
     origin: w.originCheckedAt
