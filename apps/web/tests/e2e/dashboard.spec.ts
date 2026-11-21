@@ -106,7 +106,7 @@ test("a new word shows why it rose, with its evidence, and filters by cause", as
     .values({ wordId: unscreened.id, root: "source:itch_io" });
   await page.goto("/discover");
   await expect(
-    page.getByRole("heading", { level: 1, name: "发现" }),
+    page.getByRole("heading", { level: 1, name: "找词" }),
   ).toBeVisible();
   const stages = page.getByRole("navigation", { name: "按阶段筛选" });
   // Words waiting for a decision come first; the rest of the pipeline is a click away.
@@ -229,16 +229,19 @@ test("platform sites list monthly visits and can be hidden", async ({
     .values({ siteId: site.id, month, etv: 987_654 });
   await page.goto("/discover");
   await page
-    .getByRole("navigation", { name: "发现分类" })
+    .getByRole("navigation", { name: "找词分类" })
     .getByRole("link", { name: /平台站/ })
     .click();
   await expect(page).toHaveURL(/\/discover\/platforms$/);
   await expect(
     page
-      .getByRole("navigation", { name: "发现分类" })
+      .getByRole("navigation", { name: "找词分类" })
       .getByRole("link", { name: /平台站/ }),
   ).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("columnheader", { name: month })).toBeVisible();
+  // Search for this test's site alone: rows from other tests with the same visits
+  // reorder and shift the list on a phone (seen 2026-11-21).
+  await page.goto(`/discover/platforms?q=${name}`);
   const row = page.getByTestId("platform-site-row").filter({ hasText: name });
   await expect(row).toContainText("cipher decoder");
   await expect(row).toContainText("987,654");

@@ -359,5 +359,6 @@ it("counts what each discover tab shows", async () => {
     sites: 1,
     platforms: 1,
     watch: 0,
+    evergreen: 0,
   });
 });
