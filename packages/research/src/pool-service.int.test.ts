@@ -325,3 +325,32 @@ it("refuses a vet record that is not valid", async () => {
       code: "INVALID_INPUT",
     });
 });
+
+it("sorts the pool by discovery and by the last measurement (S90)", async () => {
+  await pool.record({
+    phrase: "found first",
+    status: "candidate",
+    reasons: [],
+    kind: "screen",
+    at: day(-5),
+  });
+  await pool.record({
+    phrase: "found later",
+    status: "candidate",
+    reasons: [],
+    kind: "screen",
+    at: day(-1),
+  });
+  // The first one is measured again today.
+  await pool.record({
+    phrase: "found first",
+    status: "candidate",
+    reasons: [],
+    kind: "deep",
+    at: clock,
+  });
+  const order = async (sort: string) =>
+    (await pool.list({ sort })).items.map((k) => k.phrase);
+  expect(await order("seen")).toEqual(["found later", "found first"]);
+  expect(await order("checked")).toEqual(["found first", "found later"]);
+});
