@@ -1102,3 +1102,83 @@ it("rechecks due decisions before a backlog of new names, and sends stale ones b
     rows.filter((r) => r.phrase.startsWith("backlog") && r.checkedAt).length,
   ).toBe(2);
 });
+
+it("keeps the verdict time while rechecks agree", async () => {
+  const w = words(stub());
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const first = new Date(clock);
+  const phrase = "ai impacts theoretical computer science";
+  const [before] = await db
+    .select()
+    .from(newWords)
+    .where(eq(newWords.phrase, phrase));
+  expect(before.verdict).toBe("worth");
+  expect(before.verdictAt).toEqual(first);
+  clock = new Date("2026-11-01T02:00:00Z");
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const [after] = await db
+    .select()
+    .from(newWords)
+    .where(eq(newWords.phrase, phrase));
+  // Measured again today, same verdict: updated now, verdict time unchanged.
+  expect(after.checkedAt).toEqual(clock);
+  expect(after.verdict).toBe("worth");
+  expect(after.verdictAt).toEqual(first);
+});
+
+it("sorts the list by the chosen time and windows on it", async () => {
+  const day = 86_400_000;
+  const at = (days: number) => new Date(clock.getTime() - days * day);
+  await db.insert(newWords).values([
+    {
+      phrase: "old find new verdict",
+      verdict: "try",
+      firstSeenAt: at(20),
+      checkedAt: at(0),
+      verdictAt: at(0),
+      ratio: 0.01,
+    },
+    {
+      phrase: "new find old verdict",
+      verdict: "try",
+      firstSeenAt: at(1),
+      checkedAt: at(5),
+      verdictAt: at(5),
+      ratio: 0.02,
+    },
+    {
+      phrase: "worth one",
+      verdict: "worth",
+      firstSeenAt: at(10),
+      checkedAt: at(2),
+      verdictAt: at(9),
+      ratio: 0.3,
+    },
+  ]);
+  const w = words(stub());
+  const phrases = async (q: Record<string, string>) =>
+    (await w.list({ stage: "decide", ...q })).items.map((i) => i.word.phrase);
+  // Default for decide: worth first, then the newest verdict.
+  expect(await phrases({})).toEqual([
+    "worth one",
+    "old find new verdict",
+    "new find old verdict",
+  ]);
+  expect(await phrases({ sort: "seen" })).toEqual([
+    "worth one",
+    "new find old verdict",
+    "old find new verdict",
+  ]);
+  expect(await phrases({ sort: "checked", within: "3" })).toEqual([
+    "worth one",
+    "old find new verdict",
+  ]);
+  expect(await phrases({ sort: "verdict", within: "7" })).toEqual([
+    "old find new verdict",
+    "new find old verdict",
+  ]);
+  // An unknown sort falls back to the stage's default.
+  expect(await phrases({ sort: "nonsense" })).toEqual(await phrases({}));
+});

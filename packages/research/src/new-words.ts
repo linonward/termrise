@@ -77,6 +77,11 @@ import {
   REFERENCE_TERM,
   splitComparison,
 } from "./new-word-rules";
+import {
+  DEFAULT_SORT,
+  NEW_WORD_SORTS,
+  type NewWordSort,
+} from "./new-word-sorts";
 import { autoExclude } from "./pool-rules";
 import { normalizePhrase, type PoolRound } from "./pool-service";
 import { createProviderCache } from "./provider-cache";
@@ -270,6 +275,10 @@ const RECENT = 2;
 export type NewWord = typeof newWords.$inferSelect;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** verdict_at for a write of `verdict`: kept when the verdict stays, else `at` (S89). */
+const verdictSince = (verdict: string | null, at: Date) =>
+  sql`case when ${newWords.verdict} is not distinct from ${verdict}::text then ${newWords.verdictAt} else ${at.toISOString()}::timestamptz end`;
 export type NewWordsReport = {
   roots: { root: string; rising: number }[];
   added: number;
@@ -324,6 +333,9 @@ const listQuery = z.object({
   category: z.string().max(20).optional().catch(undefined),
   origin: z.enum(NEW_WORD_ORIGINS).optional().catch(undefined),
   hidden: z.literal("1").optional().catch(undefined),
+  /** S89: the order, and a window on the order's time (or the discovery time). */
+  sort: z.enum(NEW_WORD_SORTS).optional().catch(undefined),
+  within: z.enum(["1", "3", "7"]).optional().catch(undefined),
   page: z.coerce.number().int().min(1).max(1000).catch(1),
 });
 
@@ -891,6 +903,7 @@ export function createNewWords(deps: {
         ratioDay: facts.ratioDay,
         ...(verdict && {
           verdict: verdict.verdict,
+          verdictAt: verdictSince(verdict.verdict, now()),
           buildAs: verdict.buildAs,
           reasons: verdict.reasons,
           rules: NEW_WORD_RULES,
@@ -971,6 +984,7 @@ export function createNewWords(deps: {
         ...(gates && { gates }),
         ...(tails && { tails }),
         verdict: verdict.verdict,
+        verdictAt: verdictSince(verdict.verdict, now()),
         buildAs: verdict.buildAs,
         reasons: verdict.reasons,
         rules: NEW_WORD_RULES,
@@ -1070,6 +1084,7 @@ export function createNewWords(deps: {
               : {
                   category,
                   verdict: "skip",
+                  verdictAt: verdictSince("skip", now()),
                   buildAs: null,
                   reasons: [{ code: "category", category }],
                   rules: NEW_WORD_RULES,
@@ -1099,7 +1114,13 @@ export function createNewWords(deps: {
   async function demoteStale() {
     const stale = await database
       .update(newWords)
-      .set({ verdict: null, buildAs: null, ratio: null, nextCheckAt: now() })
+      .set({
+        verdict: null,
+        verdictAt: null,
+        buildAs: null,
+        ratio: null,
+        nextCheckAt: now(),
+      })
       .where(
         and(
           inArray(newWords.verdict, ["worth", "try"]),
@@ -1187,6 +1208,7 @@ export function createNewWords(deps: {
         .update(newWords)
         .set({
           verdict: verdict.verdict,
+          verdictAt: verdictSince(verdict.verdict, now()),
           buildAs: null,
           reasons: verdict.reasons,
           rules: NEW_WORD_RULES,
@@ -1451,8 +1473,20 @@ export function createNewWords(deps: {
   const innerCandidates = sql<number>`(select count(*)::int from new_words c where c.id <> "new_words"."id" and (' ' || c.phrase || ' ') like ('% ' || "new_words"."phrase" || ' %'))`;
 
   async function list(query: Record<string, string | undefined>) {
-    const { stage, q, verdict, category, origin, hidden, page } =
+    const { stage, q, verdict, category, origin, hidden, page, sort, within } =
       listQuery.parse(query);
+    const order$ =
+      sort ?? DEFAULT_SORT[stage ?? (hidden ? "hidden" : "decide")];
+    // The time a sort reads; ratio and priority sorts window on the discovery time.
+    const timeOf: Record<NewWordSort, SQL> = {
+      verdict: sql`${newWords.verdictAt}`,
+      seen: sql`${newWords.firstSeenAt}`,
+      checked: sql`${newWords.checkedAt}`,
+      released: sql`${newWords.releasedOn}`,
+      burst: sql`${newWords.burstDay}`,
+      ratio: sql`${newWords.firstSeenAt}`,
+      priority: sql`${newWords.firstSeenAt}`,
+    };
     const visible = isNull(newWords.hiddenAt);
     const stageWhere: Record<NewWordStage, SQL | undefined> = {
       decide: and(visible, inArray(newWords.verdict, ["worth", "try"])),
@@ -1475,21 +1509,24 @@ export function createNewWords(deps: {
       base,
       stage ? stageWhere[stage] : hidden ? stageWhere.hidden : visible,
       verdict ? eq(newWords.verdict, verdict) : undefined,
+      within
+        ? sql`${timeOf[order$]} >= ${new Date(now().getTime() - Number(within) * DAY_MS).toISOString()}::timestamptz`
+        : undefined,
     );
-    const order =
-      stage === "decide"
+    const order = [
+      // Worth before try among the decisions, whatever the sort.
+      ...(stage === "decide" || stage === undefined
         ? [
-            sql`case ${newWords.verdict} when 'worth' then 0 else 1 end`,
-            desc(newWords.firstSeenAt),
+            sql`case ${newWords.verdict} when 'worth' then 0 when 'try' then 1 else 2 end`,
           ]
-        : stage === "check"
-          ? [sql`${newWords.ratio} desc nulls last`, desc(newWords.firstSeenAt)]
-          : stage === "screen"
-            ? [
-                sql`${newWords.priority} desc nulls last`,
-                desc(newWords.firstSeenAt),
-              ]
-            : [desc(newWords.firstSeenAt), desc(newWords.ratio)];
+        : []),
+      order$ === "ratio"
+        ? sql`${newWords.ratio} desc nulls last`
+        : order$ === "priority"
+          ? sql`${newWords.priority} desc nulls last`
+          : sql`${timeOf[order$]} desc nulls last`,
+      desc(newWords.firstSeenAt),
+    ];
     const [rows, [{ total }], [counts], originRows] = await Promise.all([
       database
         .select({ word: newWords, innerCandidates })

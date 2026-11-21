@@ -99,6 +99,8 @@ export const newWords = pgTable(
       .default(sql`'[]'::jsonb`),
     rules: text(),
     checkedAt: timestamp({ withTimezone: true }),
+    /** When the current verdict was first reached; kept while rechecks agree (S89). */
+    verdictAt: timestamp({ withTimezone: true }),
     nextCheckAt: timestamp({ withTimezone: true }),
     checks: integer().notNull().default(0),
     /**

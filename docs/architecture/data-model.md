@@ -689,6 +689,7 @@ S63 起心跳还记 `budgets`（JSON，美元）：每月数据和 AI 上限，�
 - `pool_checks`：只追加。每次初筛（`screen`）、深查（`deep`）、维护者操作（`review`）、导入（`import`）和审查记录（`vet`，S80；`data` 存 verdict、score、summary、markdown、recheck）一行，记状态、原因、数据、规则版本和操作人。删除用户时操作人置空，检查保留。
 - `new_words` 的起因（S67）：`origin_type`（新模型、开源项目等，或 `unknown`）、`origin_summary`、`origin_capture`（怎么承接）、`origin_evidence`（jsonb：各来源在起量前后找到的条目，带 `cited` 和 `first`）、`origin_checked_at`（为空表示还没追溯）。
 - `watch_sources`、`watch_pages`（S83，盯站）：每个盯的栏目一行（`prefix` 唯一，用途 `role`（`signal` 主信号、`confirm` 交叉验证，S84）、读法 `method`、读的地址 `read_from`、第一次检查时间 `baseline_at`、最近检查和错误、已知页数）；每个栏目里见过的每个页面一行（栏目和网址唯一，标题、源上给的日期、第一次见到的时间，`baseline` 为第一次检查时已有的页面，`phrase` 为提取的词，`sent_at` 为交给新词的时间）。删除栏目时页面一起删除。见 keyword-pool.md 的 Site Watch。
+- `new_words.verdict_at`（S89）：当前结论第一次得出的时间；复查结论不变时保留，变了或退回时更新。
 - `new_words.gates`（S85）：深查时自动算的关卡（jsonb）：估算月量、从顶点回落、前 30 名新站和扎堆、大品牌页、前 5 名老完全匹配域名、抢点击的结果、同名域名、命中的一票否决；见 keyword-pool.md 的 Gates。
 - `pool_rounds`：一轮：`daily` 或 `manual`（长青词）、`new_words`（新词）、`launch_sites`（新站）、`platform_sites`（平台站），词源，状态，报告和时间。同一时间每种最多一轮排队或运行。
 - 每日预算按轮次类型分三份（`budget.ts`）：长青词（`daily`、`manual`，`POOL_DAILY_DATA_BUDGET_USD`）、发现（`new_words`、`launch_sites`，`NEW_WORDS_DAILY_*`）、平台站（`platform_sites`，`PLATFORM_SITES_DAILY_DATA_BUDGET_USD`，只有数据预算）。设置页和「今天」的花费按同样的分组统计。

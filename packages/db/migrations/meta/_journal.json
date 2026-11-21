@@ -323,6 +323,13 @@
       "when": 1795175108955,
       "tag": "0045_new_word_gates",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1795234635164,
+      "tag": "0046_new_word_verdict_at",
+      "breakpoints": true
     }
   ]
 }

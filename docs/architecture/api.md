@@ -71,7 +71,7 @@ GET /api/pool/rounds/:id（一轮的状态、报告和花费；不存在时 404 
 
 GET /api/pool/discover（「发现」各标签的数量：words 不含隐藏的新词，sites 不含隐藏的新站，platforms 有流量、没隐藏的平台站，watch 盯的栏目数（S83））
 
-GET /api/pool/new-words（新词，每页 50 个，新的在前；?stage=decide | check | screen | skip | hidden 按阶段（decide 值得做在前，check 热度高的在前），?q= 搜词，?verdict=worth | try | skip，?category=，?origin= 起因类型，?hidden=1 只看隐藏的；返回 counts（各阶段的数量，跟着 q 和 origin 变）和 origins（没隐藏的词里各起因的数量）；每个词带根词、内页候选数和 origin（没追溯时为 null：type、summary、capture、evidence、checkedAt））
+GET /api/pool/new-words（新词，每页 50 个，新的在前；?stage=decide | check | screen | skip | hidden 按阶段（decide 值得做在前，check 热度高的在前），?q= 搜词，?verdict=worth | try | skip，?category=，?origin= 起因类型，?hidden=1 只看隐藏的；返回 counts（各阶段的数量，跟着 q 和 origin 变）和 origins（没隐藏的词里各起因的数量）；每个词带根词、内页候选数和 origin（没追溯时为 null：type、summary、capture、evidence、checkedAt；S89 起 ?sort=verdict|seen|checked|released|burst|ratio|priority（默认按阶段：decide 为 verdict，check 为 ratio，screen 为 priority，skip 为 checked）、?within=1|3|7（天，按所选排序的时间筛）；每个词带 verdictAt）
 
 POST /api/pool/new-words/rounds（排队一轮新词，201；已有一轮在排队或运行时返回它，200）
 
