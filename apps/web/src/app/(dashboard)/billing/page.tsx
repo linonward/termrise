@@ -184,7 +184,7 @@ export default async function BillingPage({
         {purchases.length === 0 ? (
           <p className="text-[15px] text-muted-foreground">{t("empty")}</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full min-w-140 text-left text-sm">
               <thead className="text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">
                 <tr className="border-b border-border">

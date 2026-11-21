@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { platformSiteMonths, platformSites } from "@repo/db/schema";
 import { closeTestDb, testDb } from "@repo/db/testing/db";
 import { createSites, parseSiteOpsExport } from "@repo/execution/sites";
 
@@ -109,9 +110,37 @@ test("an unknown site is a 404, and sites need a session", async ({
   expect(response?.status()).toBe(404);
 });
 
-// A wide table scrolls inside its own box and never widens the page (S92).
+// A wide table scrolls inside its own box and never widens the page (S92). A platform
+// site's row has a hide button with screen-reader text: absolutely placed, it widened
+// the page until the table's scroll box became positioned. Six months of visits give
+// six month columns, wider than a phone.
 test("wide lists do not widen the page", async ({ page, context }) => {
   await signIn(context);
+  const [wide] = await testDb()
+    .insert(platformSites)
+    .values({
+      host: `wide-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.vercel.app`,
+      platform: "vercel.app",
+      firstCrawl: "CC-MAIN-2026-43",
+      etv: 1234,
+      checkedAt: new Date(),
+      pageTitle: "A page title long enough to make the table wider",
+    })
+    .returning();
+  const now = new Date();
+  await testDb()
+    .insert(platformSiteMonths)
+    .values(
+      Array.from({ length: 6 }, (_, i) => ({
+        siteId: wide.id,
+        month: new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1),
+        )
+          .toISOString()
+          .slice(0, 7),
+        etv: 1234 + i,
+      })),
+    );
   for (const path of [
     "/sites",
     "/discover/platforms",
@@ -119,10 +148,11 @@ test("wide lists do not widen the page", async ({ page, context }) => {
     "/discover",
   ]) {
     await page.goto(path);
-    const [scroll, inner] = await page.evaluate(() => [
-      document.documentElement.scrollWidth,
-      window.innerWidth,
-    ]);
-    expect(scroll, path).toBeLessThanOrEqual(inner);
+    // Against the configured viewport: on an emulated phone the layout viewport, and
+    // so innerWidth, grows with an overflowing page.
+    const scroll = await page.evaluate(
+      () => document.documentElement.scrollWidth,
+    );
+    expect(scroll, path).toBeLessThanOrEqual(page.viewportSize()!.width);
   }
 });

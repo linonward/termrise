@@ -137,7 +137,7 @@ export default async function PlatformSitesPage({
           body={q ? t("noMatchBody") : t("platformsEmptyBody")}
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full text-left text-[15px]">
             <thead>
               <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground">

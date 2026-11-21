@@ -126,7 +126,7 @@ export default async function SitePage({
         {site.days.length === 0 ? (
           <p className="text-[15px] text-muted-foreground">{t("daysEmpty")}</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-[15px]">
               <thead className="text-[13px] text-muted-foreground">
                 <tr className="border-b border-border">

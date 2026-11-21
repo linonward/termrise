@@ -35,7 +35,7 @@ export default async function ProductsPage() {
           action={{ href: "/opportunities", label: t("emptyLink") }}
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full text-left text-[15px]">
             <thead>
               <tr className="border-b border-border text-xs font-semibold tracking-[1px] text-muted-foreground uppercase">

@@ -109,7 +109,7 @@ export default async function ExpensesPage({
             {t("domainsEmpty")}
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full text-left text-[13px]">
               <thead className="text-muted-foreground">
                 <tr className="border-b border-border">
