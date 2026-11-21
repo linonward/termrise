@@ -29,7 +29,7 @@ const STATUSES = [
   "excluded",
   "dropped",
 ] as const;
-const SORTS = ["updated", "volume", "next"] as const;
+const SORTS = ["updated", "checked", "seen", "volume", "next"] as const;
 
 export async function generateMetadata() {
   return { title: (await getTranslations("pool"))("metaTitle") };
@@ -292,6 +292,12 @@ export default async function PoolPage({
                     </td>
                     <td className="py-4 pr-4 whitespace-nowrap text-muted-foreground">
                       {shortDate(k.nextCheckAt)}
+                      <span className="block text-[12px]">
+                        {t("seenChecked", {
+                          seen: shortDate(k.firstSeenAt),
+                          checked: shortDate(k.lastCheckedAt),
+                        })}
+                      </span>
                     </td>
                   </tr>
                 );

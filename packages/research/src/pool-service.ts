@@ -163,7 +163,10 @@ const listQuery = z.object({
     .optional()
     .catch(undefined),
   q: z.string().trim().max(100).optional().catch(undefined),
-  sort: z.enum(["volume", "next", "updated"]).catch("updated"),
+  // S90: seen (discovery) and checked (last measured) join the times new words use.
+  sort: z
+    .enum(["volume", "next", "updated", "seen", "checked"])
+    .catch("updated"),
   page: z.coerce.number().int().min(1).max(1000).catch(1),
 });
 
@@ -288,7 +291,14 @@ export function createKeywordPool(deps: {
               sql`${poolKeywords.nextCheckAt} asc nulls last`,
               asc(poolKeywords.phrase),
             ]
-          : [desc(poolKeywords.updatedAt), asc(poolKeywords.phrase)];
+          : sort === "seen"
+            ? [desc(poolKeywords.firstSeenAt), asc(poolKeywords.phrase)]
+            : sort === "checked"
+              ? [
+                  sql`${poolKeywords.lastCheckedAt} desc nulls last`,
+                  asc(poolKeywords.phrase),
+                ]
+              : [desc(poolKeywords.updatedAt), asc(poolKeywords.phrase)];
     const [items, [{ total }], counts] = await Promise.all([
       database
         .select()

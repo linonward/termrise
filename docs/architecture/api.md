@@ -49,7 +49,7 @@ GET /api/radar/items/:id（条目与观测记录（新的在前，最多 200 条
 
 GET /api/today（「今天」页面：近两天的新词、待确认的长青词、新词与长青词最新一轮、本月各部分花费、Worker 是否在线；S80 起加上 `sites`（{ total, down: [{ domain, name, since, lastStatus }], syncedAt }，down 为 site-ops 报告掉线的站）、`heartbeats`（[{ source, state, reason }]）、`domainsExpiring`（S81，30 天内到期的域名：[{ domain, expiresAt, daysLeft }]）、`expenses`（S81，本月记账的各币种合计）和 `reviews`（7 天内要复查的词：[{ id, phrase, status, reviewAt, due }]，来自审查记录））
 
-GET /api/pool/keywords（词库，每页 50 个；?status= 按状态（review 为候选和观察，all 为全部），?q= 按词搜索，?sort=updated（默认）| volume | next（下次检查早的在前）；返回 { items, total, page, counts }，counts 为每个状态的词数；任何登录用户看到同样的词库；见 data-model.md 的 Keyword Pool）
+GET /api/pool/keywords（词库，每页 50 个；?status= 按状态（review 为候选和观察，all 为全部），?q= 按词搜索，?sort=updated（默认，最近变动）| checked（最近测量，S90）| seen（发现时间，S90）| volume | next（下次检查早的在前）；返回 { items, total, page, counts }，counts 为每个状态的词数；任何登录用户看到同样的词库；见 data-model.md 的 Keyword Pool）
 
 POST /api/pool/keywords（{ phrases, source? }：加入新词，状态 new，最多 100 个；已在词库中的词不变，列在 existing 中；返回 201 { added, existing }）
 
@@ -83,7 +83,7 @@ GET /api/pool/new-words/:id/brief.md（新词的选词简报，Markdown 附件�
 
 PUT / DELETE /api/pool/new-words/:id/hide（隐藏 / 重新显示）
 
-GET /api/pool/launch-sites（新站，每页 50 个，新发布的在前；?motive=、?category=、?q= 搜域名、标题、用途和关键词，?hidden=1 只看隐藏的；返回 counts（每种动机的数量，pending 为还没分析）和 lastRound）
+GET /api/pool/launch-sites（新站，每页 50 个，新发布的在前；S90 起 ?sort=posted（默认）| seen | registered；每个站带 firstSeenAt；?motive=、?category=、?q= 搜域名、标题、用途和关键词，?hidden=1 只看隐藏的；返回 counts（每种动机的数量，pending 为还没分析）和 lastRound）
 
 PUT / DELETE /api/pool/launch-sites/:id/hide（隐藏 / 重新显示）
 

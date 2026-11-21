@@ -12,6 +12,7 @@ export function toLaunchSiteDto(s: LaunchSite) {
     score: s.score,
     comments: s.comments,
     postedAt: s.postedAt?.toISOString() ?? null,
+    firstSeenAt: s.firstSeenAt.toISOString(),
     registeredOn: s.registeredOn,
     pageTitle: s.pageTitle,
     category: s.category,

@@ -37,11 +37,16 @@ export default async function LaunchSitesPage({
   const motive = MOTIVES.find((m) => m === params.motive);
   const q = typeof params.q === "string" ? params.q : "";
   const hidden = params.hidden === "1";
+  // S90: by the maker's post (default), by when Termrise found it, or by registration.
+  const sort = (["posted", "seen", "registered"] as const).find(
+    (s) => s === params.sort,
+  );
   const t = await getTranslations("discover");
   const query = new URLSearchParams({
     ...(motive ? { motive } : {}),
     ...(q ? { q } : {}),
     ...(hidden ? { hidden: "1" } : {}),
+    ...(sort ? { sort } : {}),
   });
   const data = await apiGet<{
     items: LaunchSiteDto[];
@@ -55,6 +60,7 @@ export default async function LaunchSitesPage({
       ...(next.motive ? { motive: next.motive } : {}),
       ...(q ? { q } : {}),
       ...(hidden ? { hidden: "1" } : {}),
+      ...(sort ? { sort } : {}),
     });
     return `/discover/sites${p.size ? `?${p}` : ""}`;
   };
@@ -110,6 +116,20 @@ export default async function LaunchSitesPage({
             className="size-4.5 accent-primary"
           />
           {t("showHidden")}
+        </label>
+        <label className="flex items-center gap-2 text-[15px]">
+          <span className="text-muted-foreground">{t("sitesSortLabel")}</span>
+          <select
+            name="sort"
+            defaultValue={sort ?? "posted"}
+            className="h-11 rounded-md border border-border-strong bg-background px-3 text-[15px]"
+          >
+            {(["posted", "seen", "registered"] as const).map((s) => (
+              <option key={s} value={s}>
+                {t(`sitesSort.${s}`)}
+              </option>
+            ))}
+          </select>
         </label>
         <button
           type="submit"
@@ -190,7 +210,14 @@ export default async function LaunchSitesPage({
                     comments: s.comments ?? 0,
                   })}
                 </span>
-                {s.postedAt && <LocalDateTime iso={s.postedAt} />}
+                {s.postedAt && (
+                  <span>
+                    {t("sitesPosted")} <LocalDateTime iso={s.postedAt} />
+                  </span>
+                )}
+                <span>
+                  {t("sitesSeen")} <LocalDateTime iso={s.firstSeenAt} />
+                </span>
                 {s.registeredOn && (
                   <span>
                     {t("registered", { month: s.registeredOn.slice(0, 7) })}

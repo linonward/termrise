@@ -146,7 +146,13 @@ export default async function WatchPage() {
                     </Tag>
                   )}
                   <span className="text-[13px] text-muted-foreground sm:ml-auto">
-                    <LocalDateTime iso={p.publishedAt ?? p.firstSeenAt} />
+                    {p.publishedAt && (
+                      <>
+                        {t("sitesPosted")} <LocalDateTime iso={p.publishedAt} />
+                        {" · "}
+                      </>
+                    )}
+                    {t("sitesSeen")} <LocalDateTime iso={p.firstSeenAt} />
                   </span>
                 </div>
                 <p className="text-[13px] break-all text-muted-foreground">
