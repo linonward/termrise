@@ -108,9 +108,10 @@ export default async function PoolPage({
               </p>
             )}
           </div>
-          <div className="shrink-0 space-y-3 md:w-80">
+          {/* One row of actions (S94): start a round, name a source, add ideas. */}
+          <div className="flex shrink-0 flex-wrap items-start gap-x-5 gap-y-3 md:max-w-md md:justify-end">
             <StartRound open={open} />
-            <details className="text-[13px]">
+            <details className="pt-2.5 text-[13px]">
               <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                 {t("addTitle")}
               </summary>

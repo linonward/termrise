@@ -36,6 +36,7 @@ export function StartRound({ open }: { open: boolean }) {
               : t("roundStart")}
         </Button>
         <details className="group text-[13px]">
+          {/* Opens below the button row, the same as "add ideas" beside it. */}
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
             {t("roundSource")}
           </summary>

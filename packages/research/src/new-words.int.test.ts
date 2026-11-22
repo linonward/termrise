@@ -1182,3 +1182,42 @@ it("sorts the list by the chosen time and windows on it", async () => {
   // An unknown sort falls back to the stage's default.
   expect(await phrases({ sort: "nonsense" })).toEqual(await phrases({}));
 });
+
+it("skips a word whose class turns out not to be built for, even on a recheck (S94)", async () => {
+  // Explained before as a band: a recheck reads the stored class.
+  await db.insert(newWords).values({
+    phrase: "ai band currents",
+    category: "entertainment",
+    about: "A metal band.",
+    priority: 6,
+    nextCheckAt: new Date(clock.getTime() - 60_000),
+  });
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    rootsPerDay: 0,
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const [word] = await db
+    .select()
+    .from(newWords)
+    .where(eq(newWords.phrase, "ai band currents"));
+  expect(word.dedicatedPages).not.toBeNull();
+  expect(word.verdict).toBe("skip");
+  expect(word.reasons).toContainEqual({
+    code: "category",
+    category: "entertainment",
+  });
+});

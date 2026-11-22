@@ -2045,7 +2045,11 @@
       "registered": "域名注册"
     },
     "sitesPosted": "发布",
-    "sitesSeen": "发现"
+    "sitesSeen": "发现",
+    "sitesPages": "新站分页",
+    "sitesPrev": "上一页",
+    "sitesNext": "下一页",
+    "sitesPageOf": "第 {page} 页，共 {pages} 页"
   },
   "expenses": {
     "metaTitle": "花费和续费",
