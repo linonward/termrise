@@ -1271,7 +1271,8 @@
       "show_hn": "Show HN 新产品",
       "product_hunt": "Product Hunt 新产品",
       "github": "GitHub 新仓库",
-      "site_watch": "盯的站新加的页面"
+      "site_watch": "盯的站新加的页面",
+      "new_domain": "新注册域名"
     },
     "originAnswer": "搜索结论",
     "stageFilter": "按阶段筛选",

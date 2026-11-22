@@ -6,6 +6,7 @@ export * from "./credits";
 export * from "./execution";
 export * from "./keywords";
 export * from "./launch-sites";
+export * from "./new-domains";
 export * from "./new-words";
 export * from "./opportunities";
 export * from "./orders";

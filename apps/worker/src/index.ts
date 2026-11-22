@@ -13,6 +13,7 @@ import { createHackerNewsClient } from "@repo/research/adapters/hacker-news";
 import { createRdapClient } from "@repo/research/adapters/rdap";
 import { createBudget } from "@repo/research/budget";
 import { createLaunchSites, fetchPageTitle } from "@repo/research/launch-sites";
+import { createNewDomains } from "@repo/research/new-domains";
 import { createNewWords } from "@repo/research/new-words";
 import {
   createPlatformSites,
@@ -110,6 +111,16 @@ async function main() {
         name: "site_watch" as const,
         names: (limit: number) => createSiteWatch({ database }).names(limit),
       },
+      // Newly registered domains (S98): one import a day, a few probes each scan.
+      ...(env.NEW_DOMAINS_ENABLED === "1"
+        ? [
+            {
+              name: "new_domain" as const,
+              names: (limit: number) =>
+                createNewDomains({ database }).names(limit),
+            },
+          ]
+        : []),
     ],
     autocomplete: createSuggestions(env),
     suggestDelayMs: 500,

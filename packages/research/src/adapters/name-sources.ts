@@ -14,6 +14,8 @@ export const NAME_SOURCES = [
   "github",
   // New pages on watched sites (site-watch.ts, S83); built in the worker with the database.
   "site_watch",
+  // Newly registered domains (new-domains.ts, S98); built in the worker with the database.
+  "new_domain",
 ] as const;
 export type NameSourceName = (typeof NAME_SOURCES)[number];
 
