@@ -135,6 +135,16 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 - **列表每行**：词、分类、新词和上升中的标签；发现日期、起量日和发现比起量晚几天（"发现于"是 Termrise 第一次在飙升词里扫到它的日子，"起量日"是这个词自己的曲线开始涨的日子，两者之差是发现的滞后）、出现日（第一次有量）、近 7 天的走势（"从 0 起量"或 7 天涨幅，单日尖峰另外标出）；一句中文说明；结论和建站方式加一句理由；GPTs 倍数、小曲线、内页候选数、专门页面数；隐藏按钮。
 - **详情页**：GPTs 倍数（近 7 天平均和截止日期）、第一次有量、起量日、发现于（比起量晚几天）、峰值日、近 7 天涨幅、内页候选数；近 90 天的每日曲线和"在谷歌趋势里打开"的链接；起量前是否只有零星搜索；三段说明；结论、建站方式和理由；可以做成内页的长尾词；搜索量、KD、CPC；谷歌前两页中专门做这个词的页面；谷歌首页的新站；它是从哪些根词下面冒出来的。
 
+## Variants
+
+同一需求的不同写法（S96）：每轮开始时（`mergeVariants`），把还没测过的词按两条规则和其他词比对（`new-word-variants.ts`）：
+
+- 去掉空格、连字符和标点后完全相同（flyingcar 和 flying car，qwen4-max 和 qwen 4 max）；
+- 去掉通用词（ai、free、online、tool、best、年份等）后剩下的实义词完全一样、至少两个，词序不论；同义的工具后缀先归一（maker、creator、builder → generator；evaluator → analyzer），单复数归一（gta 6 walkthrough 和 walkthrough gta 6，bugs bunny voice actor 和 voice actor of bugs bunny）。
+- 多了实义词的是长尾，不合并（ragdoll robot boxing codes 仍是 ragdoll robot boxing 的内页候选）。
+
+一组里测过的词做主词，没有就取优先级最高的、再取最早发现的；其余没测过的词挂到主词下面（`new_words.variant_of`），不再单独初筛，它们的来源算在主词上（多来源加分）。已经各自测过的词保留各自的结论。列表和数量只算主词；主词的详情页列出「同一需求的其他写法」。2026-11-22 在本机 1,236 个词里合并出 39 组、53 个变体。
+
 ## History
 
 新词的近 5 年曲线（S95，维护者 2026-11-22 定，参考一篇公开的新词日更复盘）：只看 90 天，分不清一个词是第一次出现、每年固定月份回来，还是老词换了个玩法又涨起来。深查时用直连 Google Trends 单独拉这个词近 5 年的周数据（美国，它自己的峰值为 100；单独请求，不和 gpts 这类词放在一起，免得被压成 0），存在 `new_words.history`（`new-word-history.ts`）：

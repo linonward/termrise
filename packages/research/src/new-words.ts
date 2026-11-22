@@ -83,6 +83,7 @@ import {
   NEW_WORD_SORTS,
   type NewWordSort,
 } from "./new-word-sorts";
+import { variantGroups } from "./new-word-variants";
 import { autoExclude } from "./pool-rules";
 import { normalizePhrase, type PoolRound } from "./pool-service";
 import { createProviderCache } from "./provider-cache";
@@ -304,6 +305,8 @@ export type NewWordsReport = {
   dropped?: number;
   /** Names left out as released more than MAX_NAME_AGE_DAYS ago. */
   tooOld?: number;
+  /** Never-measured words hung under their main word as variants (S96). */
+  merged?: number;
   /** Decisions sent back to the screen for being stale, and decisions rechecked (S88). */
   demoted?: number;
   rechecked?: number;
@@ -1197,10 +1200,58 @@ export function createNewWords(deps: {
     return stale.length;
   }
 
+  /**
+   * Hangs never-measured variants under their main word (S96): the same need written
+   * differently is measured once. The main word is a measured one if the group has one,
+   * else the one with the highest priority, else the first found; it takes the variants'
+   * sources. Words already measured on their own keep their verdicts.
+   */
+  async function mergeVariants() {
+    const words = await database
+      .select({
+        id: newWords.id,
+        phrase: newWords.phrase,
+        checkedAt: newWords.checkedAt,
+        priority: newWords.priority,
+        firstSeenAt: newWords.firstSeenAt,
+      })
+      .from(newWords)
+      .where(and(isNull(newWords.hiddenAt), isNull(newWords.variantOf)));
+    let merged = 0;
+    for (const group of variantGroups(words)) {
+      const main = [...group].sort(
+        (a, b) =>
+          Number(b.checkedAt !== null) - Number(a.checkedAt !== null) ||
+          (b.priority ?? 0) - (a.priority ?? 0) ||
+          a.firstSeenAt.getTime() - b.firstSeenAt.getTime(),
+      )[0];
+      const variants = group.filter((w) => w !== main && w.checkedAt === null);
+      if (!variants.length) continue;
+      const ids = variants.map((w) => w.id);
+      await database
+        .update(newWords)
+        .set({ variantOf: main.id, nextCheckAt: null })
+        .where(inArray(newWords.id, ids));
+      // Their sources count for the main word (more kinds of places, more priority).
+      await database.execute(sql`
+        insert into ${newWordRoots} (word_id, root, growth, seen_at)
+        select ${main.id}, root, growth, seen_at from ${newWordRoots}
+        where word_id in (${sql.join(
+          ids.map((id) => sql`${id}`),
+          sql`, `,
+        )})
+        on conflict do nothing`);
+      merged += variants.length;
+    }
+    return merged;
+  }
+
   /** Screens the due words, then deep-checks the warmest that passed. */
   async function measure(round: PoolRound, report: NewWordsReport) {
     const demoted = await demoteStale();
     if (demoted) report.demoted = demoted;
+    const merged = await mergeVariants();
+    if (merged) report.merged = merged;
     // The allowances are per day; scans every few hours share them.
     const used = await usedToday(round);
     const screens = Math.max(
@@ -1550,7 +1601,8 @@ export function createNewWords(deps: {
       ratio: sql`${newWords.firstSeenAt}`,
       priority: sql`${newWords.firstSeenAt}`,
     };
-    const visible = isNull(newWords.hiddenAt);
+    // A variant is listed under its main word only (S96).
+    const visible = and(isNull(newWords.hiddenAt), isNull(newWords.variantOf));
     const stageWhere: Record<NewWordStage, SQL | undefined> = {
       decide: and(visible, inArray(newWords.verdict, ["worth", "try"])),
       check: and(
@@ -1655,7 +1707,7 @@ export function createNewWords(deps: {
       .from(newWords)
       .where(eq(newWords.id, id));
     if (!row) throw notFound();
-    const [wordRoots, children] = await Promise.all([
+    const [wordRoots, children, variants] = await Promise.all([
       database.select().from(newWordRoots).where(eq(newWordRoots.wordId, id)),
       database
         .select()
@@ -1666,8 +1718,14 @@ export function createNewWords(deps: {
         )
         .orderBy(desc(newWords.rising), desc(newWords.ratio))
         .limit(50),
+      // The same need written differently, hung under this word (S96).
+      database
+        .select({ id: newWords.id, phrase: newWords.phrase })
+        .from(newWords)
+        .where(eq(newWords.variantOf, id))
+        .orderBy(asc(newWords.phrase)),
     ]);
-    return { ...row, roots: wordRoots, children };
+    return { ...row, roots: wordRoots, children, variants };
   }
 
   /** The maintainer chooses to build for a word; the API starts its product. */
@@ -1697,7 +1755,7 @@ export function createNewWords(deps: {
     const [{ n }] = await database
       .select({ n: count() })
       .from(newWords)
-      .where(isNull(newWords.hiddenAt));
+      .where(and(isNull(newWords.hiddenAt), isNull(newWords.variantOf)));
     return n;
   }
 

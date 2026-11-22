@@ -337,6 +337,13 @@
       "when": 1795309564329,
       "tag": "0047_new_word_history",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1795310343679,
+      "tag": "0048_new_word_variants",
+      "breakpoints": true
     }
   ]
 }
