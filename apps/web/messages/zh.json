@@ -1165,7 +1165,10 @@
       "window_closed": "热度已从顶点回落 {value}%，窗口已关（vet-keyword 一票否决 4）",
       "brands_no_new": "第一页有 {value} 个大品牌页面，没有新站（一票否决 1）",
       "old_exact_top5": "前 5 名有注册超过 12 个月的完全匹配域名，没有新站（一票否决 2）",
-      "clustered": "前 30 名有 {value} 个注册不到 24 个月的站，已经扎堆，不开新站"
+      "clustered": "前 30 名有 {value} 个注册不到 24 个月的站，已经扎堆，不开新站",
+      "old_word": "老词翻红：近 5 年平均热度 {value}（满分 100），不是新词，可以按长青词评估",
+      "seasonal": "年度回潮：近 5 年每年 {value} 月前后起峰，不是第一次出现，可以提前一个月做页面",
+      "pure_new": "从零突发：近 5 年几乎没有搜索，最近才第一次起量"
     },
     "breadcrumb": "位置",
     "home": "首页",
@@ -1385,7 +1388,15 @@
       "7": "近 7 天"
     },
     "updated": "更新 {date}",
-    "stale": "数据已过期"
+    "stale": "数据已过期",
+    "historyTitle": "近 5 年",
+    "historyKind": {
+      "new": "从零突发",
+      "seasonal": "年度回潮",
+      "old": "老词翻红",
+      "unclear": "看不出规律"
+    },
+    "historyLine": "{kind}：5 年平均 {mean}，有量的周 {nonzero}/{weeks}，第一次有量 {first}"
   },
   "research": {
     "metaTitle": "研究",

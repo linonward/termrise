@@ -363,6 +363,28 @@ export default async function NewWordPage({
             </div>
           </section>
         )}
+        {w.history && (
+          <section
+            aria-labelledby="history"
+            className="space-y-3"
+            data-testid="word-history"
+          >
+            <h3 id="history" className="text-[15px] font-semibold">
+              {t("historyTitle")}
+            </h3>
+            <div className={card}>
+              <p className="text-[15px]">
+                {t("historyLine", {
+                  kind: t(`historyKind.${w.history.kind}`),
+                  mean: w.history.mean,
+                  nonzero: w.history.nonzeroWeeks,
+                  weeks: w.history.weeks,
+                  first: w.history.firstWeek ?? "—",
+                })}
+              </p>
+            </div>
+          </section>
+        )}
         <section aria-labelledby="new-sites" className="space-y-3">
           <h3 id="new-sites" className="text-[15px] font-semibold">
             {t("newSitesTitle")}

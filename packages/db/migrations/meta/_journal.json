@@ -330,6 +330,13 @@
       "when": 1795234635164,
       "tag": "0046_new_word_verdict_at",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795309564329,
+      "tag": "0047_new_word_history",
+      "breakpoints": true
     }
   ]
 }

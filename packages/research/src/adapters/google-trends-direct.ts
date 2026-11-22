@@ -98,16 +98,21 @@ export function createDirectTrends(
     available: () => now() >= offUntil,
 
     /**
-     * Daily interest of up to 5 phrases on one scale, US, past 90 days, like DataForSEO's
-     * comparison: the partial current day is left out. Throws TrendsUnavailable.
+     * Interest of up to 5 phrases on one scale, US: daily over 90 days by default, like
+     * DataForSEO's comparison, or weekly over 5 years. The partial current point is left
+     * out. Throws TrendsUnavailable.
      */
-    async compare(phrases: string[]): Promise<TrendComparison> {
+    async compare(
+      phrases: string[],
+      /** Google's time range: "today 3-m" (90 days, daily) or "today 5-y" (weekly). */
+      time = "today 3-m",
+    ): Promise<TrendComparison> {
       if (now() < offUntil) throw new TrendsUnavailable("cooling down");
       if (!cookie) await get(TRENDS_HOME);
       const req = {
         comparisonItem: phrases
           .slice(0, 5)
-          .map((keyword) => ({ keyword, geo: "US", time: "today 3-m" })),
+          .map((keyword) => ({ keyword, geo: "US", time })),
         category: 0,
         property: "",
       };

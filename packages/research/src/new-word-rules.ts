@@ -50,7 +50,11 @@ export type VerdictReason = {
     | "window_closed"
     | "brands_no_new"
     | "old_exact_top5"
-    | "clustered";
+    | "clustered"
+    // S95, five years on Google (new-word-history.ts):
+    | "old_word"
+    | "seasonal"
+    | "pure_new";
   /** For "category": the class that is not built for (news, entertainment...). */
   category?: string;
   value?: number;

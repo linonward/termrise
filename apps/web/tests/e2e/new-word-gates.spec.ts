@@ -43,6 +43,16 @@ test("a new word shows its estimated searches and automatic gates", async ({
         ],
         knockouts: ["window_closed"],
       },
+      history: {
+        kind: "seasonal",
+        weeks: 261,
+        mean: 8.3,
+        nonzeroWeeks: 109,
+        firstWeek: "2022-07-31",
+        recentMax: 88,
+        peakMonth: 10,
+        seasonalYears: 5,
+      },
     })
     .returning();
 
@@ -57,4 +67,8 @@ test("a new word shows its estimated searches and automatic gates", async ({
   await expect(gates).toContainText("gatesword.net 未注册");
   await expect(gates).toContainText("窗口已关");
   await expect(page.getByText("热度已从顶点回落 62%").first()).toBeVisible();
+  // Five years on Google (S95).
+  await expect(page.getByTestId("word-history")).toContainText(
+    "年度回潮：5 年平均 8.3，有量的周 109/261，第一次有量 2022-07-31",
+  );
 });

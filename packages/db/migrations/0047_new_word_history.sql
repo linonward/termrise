@@ -1,0 +1,1 @@
+ALTER TABLE "new_words" ADD COLUMN "history" jsonb;
