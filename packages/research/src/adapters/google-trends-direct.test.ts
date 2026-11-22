@@ -93,3 +93,63 @@ it("stays off for a cool-down after Google refuses", async () => {
   clock += 60_000;
   expect(t.available()).toBe(true);
 });
+
+it("reads each root's rising queries, with Breakout as 5000%", async () => {
+  const urls: string[] = [];
+  const fake = (async (input: string | URL | Request) => {
+    const url = String(input);
+    urls.push(url);
+    if (url.includes("/trends/?geo=US"))
+      return new Response("", { headers: { "set-cookie": "NID=1; Path=/" } });
+    if (url.includes("/api/explore"))
+      return new Response(
+        `)]}'\n${JSON.stringify({
+          widgets: [
+            { id: "RELATED_QUERIES_0", token: "t0", request: { k: 0 } },
+            { id: "RELATED_QUERIES_1", token: "t1", request: { k: 1 } },
+          ],
+        })}`,
+      );
+    const token = new URL(url).searchParams.get("token");
+    return new Response(
+      `)]}',\n${JSON.stringify({
+        default: {
+          rankedList: [
+            { rankedKeyword: [{ query: "top one", value: 100 }] },
+            {
+              rankedKeyword:
+                token === "t0"
+                  ? [
+                      {
+                        query: "gta 6 filter",
+                        value: 500,
+                        formattedValue: "+500%",
+                      },
+                      {
+                        query: "huss huss meme",
+                        value: 3200,
+                        formattedValue: "Breakout",
+                      },
+                    ]
+                  : [],
+            },
+          ],
+        },
+      })}`,
+    );
+  }) as typeof globalThis.fetch;
+  const t = createDirectTrends({
+    fetch: fake,
+    sleep: async () => {},
+    minGapMs: 0,
+  });
+  const r = await t.rising(["filter", "meme"]);
+  expect(r.get("filter")).toEqual([
+    { query: "gta 6 filter", value: 500 },
+    { query: "huss huss meme", value: 5000 },
+  ]);
+  expect(r.get("meme")).toEqual([]);
+  // One explore call for both roots, then one widget call each.
+  expect(urls.filter((u) => u.includes("/api/explore"))).toHaveLength(1);
+  expect(urls.filter((u) => u.includes("relatedsearches"))).toHaveLength(2);
+});

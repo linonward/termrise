@@ -1339,3 +1339,64 @@ it("hangs never-measured variants under their main word (S96)", async () => {
   ]);
   expect(variant.id).toBeDefined();
 });
+
+it("finds rising queries through Google directly and goes one level down from breakouts (S97)", async () => {
+  const provider = stub();
+  const paidCalls: string[] = [];
+  const paidRising = provider.risingQueries!;
+  provider.risingQueries = async (root, market) => {
+    paidCalls.push(root);
+    return paidRising(root, market);
+  };
+  const asked: string[][] = [];
+  const w = createNewWords({
+    database: db,
+    provider,
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    freeTrends: {
+      available: () => true,
+      compare: async () => [],
+      rising: async (roots: string[]) => {
+        asked.push(roots);
+        return new Map(
+          roots.map((r) => [
+            r,
+            r === "filter"
+              ? [
+                  { query: "gta 6 filter", value: 500 },
+                  { query: "huss huss meme filter", value: 5000 },
+                ]
+              : r === "huss huss meme filter"
+                ? [{ query: "huss huss meme filter free", value: 300 }]
+                : [],
+          ]),
+        );
+      },
+    },
+    freeRootsPerDay: 2,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["filter", "meme"],
+    screensPerDay: 0,
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ freeRising: 1, drilled: 1 });
+  expect(asked).toEqual([["filter", "meme"], ["huss huss meme filter"]]);
+  expect(paidCalls).toEqual([]);
+  const phrases = (await db.select().from(newWords))
+    .map((r) => r.phrase)
+    .sort();
+  expect(phrases).toEqual([
+    "gta 6 filter",
+    "huss huss meme filter",
+    "huss huss meme filter free",
+  ]);
+});
