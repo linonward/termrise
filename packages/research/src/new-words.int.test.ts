@@ -1221,3 +1221,49 @@ it("skips a word whose class turns out not to be built for, even on a recheck (S
     category: "entertainment",
   });
 });
+
+it("skips a word that looks new on 90 days but is old on five years (S95)", async () => {
+  const provider = stub();
+  const paidCompare = provider.trendCompare!;
+  const old = Array.from({ length: 261 }, (_, i) => ({
+    at: new Date(Date.UTC(2021, 10, 21) + i * 7 * 86_400_000).toISOString(),
+    values: [45],
+  }));
+  const w = createNewWords({
+    database: db,
+    provider,
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    freeTrends: {
+      available: () => true,
+      compare: async (phrases: string[], time?: string) =>
+        time === "today 5-y"
+          ? old
+          : (
+              await paidCompare(
+                phrases,
+                { locationCode: 2840, languageCode: "en" },
+                "past_90_days",
+              )
+            ).value,
+    },
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const [word] = await db
+    .select()
+    .from(newWords)
+    .where(eq(newWords.phrase, "ai impacts theoretical computer science"));
+  expect(word.history).toMatchObject({ kind: "old", mean: 45 });
+  expect(word.verdict).toBe("skip");
+  expect(word.reasons).toContainEqual({ code: "old_word", value: 45 });
+});
