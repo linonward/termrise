@@ -90,6 +90,8 @@ export const newWords = pgTable(
     /** The top 20 and the page-one sites registered within NEW_SITE_DAYS. */
     serp: jsonb(),
     newSites: jsonb(),
+    /** Five years on Google: new, seasonal, old or unclear (new-word-history.ts, S95). */
+    history: jsonb(),
     /** The automatic gates of the vet-keyword method (new-word-rules.ts Gates, S85). */
     gates: jsonb(),
     verdict: text({ enum: NEW_WORD_VERDICTS }),

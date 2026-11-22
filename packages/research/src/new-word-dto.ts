@@ -1,6 +1,7 @@
 // Public shapes of new words (docs/architecture/api.md).
 import type { newWordRoots } from "@repo/db/schema";
 
+import type { History } from "./new-word-history";
 import type { StoredEvidence } from "./new-word-origin";
 import type { Gates } from "./new-word-rules";
 import type { NewWord } from "./new-words";
@@ -49,6 +50,7 @@ export function toNewWordDto(row: {
     newSites: (w.newSites ?? null) as
       { domain: string; registeredOn: string }[] | null,
     gates: (w.gates ?? null) as Gates | null,
+    history: (w.history ?? null) as History | null,
     verdict: w.verdict,
     buildAs: w.buildAs,
     reasons: w.reasons,

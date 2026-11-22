@@ -54,6 +54,7 @@ import {
   type NewWordAnalyst,
   type NewWordClassifier,
 } from "./new-word-analyst";
+import { historyFacts } from "./new-word-history";
 import {
   markEvidence,
   newWordOriginSchema,
@@ -920,6 +921,21 @@ export function createNewWords(deps: {
     return verdict?.verdict ?? null;
   }
 
+  /** The word alone over five years, weekly, from Google directly; null when it refuses. */
+  async function historyOf(phrase: string) {
+    const free = deps.freeTrends;
+    if (!free?.available()) return null;
+    try {
+      const points = await free.compare([phrase], "today 5-y");
+      return historyFacts(
+        points.map((p) => ({ at: p.at, value: p.values[0] ?? 0 })),
+      );
+    } catch (error) {
+      logger.warn("newwords.history_failed", { error });
+      return null;
+    }
+  }
+
   // Step 2, the deep check of a word that passed the screen: the top 20, its search
   // volume, new sites on page one and the explanation. Cached for days, so a recheck of
   // the same word costs little.
@@ -968,22 +984,52 @@ export function createNewWords(deps: {
     const analysis = word.about
       ? null
       : await analyse(round, word, serp, gated.buildAs);
-    // The explanation can see what a bare name is (S94: "currents", a band, had passed
-    // the screen as a tool). A class not built for makes it a skip, now or on a recheck.
-    const category = analysis?.category ?? word.category;
-    const verdict =
-      category &&
-      gated.verdict !== "skip" &&
-      !(BUILDABLE_CATEGORIES as readonly string[]).includes(category)
+    // Five years on Google (S95), free: an old word lifted again is not a new word; a
+    // yearly return keeps its verdict with the month it comes back in.
+    const history = await historyOf(word.phrase);
+    const dated =
+      history?.kind === "old" && gated.verdict !== "skip"
         ? {
             verdict: "skip" as const,
             buildAs: null,
             reasons: [
               ...gated.reasons,
+              { code: "old_word" as const, value: Math.round(history.mean) },
+            ],
+          }
+        : history?.kind === "seasonal"
+          ? {
+              ...gated,
+              reasons: [
+                ...gated.reasons,
+                {
+                  code: "seasonal" as const,
+                  value: history.peakMonth ?? undefined,
+                },
+              ],
+            }
+          : history?.kind === "new"
+            ? {
+                ...gated,
+                reasons: [...gated.reasons, { code: "pure_new" as const }],
+              }
+            : gated;
+    // The explanation can see what a bare name is (S94: "currents", a band, had passed
+    // the screen as a tool). A class not built for makes it a skip, now or on a recheck.
+    const category = analysis?.category ?? word.category;
+    const verdict =
+      category &&
+      dated.verdict !== "skip" &&
+      !(BUILDABLE_CATEGORIES as readonly string[]).includes(category)
+        ? {
+            verdict: "skip" as const,
+            buildAs: null,
+            reasons: [
+              ...dated.reasons,
               { code: "category" as const, category },
             ],
           }
-        : gated;
+        : dated;
     const tails =
       verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     await database
@@ -998,6 +1044,7 @@ export function createNewWords(deps: {
         })),
         ...(newSites && { newSites }),
         ...(gates && { gates }),
+        ...(history && { history }),
         ...(tails && { tails }),
         verdict: verdict.verdict,
         verdictAt: verdictSince(verdict.verdict, now()),
