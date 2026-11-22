@@ -5,6 +5,8 @@ import { expect, it } from "vitest";
 import {
   keepDomain,
   phraseOfDomain,
+  pricesIn,
+  pricingOf,
   probeDomain,
   unzipOne,
 } from "./new-domains";
@@ -88,4 +90,39 @@ it("tells a live page with pricing from a parked one and a silent one", async ()
       )
     ).status,
   ).toBe("unresolved");
+});
+
+it("reads real prices and a pricing page, not stray numbers (S99)", async () => {
+  expect(pricesIn("Pro $9.90 · Team $29/mo · $49.99/month")).toEqual([
+    "$9.90",
+    "$29/mo",
+    "$49.99/month",
+  ]);
+  expect(
+    pricesIn("<p>Save $2 today</p><script>var p='$5.00'</script>"),
+  ).toEqual([]);
+  const site = (pages: Record<string, string>) =>
+    (async (input: string | URL | Request) => {
+      const html = pages[String(input)];
+      return html === undefined
+        ? new Response("", { status: 404 })
+        : new Response(html);
+    }) as typeof fetch;
+  expect(
+    await pricingOf(
+      site({
+        "https://a.com": '<a href="/pricing">Pricing</a>',
+        "https://a.com/pricing": "<p>Starter $4.99</p><p>Pro $19/mo</p>",
+      }),
+      "a.com",
+    ),
+  ).toEqual({ domain: "a.com", hasPricing: true, prices: ["$4.99", "$19/mo"] });
+  expect(
+    await pricingOf(site({ "https://b.com": "<p>Free forever</p>" }), "b.com"),
+  ).toEqual({
+    domain: "b.com",
+    hasPricing: false,
+    prices: [],
+  });
+  expect(await pricingOf(site({}), "c.com")).toBeNull();
 });
