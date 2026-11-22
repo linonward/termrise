@@ -42,6 +42,9 @@ test("a new word shows its estimated searches and automatic gates", async ({
           { domain: "gatesword.net", registeredOn: null, free: true },
         ],
         knockouts: ["window_closed"],
+        pricing: [
+          { domain: "newsite.example", hasPricing: true, prices: ["$9.90/mo"] },
+        ],
       },
       history: {
         kind: "seasonal",
@@ -66,6 +69,7 @@ test("a new word shows its estimated searches and automatic gates", async ({
   await expect(gates).toContainText("gatesword.com 已注册（2026-11-15）");
   await expect(gates).toContainText("gatesword.net 未注册");
   await expect(gates).toContainText("窗口已关");
+  await expect(gates).toContainText("newsite.example 收费（$9.90/mo）");
   await expect(page.getByText("热度已从顶点回落 62%").first()).toBeVisible();
   // Five years on Google (S95).
   await expect(page.getByTestId("word-history")).toContainText(

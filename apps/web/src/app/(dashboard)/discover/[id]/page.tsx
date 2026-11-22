@@ -343,6 +343,23 @@ export default async function NewWordPage({
                         .join("；") || "—",
                     ],
                     [
+                      t("gatePricing"),
+                      w.gates.pricing === undefined
+                        ? t("gatePricingUnchecked")
+                        : w.gates.pricing.length === 0
+                          ? t("gateNone")
+                          : w.gates.pricing
+                              .map((p) =>
+                                p.hasPricing
+                                  ? t("pricingYes", {
+                                      domain: p.domain,
+                                      prices: p.prices.join("、") || "—",
+                                    })
+                                  : t("pricingNo", { domain: p.domain }),
+                              )
+                              .join("；"),
+                    ],
+                    [
                       t("gateKnockouts"),
                       w.gates.knockouts.length
                         ? w.gates.knockouts

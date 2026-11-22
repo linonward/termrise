@@ -95,6 +95,7 @@ async function main() {
     originAnalyst: createNewWordOriginAnalyst(env),
     webOrigin: createWebOrigin(env),
     rdap: createRdapClient(),
+    pageFetch: fetch,
     // Google Trends directly for the screen (S86), one client so its cool-down holds.
     freeTrends:
       env.NEW_WORDS_FREE_TRENDS === "1" && env.KEYWORD_PROVIDER === "dataforseo"

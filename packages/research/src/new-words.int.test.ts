@@ -1400,3 +1400,36 @@ it("finds rising queries through Google directly and goes one level down from br
     "huss huss meme filter free",
   ]);
 });
+
+it("reads whether page one's new sites charge (S99)", async () => {
+  const pages = (async (input: string | URL | Request) =>
+    String(input) === "https://site1.com"
+      ? new Response('<a href="/pricing">Pricing</a><p>Pro $9.90/mo</p>')
+      : new Response("", { status: 404 })) as typeof fetch;
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    pageFetch: pages,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: ["ai", "game"],
+    checksPerDay: 10,
+    now,
+  });
+  await w.scheduleDaily(0);
+  await w.run((await w.claim())!);
+  const [word] = await db
+    .select()
+    .from(newWords)
+    .where(eq(newWords.phrase, "ai impacts theoretical computer science"));
+  // site1.com is the one new site on page one (the fake registry says so).
+  expect((word.gates as { pricing?: unknown }).pricing).toEqual([
+    { domain: "site1.com", hasPricing: true, prices: ["$9.90/mo"] },
+  ]);
+});

@@ -149,12 +149,62 @@ export async function probeDomain(fetcher: typeof fetch, domain: string) {
       /<title[^>]*>([^<]{1,200})<\/title>/i.exec(html)?.[1]?.trim() ?? null;
     if (PARKED.test(`${title ?? ""} ${html.slice(0, 20_000)}`))
       return { status: "parked" as const, title, hasPricing: null };
+    // The same signs as pricingOf (S99): a pricing page's path, or a real price.
     const hasPricing =
-      /href=["'][^"']*(pricing|plans|price|upgrade)[^"']*["']/i.test(html) ||
-      /[$€£]\s?\d+(\.\d{2})?\s*(\/\s?(mo|month|year)|per month)/i.test(html);
+      /href=["'][^"'?#]*\/(?:pricing|plans|price|upgrade)\/?["']/i.test(html) ||
+      pricesIn(html).length > 0;
     return { status: "live" as const, title, hasPricing };
   } catch {
     return { status: "unresolved" as const, title: null, hasPricing: null };
+  }
+}
+
+/** Prices on a page: "$9.90/mo", "€29", "$2.99" (at most four, once each). */
+export function pricesIn(html: string) {
+  // A price with cents or a period: "$9.90", "$49/mo". Bare "$2" is too often a number
+  // in an article or a script to count.
+  const text = html.replace(
+    /<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi,
+    " ",
+  );
+  const found = text.match(
+    /[$€£]\s?\d{1,3}(?:[.,]\d{2}(?:\s*\/\s*(?:month|mo|year|yr|week))?|\s*\/\s*(?:month|mo|year|yr|week))/gi,
+  );
+  return [...new Set((found ?? []).map((p) => p.replace(/\s+/g, "")))].slice(
+    0,
+    4,
+  );
+}
+
+/**
+ * Whether a site charges (S99): its home page links to pricing or plans, or shows prices;
+ * a linked pricing page is read too. Null when the site does not answer.
+ */
+export async function pricingOf(fetcher: typeof fetch, domain: string) {
+  const read = async (url: string) => {
+    const res = await fetcher(url, {
+      headers: { "user-agent": UA },
+      redirect: "follow",
+      signal: AbortSignal.timeout(8_000),
+    });
+    return res.ok ? (await res.text()).slice(0, 300_000) : null;
+  };
+  try {
+    const home = await read(`https://${domain}`);
+    if (home === null) return null;
+    const link = /href=["']([^"']*(?:pricing|plans)[^"']*)["']/i.exec(
+      home,
+    )?.[1];
+    let prices = pricesIn(home);
+    if (link && prices.length === 0) {
+      const page = await read(
+        new URL(link, `https://${domain}`).toString(),
+      ).catch(() => null);
+      if (page) prices = pricesIn(page);
+    }
+    return { domain, hasPricing: Boolean(link) || prices.length > 0, prices };
+  } catch {
+    return null;
   }
 }
 
