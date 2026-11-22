@@ -54,7 +54,9 @@ export type VerdictReason = {
     // S95, five years on Google (new-word-history.ts):
     | "old_word"
     | "seasonal"
-    | "pure_new";
+    | "pure_new"
+    // S100: a model's version ("veo 3.1"): official pages and big sites take it.
+    | "model_version";
   /** For "category": the class that is not built for (news, entertainment...). */
   category?: string;
   value?: number;
@@ -532,4 +534,29 @@ export function applyGates(
       reasons: [...v.reasons, { code: "clustered", value: gates.top30Under24 }],
     };
   return v;
+}
+
+/**
+ * A model's version (S100): "veo 3.1", "wan 2.7", "krea 3", "qwen3.8", "gpt-5.5". The
+ * searches for a release go to the maker and big sites; a new site does not win them.
+ */
+export function isModelVersion(phrase: string) {
+  return /(^|\s)(v?\d+(\.\d+)+|[a-z]+-?\d+(\.\d+)*[a-z]?|\d)$/.test(
+    phrase.trim().toLowerCase(),
+  );
+}
+
+/** An AI model's version is at most an inner page, never a new site (S100). */
+export function capModelVersion(
+  v: { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] },
+  phrase: string,
+  category: string | null,
+): { verdict: Verdict; buildAs: BuildAs | null; reasons: VerdictReason[] } {
+  if (category !== "ai" || v.buildAs !== "new_site" || !isModelVersion(phrase))
+    return v;
+  return {
+    verdict: "try",
+    buildAs: "inner_page",
+    reasons: [...v.reasons, { code: "model_version" }],
+  };
 }

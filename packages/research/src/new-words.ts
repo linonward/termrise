@@ -72,6 +72,7 @@ import {
   NEW_WORD_RULES,
   newWordVerdict,
   applyGates,
+  capModelVersion,
   exactDomainsOf,
   gateFacts,
   officialPages,
@@ -1160,7 +1161,7 @@ export function createNewWords(deps: {
     // The explanation can see what a bare name is (S94: "currents", a band, had passed
     // the screen as a tool). A class not built for makes it a skip, now or on a recheck.
     const category = analysis?.category ?? word.category;
-    const verdict =
+    const classed =
       category &&
       dated.verdict !== "skip" &&
       !(BUILDABLE_CATEGORIES as readonly string[]).includes(category)
@@ -1173,6 +1174,7 @@ export function createNewWords(deps: {
             ],
           }
         : dated;
+    const verdict = capModelVersion(classed, word.phrase, category);
     const tails =
       verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     await database
