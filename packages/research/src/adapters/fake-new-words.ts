@@ -13,7 +13,11 @@ export function createFakeNewWordAnalyst(): NewWordAnalyst {
     async analyze({ phrase, roots, buildAs }) {
       return {
         value: {
-          category: roots.includes("ai") ? "ai" : "other",
+          category: roots.includes("ai")
+            ? "ai"
+            : roots.includes("game")
+              ? "game"
+              : "other",
           about: `测试数据：${phrase}`,
           userWants: `测试数据：搜索 ${phrase} 的人想要的东西`,
           plan:
