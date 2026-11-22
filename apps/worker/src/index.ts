@@ -102,6 +102,7 @@ async function main() {
     budget,
     roots: env.NEW_WORD_ROOTS,
     rootsPerDay: env.NEW_WORD_ROOTS_PER_DAY,
+    freeRootsPerDay: env.NEW_WORD_FREE_ROOTS_PER_DAY,
     // Watched sites' new pages join the free lists (S83); a scan with no sites is a no-op.
     nameSources: [
       ...createNameSources(env),

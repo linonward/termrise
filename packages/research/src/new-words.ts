@@ -34,7 +34,7 @@ import { logger } from "@repo/observability/logger";
 
 import type { WebOriginSearch } from "./adapters/claude-web-origin";
 import type { Autocomplete } from "./adapters/google-autocomplete";
-import type { DirectTrends } from "./adapters/google-trends-direct";
+import { BREAKOUT, type DirectTrends } from "./adapters/google-trends-direct";
 import type { NameItem, NameSource } from "./adapters/name-sources";
 import type { OriginEvidence, OriginSource } from "./adapters/origin-sources";
 import type { DomainAge, RdapClient } from "./adapters/rdap";
@@ -197,9 +197,68 @@ export const DEFAULT_ROOTS = [
   "pdf",
   "svg",
   "qr code",
+  // Tool suffixes from a public write-up of a daily new-word pipeline (S97, 2026-11-22).
+  "processor",
+  "designer",
+  "compiler",
+  "analyzer",
+  "evaluator",
+  "sender",
+  "receiver",
+  "interpreter",
+  "uploader",
+  "sample",
+  "format",
+  "builder",
+  "scheme",
+  "pattern",
+  "detector",
+  "scraper",
+  "manager",
+  "example",
+  "explorer",
+  "dashboard",
+  "recorder",
+  "optimizer",
+  "scheduler",
+  "monitor",
+  "notifier",
+  "verifier",
+  "assistant",
+  "constructor",
+  "comparator",
+  "navigator",
+  "syncer",
+  "connector",
+  "cataloger",
+  "responder",
+  "creator",
+  "guide",
+  "enhancer",
+  "remover",
+  "resizer",
+  "cropper",
+  "subtitler",
+  "merger",
+  "splitter",
+  "transcriber",
+  "vectorizer",
+  "colorizer",
+  "prompts",
+  "mockup",
+  "avatar",
+  "pfp",
+  "thumbnail",
+  "banner",
+  "hook",
+  "caption",
 ];
 /** Roots scanned per round by default: $0.011 each. */
 export const DEFAULT_ROOTS_PER_DAY = 15;
+/** Roots a day scanned through Google directly (S97): six requests of five, ~5 minutes. */
+export const DEFAULT_FREE_ROOTS_PER_DAY = 30;
+/** Breakouts taken one level down a day. */
+export const DRILL_SEEDS = 5;
 /** Names taken from each name source per round. */
 export const NAMES_PER_SOURCE = 20;
 /** Rising queries below this growth (percent) are noise. */
@@ -305,6 +364,9 @@ export type NewWordsReport = {
   dropped?: number;
   /** Names left out as released more than MAX_NAME_AGE_DAYS ago. */
   tooOld?: number;
+  /** Requests of the free rising scan, and breakouts taken one level down (S97). */
+  freeRising?: number;
+  drilled?: number;
   /** Never-measured words hung under their main word as variants (S96). */
   merged?: number;
   /** Decisions sent back to the screen for being stale, and decisions rechecked (S88). */
@@ -357,7 +419,10 @@ export function createNewWords(deps: {
   webOrigin?: WebOriginSearch;
   rdap?: RdapClient;
   /** Google Trends directly, free, tried before the paid comparison (S86). */
-  freeTrends?: Pick<DirectTrends, "available" | "compare">;
+  freeTrends?: Pick<DirectTrends, "available" | "compare"> &
+    Partial<Pick<DirectTrends, "rising">>;
+  /** Roots a day scanned free through Google directly (S97). */
+  freeRootsPerDay?: number;
   /** Pause between RDAP lookups; tests pass 0. */
   rdapPauseMs?: number;
   budget?: Budget;
@@ -597,7 +662,9 @@ export function createNewWords(deps: {
   }
 
   /** The roots scanned longest ago (never scanned first), in list order on a tie. */
-  async function rootsForToday() {
+  async function rootsForToday(
+    count = deps.rootsPerDay ?? DEFAULT_ROOTS_PER_DAY,
+  ) {
     const scans = new Map(
       (await database.select().from(newWordRootScans)).map((r) => [
         r.root,
@@ -607,36 +674,93 @@ export function createNewWords(deps: {
     return roots
       .map((root, i) => ({ root, i, at: scans.get(root) ?? -1 }))
       .sort((a, b) => a.at - b.at || a.i - b.i)
-      .slice(0, deps.rootsPerDay ?? DEFAULT_ROOTS_PER_DAY)
+      .slice(0, count)
       .map((r) => r.root);
+  }
+
+  /** Keeps a root's rising queries as new words and notes when the root was scanned. */
+  async function keepRising(
+    root: string,
+    queries: { query: string; value: number }[],
+    report: NewWordsReport,
+    scanned: boolean,
+  ) {
+    const kept = queries.filter((q) => q.value >= MIN_GROWTH);
+    report.roots.push({ root, rising: kept.length });
+    for (const q of kept) {
+      const phrase = normalizePhrase(q.query);
+      if (!phrase || phrase.length > MAX_PHRASE || phrase === root) continue;
+      await record(phrase, root, Math.round(q.value), report, {
+        priority: risingHeat(q.value) + RECENT,
+      });
+    }
+    if (scanned)
+      await database
+        .insert(newWordRootScans)
+        .values({ root, scannedAt: now(), rising: kept.length })
+        .onConflictDoUpdate({
+          target: newWordRootScans.root,
+          set: { scannedAt: now(), rising: kept.length },
+        });
+    return kept;
+  }
+
+  /**
+   * Rising queries from Google Trends directly, free (S97): the roots scanned longest
+   * ago, five a request, then one level down from the breakouts found (a breakout's own
+   * rising queries are its long tails nobody has built for yet). A refusal stops it.
+   */
+  async function freeRising(report: NewWordsReport) {
+    const free = deps.freeTrends;
+    if (!free?.rising || !free.available()) return false;
+    const today = await rootsForToday(
+      deps.freeRootsPerDay ?? DEFAULT_FREE_ROOTS_PER_DAY,
+    );
+    const breakouts: { query: string; value: number }[] = [];
+    try {
+      for (let i = 0; i < today.length; i += 5) {
+        const found = await free.rising(today.slice(i, i + 5));
+        report.freeRising = (report.freeRising ?? 0) + 1;
+        for (const [root, queries] of found) {
+          const kept = await keepRising(root, queries, report, true);
+          breakouts.push(...kept.filter((q) => q.value >= BREAKOUT));
+        }
+      }
+      const seeds = [
+        ...new Map(
+          breakouts
+            .sort((a, b) => b.value - a.value)
+            .map((q) => [normalizePhrase(q.query), q]),
+        ).keys(),
+      ]
+        .filter((p) => p && p.length <= MAX_PHRASE)
+        .slice(0, DRILL_SEEDS);
+      for (let i = 0; i < seeds.length; i += 5) {
+        const found = await free.rising(seeds.slice(i, i + 5));
+        report.drilled = (report.drilled ?? 0) + found.size;
+        for (const [seed, queries] of found)
+          await keepRising(seed, queries, report, false);
+      }
+    } catch (error) {
+      logger.warn("newwords.free_rising_failed", { error });
+      report.sourceFailures = [...(report.sourceFailures ?? []), "free_rising"];
+    }
+    return true;
   }
 
   async function discover(round: PoolRound, report: NewWordsReport) {
     const provider = providerOf();
     const rising = provider.risingQueries?.bind(provider);
-    // A scan uses free sources only; the paid rising queries run once a day.
-    if (rising && round.source !== SCAN_SOURCE)
+    // Once a day, not on scans: the rising queries, from Google directly when it answers
+    // (S97, free), else the paid ones if any roots a day are set.
+    const freeDone =
+      round.source !== SCAN_SOURCE ? await freeRising(report) : false;
+    if (rising && round.source !== SCAN_SOURCE && !freeDone)
       for (const root of await rootsForToday()) {
         const queries = await paid(round, "rising", root, () =>
           rising(root, US),
         );
-        const kept = queries.filter((q) => q.value >= MIN_GROWTH);
-        report.roots.push({ root, rising: kept.length });
-        for (const q of kept) {
-          const phrase = normalizePhrase(q.query);
-          if (!phrase || phrase.length > MAX_PHRASE || phrase === root)
-            continue;
-          await record(phrase, root, Math.round(q.value), report, {
-            priority: risingHeat(q.value) + RECENT,
-          });
-        }
-        await database
-          .insert(newWordRootScans)
-          .values({ root, scannedAt: now(), rising: kept.length })
-          .onConflictDoUpdate({
-            target: newWordRootScans.root,
-            set: { scannedAt: now(), rising: kept.length },
-          });
+        await keepRising(root, queries, report, true);
       }
     // Names from free lists: no growth figure; the screen measures them like the rest.
     for (const source of deps.nameSources ?? []) {
