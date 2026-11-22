@@ -84,6 +84,8 @@ const schema = z
       .min(0)
       .max(100)
       .default(30),
+    // 1 (default): newly registered domains as a name source (S98, WhoisDS, free).
+    NEW_DOMAINS_ENABLED: z.enum(["0", "1"]).default("1"),
     // 1 (default): the screen asks Google Trends directly first, DataForSEO when refused.
     NEW_WORDS_FREE_TRENDS: z.enum(["0", "1"]).default("1"),
     NEW_WORDS_SCREENS: z.coerce.number().int().min(1).max(400).default(40),
