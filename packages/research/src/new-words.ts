@@ -963,13 +963,29 @@ export function createNewWords(deps: {
       isNew: facts.isNew,
       spike: facts.spike,
     });
-    const verdict = gates ? applyGates(base, gates) : base;
+    const gated = gates ? applyGates(base, gates) : base;
     const newSites = ages ? newSitesOf(serp, ages) : null;
-    const tails =
-      verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     const analysis = word.about
       ? null
-      : await analyse(round, word, serp, verdict.buildAs);
+      : await analyse(round, word, serp, gated.buildAs);
+    // The explanation can see what a bare name is (S94: "currents", a band, had passed
+    // the screen as a tool). A class not built for makes it a skip, now or on a recheck.
+    const category = analysis?.category ?? word.category;
+    const verdict =
+      category &&
+      gated.verdict !== "skip" &&
+      !(BUILDABLE_CATEGORIES as readonly string[]).includes(category)
+        ? {
+            verdict: "skip" as const,
+            buildAs: null,
+            reasons: [
+              ...gated.reasons,
+              { code: "category" as const, category },
+            ],
+          }
+        : gated;
+    const tails =
+      verdict.buildAs === "long_tail" ? await longTails(word.phrase) : null;
     await database
       .update(newWords)
       .set({

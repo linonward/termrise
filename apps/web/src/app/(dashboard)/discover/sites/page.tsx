@@ -1,4 +1,5 @@
 import { Globe, SearchX } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import type { LaunchSiteDto } from "@repo/research/launch-site-dto";
@@ -37,6 +38,7 @@ export default async function LaunchSitesPage({
   const motive = MOTIVES.find((m) => m === params.motive);
   const q = typeof params.q === "string" ? params.q : "";
   const hidden = params.hidden === "1";
+  const page = Math.max(1, Number(params.page) || 1);
   // S90: by the maker's post (default), by when Termrise found it, or by registration.
   const sort = (["posted", "seen", "registered"] as const).find(
     (s) => s === params.sort,
@@ -47,6 +49,7 @@ export default async function LaunchSitesPage({
     ...(q ? { q } : {}),
     ...(hidden ? { hidden: "1" } : {}),
     ...(sort ? { sort } : {}),
+    ...(page > 1 ? { page: String(page) } : {}),
   });
   const data = await apiGet<{
     items: LaunchSiteDto[];
@@ -55,9 +58,11 @@ export default async function LaunchSitesPage({
     lastRound: { status: string; createdAt: string } | null;
   }>(`/api/pool/launch-sites?${query}`);
   const all = Object.values(data.counts).reduce((a, b) => a + b, 0);
-  const href = (next: { motive?: Motive }) => {
+  const pages = Math.max(1, Math.ceil(data.total / 50));
+  const href = (next: { motive?: Motive; page?: number }) => {
     const p = new URLSearchParams({
       ...(next.motive ? { motive: next.motive } : {}),
+      ...(next.page && next.page > 1 ? { page: String(next.page) } : {}),
       ...(q ? { q } : {}),
       ...(hidden ? { hidden: "1" } : {}),
       ...(sort ? { sort } : {}),
@@ -241,6 +246,27 @@ export default async function LaunchSitesPage({
             </li>
           ))}
         </ul>
+      )}
+      {/* 50 a page (LAUNCH_PAGE_SIZE); before S94 only the newest 50 were reachable. */}
+      {pages > 1 && (
+        <nav
+          aria-label={t("sitesPages")}
+          className="flex items-center gap-4 text-[15px]"
+        >
+          {page > 1 && (
+            <Link href={href({ motive, page: page - 1 })}>
+              {t("sitesPrev")}
+            </Link>
+          )}
+          <span className="text-muted-foreground">
+            {t("sitesPageOf", { page, pages })}
+          </span>
+          {page < pages && (
+            <Link href={href({ motive, page: page + 1 })}>
+              {t("sitesNext")}
+            </Link>
+          )}
+        </nav>
       )}
     </main>
   );
