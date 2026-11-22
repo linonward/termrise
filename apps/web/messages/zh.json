@@ -1396,7 +1396,9 @@
       "old": "老词翻红",
       "unclear": "看不出规律"
     },
-    "historyLine": "{kind}：5 年平均 {mean}，有量的周 {nonzero}/{weeks}，第一次有量 {first}"
+    "historyLine": "{kind}：5 年平均 {mean}，有量的周 {nonzero}/{weeks}，第一次有量 {first}",
+    "variantsTitle": "同一需求的其他写法",
+    "variantsNote": "这些写法和本词是同一个需求（空格、词序、通用词或同义后缀不同），不单独测，来源算在本词上。"
   },
   "research": {
     "metaTitle": "研究",

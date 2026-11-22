@@ -15,6 +15,7 @@ import {
   timestamp,
   bigint,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 import { createdAt, inList } from "./columns";
@@ -90,6 +91,13 @@ export const newWords = pgTable(
     /** The top 20 and the page-one sites registered within NEW_SITE_DAYS. */
     serp: jsonb(),
     newSites: jsonb(),
+    /**
+     * The word this one is a variant of (new-word-variants.ts, S96): the same need written
+     * differently. A variant is not measured; it hangs under its main word.
+     */
+    variantOf: uuid().references((): AnyPgColumn => newWords.id, {
+      onDelete: "set null",
+    }),
     /** Five years on Google: new, seasonal, old or unclear (new-word-history.ts, S95). */
     history: jsonb(),
     /** The automatic gates of the vet-keyword method (new-word-rules.ts Gates, S85). */

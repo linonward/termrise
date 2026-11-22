@@ -147,9 +147,12 @@ export const poolRoutes = userRoutes()
     );
   })
   .get("/new-words/:id", async (c) => {
-    const { children, ...row } = await words(c).get(c.req.param("id"));
+    const { children, variants, ...row } = await words(c).get(
+      c.req.param("id"),
+    );
     return c.json({
       ...toNewWordDto(row),
+      variants,
       children: children.map((word) =>
         toNewWordDto({ word, innerCandidates: 0, roots: [] }),
       ),

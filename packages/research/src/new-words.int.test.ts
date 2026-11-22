@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, expect, it } from "vitest";
 
-import { apiUsage, newWords, poolRounds } from "@repo/db/schema";
+import { apiUsage, newWordRoots, newWords, poolRounds } from "@repo/db/schema";
 import { closeTestDb, resetDb, testDb } from "@repo/db/testing/db";
 
 import { createFakeNewWordClassifier } from "./adapters/fake-new-word-classes";
@@ -1266,4 +1266,76 @@ it("skips a word that looks new on 90 days but is old on five years (S95)", asyn
   expect(word.history).toMatchObject({ kind: "old", mean: 45 });
   expect(word.verdict).toBe("skip");
   expect(word.reasons).toContainEqual({ code: "old_word", value: 45 });
+});
+
+it("hangs never-measured variants under their main word (S96)", async () => {
+  const [measured] = await db
+    .insert(newWords)
+    .values({
+      phrase: "gta 6 walkthrough",
+      checkedAt: new Date(clock.getTime() - 86_400_000),
+      nextCheckAt: new Date(clock.getTime() + 86_400_000),
+      ratio: 0.01,
+      verdict: "skip",
+    })
+    .returning();
+  const [variant, top, spaced] = await db
+    .insert(newWords)
+    .values([
+      { phrase: "walkthrough gta 6", priority: 6, nextCheckAt: clock },
+      { phrase: "flying car", priority: 5, nextCheckAt: clock },
+      { phrase: "flyingcar", priority: 3, nextCheckAt: clock },
+    ])
+    .returning();
+  await db.insert(newWordRoots).values({
+    wordId: spaced.id,
+    root: "source:site_watch",
+    seenAt: clock,
+  });
+  const w = createNewWords({
+    database: db,
+    provider: stub(),
+    analyst: createFakeNewWordAnalyst(),
+    rdap,
+    rdapPauseMs: 0,
+    budget: createBudget({
+      database: db,
+      now,
+      dailyNewWordCapMicros: { data: 1_000_000, ai: 100_000 },
+    }),
+    roots: [],
+    rootsPerDay: 0,
+    screensPerDay: 0,
+    checksPerDay: 0,
+    now,
+  });
+  await w.scheduleDaily(0);
+  const done = await w.run((await w.claim())!);
+  expect(done.report).toMatchObject({ merged: 2 });
+  const rows = new Map(
+    (await db.select().from(newWords)).map((r) => [r.phrase, r]),
+  );
+  // The measured one is the main word; between two unmeasured, the higher priority.
+  expect(rows.get("walkthrough gta 6")).toMatchObject({
+    variantOf: measured.id,
+    nextCheckAt: null,
+  });
+  expect(rows.get("flyingcar")).toMatchObject({ variantOf: top.id });
+  expect(rows.get("flying car")!.variantOf).toBeNull();
+  // The variant's source counts for the main word.
+  const roots = await db
+    .select()
+    .from(newWordRoots)
+    .where(eq(newWordRoots.wordId, top.id));
+  expect(roots.map((r) => r.root)).toContain("source:site_watch");
+  // Lists show main words only; the detail lists the variants.
+  const listed = (await w.list({ stage: "screen" })).items.map(
+    (i) => i.word.phrase,
+  );
+  expect(listed).toContain("flying car");
+  expect(listed).not.toContain("flyingcar");
+  expect((await w.get(top.id)).variants.map((v) => v.phrase)).toEqual([
+    "flyingcar",
+  ]);
+  expect(variant.id).toBeDefined();
 });

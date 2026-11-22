@@ -29,7 +29,10 @@ import { WordOrigin } from "@/features/new-words/word-origin";
 import { count, displayUrl, usd } from "@/features/pool/pool-format";
 import { apiGet } from "@/server/api/api";
 
-type Detail = NewWordDto & { children: NewWordDto[] };
+type Detail = NewWordDto & {
+  children: NewWordDto[];
+  variants: { id: string; phrase: string }[];
+};
 
 export async function generateMetadata({
   params,
@@ -360,6 +363,29 @@ export default async function NewWordPage({
               <p className="text-[13px] text-muted-foreground">
                 {t("gatesNote")}
               </p>
+            </div>
+          </section>
+        )}
+        {w.variants.length > 0 && (
+          <section
+            aria-labelledby="variants"
+            className="space-y-3"
+            data-testid="word-variants"
+          >
+            <h3 id="variants" className="text-[15px] font-semibold">
+              {t("variantsTitle")}
+            </h3>
+            <div className={`${card} space-y-2`}>
+              <p className="text-[13px] text-muted-foreground">
+                {t("variantsNote")}
+              </p>
+              <ul className="flex flex-wrap gap-2">
+                {w.variants.map((v) => (
+                  <li key={v.id}>
+                    <Tag>{v.phrase}</Tag>
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
         )}
