@@ -9,6 +9,8 @@ import {
   passesScreen,
   splitComparison,
   applyGates,
+  capModelVersion,
+  isModelVersion,
   gateFacts,
   peakDrop,
 } from "./new-word-rules";
@@ -381,5 +383,37 @@ describe("gates (S85)", () => {
       buildAs: "inner_page",
       reasons: [{ code: "clustered", value: 7 }],
     });
+  });
+});
+
+describe("model versions (S100)", () => {
+  it("knows a model's version", () => {
+    for (const p of [
+      "veo 3.1",
+      "wan 2.7",
+      "krea 3",
+      "qwen3.8",
+      "gpt-5.5",
+      "llama 4",
+    ])
+      expect(isModelVersion(p), p).toBe(true);
+    for (const p of ["goodbye gta 5 ai video", "flux kontext", "ai age filter"])
+      expect(isModelVersion(p), p).toBe(false);
+  });
+
+  it("caps an AI model's version at an inner page", () => {
+    const worth = {
+      verdict: "worth" as const,
+      buildAs: "new_site" as const,
+      reasons: [],
+    };
+    expect(capModelVersion(worth, "veo 3.1", "ai")).toEqual({
+      verdict: "try",
+      buildAs: "inner_page",
+      reasons: [{ code: "model_version" }],
+    });
+    // A game sequel or a word that is not a version keeps its verdict.
+    expect(capModelVersion(worth, "hollow knight 2", "game")).toEqual(worth);
+    expect(capModelVersion(worth, "flux kontext", "ai")).toEqual(worth);
   });
 });
