@@ -77,6 +77,13 @@ const schema = z
     /** Root words scanned per round, the longest unscanned first ($0.011 each). */
     // Paid rising queries per day; 0 since S86: new words come from free sources.
     NEW_WORD_ROOTS_PER_DAY: z.coerce.number().int().min(0).max(200).default(0),
+    // Roots a day scanned free through Google Trends directly (S97); 0 is off.
+    NEW_WORD_FREE_ROOTS_PER_DAY: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(100)
+      .default(30),
     // 1 (default): the screen asks Google Trends directly first, DataForSEO when refused.
     NEW_WORDS_FREE_TRENDS: z.enum(["0", "1"]).default("1"),
     NEW_WORDS_SCREENS: z.coerce.number().int().min(1).max(400).default(40),

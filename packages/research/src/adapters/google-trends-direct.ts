@@ -11,6 +11,8 @@ import type { TrendComparison } from "../keyword-provider";
 export const TRENDS_HOME = "https://trends.google.com/trends/?geo=US";
 const EXPLORE = "https://trends.google.com/trends/api/explore";
 const MULTILINE = "https://trends.google.com/trends/api/widgetdata/multiline";
+const RELATED =
+  "https://trends.google.com/trends/api/widgetdata/relatedsearches";
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36";
 
@@ -30,6 +32,24 @@ const exploreSchema = z.object({
     }),
   ),
 });
+const relatedSchema = z.object({
+  default: z.object({
+    rankedList: z.array(
+      z.object({
+        rankedKeyword: z.array(
+          z.looseObject({
+            query: z.string(),
+            value: z.number(),
+            formattedValue: z.string().optional(),
+          }),
+        ),
+      }),
+    ),
+  }),
+});
+/** Google shows growth over 5000% as "Breakout" (support.google.com/trends/answer/4355000). */
+export const BREAKOUT = 5000;
+
 const multilineSchema = z.object({
   default: z.object({
     timelineData: z.array(
@@ -102,6 +122,62 @@ export function createDirectTrends(
      * DataForSEO's comparison, or weekly over 5 years. The partial current point is left
      * out. Throws TrendsUnavailable.
      */
+    /**
+     * The rising related queries of up to 5 roots, US, past 7 days (S97): one explore call
+     * gives a widget per root, each read with its own call. "Breakout" counts as 5000%.
+     * Throws TrendsUnavailable.
+     */
+    async rising(roots: string[], time = "now 7-d"): Promise<RisingByRoot> {
+      if (now() < offUntil) throw new TrendsUnavailable("cooling down");
+      if (!cookie) await get(TRENDS_HOME);
+      const batch = roots.slice(0, 5);
+      const req = {
+        comparisonItem: batch.map((keyword) => ({ keyword, geo: "US", time })),
+        category: 0,
+        property: "",
+      };
+      const explore = exploreSchema.safeParse(
+        stripPrefix(
+          await get(
+            `${EXPLORE}?hl=en-US&tz=0&req=${encodeURIComponent(JSON.stringify(req))}`,
+          ),
+        ),
+      );
+      if (!explore.success) throw new TrendsUnavailable("unexpected explore");
+      const out: RisingByRoot = new Map();
+      for (const [i, root] of batch.entries()) {
+        const widget = explore.data.widgets.find(
+          (w) => w.id === `RELATED_QUERIES_${i}`,
+        );
+        if (!widget?.token || !widget.request) {
+          out.set(root, []);
+          continue;
+        }
+        const related = relatedSchema.safeParse(
+          stripPrefix(
+            await get(
+              `${RELATED}?hl=en-US&tz=0&req=${encodeURIComponent(JSON.stringify(widget.request))}&token=${encodeURIComponent(widget.token)}`,
+            ),
+          ),
+        );
+        // The second list is "rising"; the first is "top".
+        const list = related.success
+          ? related.data.default.rankedList[1]
+          : null;
+        out.set(
+          root,
+          (list?.rankedKeyword ?? []).map((k) => ({
+            query: k.query,
+            value:
+              k.formattedValue === "Breakout"
+                ? Math.max(BREAKOUT, k.value)
+                : k.value,
+          })),
+        );
+      }
+      return out;
+    },
+
     async compare(
       phrases: string[],
       /** Google's time range: "today 3-m" (90 days, daily) or "today 5-y" (weekly). */
@@ -147,3 +223,4 @@ export function createDirectTrends(
 }
 
 export type DirectTrends = ReturnType<typeof createDirectTrends>;
+export type RisingByRoot = Map<string, { query: string; value: number }[]>;

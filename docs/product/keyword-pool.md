@@ -91,6 +91,7 @@ keyword-lab 的词库用 `DATABASE_URL=<url> pnpm pool:import <keyword-lab 目�
 **新词不走关键词数据那套流程**（S86，维护者 2026-11-21 定）：新词在关键词工具里头几周没有量，判断靠 Trends 曲线、交叉验证和搜索结果，不靠搜索量和 KD。所以：
 
 - **付费的飙升根词默认关掉**（`NEW_WORD_ROOTS_PER_DAY` 默认 0；要开时设成正数）。新词只从免费来源进来：盯站、名字来源、Trending Now、谷歌联想。下面「根词」一段是打开时的做法。
+- **免费的飙升根词**（S97）：每天那一轮（不在 3 小时一次的扫描里）直连 Google Trends 扫最久没扫过的 `NEW_WORD_FREE_ROOTS_PER_DAY` 个根词（默认 30）：一次 explore 请求放 5 个根词，再逐个读它们的「相关查询 → 上升」列表（美国、近 7 天，2026-11-21 实测），Breakout 按 5000% 算；增长 ≥ 200% 的记为新词，和付费那一路一样。然后取这一轮里涨幅最大的最多 5 个 Breakout 词当种子，再读一次它们的上升查询（第二层下钻），记在种子词下面。被 Google 拒绝时停下，本轮报告记 `free_rising`。直连能用时不再调付费的飙升查询。根词表并入一篇公开的新词日更复盘里的工具后缀（processor、designer、upscaler、vectorizer、mockup、pfp、thumbnail、caption 等 54 个），轮一遍约 6 天。
 - **初筛的 Trends 曲线先直连 Google**（`NEW_WORDS_FREE_TRENDS=1`，默认开，`adapters/google-trends-direct.ts`）：先取 trends.google.com 的 cookie，再用 Explore 接口拿时间序列的 token，最后取每日数据（美国、近 90 天，去掉还没过完的当天）。这两个接口没有文档，格式在 2026-11-21 实测确认。每两次请求至少间隔 8 秒；Google 返回 429 或请求失败时，30 分钟内不再直连，这期间的批次改走 DataForSEO（付费，0.011 美元一批）。一轮的报告记下免费和付费各几批（`freeCompares`、`paidCompares`）。
 - **深查不再查 Labs 的搜索量、KD、CPC**（每个词省约 0.012 美元）；量用自动关卡的估算月量（Gates）。深查的 SERP 仍走 DataForSEO：免费抓 Google 搜索结果不稳定，也违反 Google 的条款。
 
