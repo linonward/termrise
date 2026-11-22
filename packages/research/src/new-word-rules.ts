@@ -377,6 +377,8 @@ export type Gates = {
     free: boolean;
   }[];
   knockouts: ("window_closed" | "brands_no_new" | "old_exact_top5")[];
+  /** S99: whether page one's new sites charge, with the prices they show. */
+  pricing?: { domain: string; hasPricing: boolean; prices: string[] }[];
 };
 
 /** The word as a domain label: letters and digits only ("goodbye gta 5" → goodbyegta5). */

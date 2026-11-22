@@ -1399,7 +1399,11 @@
     },
     "historyLine": "{kind}：5 年平均 {mean}，有量的周 {nonzero}/{weeks}，第一次有量 {first}",
     "variantsTitle": "同一需求的其他写法",
-    "variantsNote": "这些写法和本词是同一个需求（空格、词序、通用词或同义后缀不同），不单独测，来源算在本词上。"
+    "variantsNote": "这些写法和本词是同一个需求（空格、词序、通用词或同义后缀不同），不单独测，来源算在本词上。",
+    "gatePricing": "第一页新站收不收费",
+    "gatePricingUnchecked": "没查（第一页没有新站）",
+    "pricingYes": "{domain} 收费（{prices}）",
+    "pricingNo": "{domain} 没看到定价"
   },
   "research": {
     "metaTitle": "研究",

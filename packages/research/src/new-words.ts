@@ -46,6 +46,7 @@ import type {
   Market,
   SerpItem,
 } from "./keyword-provider";
+import { pricingOf } from "./new-domains";
 import {
   BUILDABLE_CATEGORIES,
   CLASSIFY_BATCH,
@@ -271,6 +272,8 @@ export const NEW_WORDS_PAGE_SIZE = 50;
 const SERP_DEPTH = 30;
 /** The rule for dedicated and official pages still reads the top 20. */
 const DEDICATED_DEPTH = 20;
+/** Page one's new sites read for a pricing page, at most (S99). */
+const PRICING_SITES = 5;
 /** RDAP lookups are spaced out: registries drop bursts (seen on rdap.org, 2026-11-19). */
 const RDAP_PAUSE_MS = 250;
 /** Labs for one keyword: $0.012 + $0.00012, reserved with room to spare. */
@@ -423,6 +426,8 @@ export function createNewWords(deps: {
     Partial<Pick<DirectTrends, "rising">>;
   /** Roots a day scanned free through Google directly (S97). */
   freeRootsPerDay?: number;
+  /** Reads page one's new sites for a pricing page (S99); without it, no pricing check. */
+  pageFetch?: typeof fetch;
   /** Pause between RDAP lookups; tests pass 0. */
   rdapPauseMs?: number;
   budget?: Budget;
@@ -1108,6 +1113,17 @@ export function createNewWords(deps: {
     });
     const gated = gates ? applyGates(base, gates) : base;
     const newSites = ages ? newSitesOf(serp, ages) : null;
+    // Do page one's new sites charge? Evidence for the money a word can make (S99).
+    if (gates && newSites?.length && deps.pageFetch) {
+      const fetcher = deps.pageFetch;
+      gates.pricing = (
+        await Promise.all(
+          newSites
+            .slice(0, PRICING_SITES)
+            .map((s) => pricingOf(fetcher, s.domain)),
+        )
+      ).filter((p): p is NonNullable<typeof p> => p !== null);
+    }
     const analysis = word.about
       ? null
       : await analyse(round, word, serp, gated.buildAs);
